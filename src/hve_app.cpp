@@ -4,7 +4,7 @@ namespace hve {
 
 void HveApp::run()
 {
-  while (!hveWindow.shouldClose()) {
+  while (!hveWindow_m.shouldClose()) {
     glfwPollEvents();
   }
 }

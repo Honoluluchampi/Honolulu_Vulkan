@@ -18,16 +18,18 @@ class HveWindow
     HveWindow(const HveWindow &) = delete;
     HveWindow& operator= (const HveWindow &) = delete;
 
-    inline bool shouldClose() { return glfwWindowShouldClose(window); }
+    inline bool shouldClose() { return glfwWindowShouldClose(window_m); }
+
+    void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
       
   private:
     void initWindow();
 
-    const int width;
-    const int height;
+    const int width_m;
+    const int height_m;
 
-    std::string windowName;
-    GLFWwindow *window;
+    std::string windowName_m;
+    GLFWwindow *window_m;
 };
     
 } // namespace hv

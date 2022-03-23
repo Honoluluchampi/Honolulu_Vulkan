@@ -2,6 +2,7 @@
 
 #include <hve_window.hpp>
 #include <hve_pipeline.hpp>
+#include <hve_device.hpp>
 
 namespace hve {
 
@@ -14,8 +15,13 @@ class HveApp
     void run();
     
   private:
-    HveWindow hveWindow{WIDTH, HEIGHT, "Honolulu Vulkan"};
-    HvePipeline hvePipeline{"./spv/vert.spv", "./spv/frag.spv"};
+    HveWindow hveWindow_m{WIDTH, HEIGHT, "Honolulu Vulkan"};
+    HveDevice hveDevice_m{hveWindow_m};
+    HvePipeline hvePipeline_m{
+      hveDevice_m,
+      "./shader/spv/vert.spv", 
+      "./shader/spv/frag.spv",
+      HvePipeline::defaultPipelineConfigInfo(WIDTH, HEIGHT)};
 };
 
 } // namespace hv
