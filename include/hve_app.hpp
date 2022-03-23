@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hve_window.hpp>
+#include <hve_pipeline.hpp>
 
 namespace hve {
 
@@ -14,6 +15,7 @@ class HveApp
     
   private:
     HveWindow hveWindow{WIDTH, HEIGHT, "Honolulu Vulkan"};
+    HvePipeline hvePipeline{"./spv/vert.spv", "./spv/frag.spv"};
 };
 
 } // namespace hv
