@@ -9,8 +9,35 @@
 namespace hve
 {
 
-  struct PipelineConfigInfo
-  {
+  struct PipelineConfigInfo {
+    // for pipeline config info
+    void createInputAssemblyInfo();
+    // viewport and scissor
+    void createViewportInfo(uint32_t width, uint32_t height);
+    // rasterizer
+    void createRasterizationInfo();
+    // multisampling used for anti-aliasing
+    void createMultisampleState();
+    // color blending for alpha blending
+    void createColorBlendAttachment();
+    void createColorBlendState();
+    void createDepthStencilState();
+    // dynamic state
+    void createDynamicState();
+
+    // member variables
+    VkViewport viewport_m;
+    VkRect2D scissor_m;
+    VkPipelineViewportStateCreateInfo viewportInfo_m;
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo_m;
+    VkPipelineRasterizationStateCreateInfo rasterizationInfo_m;
+    VkPipelineMultisampleStateCreateInfo multisampleInfo_m;
+    VkPipelineColorBlendAttachmentState colorBlendAttachment_m;
+    VkPipelineColorBlendStateCreateInfo colorBlendInfo_m;
+    VkPipelineDepthStencilStateCreateInfo depthStencilInfo_m;
+    VkPipelineLayout pipelineLayout_m = nullptr;
+    VkRenderPass renderPass_m = nullptr;
+    uint32_t subpass_m = 0;
   };
 
   class HvePipeline
