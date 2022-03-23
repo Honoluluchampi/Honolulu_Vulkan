@@ -9,39 +9,39 @@
 namespace hve
 {
 
-  struct PipelineConfigInfo {
-    // for pipeline config info
-    void createInputAssemblyInfo();
-    // viewport and scissor
-    void createViewportInfo(uint32_t width, uint32_t height);
-    // rasterizer
-    void createRasterizationInfo();
-    // multisampling used for anti-aliasing
-    void createMultisampleState();
-    // color blending for alpha blending
-    void createColorBlendAttachment();
-    void createColorBlendState();
-    void createDepthStencilState();
-    // dynamic state
-    void createDynamicState();
+struct PipelineConfigInfo {
+  // for pipeline config info
+  void createInputAssemblyInfo();
+  // viewport and scissor
+  void createViewportInfo(uint32_t width, uint32_t height);
+  // rasterizer
+  void createRasterizationInfo();
+  // multisampling used for anti-aliasing
+  void createMultisampleState();
+  // color blending for alpha blending
+  void createColorBlendAttachment();
+  void createColorBlendState();
+  void createDepthStencilState();
+  // dynamic state
+  void createDynamicState();
 
-    // member variables
-    VkViewport viewport_m;
-    VkRect2D scissor_m;
-    VkPipelineViewportStateCreateInfo viewportInfo_m;
-    VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo_m;
-    VkPipelineRasterizationStateCreateInfo rasterizationInfo_m;
-    VkPipelineMultisampleStateCreateInfo multisampleInfo_m;
-    VkPipelineColorBlendAttachmentState colorBlendAttachment_m;
-    VkPipelineColorBlendStateCreateInfo colorBlendInfo_m;
-    VkPipelineDepthStencilStateCreateInfo depthStencilInfo_m;
-    VkPipelineLayout pipelineLayout_m = nullptr;
-    VkRenderPass renderPass_m = nullptr;
-    uint32_t subpass_m = 0;
-  };
+  // member variables
+  VkViewport viewport_m;
+  VkRect2D scissor_m;
+  VkPipelineViewportStateCreateInfo viewportInfo_m;
+  VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo_m;
+  VkPipelineRasterizationStateCreateInfo rasterizationInfo_m;
+  VkPipelineMultisampleStateCreateInfo multisampleInfo_m;
+  VkPipelineColorBlendAttachmentState colorBlendAttachment_m;
+  VkPipelineColorBlendStateCreateInfo colorBlendInfo_m;
+  VkPipelineDepthStencilStateCreateInfo depthStencilInfo_m;
+  VkPipelineLayout pipelineLayout_m = nullptr;
+  VkRenderPass renderPass_m = nullptr;
+  uint32_t subpass_m = 0;
+};
 
-  class HvePipeline
-  {
+class HvePipeline
+{
   public:
     HvePipeline(
         HveDevice &device,
@@ -66,12 +66,12 @@ namespace hve
       const PipelineConfigInfo &configInfo);
 
     void createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule);
-  
+
     // 
     HveDevice& hveDevice_m;
     VkPipeline graphicsPipeline_m;
     VkShaderModule vertShaderModule_m;
     VkShaderModule fragShaderModule_m;
-  };
+};
 
 } // namespace hve
