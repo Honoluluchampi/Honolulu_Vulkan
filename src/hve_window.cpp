@@ -2,18 +2,18 @@
 
 namespace hve {
 
-HvWindow::HvWindow(const int w, const int h, const std::string name) : width(w), height(h), windowName(name) 
+HveWindow::HveWindow(const int w, const int h, const std::string name) : width(w), height(h), windowName(name) 
 {
   initWindow();
 }
 
-HvWindow::~HvWindow()
+HveWindow::~HveWindow()
 {
   glfwDestroyWindow(window);
   glfwTerminate();
 }
 
-void HvWindow::initWindow()
+void HveWindow::initWindow()
 {
   glfwInit();
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);

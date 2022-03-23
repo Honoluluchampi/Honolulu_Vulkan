@@ -7,7 +7,7 @@
 
 int main() 
 {
-  hve::HvApp app{};
+  hve::HveApp app{};
 
   try {
     app.run();

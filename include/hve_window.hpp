@@ -8,11 +8,17 @@
 
 namespace hve {
 
-class HvWindow
+class HveWindow
 {
   public:
-    HvWindow(const int w, const int h, const std::string name);
-    ~HvWindow();
+    HveWindow(const int w, const int h, const std::string name);
+    ~HveWindow();
+
+    // delete copy ctor, assignment (for preventing GLFWwindow* from double deleted)
+    HveWindow(const HveWindow &) = delete;
+    HveWindow& operator= (const HveWindow &) = delete;
+
+    inline bool shouldClose() { return glfwWindowShouldClose(window); }
       
   private:
     void initWindow();

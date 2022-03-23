@@ -4,16 +4,16 @@
 
 namespace hve {
 
-class HvApp
+class HveApp
 {
   public:
     static constexpr int WIDTH = 800;
     static constexpr int HEIGHT = 600;
 
-    void run() {}
+    void run();
     
   private:
-    HvWindow hvWindow{WIDTH, HEIGHT, "Honolulu Vulkan"};
+    HveWindow hveWindow{WIDTH, HEIGHT, "Honolulu Vulkan"};
 };
 
 } // namespace hv
