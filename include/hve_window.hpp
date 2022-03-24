@@ -19,6 +19,7 @@ class HveWindow
     HveWindow& operator= (const HveWindow &) = delete;
 
     inline bool shouldClose() { return glfwWindowShouldClose(window_m); }
+    VkExtent2D getExtent() { return { static_cast<uint32_t>(width_m), static_cast<uint32_t>(height_m)}; }
 
     void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
       

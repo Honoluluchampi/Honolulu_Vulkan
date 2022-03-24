@@ -17,7 +17,7 @@ void PipelineConfigInfo::createInputAssemblyInfo()
   inputAssemblyInfo_m.primitiveRestartEnable = VK_FALSE;
 }
 
-void PipelineConfigInfo::createViewportInfo(uint32_t width, uint32_t height)
+void PipelineConfigInfo::createViewportScissor(uint32_t width, uint32_t height)
 {
   // transformation of the image                            
   // draw entire framebuffer
@@ -31,15 +31,6 @@ void PipelineConfigInfo::createViewportInfo(uint32_t width, uint32_t height)
   // cut the region of the framebuffer(swap chain)
   scissor_m.offset = {0, 0};
   scissor_m.extent = {width, height};
-  
- viewportInfo_m.sType =
-      VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-  // by enabling a GPU feature in logical device creation,
-  // its possible to use multiple viewports
- viewportInfo_m.viewportCount = 1;
- viewportInfo_m.pViewports = &viewport_m;
- viewportInfo_m.scissorCount = 1;
- viewportInfo_m.pScissors = &scissor_m;
 }
 
 void PipelineConfigInfo::createRasterizationInfo()
@@ -187,6 +178,16 @@ void HvePipeline::createGraphicsPipeline(
 
   auto vertexInputInfo = createVertexInputInfo();
 
+  // prevent viewport, scissor, viewportInfo from dangerous reference
+  VkPipelineViewportStateCreateInfo viewportInfo{};
+  viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+  // by enabling a GPU feature in logical device creation,
+  // its possible to use multiple viewports
+  viewportInfo.viewportCount = 1;
+  viewportInfo.pViewports = &configInfo.viewport_m;
+  viewportInfo.scissorCount = 1;
+  viewportInfo.pScissors = &configInfo.scissor_m;
+
   VkGraphicsPipelineCreateInfo pipelineInfo{};
   pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
   // programable stage count (in this case vertex and shader stage)
@@ -194,7 +195,7 @@ void HvePipeline::createGraphicsPipeline(
   pipelineInfo.pStages = shaderStages;
   pipelineInfo.pVertexInputState = &vertexInputInfo;
   pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo_m;
-  pipelineInfo.pViewportState = &configInfo.viewportInfo_m;
+  pipelineInfo.pViewportState = &viewportInfo;
   pipelineInfo.pRasterizationState = &configInfo.rasterizationInfo_m;
   pipelineInfo.pMultisampleState = &configInfo.multisampleInfo_m;
   pipelineInfo.pColorBlendState = &configInfo.colorBlendInfo_m;
@@ -269,7 +270,7 @@ PipelineConfigInfo HvePipeline::defaultPipelineConfigInfo(uint32_t width, uint32
   PipelineConfigInfo configInfo{};
 
   configInfo.createInputAssemblyInfo();
-  configInfo.createViewportInfo(width, height);
+  configInfo.createViewportScissor(width, height);
   configInfo.createRasterizationInfo();
   configInfo.createMultisampleState();
   configInfo.createColorBlendAttachment();

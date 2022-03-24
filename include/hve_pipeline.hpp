@@ -13,7 +13,7 @@ struct PipelineConfigInfo {
   // for pipeline config info
   void createInputAssemblyInfo();
   // viewport and scissor
-  void createViewportInfo(uint32_t width, uint32_t height);
+  void createViewportScissor(uint32_t width, uint32_t height);
   // rasterizer
   void createRasterizationInfo();
   // multisampling used for anti-aliasing
@@ -28,7 +28,6 @@ struct PipelineConfigInfo {
   // member variables
   VkViewport viewport_m;
   VkRect2D scissor_m;
-  VkPipelineViewportStateCreateInfo viewportInfo_m;
   VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo_m;
   VkPipelineRasterizationStateCreateInfo rasterizationInfo_m;
   VkPipelineMultisampleStateCreateInfo multisampleInfo_m;
