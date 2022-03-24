@@ -48,7 +48,7 @@ class HvePipeline
         const std::string &vertFilepath,
         const std::string &fragFilepath,
         const PipelineConfigInfo &configInfo);
-    ~HvePipeline() {}
+    ~HvePipeline();
 
     // uncopyable
     HvePipeline(const HvePipeline &) = delete;
@@ -67,6 +67,9 @@ class HvePipeline
 
     void createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule);
 
+    VkPipelineShaderStageCreateInfo createVertShaderStageInfo();
+    VkPipelineShaderStageCreateInfo createFragShaderStageInfo();
+    VkPipelineVertexInputStateCreateInfo createVertexInputInfo();
     // 
     HveDevice& hveDevice_m;
     VkPipeline graphicsPipeline_m;

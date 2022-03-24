@@ -17,7 +17,7 @@ COMPILER 		= g++-10
 CFLAGS 			= -std=c++17 -g3
 
 # only support ubuntu for now
-VULKANDIR 	= /home/honolulu/programs/downloaded_libraries/vulkan1.3.204.0/x86_64
+VULKANDIR 	= /home/honolulu/programs/downloaded_libraries/vulkanSDK/x86_64
 LDFLAGS 		= $(VULKANDIR)/lib/libvulkan.so.1.3.204 $(VULKANDIR)/lib/libvulkan.so.1 /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
 INCFLAGS 		= -I/usr/include -I$(VULKANDIR)/include -I./include
 
@@ -26,6 +26,7 @@ VK_LAYER_PATH 		:= $(VULKANDIR)/etc/vulkan/explicit_layer.d
 
 # build an app
 $(TARGET_BIN): $(MAINSRC) $(TARGET_LIB) $(INCS)
+	@[ -d $(BIN_DIR) ] || mkdir -p $(BIN_DIR)
 	$(COMPILER) $(CFLAGS) -o $@ $(MAINSRC) $(INCFLAGS) $(TARGET_LIB) $(LDFLAGS) 
 
 # build the lib
@@ -35,7 +36,7 @@ $(TARGET_LIB): $(OBJS) $(INCS)
 
 # compile object files
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	@[ -d $(OBJDIR) ] || -mkdir -p $(OBJDIR)
+	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
 	$(COMPILER) $(CFLAGS) -o $@ -c $< $(INCFLAGS)
 
 .PHONY: default

@@ -145,6 +145,13 @@ HvePipeline::HvePipeline(
   createGraphicsPipeline(vertFilepath, fragFilepath, configInfo);
 }
 
+HvePipeline::~HvePipeline()
+{
+  vkDestroyShaderModule(hveDevice_m.device(), vertShaderModule_m, nullptr);
+  vkDestroyShaderModule(hveDevice_m.device(), fragShaderModule_m, nullptr);
+  vkDestroyPipeline(hveDevice_m.device(), graphicsPipeline_m, nullptr);
+}
+
 std::vector<char> HvePipeline::readFile(const std::string& filepath)
 {
   // construct and open
@@ -172,8 +179,42 @@ void HvePipeline::createGraphicsPipeline(
   auto vertCode = readFile(vertFilepath);
   auto fragCode = readFile(fragFilepath);
 
-  std::cout << "Vertex Shader Code Size: " << vertCode.size() << '\n';
-  std::cout << "Fragment Shader Code Size: " << fragCode.size() << '\n';
+  createShaderModule(vertCode, &vertShaderModule_m);
+  createShaderModule(fragCode, &fragShaderModule_m);
+
+  VkPipelineShaderStageCreateInfo shaderStages[2] =
+    { createVertShaderStageInfo(), createFragShaderStageInfo() };
+
+  auto vertexInputInfo = createVertexInputInfo();
+
+  VkGraphicsPipelineCreateInfo pipelineInfo{};
+  pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+  // programable stage count (in this case vertex and shader stage)
+  pipelineInfo.stageCount = 2;
+  pipelineInfo.pStages = shaderStages;
+  pipelineInfo.pVertexInputState = &vertexInputInfo;
+  pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo_m;
+  pipelineInfo.pViewportState = &configInfo.viewportInfo_m;
+  pipelineInfo.pRasterizationState = &configInfo.rasterizationInfo_m;
+  pipelineInfo.pMultisampleState = &configInfo.multisampleInfo_m;
+  pipelineInfo.pColorBlendState = &configInfo.colorBlendInfo_m;
+  pipelineInfo.pDepthStencilState = &configInfo.depthStencilInfo_m;
+  pipelineInfo.pDynamicState = nullptr;
+
+  pipelineInfo.layout = configInfo.pipelineLayout_m;
+  pipelineInfo.renderPass = configInfo.renderPass_m;
+  pipelineInfo.subpass = configInfo.subpass_m;
+
+  pipelineInfo.basePipelineIndex = -1;
+  pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+
+  // its possible to create multiple VkPipeline objects in a single call
+  // second parameter means cache objects enables significantly faster creation
+  if (vkCreateGraphicsPipelines(hveDevice_m.device(), VK_NULL_HANDLE, 1,
+    &pipelineInfo, nullptr, &graphicsPipeline_m) != VK_SUCCESS)
+    throw std::runtime_error("failed to create graphics pipeline!");
+
+
 }
 
 void HvePipeline::createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule)
@@ -187,6 +228,41 @@ void HvePipeline::createShaderModule(const std::vector<char>& code, VkShaderModu
   if (vkCreateShaderModule(hveDevice_m.device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS)
     throw std::runtime_error("failed to create shader module!");
 } 
+
+
+VkPipelineShaderStageCreateInfo HvePipeline::createVertShaderStageInfo()
+{
+  VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+  vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+  vertShaderStageInfo.module = vertShaderModule_m;
+  // the function to invoke
+  vertShaderStageInfo.pName = "main";
+  return vertShaderStageInfo;
+}
+
+VkPipelineShaderStageCreateInfo HvePipeline::createFragShaderStageInfo()
+{
+  VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+  fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+  fragShaderStageInfo.module = fragShaderModule_m;
+  // the function to invoke
+  fragShaderStageInfo.pName = "main";
+  return fragShaderStageInfo;
+}
+
+VkPipelineVertexInputStateCreateInfo HvePipeline::createVertexInputInfo()
+{
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+    vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertexInputInfo.vertexAttributeDescriptionCount = 0;
+    vertexInputInfo.vertexBindingDescriptionCount = 0;
+    vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+    vertexInputInfo.pVertexBindingDescriptions = nullptr;
+
+    return vertexInputInfo;
+}
 
 PipelineConfigInfo HvePipeline::defaultPipelineConfigInfo(uint32_t width, uint32_t height)
 {
