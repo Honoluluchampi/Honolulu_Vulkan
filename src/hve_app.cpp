@@ -8,7 +8,7 @@ namespace hve {
 
 HveApp::HveApp()
 {
-  loadModels();
+  loadGameObjects();
   createPipelineLayout();
   recreateSwapChain();
   createCommandBuffers();
@@ -29,7 +29,7 @@ void HveApp::run()
   vkDeviceWaitIdle(hveDevice_m.device());
 }
 
-void HveApp::loadModels()
+void HveApp::loadGameObjects()
 {
   std::vector<HveModel::Vertex> vertices {
     {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
@@ -37,7 +37,14 @@ void HveApp::loadModels()
     {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
   };
 
-  hveModel_m = std::make_unique<HveModel>(hveDevice_m, vertices);
+  auto hveModel = std::make_shared<HveModel>(hveDevice_m, vertices);
+  
+  auto triangle = HveGameObject::createGameObject();
+  triangle.model_m = hveModel;
+  triangle.color_m = {0.1f, 0.8f, 0.1f};
+  triangle.transform2d.translation.x = 0.2f;
+
+  gameObjects_m.push_back(std::move(triangle));
 }
 
 void HveApp::createPipelineLayout()
@@ -128,10 +135,6 @@ void HveApp::freeCommandBuffers()
 
 void HveApp::recordCommandBuffer(int imageIndex)
 {
-  // making animation
-  static int frame = 0;
-  frame = (frame + 1) % 1000;
-
   // start reconding command buffers
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -181,33 +184,34 @@ void HveApp::recordCommandBuffer(int imageIndex)
   vkCmdSetViewport(commandBuffers_m[imageIndex], 0, 1, &viewport);
   vkCmdSetScissor(commandBuffers_m[imageIndex], 0, 1, &scissor);
 
-  hvePipeline_m->bind(commandBuffers_m[imageIndex]);
-
-  // draw triangle
-  // vertexCount, instanceCount, firstVertex, firstInstance
-  // vkCmdDraw(commandBuffers_m[i], 3, 1, 0, 0);
-  hveModel_m->bind(commandBuffers_m[imageIndex]);
-
-  // constant range
-  for (int j = 0; j < 4; j++) {
-    SimplePushConstantData push{};
-    push.offset_m = {-0.5f + frame * 0.002f, -0.4f + j * 0.25f};
-    push.color_m = {0.0f, 0.0f, 0.2f + 0.2f * j};
-
-    vkCmdPushConstants(
-        commandBuffers_m[imageIndex], 
-        pipelineLayout_m, 
-        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 
-        0, 
-        sizeof(SimplePushConstantData), 
-        &push);
-    hveModel_m->draw(commandBuffers_m[imageIndex]);
-  }
+  renderGameObjects(commandBuffers_m[imageIndex]);
 
   // finish render pass and recording the comand buffer
   vkCmdEndRenderPass(commandBuffers_m[imageIndex]);
   if (vkEndCommandBuffer(commandBuffers_m[imageIndex]) != VK_SUCCESS) 
     throw std::runtime_error("failed to record command buffer!");
+}
+
+void HveApp::renderGameObjects(VkCommandBuffer commandBuffer)
+{
+  hvePipeline_m->bind(commandBuffer);
+
+  for (auto& obj : gameObjects_m) {
+    SimplePushConstantData push{};
+    push.offset_m = obj.transform2d.translation;
+    push.color_m = obj.color_m;
+    push.transform_m = obj.transform2d.mat2();
+
+    vkCmdPushConstants(
+        commandBuffer,
+        pipelineLayout_m, 
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 
+        0, 
+        sizeof(SimplePushConstantData), 
+        &push);
+    obj.model_m->bind(commandBuffer);
+    obj.model_m->draw(commandBuffer);
+  }
 }
 
 void HveApp::drawFrame() 

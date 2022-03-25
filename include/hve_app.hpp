@@ -5,6 +5,7 @@
 #include <hve_device.hpp>
 #include <hve_swap_chain.hpp>
 #include <hve_model.hpp>
+#include <hve_game_object.hpp>
 
 // lib
 #define GLM_FORCE_RADIANS
@@ -19,6 +20,7 @@ namespace hve {
 
 struct SimplePushConstantData
 {
+  glm::mat2 transform_m{1.0f};
   glm::vec2 offset_m;
   // to align data offsets with shader
   alignas(16) glm::vec3 color_m;
@@ -39,7 +41,7 @@ class HveApp
     void run();
     
   private:
-    void loadModels();
+    void loadGameObjects();
     void createPipelineLayout();
     void createPipeline();
     void createCommandBuffers();
@@ -47,6 +49,7 @@ class HveApp
     void drawFrame();
     void recreateSwapChain();
     void recordCommandBuffer(int imageIndex);
+    void renderGameObjects(VkCommandBuffer commandBuffer);
 
     HveWindow hveWindow_m {WIDTH, HEIGHT, "Honolulu Vulkan"};
     HveDevice hveDevice_m {hveWindow_m};
@@ -54,7 +57,9 @@ class HveApp
     std::unique_ptr<HvePipeline> hvePipeline_m;
     VkPipelineLayout pipelineLayout_m;
     std::vector<VkCommandBuffer> commandBuffers_m;
-    std::unique_ptr<HveModel> hveModel_m;
+
+    // game
+    std::vector<HveGameObject> gameObjects_m;
 };
 
 } // namespace hv
