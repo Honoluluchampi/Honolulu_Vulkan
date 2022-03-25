@@ -1,5 +1,8 @@
 #include <hve_app.hpp>
 
+// lib
+#include <glm/gtc/constants.hpp>
+
 //std
 #include <stdexcept>
 #include <array>
@@ -42,7 +45,9 @@ void HveApp::loadGameObjects()
   auto triangle = HveGameObject::createGameObject();
   triangle.model_m = hveModel;
   triangle.color_m = {0.1f, 0.8f, 0.1f};
-  triangle.transform2d.translation.x = 0.2f;
+  triangle.transform2d_m.translation.x = 0.2f;
+  triangle.transform2d_m.scale = {2.0f, 0.5f};
+  triangle.transform2d_m.rotation = 0.25f * glm::two_pi<float>();
 
   gameObjects_m.push_back(std::move(triangle));
 }
@@ -197,10 +202,12 @@ void HveApp::renderGameObjects(VkCommandBuffer commandBuffer)
   hvePipeline_m->bind(commandBuffer);
 
   for (auto& obj : gameObjects_m) {
+    obj.transform2d_m.rotation = glm::mod(obj.transform2d_m.rotation + 0.01f, glm::two_pi<float>());
+
     SimplePushConstantData push{};
-    push.offset_m = obj.transform2d.translation;
+    push.offset_m = obj.transform2d_m.translation;
     push.color_m = obj.color_m;
-    push.transform_m = obj.transform2d.mat2();
+    push.transform_m = obj.transform2d_m.mat2();
 
     vkCmdPushConstants(
         commandBuffer,
