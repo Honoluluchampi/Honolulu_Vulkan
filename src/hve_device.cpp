@@ -153,6 +153,11 @@ void HveDevice::pickPhysicalDevice()
 
   vkGetPhysicalDeviceProperties(physicalDevice_m, &properties_m);
   std::cout << "physical device: " << properties_m.deviceName << std::endl;
+  SwapChainSupportDetails details;
+  // surface capabilities
+  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice_m, surface_m, &details.capabilities_m);
+  std::cout << details.capabilities_m.maxImageExtent.height << std::endl;
+  std::cout << details.capabilities_m.minImageExtent.height << std::endl;
 }
 
 void HveDevice::createLogicalDevice() 

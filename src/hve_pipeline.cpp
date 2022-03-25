@@ -283,10 +283,8 @@ void HvePipeline::bind(VkCommandBuffer commandBuffer)
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline_m);
 }
 
-PipelineConfigInfo HvePipeline::defaultPipelineConfigInfo(uint32_t width, uint32_t height)
+void HvePipeline::defaultPipelineConfigInfo(PipelineConfigInfo &configInfo, uint32_t width, uint32_t height)
 {
-  PipelineConfigInfo configInfo{};
-
   configInfo.createInputAssemblyInfo();
   configInfo.createViewportScissor(width, height);
   configInfo.createRasterizationInfo();
@@ -294,7 +292,5 @@ PipelineConfigInfo HvePipeline::defaultPipelineConfigInfo(uint32_t width, uint32
   configInfo.createColorBlendAttachment();
   configInfo.createColorBlendState();
   configInfo.createDepthStencilState();
-
-  return configInfo;
 }
 } // namespace hve

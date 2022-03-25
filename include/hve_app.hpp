@@ -32,10 +32,12 @@ class HveApp
     void createPipeline();
     void createCommandBuffers();
     void drawFrame();
+    void recreateSwapChain();
+    void recordCommandBuffer(int imageIndex);
 
     HveWindow hveWindow_m {WIDTH, HEIGHT, "Honolulu Vulkan"};
     HveDevice hveDevice_m {hveWindow_m};
-    HveSwapChain hveSwapChain_m {hveDevice_m, hveWindow_m.getExtent()};
+    std::unique_ptr<HveSwapChain> hveSwapChain_m;
     std::unique_ptr<HvePipeline> hvePipeline_m;
     VkPipelineLayout pipelineLayout_m;
     std::vector<VkCommandBuffer> commandBuffers_m;

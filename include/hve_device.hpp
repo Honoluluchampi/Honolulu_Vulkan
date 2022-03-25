@@ -38,7 +38,7 @@ class HveDevice
 
     // Not copyable or movable
     HveDevice(const HveDevice &) = delete;
-    void operator=(const HveDevice &) = delete;
+    HveDevice& operator=(const HveDevice &) = delete;
     HveDevice(HveDevice &&) = delete;
     HveDevice &operator=(HveDevice &&) = delete;
 

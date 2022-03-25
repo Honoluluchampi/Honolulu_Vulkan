@@ -20,14 +20,19 @@ class HveWindow
 
     inline bool shouldClose() { return glfwWindowShouldClose(window_m); }
     VkExtent2D getExtent() { return { static_cast<uint32_t>(width_m), static_cast<uint32_t>(height_m)}; }
-
+    bool wasWindowResized() { return framebufferResized_m; }
+    void resetWindowResizedFlag() { framebufferResized_m = false; }
+      
     void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
+    GLFWwindow* window() { return window_m; }
       
   private:
+    static void framebufferResizeCallBack(GLFWwindow *window, int width, int height);
     void initWindow();
 
-    const int width_m;
-    const int height_m;
+    int width_m;
+    int height_m;
+    bool framebufferResized_m = false;
 
     std::string windowName_m;
     GLFWwindow *window_m;
