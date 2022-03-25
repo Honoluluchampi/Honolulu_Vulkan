@@ -151,8 +151,8 @@ void HveDevice::pickPhysicalDevice()
     throw std::runtime_error("failed to find a suitable GPU!");
   }
 
-  vkGetPhysicalDeviceProperties(physicalDevice_m, &properties);
-  std::cout << "physical device: " << properties.deviceName << std::endl;
+  vkGetPhysicalDeviceProperties(physicalDevice_m, &properties_m);
+  std::cout << "physical device: " << properties_m.deviceName << std::endl;
 }
 
 void HveDevice::createLogicalDevice() 

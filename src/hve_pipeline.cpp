@@ -265,6 +265,14 @@ VkPipelineVertexInputStateCreateInfo HvePipeline::createVertexInputInfo()
     return vertexInputInfo;
 }
 
+void HvePipeline::bind(VkCommandBuffer commandBuffer)
+{
+  // basic drawing commands
+  // bind the graphics pipeline
+  // the second parameter specifies if the pipeline object is a graphics or compute pipeline or ray tracer
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline_m);
+}
+
 PipelineConfigInfo HvePipeline::defaultPipelineConfigInfo(uint32_t width, uint32_t height)
 {
   PipelineConfigInfo configInfo{};

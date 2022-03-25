@@ -31,12 +31,12 @@ class HveApp
     void createCommandBuffers();
     void drawFrame();
 
-    HveWindow hveWindow_m{WIDTH, HEIGHT, "Honolulu Vulkan"};
-    HveDevice hveDevice_m{hveWindow_m};
-    HveSwapChain hveSwapChain{hveDevice_m, hveWindow_m.getExtent()};
+    HveWindow hveWindow_m {WIDTH, HEIGHT, "Honolulu Vulkan"};
+    HveDevice hveDevice_m {hveWindow_m};
+    HveSwapChain hveSwapChain_m {hveDevice_m, hveWindow_m.getExtent()};
     std::unique_ptr<HvePipeline> hvePipeline_m;
     VkPipelineLayout pipelineLayout_m;
-    std::vector<VkCommandBuffer> commandBuffers;
+    std::vector<VkCommandBuffer> commandBuffers_m;
 };
 
 } // namespace hv

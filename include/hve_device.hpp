@@ -74,7 +74,7 @@ class HveDevice
         VkImage &image,
         VkDeviceMemory &imageMemory);
 
-    VkPhysicalDeviceProperties properties;
+    VkPhysicalDeviceProperties properties_m;
 
   private:
     void createInstance();

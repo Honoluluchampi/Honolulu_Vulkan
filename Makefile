@@ -13,7 +13,7 @@ BIN_DIR			=./bin
 TARGET_BIN 	=$(BIN_DIR)/$(BIN_NAME)
 LIB_DIR			=./lib
 TARGET_LIB 	=$(LIB_DIR)/$(LIB_NAME)
-COMPILER 		= g++-10
+CXX 				=g++-10
 CFLAGS 			= -std=c++17 -g3
 
 # only support ubuntu for now
@@ -27,7 +27,7 @@ VK_LAYER_PATH 		:= $(VULKANDIR)/etc/vulkan/explicit_layer.d
 # build an app
 $(TARGET_BIN): $(MAINSRC) $(TARGET_LIB) $(INCS)
 	@[ -d $(BIN_DIR) ] || mkdir -p $(BIN_DIR)
-	$(COMPILER) $(CFLAGS) -o $@ $(MAINSRC) $(INCFLAGS) $(TARGET_LIB) $(LDFLAGS) 
+	$(CXX) $(CFLAGS) -o $@ $(MAINSRC) $(INCFLAGS) $(TARGET_LIB) $(LDFLAGS) 
 
 # build the lib
 $(TARGET_LIB): $(OBJS) $(INCS)
@@ -37,7 +37,9 @@ $(TARGET_LIB): $(OBJS) $(INCS)
 # compile object files
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
-	$(COMPILER) $(CFLAGS) -o $@ -c $< $(INCFLAGS)
+	$(CXX) $(CFLAGS) -o $@ -c $< $(INCFLAGS)
+
+$(VERT_SHADER): 
 
 .PHONY: default
 default: $(TARGET_BIN)
@@ -58,6 +60,7 @@ clean:
 .PHONY: all
 all:
 	make clean
+	sh compile.sh
 	make default
 	make test
 
