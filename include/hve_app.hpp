@@ -4,6 +4,7 @@
 #include <hve_pipeline.hpp>
 #include <hve_device.hpp>
 #include <hve_swap_chain.hpp>
+#include <hve_model.hpp>
 
 // std
 #include <memory>
@@ -26,6 +27,7 @@ class HveApp
     void run();
     
   private:
+    void loadModels();
     void createPipelineLayout();
     void createPipeline();
     void createCommandBuffers();
@@ -37,6 +39,7 @@ class HveApp
     std::unique_ptr<HvePipeline> hvePipeline_m;
     VkPipelineLayout pipelineLayout_m;
     std::vector<VkCommandBuffer> commandBuffers_m;
+    std::unique_ptr<HveModel> hveModel_m;
 };
 
 } // namespace hv

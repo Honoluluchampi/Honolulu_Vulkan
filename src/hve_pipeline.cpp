@@ -1,4 +1,5 @@
 #include <hve_pipeline.hpp>
+#include <hve_model.hpp>
 
 // std
 #include <iostream>
@@ -178,6 +179,14 @@ void HvePipeline::createGraphicsPipeline(
 
   auto vertexInputInfo = createVertexInputInfo();
 
+  // accept vertex data
+  auto bindingDescriptions = HveModel::Vertex::getBindingDescriptions();
+  auto attributeDescriptions = HveModel::Vertex::getAttributeDescriptions(); 
+  vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
+  vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data(); //optional
+  vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+  vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data(); //optional
+
   // prevent viewport, scissor, viewportInfo from dangerous reference
   VkPipelineViewportStateCreateInfo viewportInfo{};
   viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -257,10 +266,11 @@ VkPipelineVertexInputStateCreateInfo HvePipeline::createVertexInputInfo()
 {
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    vertexInputInfo.pVertexAttributeDescriptions = nullptr;
-    vertexInputInfo.pVertexBindingDescriptions = nullptr;
+    // configrate in createGraphicsPipeline()
+    // vertexInputInfo.vertexAttributeDescriptionCount = 0;
+    // vertexInputInfo.vertexBindingDescriptionCount = 0;
+    // vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+    // vertexInputInfo.pVertexBindingDescriptions = nullptr;
 
     return vertexInputInfo;
 }

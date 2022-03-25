@@ -8,6 +8,7 @@ namespace hve {
 
 HveApp::HveApp()
 {
+  loadModels();
   createPipelineLayout();
   createPipeline();
   createCommandBuffers();
@@ -26,6 +27,17 @@ void HveApp::run()
   }
 
   vkDeviceWaitIdle(hveDevice_m.device());
+}
+
+void HveApp::loadModels()
+{
+  std::vector<HveModel::Vertex> vertices {
+    {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+  };
+
+  hveModel_m = std::make_unique<HveModel>(hveDevice_m, vertices);
 }
 
 void HveApp::createPipelineLayout()
@@ -72,11 +84,11 @@ void HveApp::createCommandBuffers()
     // start reconding command buffers
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    // how to use the command buffer
-    beginInfo.flags = 0;
-    // state to inherit from the calling primary command buffers
-    // (only relevant for secondary command buffers)
-    beginInfo.pInheritanceInfo = nullptr;
+    // // how to use the command buffer
+    // beginInfo.flags = 0;
+    // // state to inherit from the calling primary command buffers
+    // // (only relevant for secondary command buffers)
+    // beginInfo.pInheritanceInfo = nullptr;
 
     if (vkBeginCommandBuffer(commandBuffers_m[i], &beginInfo) != VK_SUCCESS) 
       throw std::runtime_error("failed to begin recording command buffer!");
@@ -92,7 +104,7 @@ void HveApp::createCommandBuffers()
 
     // default value for color and depth
     std::array<VkClearValue, 2> clearValues;
-    clearValues[0].color = {0.1f, 0.1f, 0.1f, 0.0f};
+    clearValues[0].color = {0.1f, 0.1f, 0.1f, 1.0f};
     clearValues[1].depthStencil = {1.0f, 0};
     renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
     renderPassInfo.pClearValues = clearValues.data();
@@ -110,7 +122,10 @@ void HveApp::createCommandBuffers()
 
     // draw triangle
     // vertexCount, instanceCount, firstVertex, firstInstance
-    vkCmdDraw(commandBuffers_m[i], 3, 1, 0, 0);
+    // vkCmdDraw(commandBuffers_m[i], 3, 1, 0, 0);
+
+    hveModel_m->bind(commandBuffers_m[i]);
+    hveModel_m->draw(commandBuffers_m[i]);
 
     // finish render pass and recording the comand buffer
     vkCmdEndRenderPass(commandBuffers_m[i]);
