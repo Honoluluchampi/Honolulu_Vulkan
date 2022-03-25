@@ -6,11 +6,23 @@
 #include <hve_swap_chain.hpp>
 #include <hve_model.hpp>
 
+// lib
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+
 // std
 #include <memory>
 #include <vector>
 
 namespace hve {
+
+struct SimplePushConstantData
+{
+  glm::vec2 offset_m;
+  // to align data offsets with shader
+  alignas(16) glm::vec3 color_m;
+};
 
 class HveApp
 {
@@ -31,6 +43,7 @@ class HveApp
     void createPipelineLayout();
     void createPipeline();
     void createCommandBuffers();
+    void freeCommandBuffers();
     void drawFrame();
     void recreateSwapChain();
     void recordCommandBuffer(int imageIndex);

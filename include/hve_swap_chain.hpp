@@ -8,6 +8,7 @@
 // std lib headers
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace hve {
 
@@ -16,6 +17,7 @@ class HveSwapChain {
   static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
   HveSwapChain(HveDevice &deviceRef, VkExtent2D windowExtent);
+  HveSwapChain(HveDevice &deviceRef, VkExtent2D windowExtent, std::shared_ptr<HveSwapChain> previous);
   ~HveSwapChain();
 
   HveSwapChain(const HveSwapChain &) = delete;
@@ -38,6 +40,7 @@ class HveSwapChain {
   VkResult submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex);
 
  private:
+  void init();
   void createSwapChain();
   void createImageViews();
   void createDepthResources();
@@ -73,6 +76,7 @@ class HveSwapChain {
   VkExtent2D windowExtent_m;
 
   VkSwapchainKHR swapChain_m;
+  std::shared_ptr<HveSwapChain> oldSwapChain_m;
 
   // an image has been acquired and is ready for rendering
   std::vector<VkSemaphore> imageAvailableSemaphores_m;

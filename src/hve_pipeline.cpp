@@ -18,20 +18,16 @@ void PipelineConfigInfo::createInputAssemblyInfo()
   inputAssemblyInfo_m.primitiveRestartEnable = VK_FALSE;
 }
 
-void PipelineConfigInfo::createViewportScissor(uint32_t width, uint32_t height)
+void PipelineConfigInfo::createViewportInfo()
 {
-  // transformation of the image                            
-  // draw entire framebuffer
-  viewport_m.x = 0.0f;
-  viewport_m.y = 0.0f;
-  viewport_m.width = static_cast<float>(width);
-  viewport_m.height = static_cast<float>(height);
-  viewport_m.minDepth = 0.0f;
-  viewport_m.maxDepth = 1.0f;
-  
-  // cut the region of the framebuffer(swap chain)
-  scissor_m.offset = {0, 0};
-  scissor_m.extent = {width, height};
+
+  viewportInfo_m.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+  // by enabling a GPU feature in logical device creation,
+  // its possible to use multiple viewports
+  viewportInfo_m.viewportCount = 1;
+  viewportInfo_m.pViewports = nullptr;
+  viewportInfo_m.scissorCount = 1;
+  viewportInfo_m.pScissors = nullptr;
 }
 
 void PipelineConfigInfo::createRasterizationInfo()
@@ -120,11 +116,11 @@ void PipelineConfigInfo::createDepthStencilState()
 // a limited amount of the state can be actually be changed without recreating the pipeline
 void PipelineConfigInfo::createDynamicState()
 {
-  VkDynamicState dynamicStates[] = {};
-  VkPipelineDynamicStateCreateInfo dynamicState{};
-  dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-  dynamicState.dynamicStateCount = 0; 
-  dynamicState.pDynamicStates = nullptr;
+  dynamicStateEnables_m = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+  dynamicStateInfo_m.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+  dynamicStateInfo_m.dynamicStateCount = static_cast<uint32_t>(dynamicStateEnables_m.size()); 
+  dynamicStateInfo_m.pDynamicStates = dynamicStateEnables_m.data();
+  dynamicStateInfo_m.flags = 0;
 }
 
 
@@ -187,16 +183,6 @@ void HvePipeline::createGraphicsPipeline(
   vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
   vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data(); //optional
 
-  // prevent viewport, scissor, viewportInfo from dangerous reference
-  VkPipelineViewportStateCreateInfo viewportInfo{};
-  viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-  // by enabling a GPU feature in logical device creation,
-  // its possible to use multiple viewports
-  viewportInfo.viewportCount = 1;
-  viewportInfo.pViewports = &configInfo.viewport_m;
-  viewportInfo.scissorCount = 1;
-  viewportInfo.pScissors = &configInfo.scissor_m;
-
   VkGraphicsPipelineCreateInfo pipelineInfo{};
   pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
   // programable stage count (in this case vertex and shader stage)
@@ -204,12 +190,12 @@ void HvePipeline::createGraphicsPipeline(
   pipelineInfo.pStages = shaderStages;
   pipelineInfo.pVertexInputState = &vertexInputInfo;
   pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo_m;
-  pipelineInfo.pViewportState = &viewportInfo;
+  pipelineInfo.pViewportState = &configInfo.viewportInfo_m;
   pipelineInfo.pRasterizationState = &configInfo.rasterizationInfo_m;
   pipelineInfo.pMultisampleState = &configInfo.multisampleInfo_m;
   pipelineInfo.pColorBlendState = &configInfo.colorBlendInfo_m;
   pipelineInfo.pDepthStencilState = &configInfo.depthStencilInfo_m;
-  pipelineInfo.pDynamicState = nullptr;
+  pipelineInfo.pDynamicState = &configInfo.dynamicStateInfo_m;
 
   pipelineInfo.layout = configInfo.pipelineLayout_m;
   pipelineInfo.renderPass = configInfo.renderPass_m;
@@ -283,14 +269,15 @@ void HvePipeline::bind(VkCommandBuffer commandBuffer)
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline_m);
 }
 
-void HvePipeline::defaultPipelineConfigInfo(PipelineConfigInfo &configInfo, uint32_t width, uint32_t height)
+void HvePipeline::defaultPipelineConfigInfo(PipelineConfigInfo &configInfo)
 {
   configInfo.createInputAssemblyInfo();
-  configInfo.createViewportScissor(width, height);
+  configInfo.createViewportInfo();
   configInfo.createRasterizationInfo();
   configInfo.createMultisampleState();
   configInfo.createColorBlendAttachment();
   configInfo.createColorBlendState();
   configInfo.createDepthStencilState();
+  configInfo.createDynamicState();
 }
 } // namespace hve

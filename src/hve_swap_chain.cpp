@@ -14,6 +14,19 @@ namespace hve {
 HveSwapChain::HveSwapChain(HveDevice &deviceRef, VkExtent2D extent)
     : device_m{deviceRef}, windowExtent_m{extent} 
 {
+  init();
+}
+
+HveSwapChain::HveSwapChain(HveDevice &deviceRef, VkExtent2D extent, std::shared_ptr<HveSwapChain> previous)
+    : device_m{deviceRef}, windowExtent_m{extent}, oldSwapChain_m(previous) 
+{
+  init();
+  // clean up old swap chain since it's no longer neeeded
+  oldSwapChain_m.reset();
+}
+
+void HveSwapChain::init()
+{
   createSwapChain();
   createImageViews();
   createRenderPass();
@@ -182,7 +195,8 @@ void HveSwapChain::createSwapChain()
   // ignore the color of obscured pixels
   createInfo.clipped = VK_TRUE;
   // invalid or unoptimized swap chain should be reacreated from scratch
-  createInfo.oldSwapchain = VK_NULL_HANDLE;
+  createInfo.oldSwapchain = oldSwapChain_m == nullptr ? VK_NULL_HANDLE : oldSwapChain_m->swapChain_m;
+
   // create swap chain
   if (vkCreateSwapchainKHR(device_m.device(), &createInfo, nullptr, &swapChain_m) != VK_SUCCESS) {
     throw std::runtime_error("failed to create swap chain!");
@@ -414,14 +428,16 @@ VkSurfaceFormatKHR HveSwapChain::chooseSwapSurfaceFormat(const std::vector<VkSur
 
 VkPresentModeKHR HveSwapChain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) 
 {
-  for (const auto &availablePresentMode : availablePresentModes) {
-    // prefer triple buffering
-    // high cost
-    if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-      std::cout << "Present mode: Mailbox" << std::endl;
-      return availablePresentMode;
-    }
-  }
+  // animation becomes storange if use present mode : mailbox
+
+  // for (const auto &availablePresentMode : availablePresentModes) {
+  //   // prefer triple buffering
+  //   // high cost
+  //   if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+  //     // std::cout << "Present mode: Mailbox" << std::endl;
+  //     return availablePresentMode;
+  //   }
+  // }
 
   // for (const auto &availablePresentMode : availablePresentModes) {
   //   if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {

@@ -11,13 +11,13 @@ namespace hve
 
 struct PipelineConfigInfo 
 {
-  PipelineConfigInfo(){}
+  PipelineConfigInfo() = default;
   PipelineConfigInfo(const PipelineConfigInfo&) = delete;
   PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
   // for pipeline config info
   void createInputAssemblyInfo();
   // viewport and scissor
-  void createViewportScissor(uint32_t width, uint32_t height);
+  void createViewportInfo();
   // rasterizer
   void createRasterizationInfo();
   // multisampling used for anti-aliasing
@@ -30,14 +30,15 @@ struct PipelineConfigInfo
   void createDynamicState();
 
   // member variables
-  VkViewport viewport_m{};
-  VkRect2D scissor_m{};
   VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo_m{};
+  VkPipelineViewportStateCreateInfo viewportInfo_m{};
   VkPipelineRasterizationStateCreateInfo rasterizationInfo_m{};
   VkPipelineMultisampleStateCreateInfo multisampleInfo_m{};
   VkPipelineColorBlendAttachmentState colorBlendAttachment_m{};
   VkPipelineColorBlendStateCreateInfo colorBlendInfo_m{};
   VkPipelineDepthStencilStateCreateInfo depthStencilInfo_m{};
+  std::vector<VkDynamicState> dynamicStateEnables_m;
+  VkPipelineDynamicStateCreateInfo dynamicStateInfo_m{};
   VkPipelineLayout pipelineLayout_m = nullptr;
   VkRenderPass renderPass_m = nullptr;
   uint32_t subpass_m = 0;
@@ -59,7 +60,7 @@ class HvePipeline
 
     void bind(VkCommandBuffer commandBuffer);
 
-    static void defaultPipelineConfigInfo(PipelineConfigInfo &configInfo, uint32_t width, uint32_t height);
+    static void defaultPipelineConfigInfo(PipelineConfigInfo &configInfo);
 
   private:
     // fstream can only output char not std::string
