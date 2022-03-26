@@ -3,9 +3,8 @@
 #include <hve_window.hpp>
 #include <hve_pipeline.hpp>
 #include <hve_device.hpp>
-#include <hve_swap_chain.hpp>
-#include <hve_model.hpp>
 #include <hve_game_object.hpp>
+#include <hve_renderer.hpp>
 
 // lib
 #define GLM_FORCE_RADIANS
@@ -44,19 +43,13 @@ class HveApp
     void loadGameObjects();
     void createPipelineLayout();
     void createPipeline();
-    void createCommandBuffers();
-    void freeCommandBuffers();
-    void drawFrame();
-    void recreateSwapChain();
-    void recordCommandBuffer(int imageIndex);
     void renderGameObjects(VkCommandBuffer commandBuffer);
 
     HveWindow hveWindow_m {WIDTH, HEIGHT, "Honolulu Vulkan"};
     HveDevice hveDevice_m {hveWindow_m};
-    std::unique_ptr<HveSwapChain> hveSwapChain_m;
+    HveRenderer hveRenderer_m {hveWindow_m, hveDevice_m};
     std::unique_ptr<HvePipeline> hvePipeline_m;
     VkPipelineLayout pipelineLayout_m;
-    std::vector<VkCommandBuffer> commandBuffers_m;
 
     // game
     std::vector<HveGameObject> gameObjects_m;
