@@ -13,11 +13,12 @@
 
 namespace hve {
 
+// should be compatible with a shader
 struct SimplePushConstantData
 {
   glm::mat4 transform_m{1.0f};
   // to align data offsets with shader
-  alignas(16) glm::vec3 color_m;
+  glm::mat4 normalMatrix_m{1.0f};
 };
 
 SimpleRendererSystem::SimpleRendererSystem(HveDevice& device, VkRenderPass renderPass) : hveDevice_m(device)
@@ -78,9 +79,11 @@ void SimpleRendererSystem::renderGameObjects(VkCommandBuffer commandBuffer, std:
     // obj.transform_m.rotation_m.x = glm::mod(obj.transform_m.rotation_m.x + 0.005f, glm::two_pi<float>());
 
     SimplePushConstantData push{};
-    push.color_m = obj.color_m;
+    auto modelMatrix = obj.transform_m.mat4();
     // camera projection
-    push.transform_m = projectionView * obj.transform_m.mat4();
+    push.transform_m = projectionView * modelMatrix;
+    // automatically converse mat3(normalMatrix_m) to mat4 for shader data alignment
+    push.normalMatrix_m = obj.transform_m.normalMatrix();
 
     vkCmdPushConstants(
         commandBuffer,

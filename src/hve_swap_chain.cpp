@@ -99,8 +99,7 @@ VkResult HveSwapChain::submitCommandBuffers(const VkCommandBuffer *buffers, uint
   // the index of waitSemaphores corresponds to the index of waitStages
   VkSemaphore waitSemaphores[] = {imageAvailableSemaphores_m[currentFrame_m]};
   // which stage of the pipeline to wait
-  VkPipelineStageFlags waitStages[] = 
-      {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+  VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
   submitInfo.waitSemaphoreCount = 1;
   submitInfo.pWaitSemaphores = waitSemaphores;
   submitInfo.pWaitDstStageMask = waitStages;
@@ -136,7 +135,7 @@ VkResult HveSwapChain::submitCommandBuffers(const VkCommandBuffer *buffers, uint
   presentInfo.pSwapchains = swapChains;
   presentInfo.pImageIndices = imageIndex;
   // nesessary for multi swap chain
-  presentInfo.pResults = nullptr;
+  // presentInfo.pResults = nullptr;
 
   auto result = vkQueuePresentKHR(device_m.presentQueue(), &presentInfo);
 

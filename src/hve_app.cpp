@@ -74,12 +74,20 @@ void HveApp::run()
 
 void HveApp::loadGameObjects()
 {
-  std::shared_ptr<HveModel> hveModel = HveModel::createModelFromFile(hveDevice_m, "./models/smooth_vase.obj");
+  std::shared_ptr<HveModel> hveModel = HveModel::createModelFromFile(hveDevice_m, "./models/flat_vase.obj");
 
   auto gameObj = HveGameObject::createGameObject();
   gameObj.model_m = hveModel;
-  gameObj.transform_m.translation_m = {0.0f, 0.0f, 2.5f};
-  gameObj.transform_m.scale_m = glm::vec3{3.f};
+  gameObj.transform_m.translation_m = {-0.5f, 0.5f, 2.5f};
+  gameObj.transform_m.scale_m = {3.f, 1.5f, 3.f};
   gameObjects_m.push_back(std::move(gameObj));
+
+  std::shared_ptr<HveModel> vaseModel = HveModel::createModelFromFile(hveDevice_m, "./models/smooth_vase.obj");
+
+  auto vase = HveGameObject::createGameObject();
+  vase.model_m = vaseModel;
+  vase.transform_m.translation_m = {0.5f, 0.5f, 2.5f};
+  vase.transform_m.scale_m = glm::vec3{3.f, 1.5f, 3.f};
+  gameObjects_m.push_back(std::move(vase));
 }
 } // namespace hve

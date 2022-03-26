@@ -170,26 +170,14 @@ std::vector<VkVertexInputBindingDescription> HveModel::Vertex::getBindingDescrip
 std::vector<VkVertexInputAttributeDescription> HveModel::Vertex::getAttributeDescriptions()
 {
   // how to extract a vertex attribute from a chunk of vertex data
-  std::vector<VkVertexInputAttributeDescription> attributeDescriptions(2);
-  attributeDescriptions[0].binding = 0;
-  // the location directive of the input in the vertex shader.
-  attributeDescriptions[0].location = 0;
-  // same enumeration as color formats
-  // 2-component vector of 32-bit float
-  // for 2d
-  // attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
-  // for 3d
-  attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-  // the offset parameter specifies the number of bytes since the start of the per-vertex data to read from
-  // the binding loads one Vertex at a time and the position attribute is at an offset of 0 bytes
-  // Vertex::glm::vec2 position_m
-  attributeDescriptions[0].offset = offsetof(Vertex, position_m);
+  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 
-  // color
-  attributeDescriptions[1].binding = 0;
-  attributeDescriptions[1].location = 1;
-  attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-  attributeDescriptions[1].offset = offsetof(Vertex, color_m);
+  // location, binding, format, offset
+  attributeDescriptions.push_back({0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position_m)});
+  attributeDescriptions.push_back({1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color_m)});
+  attributeDescriptions.push_back({2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal_m)});
+  attributeDescriptions.push_back({3, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, uv_m)});
+
   return attributeDescriptions;
 }
 
@@ -221,15 +209,11 @@ void HveModel::Builder::loadModel(const std::string& filename)
           attrib.vertices[3 * index.vertex_index + 2]
         };
         // color support
-        auto colorIndex = 3 * index.vertex_index + 2;
-        if (colorIndex < attrib.colors.size()) {
-          vertex.color_m = {
-            attrib.colors[3 * index.vertex_index - 2],
-            attrib.colors[3 * index.vertex_index - 1],
-            attrib.colors[3 * index.vertex_index - 0]
-          };
-        }
-        else vertex.color_m = {1.f, 1.f, 1.f};
+        vertex.color_m = {
+          attrib.colors[3 * index.vertex_index + 0],
+          attrib.colors[3 * index.vertex_index + 1],
+          attrib.colors[3 * index.vertex_index + 2]
+        };
       }
       // copy the normal
       if (index.vertex_index >= 0) {

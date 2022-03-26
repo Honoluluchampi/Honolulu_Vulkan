@@ -117,7 +117,7 @@ void HveRenderer::endFrame()
     hveWindow_m.resetWindowResizedFlag();
     recreateSwapChain();
   }
-  if (result != VK_SUCCESS)
+  else if (result != VK_SUCCESS)
     throw std::runtime_error("failed to present swap chain image!");
 
   isFrameStarted_m = false;
