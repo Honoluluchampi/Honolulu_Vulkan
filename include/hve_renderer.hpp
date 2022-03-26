@@ -25,6 +25,7 @@ class HveRenderer
 
     // getter
     VkRenderPass getSwapChainRenderPass() const { return hveSwapChain_m->getRenderPass(); }
+    float getAspectRation() const { return hveSwapChain_m->extentAspectRatio(); }
     bool isFrameInProgress() const { return isFrameStarted_m; }
     VkCommandBuffer getCurrentCommandBuffer() const 
     {
