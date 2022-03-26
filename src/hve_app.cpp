@@ -26,12 +26,14 @@ void HveApp::run()
   SimpleRendererSystem simpleRendererSystem {hveDevice_m, hveRenderer_m.getSwapChainRenderPass()};
   // create camera as ...
   HveCamera camera{};
+  camera.setViewDirection(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
+  // camera.setViewTarget(glm::vec3(-1.f, -2.f, 20.f), glm::vec3(0.f, 0.f, 2.5f));
 
   while (!hveWindow_m.shouldClose()) {
     glfwPollEvents();
     float aspect = hveRenderer_m.getAspectRation();
     // camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
-    camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 10.f);
+    camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 50.f);
     // returns nullptr if the swap chain is need to be recreated
     if (auto commandBuffer = hveRenderer_m.beginFrame()) {
       // begin offscrean shadow pass
