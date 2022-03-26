@@ -22,6 +22,7 @@ class HveWindow
     VkExtent2D getExtent() { return { static_cast<uint32_t>(width_m), static_cast<uint32_t>(height_m)}; }
     bool wasWindowResized() { return framebufferResized_m; }
     void resetWindowResizedFlag() { framebufferResized_m = false; }
+    GLFWwindow* getGLFWwindow() const { return window_m; }
       
     void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
     GLFWwindow* window() { return window_m; }

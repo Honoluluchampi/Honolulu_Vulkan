@@ -430,14 +430,14 @@ VkPresentModeKHR HveSwapChain::chooseSwapPresentMode(const std::vector<VkPresent
 {
   // animation becomes storange if use present mode : mailbox
 
-  // for (const auto &availablePresentMode : availablePresentModes) {
-  //   // prefer triple buffering
-  //   // high cost
-  //   if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-  //     // std::cout << "Present mode: Mailbox" << std::endl;
-  //     return availablePresentMode;
-  //   }
-  // }
+  for (const auto &availablePresentMode : availablePresentModes) {
+    // prefer triple buffering
+    // high cost
+    if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+      // std::cout << "Present mode: Mailbox" << std::endl;
+      return availablePresentMode;
+    }
+  }
 
   // for (const auto &availablePresentMode : availablePresentModes) {
   //   if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {

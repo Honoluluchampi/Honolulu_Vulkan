@@ -74,8 +74,8 @@ void SimpleRendererSystem::renderGameObjects(VkCommandBuffer commandBuffer, std:
 
   for (auto& obj : gameObjects) {
     // rotate around the y axis
-    obj.transform_m.rotation_m.y = glm::mod(obj.transform_m.rotation_m.y + 0.01f, glm::two_pi<float>());
-    obj.transform_m.rotation_m.x = glm::mod(obj.transform_m.rotation_m.x + 0.005f, glm::two_pi<float>());
+    // obj.transform_m.rotation_m.y = glm::mod(obj.transform_m.rotation_m.y + 0.01f, glm::two_pi<float>());
+    // obj.transform_m.rotation_m.x = glm::mod(obj.transform_m.rotation_m.x + 0.005f, glm::two_pi<float>());
 
     SimplePushConstantData push{};
     push.color_m = obj.color_m;
