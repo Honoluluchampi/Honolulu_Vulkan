@@ -46,23 +46,73 @@ void HveApp::run()
   vkDeviceWaitIdle(hveDevice_m.device());
 }
 
+// temporary helper function, creates a 1x1x1 cube centered at offset
+std::unique_ptr<HveModel> createCubeModel(HveDevice& device, glm::vec3 offset) {
+  std::vector<HveModel::Vertex> vertices{
+ 
+      // left face (white)
+      {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+      {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+      {{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
+      {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+      {{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
+      {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+ 
+      // right face (yellow)
+      {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+      {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+      {{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
+      {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+      {{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
+      {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+ 
+      // top face (orange, remember y axis points down)
+      {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+      {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+      {{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+      {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+      {{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+      {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+ 
+      // bottom face (red)
+      {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+      {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+      {{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
+      {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+      {{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+      {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+ 
+      // nose face (blue)
+      {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+      {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+      {{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+      {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+      {{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+      {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+ 
+      // tail face (green)
+      {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+      {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+      {{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+      {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+      {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+      {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+ 
+  };
+  for (auto& v : vertices) {
+    v.position_m += offset;
+  }
+  return std::make_unique<HveModel>(device, vertices);
+}
+
 void HveApp::loadGameObjects()
 {
-  std::vector<HveModel::Vertex> vertices {
-    {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-    {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
-  };
-
-  auto hveModel = std::make_shared<HveModel>(hveDevice_m, vertices);
+  std::shared_ptr<HveModel> hveModel = createCubeModel(hveDevice_m, {.0f, .0f, .0f});
   
-  auto triangle = HveGameObject::createGameObject();
-  triangle.model_m = hveModel;
-  triangle.color_m = {0.1f, 0.8f, 0.1f};
-  triangle.transform2d_m.translation.x = 0.2f;
-  triangle.transform2d_m.scale = {2.0f, 0.5f};
-  triangle.transform2d_m.rotation = 0.25f * glm::two_pi<float>();
-
-  gameObjects_m.push_back(std::move(triangle));
+  auto cube = HveGameObject::createGameObject();
+  cube.model_m = hveModel;
+  cube.transform_m.translation_m = {0.0f, 0.0f, .5f};
+  cube.transform_m.scale_m = {.5f, .5f, .5f};
+  gameObjects_m.push_back(std::move(cube));
 }
 } // namespace hve

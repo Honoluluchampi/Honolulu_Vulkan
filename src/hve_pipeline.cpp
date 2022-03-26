@@ -42,7 +42,8 @@ void PipelineConfigInfo::createRasterizationInfo()
   // using any mode other than fill requires GPU feature
   rasterizationInfo_m.polygonMode = VK_POLYGON_MODE_FILL;
   rasterizationInfo_m.lineWidth = 1.0f;
-  rasterizationInfo_m.cullMode = VK_CULL_MODE_BACK_BIT;
+  // rasterizationInfo_m.cullMode = VK_CULL_MODE_BACK_BIT;
+  rasterizationInfo_m.cullMode = VK_CULL_MODE_NONE;
   rasterizationInfo_m.frontFace = VK_FRONT_FACE_CLOCKWISE;
   // consider this when shadow mapping is necessary
   rasterizationInfo_m.depthBiasEnable = VK_FALSE;

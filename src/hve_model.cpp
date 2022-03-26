@@ -40,6 +40,7 @@ void HveModel::draw(VkCommandBuffer commandBuffer)
 {
   vkCmdDraw(commandBuffer, vertexCount_m, 1, 0, 0);
 }
+
 void HveModel::bind(VkCommandBuffer commandBuffer)
 {
   VkBuffer buffers[] = {vertexBuffer_m};
@@ -67,7 +68,10 @@ std::vector<VkVertexInputAttributeDescription> HveModel::Vertex::getAttributeDes
   attributeDescriptions[0].location = 0;
   // same enumeration as color formats
   // 2-component vector of 32-bit float
-  attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+  // for 2d
+  // attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+  // for 3d
+  attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
   // the offset parameter specifies the number of bytes since the start of the per-vertex data to read from
   // the binding loads one Vertex at a time and the position attribute is at an offset of 0 bytes
   // Vertex::glm::vec2 position_m

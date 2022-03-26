@@ -15,8 +15,7 @@ namespace hve {
 
 struct SimplePushConstantData
 {
-  glm::mat2 transform_m{1.0f};
-  glm::vec2 offset_m;
+  glm::mat4 transform_m{1.0f};
   // to align data offsets with shader
   alignas(16) glm::vec3 color_m;
 };
@@ -72,12 +71,13 @@ void SimpleRendererSystem::renderGameObjects(VkCommandBuffer commandBuffer, std:
   hvePipeline_m->bind(commandBuffer);
 
   for (auto& obj : gameObjects) {
-    obj.transform2d_m.rotation = glm::mod(obj.transform2d_m.rotation + 0.01f, glm::two_pi<float>());
+    // rotate around the y axis
+    obj.transform_m.rotation_m.y = glm::mod(obj.transform_m.rotation_m.y + 0.01f, glm::two_pi<float>());
+    obj.transform_m.rotation_m.x = glm::mod(obj.transform_m.rotation_m.x + 0.005f, glm::two_pi<float>());
 
     SimplePushConstantData push{};
-    push.offset_m = obj.transform2d_m.translation;
     push.color_m = obj.color_m;
-    push.transform_m = obj.transform2d_m.mat2();
+    push.transform_m = obj.transform_m.mat4();
 
     vkCmdPushConstants(
         commandBuffer,

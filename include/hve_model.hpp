@@ -15,7 +15,7 @@ class HveModel
 
     struct Vertex
     {
-      glm::vec2 position_m;
+      glm::vec3 position_m;
       glm::vec3 color_m;
       static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
       static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
