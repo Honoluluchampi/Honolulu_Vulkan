@@ -1,7 +1,31 @@
 #include <hve_model.hpp>
+#include <hve_utils.hpp>
 
-//std
+// libs
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tiny_obj_loader.h>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
+
+// std
 #include <cstring>
+#include <iostream>
+#include <unordered_map>
+
+namespace std {
+
+template <>
+struct hash<hve::HveModel::Vertex>
+{
+  size_t operator() (hve::HveModel::Vertex const &vertex) const
+  {
+    // stores final hash value
+    size_t seed = 0;
+    hve::hashCombine(seed, vertex.position_m, vertex.color_m, vertex.normal_m, vertex.uv_m);
+    return seed;
+  }
+};
+} // namespace stD
 
 namespace hve {
 
@@ -20,6 +44,14 @@ HveModel::~HveModel()
     vkDestroyBuffer(hveDevice_m.device(), indexBuffer_m, nullptr);
     vkFreeMemory(hveDevice_m.device(), indexBufferMemory_m, nullptr);
   }
+}
+
+std::unique_ptr<HveModel> HveModel::createModelFromFile(HveDevice &device, const std::string &filename)
+{
+  Builder builder;
+  builder.loadModel(filename);
+  std::cout << "Vertex count: " << builder.vertices_m.size() << "\n";
+  return std::make_unique<HveModel>(device, builder);
 }
 
 void HveModel::createVertexBuffers(const std::vector<Vertex> &vertices)
@@ -159,5 +191,68 @@ std::vector<VkVertexInputAttributeDescription> HveModel::Vertex::getAttributeDes
   attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
   attributeDescriptions[1].offset = offsetof(Vertex, color_m);
   return attributeDescriptions;
+}
+
+void HveModel::Builder::loadModel(const std::string& filename)
+{
+  // loader
+  tinyobj::attrib_t attrib;
+  std::vector<tinyobj::shape_t> shapes;
+  std::vector<tinyobj::material_t> materials;
+  std::string warn, err;
+
+  if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filename.c_str()))
+    throw std::runtime_error(warn + err);
+
+  vertices_m.clear();
+  indices_m.clear();
+
+  std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+
+
+  for (const auto &shape : shapes) {
+    for (const auto &index : shape.mesh.indices) {
+      Vertex vertex{};
+      // copy the vertex
+      if (index.vertex_index >= 0) {
+        vertex.position_m = {
+          attrib.vertices[3 * index.vertex_index + 0],
+          attrib.vertices[3 * index.vertex_index + 1],
+          attrib.vertices[3 * index.vertex_index + 2]
+        };
+        // color support
+        auto colorIndex = 3 * index.vertex_index + 2;
+        if (colorIndex < attrib.colors.size()) {
+          vertex.color_m = {
+            attrib.colors[3 * index.vertex_index - 2],
+            attrib.colors[3 * index.vertex_index - 1],
+            attrib.colors[3 * index.vertex_index - 0]
+          };
+        }
+        else vertex.color_m = {1.f, 1.f, 1.f};
+      }
+      // copy the normal
+      if (index.vertex_index >= 0) {
+        vertex.normal_m = {
+          attrib.normals[3 * index.normal_index + 0],
+          attrib.normals[3 * index.normal_index + 1],
+          attrib.normals[3 * index.normal_index + 2]
+        };
+      }
+      // copy the texture coordinate
+      if (index.vertex_index >= 0) {
+        vertex.uv_m = {
+          attrib.vertices[2 * index.texcoord_index + 0],
+          attrib.vertices[2 * index.texcoord_index + 1]
+        };
+      }
+      // if vertex is a new vertex
+      if (uniqueVertices.count(vertex) == 0) {
+        uniqueVertices[vertex] = static_cast<uint32_t>(vertices_m.size());
+        vertices_m.push_back(std::move(vertex));
+      }
+      indices_m.push_back(uniqueVertices[vertex]);
+    }
+  }
 }
 } // namespace hveo

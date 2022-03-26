@@ -1,3 +1,6 @@
+# config VULKAN_DIR, TINY_OBJ_LOADER_DIR in your .env
+include .env
+
 LIB_NAME		=libhve.a
 BIN_NAME		=hve_app
 
@@ -16,13 +19,11 @@ TARGET_LIB 	=$(LIB_DIR)/$(LIB_NAME)
 CXX 				=g++-10
 CFLAGS 			= -std=c++17 -g3
 
-# only support ubuntu for now
-VULKANDIR 	= /home/honolulu/programs/downloaded_libraries/vulkanSDK/x86_64
-LDFLAGS 		= $(VULKANDIR)/lib/libvulkan.so.1.3.204 $(VULKANDIR)/lib/libvulkan.so.1 /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
-INCFLAGS 		= -I/usr/include -I$(VULKANDIR)/include -I./include
+LDFLAGS 		=$(VULKAN_DIR)/lib/libvulkan.so.1.3.204 $(VULKAN_DIR)/lib/libvulkan.so.1 /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
+INCFLAGS 		= -I/usr/include -I$(VULKAN_DIR)/include -I./include
 
-VK_ICD_FILENAMES 	:= $(VULKANDIR)/etc/vulkan/icd.d/MoltenVK_icd.json
-VK_LAYER_PATH 		:= $(VULKANDIR)/etc/vulkan/explicit_layer.d
+VK_ICD_FILENAMES 	:= $(VULKAN_DIR)/etc/vulkan/icd.d/MoltenVK_icd.json
+VK_LAYER_PATH 		:= $(VULKAN_DIR)/etc/vulkan/explicit_layer.d
 
 # build an app
 $(TARGET_BIN): $(MAINSRC) $(TARGET_LIB) $(INCS)
