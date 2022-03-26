@@ -28,14 +28,19 @@ void HveRenderer::recreateSwapChain()
   // wait for finishing the current task
   vkDeviceWaitIdle(hveDevice_m.device());
 
+  // for first creation
   if (hveSwapChain_m == nullptr)
     hveSwapChain_m = std::make_unique<HveSwapChain>(hveDevice_m, extent);
+  // recreate
   else {
-    hveSwapChain_m = std::make_unique<HveSwapChain>(hveDevice_m, extent, std::move(hveSwapChain_m));
-    if (hveSwapChain_m->imageCount() != commandBuffers_m.size()) {
-      freeCommandBuffers();
-      createCommandBuffers();
-    }
+    // move the ownership of the current swap chain to old one.
+    std::shared_ptr<HveSwapChain> oldSwapChain = std::move(hveSwapChain_m);
+    hveSwapChain_m = std::make_unique<HveSwapChain>(hveDevice_m, extent, oldSwapChain);
+
+    if (!oldSwapChain->compareSwapChainFormats(*hveSwapChain_m.get()))
+      throw std::runtime_error("swap chian image( or depth) format has chainged");
+
+    // command buffers no longer depend on the swap chain image count
   }
   // if render pass compatible, do nothing else 
 }
@@ -43,7 +48,7 @@ void HveRenderer::recreateSwapChain()
 void HveRenderer::createCommandBuffers() 
 {
   // 2 or 3
-  commandBuffers_m.resize(hveSwapChain_m->imageCount());
+  commandBuffers_m.resize(HveSwapChain::MAX_FRAMES_IN_FLIGHT);
 
   // specify command pool and number of buffers to allocate
   VkCommandBufferAllocateInfo allocInfo{};
@@ -94,7 +99,7 @@ VkCommandBuffer HveRenderer::beginFrame()
   // // (only relevant for secondary command buffers)
   // beginInfo.pInheritanceInfo = nullptr;
 
-  if (vkBeginCommandBuffer(commandBuffers_m[currentImageIndex_m], &beginInfo) != VK_SUCCESS) 
+  if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) 
     throw std::runtime_error("failed to begin recording command buffer!");
   return commandBuffer;
 }
@@ -116,6 +121,9 @@ void HveRenderer::endFrame()
     throw std::runtime_error("failed to present swap chain image!");
 
   isFrameStarted_m = false;
+  // increment currentFrameIndex_m
+  if (++currentFrameIndex_m == HveSwapChain::MAX_FRAMES_IN_FLIGHT)
+    currentFrameIndex_m = 0;
 }
 
 void HveRenderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer)

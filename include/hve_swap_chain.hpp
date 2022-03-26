@@ -39,6 +39,10 @@ class HveSwapChain {
   VkResult acquireNextImage(uint32_t *imageIndex);
   VkResult submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex);
 
+  // swap chain validation whether its compatible with the renderPass
+  bool compareSwapChainFormats(const HveSwapChain& swapChain) const 
+  { return (swapChain.swapChainDepthFormat_m == swapChainDepthFormat_m) && (swapChain.swapChainImageFormat_m == swapChainImageFormat_m); }
+
  private:
   void init();
   void createSwapChain();
@@ -58,6 +62,7 @@ class HveSwapChain {
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 
   VkFormat swapChainImageFormat_m;
+  VkFormat swapChainDepthFormat_m;
   VkExtent2D swapChainExtent_m;
 
   std::vector<VkFramebuffer> swapChainFramebuffers_m;

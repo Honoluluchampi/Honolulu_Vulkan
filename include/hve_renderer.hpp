@@ -29,7 +29,12 @@ class HveRenderer
     VkCommandBuffer getCurrentCommandBuffer() const 
     {
       assert(isFrameStarted_m && "Cannot get command buffer when frame not in progress");
-      return commandBuffers_m[currentImageIndex_m];
+      return commandBuffers_m[currentFrameIndex_m];
+    }
+    int getFrameIndex() const 
+    {
+      assert(isFrameStarted_m && "Cannot get frame when frame not in progress");
+      return currentFrameIndex_m;
     }
 
 
@@ -49,6 +54,7 @@ class HveRenderer
     std::vector<VkCommandBuffer> commandBuffers_m;
 
     uint32_t currentImageIndex_m;
+    int currentFrameIndex_m; // [0, max_frames_in_flight]
     bool isFrameStarted_m;
 };
 } // namespace hve
