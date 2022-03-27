@@ -10,7 +10,8 @@ struct FrameInfo
 {
   int frameIndex_m;
   float frameTime_m;
-  VkCommandBuffer CommandBuffer_m;
+  VkCommandBuffer commandBuffer_m;
   HveCamera &camera_m;
+  VkDescriptorSet globalDiscriptorSet_m;
 };
 } // namesapce hve

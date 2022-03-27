@@ -75,7 +75,10 @@ void HveApp::run()
   // globalUboBuffer.map();
 
   // create renderer system as local variable
-  SimpleRendererSystem simpleRendererSystem {hveDevice_m, hveRenderer_m.getSwapChainRenderPass()};
+  SimpleRendererSystem simpleRendererSystem {
+    hveDevice_m, 
+    hveRenderer_m.getSwapChainRenderPass(),
+    globalSetLayout->getDescriptorSetLayout()};
   // create camera as ...
   HveCamera camera{};
 
@@ -105,7 +108,7 @@ void HveApp::run()
     if (auto commandBuffer = hveRenderer_m.beginFrame()) {
       int frameIndex = hveRenderer_m.getFrameIndex();
 
-      FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, camera};
+      FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, camera, globalDescriptorSets[frameIndex]};
 
       // update 
       GlobalUbo ubo{};

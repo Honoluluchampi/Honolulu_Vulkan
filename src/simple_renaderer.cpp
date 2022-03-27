@@ -16,14 +16,14 @@ namespace hve {
 // should be compatible with a shader
 struct SimplePushConstantData
 {
-  glm::mat4 transform_m{1.0f};
+  glm::mat4 modelMatrix_m{1.0f};
   // to align data offsets with shader
   glm::mat4 normalMatrix_m{1.0f};
 };
 
-SimpleRendererSystem::SimpleRendererSystem(HveDevice& device, VkRenderPass renderPass) : hveDevice_m(device)
+SimpleRendererSystem::SimpleRendererSystem(HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout) : hveDevice_m(device)
 {
-  createPipelineLayout();
+  createPipelineLayout(globalSetLayout);
   createPipeline(renderPass);
 }
 
@@ -32,7 +32,7 @@ SimpleRendererSystem::~SimpleRendererSystem()
   vkDestroyPipelineLayout(hveDevice_m.device(), pipelineLayout_m, nullptr);
 }
 
-void SimpleRendererSystem::createPipelineLayout()
+void SimpleRendererSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout)
 {
   // config push constant range
   VkPushConstantRange pushConstantRange{};
@@ -41,10 +41,12 @@ void SimpleRendererSystem::createPipelineLayout()
   pushConstantRange.offset = 0;
   pushConstantRange.size = sizeof(SimplePushConstantData);
 
+  std::vector<VkDescriptorSetLayout> descriptorSetLayouts{globalSetLayout};
+
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  pipelineLayoutInfo.setLayoutCount = 0;
-  pipelineLayoutInfo.pSetLayouts = nullptr;
+  pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
+  pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
   pipelineLayoutInfo.pushConstantRangeCount = 1;
   pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
   if (vkCreatePipelineLayout(hveDevice_m.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout_m) != VK_SUCCESS)
@@ -69,9 +71,16 @@ void SimpleRendererSystem::createPipeline(VkRenderPass renderPass)
 
 void SimpleRendererSystem::renderGameObjects(FrameInfo frameInfo, std::vector<HveGameObject>& gameObjects)
 {
-  hvePipeline_m->bind(frameInfo.CommandBuffer_m);
+  hvePipeline_m->bind(frameInfo.commandBuffer_m);
 
-  auto projectionView = frameInfo.camera_m.getProjection() * frameInfo.camera_m.getView();
+  vkCmdBindDescriptorSets(
+    frameInfo.commandBuffer_m,
+    VK_PIPELINE_BIND_POINT_GRAPHICS,
+    pipelineLayout_m,
+    0, 1,
+    &frameInfo.globalDiscriptorSet_m,
+    0, nullptr
+  );
 
   for (auto& obj : gameObjects) {
     // rotate around the y axis
@@ -79,21 +88,20 @@ void SimpleRendererSystem::renderGameObjects(FrameInfo frameInfo, std::vector<Hv
     // obj.transform_m.rotation_m.x = glm::mod(obj.transform_m.rotation_m.x + 0.005f, glm::two_pi<float>());
 
     SimplePushConstantData push{};
-    auto modelMatrix = obj.transform_m.mat4();
     // camera projection
-    push.transform_m = projectionView * modelMatrix;
+    push.modelMatrix_m = obj.transform_m.mat4();
     // automatically converse mat3(normalMatrix_m) to mat4 for shader data alignment
     push.normalMatrix_m = obj.transform_m.normalMatrix();
 
     vkCmdPushConstants(
-        frameInfo.CommandBuffer_m,
+        frameInfo.commandBuffer_m,
         pipelineLayout_m, 
         VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 
         0, 
         sizeof(SimplePushConstantData), 
         &push);
-    obj.model_m->bind(frameInfo.CommandBuffer_m);
-    obj.model_m->draw(frameInfo.CommandBuffer_m);
+    obj.model_m->bind(frameInfo.commandBuffer_m);
+    obj.model_m->draw(frameInfo.commandBuffer_m);
   }
 }
 

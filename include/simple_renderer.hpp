@@ -16,7 +16,7 @@ class SimpleRendererSystem
 {
   public:
 
-    SimpleRendererSystem(HveDevice& device, VkRenderPass renderPass);
+    SimpleRendererSystem(HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
     ~SimpleRendererSystem();
 
     SimpleRendererSystem(const SimpleRendererSystem &) = delete;
@@ -26,7 +26,7 @@ class SimpleRendererSystem
     void renderGameObjects(FrameInfo frameInfo, std::vector<HveGameObject> &gameObjects);
     
   private:
-    void createPipelineLayout();
+    void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
     void createPipeline(VkRenderPass renderPass);
 
     HveDevice& hveDevice_m;
