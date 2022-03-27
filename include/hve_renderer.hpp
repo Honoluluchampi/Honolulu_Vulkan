@@ -55,8 +55,8 @@ class HveRenderer
     std::unique_ptr<HveSwapChain> hveSwapChain_m;
     std::vector<VkCommandBuffer> commandBuffers_m;
 
-    uint32_t currentImageIndex_m;
-    int currentFrameIndex_m; // [0, max_frames_in_flight]
-    bool isFrameStarted_m;
+    uint32_t currentImageIndex_m = 0;
+    int currentFrameIndex_m = 0; // [0, max_frames_in_flight]
+    bool isFrameStarted_m = false;
 };
 } // namespace hve

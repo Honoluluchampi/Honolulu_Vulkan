@@ -35,7 +35,7 @@ class HveApp
     HveRenderer hveRenderer_m {hveWindow_m, hveDevice_m};
 
     // shared between multiple system
-    std::unique_ptr<HveDescriptorPool> globalPool_m{};
+    std::unique_ptr<HveDescriptorPool> globalPool_m;
     // game
     std::vector<HveGameObject> gameObjects_m;
 };

@@ -22,8 +22,8 @@ struct GlobalUbo
 };
 
 HveApp::HveApp()
-{ 
-  // 2 uniform buffer descriptor
+{
+  // // 2 uniform buffer descriptor
   globalPool_m = HveDescriptorPool::Builder(hveDevice_m)
     .setMaxSets(HveSwapChain::MAX_FRAMES_IN_FLIGHT)
     .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, HveSwapChain::MAX_FRAMES_IN_FLIGHT)
@@ -78,8 +78,6 @@ void HveApp::run()
   SimpleRendererSystem simpleRendererSystem {hveDevice_m, hveRenderer_m.getSwapChainRenderPass()};
   // create camera as ...
   HveCamera camera{};
-  // camera.setViewDirection(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
-  // camera.setViewTarget(glm::vec3(-1.f, -2.f, 20.f), glm::vec3(0.f, 0.f, 2.5f));
 
   // object for change the camera transform indirectly
   // this object has no model and won't be rendered
