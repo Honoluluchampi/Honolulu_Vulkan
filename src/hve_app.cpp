@@ -17,8 +17,12 @@ namespace hve {
 // global uniform buffer object
 struct GlobalUbo
 {
+  // check alignment rules
   glm::mat4 projectionView_m{1.f};
-  glm::vec3 lightDirection_m = glm::normalize(glm::vec3{1.f, -3.f, -1.f});
+  // point light
+  glm::vec4 ambientLightColor{1.f, 1.f, 1.f, .02f}; // w is light intensity
+  glm::vec3 lightPosition{-1.f};
+  alignas(16) glm::vec4 lightColor{1.f}; // w is light intensity
 };
 
 HveApp::HveApp()
@@ -85,6 +89,7 @@ void HveApp::run()
   // object for change the camera transform indirectly
   // this object has no model and won't be rendered
   auto viewerObject = HveGameObject::createGameObject();
+  viewerObject.transform_m.translation_m.z = -2.5f;
   KeyboardMovementController cameraController{};
 
   // for synchronization of the refresh rate
@@ -131,19 +136,24 @@ void HveApp::run()
 void HveApp::loadGameObjects()
 {
   std::shared_ptr<HveModel> hveModel = HveModel::createModelFromFile(hveDevice_m, "./models/flat_vase.obj");
-
   auto gameObj = HveGameObject::createGameObject();
   gameObj.model_m = hveModel;
-  gameObj.transform_m.translation_m = {-0.5f, 0.5f, 2.5f};
+  gameObj.transform_m.translation_m = {-0.5f, 0.5f, 0.f};
   gameObj.transform_m.scale_m = {3.f, 1.5f, 3.f};
   gameObjects_m.push_back(std::move(gameObj));
 
   std::shared_ptr<HveModel> vaseModel = HveModel::createModelFromFile(hveDevice_m, "./models/smooth_vase.obj");
-
   auto vase = HveGameObject::createGameObject();
   vase.model_m = vaseModel;
-  vase.transform_m.translation_m = {0.5f, 0.5f, 2.5f};
+  vase.transform_m.translation_m = {0.5f, 0.5f, 0.f};
   vase.transform_m.scale_m = glm::vec3{3.f, 1.5f, 3.f};
   gameObjects_m.push_back(std::move(vase));
+
+  std::shared_ptr<HveModel> floorModel = HveModel::createModelFromFile(hveDevice_m, "./models/quad.obj");
+  auto floor = HveGameObject::createGameObject();
+  floor.model_m = floorModel;
+  floor.transform_m.translation_m = {0.f, 0.5f, 0.f};
+  floor.transform_m.scale_m = glm::vec3{3.f, 1.5f, 3.f};
+  gameObjects_m.push_back(std::move(floor));
 }
 } // namespace hve
