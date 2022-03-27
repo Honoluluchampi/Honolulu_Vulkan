@@ -2,6 +2,7 @@
 #include <simple_renderer.hpp>
 #include <hve_camera.hpp>
 #include <keyboard_movement_controller.hpp>
+#include <hve_buffer.hpp>
 
 // lib
 #include <glm/gtc/constants.hpp>
@@ -13,17 +14,44 @@
 
 namespace hve {
 
-HveApp::HveApp()
+// global uniform buffer object
+struct GlobalUbo
 {
-  loadGameObjects();
-}
+  glm::mat4 projectionView_m{1.f};
+  glm::vec3 lightDirection_m = glm::normalize(glm::vec3{1.f, -3.f, -1.f});
+};
+
+HveApp::HveApp()
+{ loadGameObjects(); }
 
 HveApp::~HveApp()
-{
-}
+{ }
 
 void HveApp::run()
 {
+  // creating ubo for each frames version
+  std::vector<std::unique_ptr<HveBuffer>> uboBuffers(HveSwapChain::MAX_FRAMES_IN_FLIGHT);
+  for (int i = 0; i < uboBuffers.size(); i++) {
+    uboBuffers[i] = std::make_unique<HveBuffer>(
+      hveDevice_m,
+      sizeof(GlobalUbo),
+      1,
+      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+    );
+    uboBuffers[i]->map();
+  }
+  // creating one uniform buffer for all frames
+  // HveBuffer globalUboBuffer {
+  //   hveDevice_m,
+  //   sizeof(GlobalUbo),
+  //   HveSwapChain::MAX_FRAMES_IN_FLIGHT, // instance count
+  //   VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+  //   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+  //   hveDevice_m.properties_m.limits.minUniformBufferOffsetAlignment,
+  // };
+  // globalUboBuffer.map();
+
   // create renderer system as local variable
   SimpleRendererSystem simpleRendererSystem {hveDevice_m, hveRenderer_m.getSwapChainRenderPass()};
   // create camera as ...
@@ -55,15 +83,20 @@ void HveApp::run()
     camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 50.f);
     // returns nullptr if the swap chain is need to be recreated
     if (auto commandBuffer = hveRenderer_m.beginFrame()) {
-      // begin offscrean shadow pass
-      // render shadow casting objects 
-      // end offscreen shadow pass
+      int frameIndex = hveRenderer_m.getFrameIndex();
 
+      FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, camera};
+
+      // update 
+      GlobalUbo ubo{};
+      ubo.projectionView_m = camera.getProjection() * camera.getView();
+      uboBuffers[frameIndex]->writeToBuffer(&ubo);
+      uboBuffers[frameIndex]->flush();
+
+      // rendering
       hveRenderer_m.beginSwapChainRenderPass(commandBuffer);
-
       // programmable stage of rendering
-      simpleRendererSystem.renderGameObjects(commandBuffer, gameObjects_m, camera);
-
+      simpleRendererSystem.renderGameObjects(frameInfo, gameObjects_m);
       hveRenderer_m.endSwapChainRenderPass(commandBuffer);
       hveRenderer_m.endFrame();
     }

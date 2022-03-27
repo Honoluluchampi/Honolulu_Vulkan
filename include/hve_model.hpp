@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hve_device.hpp>
+#include <hve_buffer.hpp>
 
 // lib
 #define GLM_FORCE_RADIANS
@@ -57,14 +58,12 @@ class HveModel
     void createIndexBuffers(const std::vector<uint32_t> &indices);
 
     HveDevice& hveDevice_m;
-    // separating buffer and its assigned memory enables programmer to manage memory manually
-    VkBuffer vertexBuffer_m;
-    VkDeviceMemory vertexBufferMemory_m;
+    // contains buffer itself and buffer memory
+    std::unique_ptr<HveBuffer> vertexBuffer_m;
+    std::unique_ptr<HveBuffer> indexBuffer_m;
     uint32_t vertexCount_m;
+    uint32_t indexCount_m;
 
     bool hasIndexBuffer_m = false;
-    VkBuffer indexBuffer_m;
-    VkDeviceMemory indexBufferMemory_m;
-    uint32_t indexCount_m;
 };
 } // namespace hve

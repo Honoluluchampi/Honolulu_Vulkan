@@ -67,11 +67,11 @@ void SimpleRendererSystem::createPipeline(VkRenderPass renderPass)
 }
 
 
-void SimpleRendererSystem::renderGameObjects(VkCommandBuffer commandBuffer, std::vector<HveGameObject>& gameObjects, const HveCamera& camera)
+void SimpleRendererSystem::renderGameObjects(FrameInfo frameInfo, std::vector<HveGameObject>& gameObjects)
 {
-  hvePipeline_m->bind(commandBuffer);
+  hvePipeline_m->bind(frameInfo.CommandBuffer_m);
 
-  auto projectionView = camera.getProjection() * camera.getView();
+  auto projectionView = frameInfo.camera_m.getProjection() * frameInfo.camera_m.getView();
 
   for (auto& obj : gameObjects) {
     // rotate around the y axis
@@ -86,14 +86,14 @@ void SimpleRendererSystem::renderGameObjects(VkCommandBuffer commandBuffer, std:
     push.normalMatrix_m = obj.transform_m.normalMatrix();
 
     vkCmdPushConstants(
-        commandBuffer,
+        frameInfo.CommandBuffer_m,
         pipelineLayout_m, 
         VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 
         0, 
         sizeof(SimplePushConstantData), 
         &push);
-    obj.model_m->bind(commandBuffer);
-    obj.model_m->draw(commandBuffer);
+    obj.model_m->bind(frameInfo.CommandBuffer_m);
+    obj.model_m->draw(frameInfo.CommandBuffer_m);
   }
 }
 

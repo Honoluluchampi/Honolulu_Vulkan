@@ -4,6 +4,7 @@
 #include <hve_device.hpp>
 #include <hve_game_object.hpp>
 #include <hve_camera.hpp>
+#include <hve_frame_info.hpp>
 
 // std
 #include <memory>
@@ -22,7 +23,7 @@ class SimpleRendererSystem
     SimpleRendererSystem &operator= (const SimpleRendererSystem &) = delete;
 
     // dont make HveCamera object as a member variable so as to share the camera between multiple render system
-    void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<HveGameObject> &gameObjects, const HveCamera& camera);
+    void renderGameObjects(FrameInfo frameInfo, std::vector<HveGameObject> &gameObjects);
     
   private:
     void createPipelineLayout();

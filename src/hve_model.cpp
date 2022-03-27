@@ -37,13 +37,7 @@ HveModel::HveModel(HveDevice& device, const HveModel::Builder &builder) : hveDev
 
 HveModel::~HveModel()
 {
-  vkDestroyBuffer(hveDevice_m.device(), vertexBuffer_m, nullptr);
-  vkFreeMemory(hveDevice_m.device(), vertexBufferMemory_m, nullptr);
-
-  if (hasIndexBuffer_m) {
-    vkDestroyBuffer(hveDevice_m.device(), indexBuffer_m, nullptr);
-    vkFreeMemory(hveDevice_m.device(), indexBufferMemory_m, nullptr);
-  }
+  // buffers wille be freed in dotr of Hvebuffer
 }
 
 std::unique_ptr<HveModel> HveModel::createModelFromFile(HveDevice &device, const std::string &filename)
@@ -56,41 +50,35 @@ std::unique_ptr<HveModel> HveModel::createModelFromFile(HveDevice &device, const
 
 void HveModel::createVertexBuffers(const std::vector<Vertex> &vertices)
 {
-  vertexCount_m = static_cast<uint32_t>(vertices.size());
   // vertexCount must be larger than 3 (triangle) 
   // use a host visible buffer as temporary buffer, use a device local buffer as actual vertex buffer
+  vertexCount_m = static_cast<uint32_t>(vertices.size());
   VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount_m;
+  uint32_t vertexSize = sizeof(vertices[0]);
 
-  // copy the data to the staging buffer
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
-  hveDevice_m.createBuffer(
-    bufferSize,
-    VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-    stagingBuffer,
-    stagingBufferMemory
+  // staging buffer creation
+  HveBuffer stagingBuffer {
+    hveDevice_m,
+    vertexSize, // for calculating alignment
+    vertexCount_m, // same as above
+    VK_BUFFER_USAGE_TRANSFER_SRC_BIT, // usage
+    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT // property
+  };
+  // mapping the data to the buffer
+  stagingBuffer.map();
+  stagingBuffer.writeToBuffer((void *)vertices.data());
+
+  // vertex buffer creation
+  vertexBuffer_m = std::make_unique<HveBuffer>(
+    hveDevice_m,
+    vertexSize, // for calculating alignment
+    vertexCount_m, // same as above
+    VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, // usage
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT// property
   );
-
-  // filling in the data to the staging buffer
-  void *data;
-  vkMapMemory(hveDevice_m.device(), stagingBufferMemory, 0, bufferSize, 0, &data);
-  std::memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
-  vkUnmapMemory(hveDevice_m.device(), stagingBufferMemory);
-
-  hveDevice_m.createBuffer(
-    bufferSize,
-    VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, // optimal type of the memory type
-    vertexBuffer_m,
-    vertexBufferMemory_m
-  );
-
   // copy the data from staging buffer to the vertex buffer
-  hveDevice_m.copyBuffer(stagingBuffer, vertexBuffer_m, bufferSize);
-  // clean up the staging buffer no longer necessary
-  vkDestroyBuffer(hveDevice_m.device(), stagingBuffer, nullptr);
-  vkFreeMemory(hveDevice_m.device(), stagingBufferMemory, nullptr);
+  hveDevice_m.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer_m->getBuffer(), bufferSize);
+  // staging buffer is automatically freed in the dtor 
 }
 
 void HveModel::createIndexBuffers(const std::vector<uint32_t> &indices)
@@ -100,41 +88,31 @@ void HveModel::createIndexBuffers(const std::vector<uint32_t> &indices)
   hasIndexBuffer_m = indexCount_m > 0;
   if (!hasIndexBuffer_m) return;
 
-  // vertexCount must be larger than 3 (triangle) 
-  // use a host visible buffer as temporary buffer, use a device local buffer as actual vertex buffer
   VkDeviceSize bufferSize = sizeof(indices[0]) * indexCount_m;
+  uint32_t indexSize = sizeof(indices[0]);
 
   // copy the data to the staging buffer
-  VkBuffer stagingBuffer;
-  VkDeviceMemory stagingBufferMemory;
-  hveDevice_m.createBuffer(
-    bufferSize,
+  HveBuffer stagingBuffer {
+    hveDevice_m,
+    indexSize,
+    indexCount_m,
     VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-    stagingBuffer,
-    stagingBufferMemory
-  );
+  };
 
-  // filling in the data to the staging buffer
-  void *data;
-  vkMapMemory(hveDevice_m.device(), stagingBufferMemory, 0, bufferSize, 0, &data);
-  std::memcpy(data, indices.data(), static_cast<size_t>(bufferSize));
-  vkUnmapMemory(hveDevice_m.device(), stagingBufferMemory);
+  stagingBuffer.map();
+  stagingBuffer.writeToBuffer((void *)indices.data());
 
-  hveDevice_m.createBuffer(
-    bufferSize,
+  indexBuffer_m = std::make_unique<HveBuffer> (
+    hveDevice_m,
+    indexSize,
+    indexCount_m,
     VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, // optimal type of the memory type
-    indexBuffer_m,
-    indexBufferMemory_m
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT // optimal type of the memory type
   );
 
   // copy the data from staging buffer to the vertex buffer
-  hveDevice_m.copyBuffer(stagingBuffer, indexBuffer_m, bufferSize);
-
-  // clean up the staging buffer no longer necessary
-  vkDestroyBuffer(hveDevice_m.device(), stagingBuffer, nullptr);
-  vkFreeMemory(hveDevice_m.device(), stagingBufferMemory, nullptr);
+  hveDevice_m.copyBuffer(stagingBuffer.getBuffer(), indexBuffer_m->getBuffer(), bufferSize);
 }
 
 void HveModel::draw(VkCommandBuffer commandBuffer)
@@ -147,13 +125,13 @@ void HveModel::draw(VkCommandBuffer commandBuffer)
 
 void HveModel::bind(VkCommandBuffer commandBuffer)
 {
-  VkBuffer buffers[] = {vertexBuffer_m};
+  VkBuffer buffers[] = {vertexBuffer_m->getBuffer()};
   VkDeviceSize offsets[] = {0};
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
 
   // last parameter should be same as the type of the Build::indices
   if (hasIndexBuffer_m) 
-    vkCmdBindIndexBuffer(commandBuffer, indexBuffer_m, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindIndexBuffer(commandBuffer, indexBuffer_m->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
 }
 
 std::vector<VkVertexInputBindingDescription> HveModel::Vertex::getBindingDescriptions()
