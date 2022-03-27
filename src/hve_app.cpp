@@ -22,7 +22,15 @@ struct GlobalUbo
 };
 
 HveApp::HveApp()
-{ loadGameObjects(); }
+{ 
+  // 2 uniform buffer descriptor
+  globalPool_m = HveDescriptorPool::Builder(hveDevice_m)
+    .setMaxSets(HveSwapChain::MAX_FRAMES_IN_FLIGHT)
+    .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, HveSwapChain::MAX_FRAMES_IN_FLIGHT)
+    .build();
+
+  loadGameObjects(); 
+}
 
 HveApp::~HveApp()
 { }
@@ -40,6 +48,20 @@ void HveApp::run()
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
     );
     uboBuffers[i]->map();
+  }
+
+  // this is set layout of master system
+  auto globalSetLayout = HveDescriptorSetLayout::Builder(hveDevice_m)
+    .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+    .build();
+  // may add additional layout of child system
+
+  std::vector<VkDescriptorSet> globalDescriptorSets(HveSwapChain::MAX_FRAMES_IN_FLIGHT);
+  for (int i = 0; i < globalDescriptorSets.size(); i++) {
+    auto bufferInfo = uboBuffers[i]->descriptorInfo();
+    HveDescriptorWriter(*globalSetLayout, *globalPool_m)
+      .writeBuffer(0, &bufferInfo)
+      .build(globalDescriptorSets[i]);
   }
   // creating one uniform buffer for all frames
   // HveBuffer globalUboBuffer {

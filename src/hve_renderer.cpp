@@ -90,6 +90,7 @@ VkCommandBuffer HveRenderer::beginFrame()
   isFrameStarted_m = true;
 
   auto commandBuffer = getCurrentCommandBuffer();
+  assert(commandBuffer != VK_NULL_HANDLE && "");
     // start reconding command buffers
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;

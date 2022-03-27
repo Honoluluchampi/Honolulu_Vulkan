@@ -4,6 +4,7 @@
 #include <hve_device.hpp>
 #include <hve_game_object.hpp>
 #include <hve_renderer.hpp>
+#include <hve_descriptor_set_layout.hpp>
 
 // std
 #include <memory>
@@ -33,6 +34,8 @@ class HveApp
     HveDevice hveDevice_m {hveWindow_m};
     HveRenderer hveRenderer_m {hveWindow_m, hveDevice_m};
 
+    // shared between multiple system
+    std::unique_ptr<HveDescriptorPool> globalPool_m{};
     // game
     std::vector<HveGameObject> gameObjects_m;
 };
