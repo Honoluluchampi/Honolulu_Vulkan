@@ -1,4 +1,4 @@
-COMPILER="/home/honolulu/programs/downloaded_libraries/vulkanSDK/x86_64/bin/glslc"
+COMPILER="/home/honolulu/programs/external_libraries/vulkanSDK/x86_64/bin/glslc"
 
 SHADERDIR="./shader"
 OUTPUTDIR="./shader/spv"

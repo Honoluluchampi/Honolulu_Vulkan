@@ -9,7 +9,7 @@ SRCDIRS		 :=$(shell find $(SRCROOT) -type d)
 SRCS 				=$(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.cpp))
 OBJROOT			=./obj
 OBJS 				=$(subst $(SRCROOT), $(OBJROOT), $(SRCS:.cpp=.o))
-INCDIRS 		=$(SRCDIRS)
+INCDIRS 		=$(subst $(SRCROOT), ./include, $(SRCDIRS))
 INCS 				=$(foreach dir, $(INCDIRS), $(wildcard $(INCDIRS)/*.hpp))
 MAINSRC			=./main.cpp
 DEPENDS 		= $(OBJS:.o=.d)
