@@ -177,8 +177,8 @@ void HvePipeline::createGraphicsPipeline(
   auto vertexInputInfo = createVertexInputInfo();
 
   // accept vertex data
-  auto bindingDescriptions = HveModel::Vertex::getBindingDescriptions();
-  auto attributeDescriptions = HveModel::Vertex::getAttributeDescriptions(); 
+  auto& bindingDescriptions = configInfo.bindingDescriptions;
+  auto& attributeDescriptions = configInfo.attributeDescriptions; 
   vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
   vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data(); //optional
   vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
@@ -280,5 +280,8 @@ void HvePipeline::defaultPipelineConfigInfo(PipelineConfigInfo &configInfo)
   configInfo.createColorBlendState();
   configInfo.createDepthStencilState();
   configInfo.createDynamicState();
+
+  configInfo.bindingDescriptions = HveModel::Vertex::getBindingDescriptions();
+  configInfo.attributeDescriptions = HveModel::Vertex::getAttributeDescriptions();
 }
 } // namespace hve

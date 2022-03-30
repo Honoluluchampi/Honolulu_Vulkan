@@ -30,6 +30,8 @@ struct PipelineConfigInfo
   void createDynamicState();
 
   // member variables
+  std::vector<VkVertexInputBindingDescription> bindingDescriptions{};
+  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
   VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo_m{};
   VkPipelineViewportStateCreateInfo viewportInfo_m{};
   VkPipelineRasterizationStateCreateInfo rasterizationInfo_m{};

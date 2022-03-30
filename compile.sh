@@ -3,5 +3,7 @@ COMPILER="/home/honolulu/programs/downloaded_libraries/vulkanSDK/x86_64/bin/glsl
 SHADERDIR="./shader"
 OUTPUTDIR="./shader/spv"
 mkdir -p ./shader/spv
-$COMPILER $SHADERDIR/shader.vert -o $OUTPUTDIR/vert.spv
-$COMPILER $SHADERDIR/shader.frag -o $OUTPUTDIR/frag.spv
+$COMPILER $SHADERDIR/simple_shader.vert -o $OUTPUTDIR/simple_shader.vert.spv
+$COMPILER $SHADERDIR/simple_shader.frag -o $OUTPUTDIR/simple_shader.frag.spv
+$COMPILER $SHADERDIR/point_light.vert -o $OUTPUTDIR/point_light.vert.spv
+$COMPILER $SHADERDIR/point_light.frag -o $OUTPUTDIR/point_light.frag.spv

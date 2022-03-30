@@ -1,5 +1,6 @@
 #include <hve_app.hpp>
 #include <systems/simple_renderer.hpp>
+#include <systems/point_light.hpp>
 #include <hve_camera.hpp>
 #include <keyboard_movement_controller.hpp>
 #include <hve_buffer.hpp>
@@ -85,6 +86,12 @@ void HveApp::run()
     hveDevice_m, 
     hveRenderer_m.getSwapChainRenderPass(),
     globalSetLayout->getDescriptorSetLayout()};
+
+  PointLightSystem pointLightSystem {
+    hveDevice_m, 
+    hveRenderer_m.getSwapChainRenderPass(),
+    globalSetLayout->getDescriptorSetLayout()};
+
   // create camera as ...
   HveCamera camera{};
 
@@ -136,6 +143,8 @@ void HveApp::run()
       // programmable stage of rendering
       // system can now access gameobjects via frameInfo
       simpleRendererSystem.renderGameObjects(frameInfo);
+      pointLightSystem.render(frameInfo);
+      
       hveRenderer_m.endSwapChainRenderPass(commandBuffer);
       hveRenderer_m.endFrame();
     }
