@@ -1,5 +1,5 @@
 #include <hve_app.hpp>
-#include <simple_renderer.hpp>
+#include <systems/simple_renderer.hpp>
 #include <hve_camera.hpp>
 #include <keyboard_movement_controller.hpp>
 #include <hve_buffer.hpp>

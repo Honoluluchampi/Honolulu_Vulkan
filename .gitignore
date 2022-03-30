@@ -1,8 +1,8 @@
-*.o
-*.a
+obj/
+lib/
 *.spv
 .vscode/
 bin/
 .env
-/include/tiny_obj_loader.h
+tiny_obj_loader.h
 /models

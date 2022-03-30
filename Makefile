@@ -4,12 +4,13 @@ include .env
 LIB_NAME		=libhve.a
 BIN_NAME		=hve_app
 
-SRCDIR 			=./src
-SRCS 				=$(wildcard $(SRCDIR)/*.cpp)
-OBJDIR 			=./obj
-OBJS 				=$(addprefix $(OBJDIR)/, $(notdir $(SRCS:.cpp=.o)))
-INCDIR 			=./include
-INCS 				=$(wildcard $(INCDIR)/*.hpp)
+SRCROOT			=./src
+SRCDIRS		 :=$(shell find $(SRCROOT) -type d)
+SRCS 				=$(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.cpp))
+OBJROOT			=./obj
+OBJS 				=$(subst $(SRCROOT), $(OBJROOT), $(SRCS:.cpp=.o))
+INCDIRS 		=$(SRCDIRS)
+INCS 				=$(foreach dir, $(INCDIRS), $(wildcard $(INCDIRS)/*.hpp))
 MAINSRC			=./main.cpp
 DEPENDS 		= $(OBJS:.o=.d)
 BIN_DIR			=./bin
@@ -20,7 +21,7 @@ CXX 				=g++-10
 CFLAGS 			= -std=c++17 -g3
 
 LDFLAGS 		=$(VULKAN_DIR)/lib/libvulkan.so.1.3.204 $(VULKAN_DIR)/lib/libvulkan.so.1 /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
-INCFLAGS 		= -I/usr/include -I$(VULKAN_DIR)/include -I./include
+INCFLAGS 		= -I/usr/include -I$(VULKAN_DIR)/include $(addprefix -I, $(INCDIRS))
 
 VK_ICD_FILENAMES 	:= $(VULKAN_DIR)/etc/vulkan/icd.d/MoltenVK_icd.json
 VK_LAYER_PATH 		:= $(VULKAN_DIR)/etc/vulkan/explicit_layer.d
@@ -36,11 +37,9 @@ $(TARGET_LIB): $(OBJS) $(INCS)
 	$(AR) rcs $(TARGET_LIB) $(OBJS)
 
 # compile object files
-$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
+$(OBJROOT)/%.o: $(SRCROOT)/%.cpp
+	@[ -d $(dir $@) ] || mkdir -p $(dir $@)
 	$(CXX) $(CFLAGS) -o $@ -c $< $(INCFLAGS)
-
-$(VERT_SHADER): 
 
 .PHONY: default
 default: $(TARGET_BIN)
