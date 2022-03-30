@@ -23,7 +23,7 @@ class SimpleRendererSystem
     SimpleRendererSystem &operator= (const SimpleRendererSystem &) = delete;
 
     // dont make HveCamera object as a member variable so as to share the camera between multiple render system
-    void renderGameObjects(FrameInfo frameInfo, std::vector<HveGameObject> &gameObjects);
+    void renderGameObjects(FrameInfo frameInfo);
     
   private:
     void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);

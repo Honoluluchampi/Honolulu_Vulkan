@@ -1,6 +1,7 @@
 #pragma once 
 
 #include <hve_camera.hpp>
+#include <hve_game_object.hpp>
 
 // libs
 #include <vulkan/vulkan.h>
@@ -13,5 +14,7 @@ struct FrameInfo
   VkCommandBuffer commandBuffer_m;
   HveCamera &camera_m;
   VkDescriptorSet globalDiscriptorSet_m;
+  // enable renderer to access all active gameObjects
+  HveGameObject::Map &gameObjects_m;
 };
 } // namesapce hve

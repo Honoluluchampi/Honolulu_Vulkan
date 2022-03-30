@@ -18,11 +18,12 @@ namespace hve {
 struct GlobalUbo
 {
   // check alignment rules
-  glm::mat4 projectionView_m{1.f};
+  glm::mat4 projection_m{1.f};
+  glm::mat4 view_m{1.f};
   // point light
-  glm::vec4 ambientLightColor{1.f, 1.f, 1.f, .02f}; // w is light intensity
-  glm::vec3 lightPosition{-1.f};
-  alignas(16) glm::vec4 lightColor{1.f}; // w is light intensity
+  glm::vec4 ambientLightColor_m{1.f, 1.f, 1.f, .02f}; // w is light intensity
+  glm::vec3 lightPosition_m{-1.f};
+  alignas(16) glm::vec4 lightColor_m{1.f}; // w is light intensity
 };
 
 HveApp::HveApp()
@@ -55,8 +56,9 @@ void HveApp::run()
   }
 
   // this is set layout of master system
+  // enable ubo to be referenced by oall stages of a graphics pipeline
   auto globalSetLayout = HveDescriptorSetLayout::Builder(hveDevice_m)
-    .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+    .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
     .build();
   // may add additional layout of child system
 
@@ -113,18 +115,27 @@ void HveApp::run()
     if (auto commandBuffer = hveRenderer_m.beginFrame()) {
       int frameIndex = hveRenderer_m.getFrameIndex();
 
-      FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, camera, globalDescriptorSets[frameIndex]};
+      FrameInfo frameInfo{
+          frameIndex, 
+          frameTime, 
+          commandBuffer, 
+          camera, 
+          globalDescriptorSets[frameIndex],
+          gameObjects_m
+      };
 
       // update 
       GlobalUbo ubo{};
-      ubo.projectionView_m = camera.getProjection() * camera.getView();
+      ubo.projection_m = camera.getProjection();
+      ubo.view_m = camera.getView();
       uboBuffers[frameIndex]->writeToBuffer(&ubo);
       uboBuffers[frameIndex]->flush();
 
       // rendering
       hveRenderer_m.beginSwapChainRenderPass(commandBuffer);
       // programmable stage of rendering
-      simpleRendererSystem.renderGameObjects(frameInfo, gameObjects_m);
+      // system can now access gameobjects via frameInfo
+      simpleRendererSystem.renderGameObjects(frameInfo);
       hveRenderer_m.endSwapChainRenderPass(commandBuffer);
       hveRenderer_m.endFrame();
     }
@@ -140,20 +151,21 @@ void HveApp::loadGameObjects()
   gameObj.model_m = hveModel;
   gameObj.transform_m.translation_m = {-0.5f, 0.5f, 0.f};
   gameObj.transform_m.scale_m = {3.f, 1.5f, 3.f};
-  gameObjects_m.push_back(std::move(gameObj));
+  // id is a key, HveGameObj is a value
+  gameObjects_m.emplace(gameObj.getId(), std::move(gameObj));
 
   std::shared_ptr<HveModel> vaseModel = HveModel::createModelFromFile(hveDevice_m, "./models/smooth_vase.obj");
   auto vase = HveGameObject::createGameObject();
   vase.model_m = vaseModel;
   vase.transform_m.translation_m = {0.5f, 0.5f, 0.f};
   vase.transform_m.scale_m = glm::vec3{3.f, 1.5f, 3.f};
-  gameObjects_m.push_back(std::move(vase));
+  gameObjects_m.emplace(vase.getId(), std::move(vase));
 
   std::shared_ptr<HveModel> floorModel = HveModel::createModelFromFile(hveDevice_m, "./models/quad.obj");
   auto floor = HveGameObject::createGameObject();
   floor.model_m = floorModel;
   floor.transform_m.translation_m = {0.f, 0.5f, 0.f};
   floor.transform_m.scale_m = glm::vec3{3.f, 1.5f, 3.f};
-  gameObjects_m.push_back(std::move(floor));
+  gameObjects_m.emplace(floor.getId(), std::move(floor));
 }
 } // namespace hve

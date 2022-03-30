@@ -69,7 +69,7 @@ void SimpleRendererSystem::createPipeline(VkRenderPass renderPass)
 }
 
 
-void SimpleRendererSystem::renderGameObjects(FrameInfo frameInfo, std::vector<HveGameObject>& gameObjects)
+void SimpleRendererSystem::renderGameObjects(FrameInfo frameInfo)
 {
   hvePipeline_m->bind(frameInfo.commandBuffer_m);
 
@@ -82,11 +82,9 @@ void SimpleRendererSystem::renderGameObjects(FrameInfo frameInfo, std::vector<Hv
     0, nullptr
   );
 
-  for (auto& obj : gameObjects) {
-    // rotate around the y axis
-    // obj.transform_m.rotation_m.y = glm::mod(obj.transform_m.rotation_m.y + 0.01f, glm::two_pi<float>());
-    // obj.transform_m.rotation_m.x = glm::mod(obj.transform_m.rotation_m.x + 0.005f, glm::two_pi<float>());
-
+  for (auto&  kv : frameInfo.gameObjects_m) {
+    auto& obj = kv.second;
+    if (obj.model_m == nullptr) continue;
     SimplePushConstantData push{};
     // camera projection
     push.modelMatrix_m = obj.transform_m.mat4();

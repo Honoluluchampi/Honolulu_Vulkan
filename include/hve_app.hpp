@@ -37,7 +37,7 @@ class HveApp
     // shared between multiple system
     std::unique_ptr<HveDescriptorPool> globalPool_m;
     // game
-    std::vector<HveGameObject> gameObjects_m;
+    HveGameObject::Map gameObjects_m;
 };
 
 } // namespace hv

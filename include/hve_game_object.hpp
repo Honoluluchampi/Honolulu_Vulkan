@@ -7,6 +7,7 @@
 
 // std
 #include <memory>
+#include <unordered_map>
 
 namespace hve {
 
@@ -27,8 +28,11 @@ struct TransformComponent
 
 class HveGameObject
 {
-  using id_t = unsigned int;
   public:
+    using id_t = unsigned int;
+    // why dont we use std::vector which can be randomly accessed
+    using Map = std::unordered_map<id_t, HveGameObject>;
+    
     static HveGameObject createGameObject() 
     {
       static id_t currentId = 0;
