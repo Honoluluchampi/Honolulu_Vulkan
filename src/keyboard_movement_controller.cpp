@@ -1,6 +1,6 @@
 #include <keyboard_movement_controller.hpp>
 
-namespace hve{
+namespace hnll{
 
 void KeyboardMovementController::moveInPlaneXZ(GLFWwindow* window, float dt, HveGameObject& gameObject)
 {

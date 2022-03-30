@@ -4,7 +4,7 @@
 #include <cassert>
 #include <stdexcept>
 
-namespace hve {
+namespace hnll {
 
 // *************** Descriptor Set Layout Builder *********************
 

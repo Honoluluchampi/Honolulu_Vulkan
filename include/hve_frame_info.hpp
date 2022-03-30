@@ -6,7 +6,7 @@
 // libs
 #include <vulkan/vulkan.h>
 
-namespace hve {
+namespace hnll {
 
 #define MAX_LIGHTS 10
 

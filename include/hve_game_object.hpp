@@ -9,7 +9,7 @@
 #include <memory>
 #include <unordered_map>
 
-namespace hve {
+namespace hnll {
 
 // 3d transformation
 struct TransformComponent

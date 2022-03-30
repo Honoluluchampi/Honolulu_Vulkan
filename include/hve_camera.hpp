@@ -7,7 +7,7 @@
 
 // implementation based on this tutorial https://www.youtube.com/watch?v=U0_ONQQ5ZNM&list=PL8327DO66nu9qYVKLDmdLW_84-yE4auCR&index=15
 
-namespace hve {
+namespace hnll {
 
 class HveCamera 
 {

@@ -13,7 +13,7 @@
 #include <chrono>
 #include <array>
 
-namespace hve {
+namespace hnll {
 
 HveApp::HveApp()
 {

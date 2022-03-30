@@ -10,7 +10,7 @@
 #include <memory>
 #include <vector>
 
-namespace hve {
+namespace hnll {
 
 class HveApp
 {

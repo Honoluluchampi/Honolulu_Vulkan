@@ -6,7 +6,7 @@
 // std
 #include <string>
 
-namespace hve {
+namespace hnll {
 
 class HveWindow
 {

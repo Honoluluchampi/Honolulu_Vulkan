@@ -3,7 +3,7 @@
 // std
 #include <stdexcept>
 
-namespace hve {
+namespace hnll {
 
 HveWindow::HveWindow(const int w, const int h, const std::string name) : width_m(w), height_m(h), windowName_m(name) 
 {

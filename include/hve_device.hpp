@@ -7,7 +7,7 @@
 #include <vector>
 #include <optional>
 
-namespace hve {
+namespace hnll {
 
 // non-member function
 struct SwapChainSupportDetails

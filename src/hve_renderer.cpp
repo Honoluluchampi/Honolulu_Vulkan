@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <array>
 
-namespace hve {
+namespace hnll {
 
 HveRenderer::HveRenderer(HveWindow& window, HveDevice& device) : hveWindow_m{window}, hveDevice_m{device}
 {

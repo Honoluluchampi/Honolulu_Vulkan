@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace hve {
+namespace hnll {
 
 class HveDescriptorSetLayout {
  

@@ -4,7 +4,7 @@
 #include <cassert>
 #include <limits>
 
-namespace hve {
+namespace hnll {
 
 void HveCamera::setOrthographicProjection(
     float left, float right, float top, float bottom, float near, float far) {

@@ -10,8 +10,9 @@
 //std
 #include <stdexcept>
 #include <array>
+#include <string>
 
-namespace hve {
+namespace hnll {
 
 // should be compatible with a shader
 struct SimplePushConstantData
@@ -63,8 +64,8 @@ void SimpleRendererSystem::createPipeline(VkRenderPass renderPass)
   pipelineConfig.pipelineLayout_m = pipelineLayout_m;
   hvePipeline_m = std::make_unique<HvePipeline>(
       hveDevice_m,
-      "./shader/spv/simple_shader.vert.spv", 
-      "./shader/spv/simple_shader.frag.spv",
+      std::string(std::getenv("HVE_DIR")) + std::string("/shader/spv/simple_shader.vert.spv"), 
+      std::string(std::getenv("HVE_DIR")) + std::string("/shader/spv/simple_shader.frag.spv"),
       pipelineConfig);
 }
 

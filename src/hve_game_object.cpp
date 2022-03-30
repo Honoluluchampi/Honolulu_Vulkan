@@ -1,6 +1,6 @@
 #include <hve_game_object.hpp>
 
-namespace hve {
+namespace hnll {
 
 glm::mat4 TransformComponent::mat4() 
 {

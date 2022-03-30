@@ -6,8 +6,7 @@
 #include <vector>
 #include <string>
 
-namespace hve
-{
+namespace hnll {
 
 struct PipelineConfigInfo 
 {

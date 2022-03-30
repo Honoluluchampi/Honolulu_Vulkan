@@ -2,7 +2,7 @@
 
 #include <functional>
 
-namespace hve {
+namespace hnll {
 
 // https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x/57595105#57595105
 template <typename T, typename... Rest>

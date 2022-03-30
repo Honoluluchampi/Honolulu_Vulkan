@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <array>
 
-namespace hve {
+namespace hnll {
 
 struct PointLightPushConstants
 {
@@ -66,8 +66,8 @@ void PointLightSystem::createPipeline(VkRenderPass renderPass)
   pipelineConfig.pipelineLayout_m = pipelineLayout_m;
   hvePipeline_m = std::make_unique<HvePipeline>(
       hveDevice_m,
-      "./shader/spv/point_light.vert.spv", 
-      "./shader/spv/point_light.frag.spv",
+      std::string(std::getenv("HVE_DIR")) + std::string("/shader/spv/point_light.vert.spv"), 
+      std::string(std::getenv("HVE_DIR")) + std::string("/shader/spv/point_light.frag.spv"),
       pipelineConfig);
 }
 

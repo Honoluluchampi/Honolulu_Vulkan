@@ -15,19 +15,19 @@
 namespace std {
 
 template <>
-struct hash<hve::HveModel::Vertex>
+struct hash<hnll::HveModel::Vertex>
 {
-  size_t operator() (hve::HveModel::Vertex const &vertex) const
+  size_t operator() (hnll::HveModel::Vertex const &vertex) const
   {
     // stores final hash value
     size_t seed = 0;
-    hve::hashCombine(seed, vertex.position_m, vertex.color_m, vertex.normal_m, vertex.uv_m);
+    hnll::hashCombine(seed, vertex.position_m, vertex.color_m, vertex.normal_m, vertex.uv_m);
     return seed;
   }
 };
 } // namespace stD
 
-namespace hve {
+namespace hnll {
 
 HveModel::HveModel(HveDevice& device, const HveModel::Builder &builder) : hveDevice_m{device}
 {

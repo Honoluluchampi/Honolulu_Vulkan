@@ -2,7 +2,7 @@
  
 #include "hve_device.hpp"
  
-namespace hve {
+namespace hnll {
  
 class HveBuffer {
   public:

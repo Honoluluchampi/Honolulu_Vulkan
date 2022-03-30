@@ -3,7 +3,7 @@
 #include <hve_game_object.hpp>
 #include <hve_window.hpp>
 
-namespace hve {
+namespace hnll {
 class KeyboardMovementController
 {
   public:

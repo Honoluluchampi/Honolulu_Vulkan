@@ -9,7 +9,7 @@
 #include <set>
 #include <stdexcept>
 
-namespace hve {
+namespace hnll {
 
 HveSwapChain::HveSwapChain(HveDevice &deviceRef, VkExtent2D extent)
     : device_m{deviceRef}, windowExtent_m{extent} 

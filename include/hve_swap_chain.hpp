@@ -10,7 +10,7 @@
 #include <vector>
 #include <memory>
 
-namespace hve {
+namespace hnll {
 
 class HveSwapChain {
  public:

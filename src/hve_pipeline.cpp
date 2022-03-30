@@ -6,7 +6,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace hve {
+namespace hnll {
 
 // what kind of geometry will be drawn from the vertices (topoloby) and
 // if primitive restart should be enabled

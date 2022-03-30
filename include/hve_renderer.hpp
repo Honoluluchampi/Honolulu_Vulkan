@@ -11,7 +11,7 @@
 #include <vector>
 #include <cassert>
 
-namespace hve {
+namespace hnll {
 
 class HveRenderer
 {
