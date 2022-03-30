@@ -15,18 +15,6 @@
 
 namespace hve {
 
-// global uniform buffer object
-struct GlobalUbo
-{
-  // check alignment rules
-  glm::mat4 projection_m{1.f};
-  glm::mat4 view_m{1.f};
-  // point light
-  glm::vec4 ambientLightColor_m{1.f, 1.f, 1.f, .02f}; // w is light intensity
-  glm::vec3 lightPosition_m{-1.f};
-  alignas(16) glm::vec4 lightColor_m{1.f}; // w is light intensity
-};
-
 HveApp::HveApp()
 {
   // // 2 uniform buffer descriptor
@@ -135,6 +123,7 @@ void HveApp::run()
       GlobalUbo ubo{};
       ubo.projection_m = camera.getProjection();
       ubo.view_m = camera.getView();
+      pointLightSystem.update(frameInfo, ubo);
       uboBuffers[frameIndex]->writeToBuffer(&ubo);
       uboBuffers[frameIndex]->flush();
 
@@ -144,7 +133,7 @@ void HveApp::run()
       // system can now access gameobjects via frameInfo
       simpleRendererSystem.renderGameObjects(frameInfo);
       pointLightSystem.render(frameInfo);
-      
+
       hveRenderer_m.endSwapChainRenderPass(commandBuffer);
       hveRenderer_m.endFrame();
     }
@@ -176,5 +165,26 @@ void HveApp::loadGameObjects()
   floor.transform_m.translation_m = {0.f, 0.5f, 0.f};
   floor.transform_m.scale_m = glm::vec3{3.f, 1.5f, 3.f};
   gameObjects_m.emplace(floor.getId(), std::move(floor));
+
+  std::vector<glm::vec3> lightColors{
+      {1.f, .1f, .1f},
+      {.1f, .1f, 1.f},
+      {.1f, 1.f, .1f},
+      {1.f, 1.f, .1f},
+      {.1f, 1.f, 1.f},
+      {1.f, 1.f, 1.f} 
+  };
+
+  for (int i = 0; i < lightColors.size(); i++) {
+    auto pointLight = HveGameObject::makePointLight(0.2f);
+    pointLight.color_m = lightColors[i];
+    auto lightRotation = glm::rotate(
+        glm::mat4(1),
+        (i * glm::two_pi<float>()) / lightColors.size(),
+        {0.f, -1.0f, 0.f}); // axiz
+    pointLight.transform_m.translation_m = glm::vec3(lightRotation * glm::vec4(-1.f, -1.f, -1.f, 1.f));
+    gameObjects_m.emplace(pointLight.getId(), std::move(pointLight));
+  }
+
 }
 } // namespace hve

@@ -23,6 +23,7 @@ class PointLightSystem
     PointLightSystem &operator= (const PointLightSystem &) = delete;
 
     // dont make HveCamera object as a member variable so as to share the camera between multiple render system
+    void update(FrameInfo &frameInfo, GlobalUbo &ubo);
     void render(FrameInfo frameInfo);
     
   private:
