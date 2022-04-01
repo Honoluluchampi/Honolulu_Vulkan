@@ -1,21 +1,27 @@
+// this class organizes all the vulkan specific features
+
 #include <hve_app.hpp>
-#include <systems/simple_renderer.hpp>
-#include <systems/point_light.hpp>
-#include <hve_camera.hpp>
-#include <keyboard_movement_controller.hpp>
-#include <hve_buffer.hpp>
+
 
 // lib
 #include <glm/gtc/constants.hpp>
 
 //std
 #include <stdexcept>
-#include <chrono>
 #include <array>
 
 namespace hnll {
 
-HveApp::HveApp()
+Hve::Hve(const char* windowName) : hveWindow_m{WIDTH, HEIGHT, windowName}
+{
+  init();
+}
+
+Hve::~Hve()
+{ }
+
+// todo : separate into some functions
+void Hve::init()
 {
   // // 2 uniform buffer descriptor
   globalPool_m = HveDescriptorPool::Builder(hveDevice_m)
@@ -24,15 +30,8 @@ HveApp::HveApp()
     .build();
 
   loadGameObjects(); 
-}
 
-HveApp::~HveApp()
-{ }
-
-void HveApp::run()
-{
   // creating ubo for each frames version
-  std::vector<std::unique_ptr<HveBuffer>> uboBuffers(HveSwapChain::MAX_FRAMES_IN_FLIGHT);
   for (int i = 0; i < uboBuffers.size(); i++) {
     uboBuffers[i] = std::make_unique<HveBuffer>(
       hveDevice_m,
@@ -46,103 +45,91 @@ void HveApp::run()
 
   // this is set layout of master system
   // enable ubo to be referenced by oall stages of a graphics pipeline
-  auto globalSetLayout = HveDescriptorSetLayout::Builder(hveDevice_m)
+  globalSetLayout = HveDescriptorSetLayout::Builder(hveDevice_m)
     .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
     .build();
   // may add additional layout of child system
 
-  std::vector<VkDescriptorSet> globalDescriptorSets(HveSwapChain::MAX_FRAMES_IN_FLIGHT);
   for (int i = 0; i < globalDescriptorSets.size(); i++) {
     auto bufferInfo = uboBuffers[i]->descriptorInfo();
     HveDescriptorWriter(*globalSetLayout, *globalPool_m)
       .writeBuffer(0, &bufferInfo)
       .build(globalDescriptorSets[i]);
   }
-  // creating one uniform buffer for all frames
-  // HveBuffer globalUboBuffer {
-  //   hveDevice_m,
-  //   sizeof(GlobalUbo),
-  //   HveSwapChain::MAX_FRAMES_IN_FLIGHT, // instance count
-  //   VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-  //   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-  //   hveDevice_m.properties_m.limits.minUniformBufferOffsetAlignment,
-  // };
-  // globalUboBuffer.map();
 
   // create renderer system as local variable
-  SimpleRendererSystem simpleRendererSystem {
+  simpleRendererSystem = std::make_unique<SimpleRendererSystem>(
     hveDevice_m, 
     hveRenderer_m.getSwapChainRenderPass(),
-    globalSetLayout->getDescriptorSetLayout()};
+    globalSetLayout->getDescriptorSetLayout());
 
-  PointLightSystem pointLightSystem {
+  pointLightSystem = std::make_unique<PointLightSystem>(
     hveDevice_m, 
     hveRenderer_m.getSwapChainRenderPass(),
-    globalSetLayout->getDescriptorSetLayout()};
-
-  // create camera as ...
-  HveCamera camera{};
-
-  // object for change the camera transform indirectly
-  // this object has no model and won't be rendered
-  auto viewerObject = HveGameObject::createGameObject();
+    globalSetLayout->getDescriptorSetLayout());
+  
   viewerObject.transform_m.translation_m.z = -2.5f;
-  KeyboardMovementController cameraController{};
+}
 
-  // for synchronization of the refresh rate
-  auto currentTime = std::chrono::high_resolution_clock::now();
+void Hve::run()
+{
 
   while (!hveWindow_m.shouldClose()) {
     glfwPollEvents();
-
-    auto newTime = std::chrono::high_resolution_clock::now();
-    float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
-    currentTime = newTime;
-    frameTime = std::min(frameTime, MAX_FRAME_TIME);
-
-    cameraController.moveInPlaneXZ(hveWindow_m.getGLFWwindow(), frameTime, viewerObject);
-    camera.setViewYXZ(viewerObject.transform_m.translation_m, viewerObject.transform_m.rotation_m);
-
-    float aspect = hveRenderer_m.getAspectRation();
-    // camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
-    camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 50.f);
-    // returns nullptr if the swap chain is need to be recreated
-    if (auto commandBuffer = hveRenderer_m.beginFrame()) {
-      int frameIndex = hveRenderer_m.getFrameIndex();
-
-      FrameInfo frameInfo{
-          frameIndex, 
-          frameTime, 
-          commandBuffer, 
-          camera, 
-          globalDescriptorSets[frameIndex],
-          gameObjects_m
-      };
-
-      // update 
-      GlobalUbo ubo{};
-      ubo.projection_m = camera.getProjection();
-      ubo.view_m = camera.getView();
-      pointLightSystem.update(frameInfo, ubo);
-      uboBuffers[frameIndex]->writeToBuffer(&ubo);
-      uboBuffers[frameIndex]->flush();
-
-      // rendering
-      hveRenderer_m.beginSwapChainRenderPass(commandBuffer);
-      // programmable stage of rendering
-      // system can now access gameobjects via frameInfo
-      simpleRendererSystem.renderGameObjects(frameInfo);
-      pointLightSystem.render(frameInfo);
-
-      hveRenderer_m.endSwapChainRenderPass(commandBuffer);
-      hveRenderer_m.endFrame();
-    }
+    render();
   }
 
-  vkDeviceWaitIdle(hveDevice_m.device());
+  waitIdle();
 }
 
-void HveApp::loadGameObjects()
+void Hve::render()
+{
+
+  auto newTime = std::chrono::high_resolution_clock::now();
+  float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+  currentTime = newTime;
+  frameTime = std::min(frameTime, MAX_FRAME_TIME);
+
+  cameraController.moveInPlaneXZ(hveWindow_m.getGLFWwindow(), frameTime, viewerObject);
+  camera.setViewYXZ(viewerObject.transform_m.translation_m, viewerObject.transform_m.rotation_m);
+
+  float aspect = hveRenderer_m.getAspectRation();
+  // camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
+  camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 50.f);
+  // returns nullptr if the swap chain is need to be recreated
+  if (auto commandBuffer = hveRenderer_m.beginFrame()) {
+    int frameIndex = hveRenderer_m.getFrameIndex();
+
+    FrameInfo frameInfo{
+        frameIndex, 
+        frameTime, 
+        commandBuffer, 
+        camera, 
+        globalDescriptorSets[frameIndex],
+        gameObjects_m
+    };
+
+    // update 
+    GlobalUbo ubo{};
+    ubo.projection_m = camera.getProjection();
+    ubo.view_m = camera.getView();
+    pointLightSystem->update(frameInfo, ubo);
+    uboBuffers[frameIndex]->writeToBuffer(&ubo);
+    uboBuffers[frameIndex]->flush();
+
+    // rendering
+    hveRenderer_m.beginSwapChainRenderPass(commandBuffer);
+    // programmable stage of rendering
+    // system can now access gameobjects via frameInfo
+    simpleRendererSystem->renderGameObjects(frameInfo);
+    pointLightSystem->render(frameInfo);
+
+    hveRenderer_m.endSwapChainRenderPass(commandBuffer);
+    hveRenderer_m.endFrame();
+  }
+}
+
+void Hve::loadGameObjects()
 {
   std::shared_ptr<HveModel> hveModel = HveModel::createModelFromFile(hveDevice_m, std::string(std::getenv("MODEL_DIR")) + "/flat_vase.obj");
   auto gameObj = HveGameObject::createGameObject();

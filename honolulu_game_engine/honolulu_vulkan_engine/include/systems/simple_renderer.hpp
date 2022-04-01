@@ -21,6 +21,8 @@ class SimpleRendererSystem
 
     SimpleRendererSystem(const SimpleRendererSystem &) = delete;
     SimpleRendererSystem &operator= (const SimpleRendererSystem &) = delete;
+    SimpleRendererSystem(SimpleRendererSystem &&) = default;
+    SimpleRendererSystem &operator= (SimpleRendererSystem &&) = default;
 
     // dont make HveCamera object as a member variable so as to share the camera between multiple render system
     void renderGameObjects(FrameInfo frameInfo);
