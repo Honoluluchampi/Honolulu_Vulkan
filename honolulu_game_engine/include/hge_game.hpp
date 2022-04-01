@@ -30,7 +30,7 @@ private:
   void unLoadData();
 
   std::vector<std::unique_ptr<class HgeActor>> activeActors_m;
-  std::vector<std::unique_ptr<class HgeActor>> activeActors_m;
+  std::vector<std::unique_ptr<class HgeActor>> pendingActors_m;
 
   bool isUpdating_m = false; // for update
   bool isRunning_m = false; // for run loop

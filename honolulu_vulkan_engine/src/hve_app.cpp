@@ -144,7 +144,7 @@ void HveApp::run()
 
 void HveApp::loadGameObjects()
 {
-  std::shared_ptr<HveModel> hveModel = HveModel::createModelFromFile(hveDevice_m, "./models/flat_vase.obj");
+  std::shared_ptr<HveModel> hveModel = HveModel::createModelFromFile(hveDevice_m, std::string(std::getenv("MODEL_DIR")) + "/flat_vase.obj");
   auto gameObj = HveGameObject::createGameObject();
   gameObj.model_m = hveModel;
   gameObj.transform_m.translation_m = {-0.5f, 0.5f, 0.f};
@@ -152,14 +152,14 @@ void HveApp::loadGameObjects()
   // id is a key, HveGameObj is a value
   gameObjects_m.emplace(gameObj.getId(), std::move(gameObj));
 
-  std::shared_ptr<HveModel> vaseModel = HveModel::createModelFromFile(hveDevice_m, "./models/smooth_vase.obj");
+  std::shared_ptr<HveModel> vaseModel = HveModel::createModelFromFile(hveDevice_m, std::string(std::getenv("MODEL_DIR")) + "/smooth_vase.obj");
   auto vase = HveGameObject::createGameObject();
   vase.model_m = vaseModel;
   vase.transform_m.translation_m = {0.5f, 0.5f, 0.f};
   vase.transform_m.scale_m = glm::vec3{3.f, 1.5f, 3.f};
   gameObjects_m.emplace(vase.getId(), std::move(vase));
 
-  std::shared_ptr<HveModel> floorModel = HveModel::createModelFromFile(hveDevice_m, "./models/quad.obj");
+  std::shared_ptr<HveModel> floorModel = HveModel::createModelFromFile(hveDevice_m, std::string(std::getenv("MODEL_DIR")) + "/quad.obj");
   auto floor = HveGameObject::createGameObject();
   floor.model_m = floorModel;
   floor.transform_m.translation_m = {0.f, 0.5f, 0.f};
