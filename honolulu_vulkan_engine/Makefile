@@ -1,5 +1,5 @@
 # config VULKAN_DIR, TINY_OBJ_LOADER_DIR in your .env
-include .env
+include ../.env
 
 LIB_NAME		=libhve.a
 BIN_NAME		=hve_app
