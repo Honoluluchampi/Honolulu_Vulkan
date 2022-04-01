@@ -1,0 +1,1 @@
+#include <hge_component.hpp>
