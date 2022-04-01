@@ -1,4 +1,4 @@
-#include <hve_app.hpp>
+#include <hve.hpp>
 
 // std
 #include <cstdlib>
@@ -7,7 +7,7 @@
 
 int main() 
 {
-  hnll::HveApp app{};
+  hnll::Hve app{};
 
   try {
     app.run();

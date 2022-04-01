@@ -32,7 +32,7 @@ VK_LAYER_PATH 		:= $(VULKAN_DIR)/etc/vulkan/explicit_layer.d
 # build an app
 $(TARGET_BIN): $(MAINSRC) $(TARGET_LIB) $(INCS) $(HVE_LIB)
 	@[ -d $(BIN_DIR) ] || mkdir -p $(BIN_DIR)
-	$(CXX) $(CFLAGS) -o $@ $(MAINSRC) $(INCFLAGS) $(LDFLAGS) 
+	$(CXX) $(CFLAGS) -o $@ $(MAINSRC) $(INCFLAGS) $(LDFLAGS) $(TARGET_LIB)
 
 # build the lib
 $(TARGET_LIB): $(OBJS) $(INCS)

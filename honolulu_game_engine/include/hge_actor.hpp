@@ -2,4 +2,9 @@
 
 namespace hnll {
 
+class HgeActor
+{
+
+};
+
 } // namespace hnll
