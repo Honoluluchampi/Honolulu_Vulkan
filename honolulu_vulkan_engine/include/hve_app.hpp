@@ -14,6 +14,7 @@
 // std
 #include <memory>
 #include <vector>
+#include <chrono>
 
 namespace hnll {
 
@@ -31,6 +32,10 @@ class Hve
     Hve &operator= (const Hve &) = delete;
 
     void run();
+    void render();
+    inline void waitIdle() { vkDeviceWaitIdle(hveDevice_m.device()); }
+
+    inline GLFWwindow* passGLFWwindow() const { return hveWindow_m.getGLFWwindow(); } 
     
   private:
     void init();
@@ -59,6 +64,9 @@ class Hve
     // this object has no model and won't be rendered
     HveGameObject viewerObject = HveGameObject::createGameObject();
     KeyboardMovementController cameraController{};
+
+    // for synchronization of the refresh rate
+    std::chrono::_V2::system_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
 };
 
 } // namespace hv

@@ -25,10 +25,11 @@ public:
   void runLoop();
 
   void addActor(const class HveActor& actor);
-  std::unique_ptr<Hve> pHve_m;
+  std::unique_ptr<Hve> upHve_m;
   void removeActor(const class HveActor& actor);
 
 private:
+  inline void setGLFWwindow() { glfwWindow_m = upHve_m->passGLFWwindow() ; }
   void processInput();
   void updateGame();
   void generateOutput();
@@ -36,6 +37,7 @@ private:
   void loadData();
   void unLoadData();
 
+  GLFWwindow* glfwWindow_m;
   std::vector<std::unique_ptr<HgeActor>> upActiveActors_m;
   std::vector<std::unique_ptr<HgeActor>> upPendingActors_m;
 

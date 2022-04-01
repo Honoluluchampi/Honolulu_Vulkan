@@ -1,6 +1,6 @@
 // this class organizes all the vulkan specific features
 
-#include <hve.hpp>
+#include <hve_app.hpp>
 
 
 // lib
@@ -8,7 +8,6 @@
 
 //std
 #include <stdexcept>
-#include <chrono>
 #include <array>
 
 namespace hnll {
@@ -21,6 +20,7 @@ Hve::Hve(const char* windowName) : hveWindow_m{WIDTH, HEIGHT, windowName}
 Hve::~Hve()
 { }
 
+// todo : separate into some functions
 void Hve::init()
 {
   // // 2 uniform buffer descriptor
@@ -73,57 +73,60 @@ void Hve::init()
 
 void Hve::run()
 {
-  // for synchronization of the refresh rate
-  auto currentTime = std::chrono::high_resolution_clock::now();
 
   while (!hveWindow_m.shouldClose()) {
     glfwPollEvents();
-
-    auto newTime = std::chrono::high_resolution_clock::now();
-    float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
-    currentTime = newTime;
-    frameTime = std::min(frameTime, MAX_FRAME_TIME);
-
-    cameraController.moveInPlaneXZ(hveWindow_m.getGLFWwindow(), frameTime, viewerObject);
-    camera.setViewYXZ(viewerObject.transform_m.translation_m, viewerObject.transform_m.rotation_m);
-
-    float aspect = hveRenderer_m.getAspectRation();
-    // camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
-    camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 50.f);
-    // returns nullptr if the swap chain is need to be recreated
-    if (auto commandBuffer = hveRenderer_m.beginFrame()) {
-      int frameIndex = hveRenderer_m.getFrameIndex();
-
-      FrameInfo frameInfo{
-          frameIndex, 
-          frameTime, 
-          commandBuffer, 
-          camera, 
-          globalDescriptorSets[frameIndex],
-          gameObjects_m
-      };
-
-      // update 
-      GlobalUbo ubo{};
-      ubo.projection_m = camera.getProjection();
-      ubo.view_m = camera.getView();
-      pointLightSystem->update(frameInfo, ubo);
-      uboBuffers[frameIndex]->writeToBuffer(&ubo);
-      uboBuffers[frameIndex]->flush();
-
-      // rendering
-      hveRenderer_m.beginSwapChainRenderPass(commandBuffer);
-      // programmable stage of rendering
-      // system can now access gameobjects via frameInfo
-      simpleRendererSystem->renderGameObjects(frameInfo);
-      pointLightSystem->render(frameInfo);
-
-      hveRenderer_m.endSwapChainRenderPass(commandBuffer);
-      hveRenderer_m.endFrame();
-    }
+    render();
   }
 
-  vkDeviceWaitIdle(hveDevice_m.device());
+  waitIdle();
+}
+
+void Hve::render()
+{
+
+  auto newTime = std::chrono::high_resolution_clock::now();
+  float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+  currentTime = newTime;
+  frameTime = std::min(frameTime, MAX_FRAME_TIME);
+
+  cameraController.moveInPlaneXZ(hveWindow_m.getGLFWwindow(), frameTime, viewerObject);
+  camera.setViewYXZ(viewerObject.transform_m.translation_m, viewerObject.transform_m.rotation_m);
+
+  float aspect = hveRenderer_m.getAspectRation();
+  // camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
+  camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 50.f);
+  // returns nullptr if the swap chain is need to be recreated
+  if (auto commandBuffer = hveRenderer_m.beginFrame()) {
+    int frameIndex = hveRenderer_m.getFrameIndex();
+
+    FrameInfo frameInfo{
+        frameIndex, 
+        frameTime, 
+        commandBuffer, 
+        camera, 
+        globalDescriptorSets[frameIndex],
+        gameObjects_m
+    };
+
+    // update 
+    GlobalUbo ubo{};
+    ubo.projection_m = camera.getProjection();
+    ubo.view_m = camera.getView();
+    pointLightSystem->update(frameInfo, ubo);
+    uboBuffers[frameIndex]->writeToBuffer(&ubo);
+    uboBuffers[frameIndex]->flush();
+
+    // rendering
+    hveRenderer_m.beginSwapChainRenderPass(commandBuffer);
+    // programmable stage of rendering
+    // system can now access gameobjects via frameInfo
+    simpleRendererSystem->renderGameObjects(frameInfo);
+    pointLightSystem->render(frameInfo);
+
+    hveRenderer_m.endSwapChainRenderPass(commandBuffer);
+    hveRenderer_m.endFrame();
+  }
 }
 
 void Hve::loadGameObjects()
