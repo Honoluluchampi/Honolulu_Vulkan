@@ -1,4 +1,4 @@
-#include <hve.hpp>
+#include <hge_game.hpp>
 
 // std
 #include <cstdlib>
@@ -7,10 +7,10 @@
 
 int main() 
 {
-  hnll::Hve app{};
+  hnll::HgeGame app{"hello"};
 
   try {
-    app.run();
+    app.upHve_m->run();
   } 
   catch (const std::exception& e) {
     std::cerr << e.what() << '\n';

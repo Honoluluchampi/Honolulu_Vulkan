@@ -1,6 +1,5 @@
 # config VULKAN_DIR in .env
 # config HVE_DIR in ~/.bachrc and so on
-include ../.env
 
 LIB_NAME 		=libhge.a
 BIN_NAME 		=hge_app
@@ -14,25 +13,19 @@ INCROOT			=./include
 INCDIRS 		=$(subst $(SRCROOT), $(INCROOT), $(SRCDIRS))
 INCS 				=$(foreach dir, $(INCDIRS), $(wildcard $(INCDIRS)/*.hpp))
 MAINSRC			=./main.cpp
-DEPENDS 		= $(OBJS:.o=.d)
+DEPENDS 		=$(OBJS:.o=.d)
 BIN_DIR			=./bin
-TARGET_BIN 	=$(BIN_DIR)/$(BIN_NAME)
+
 LIB_DIR			=./lib
 TARGET_LIB 	=$(LIB_DIR)/$(LIB_NAME)
 CXX 				=g++-10
 CFLAGS 			=-std=c++17 -g3
 
 HVE_LIB			=$(HVE_DIR)/lib/libhve.a
-LDFLAGS 		=$(HVE_LIB) $(VULKAN_DIR)/lib/libvulkan.so.1.3.204 $(VULKAN_DIR)/lib/libvulkan.so.1 /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
-INCFLAGS 		=-I$(HVE_DIR)/include -I/usr/include -I$(VULKAN_DIR)/include $(addprefix -I, $(INCDIRS))
+INCFLAGS 		=-I./honolulu_vulkan_engine/include -I/usr/include -I$(VULKAN_DIR)/include $(addprefix -I, $(INCDIRS))
 
-VK_ICD_FILENAMES 	:= $(VULKAN_DIR)/etc/vulkan/icd.d/MoltenVK_icd.json
-VK_LAYER_PATH 		:= $(VULKAN_DIR)/etc/vulkan/explicit_layer.d
-
-# build an app
-$(TARGET_BIN): $(MAINSRC) $(TARGET_LIB) $(INCS) $(HVE_LIB)
-	@[ -d $(BIN_DIR) ] || mkdir -p $(BIN_DIR)
-	$(CXX) $(CFLAGS) -o $@ $(MAINSRC) $(INCFLAGS) $(LDFLAGS) $(TARGET_LIB)
+VK_ICD_FILENAMES 	:=$(VULKAN_DIR)/etc/vulkan/icd.d/MoltenVK_icd.json
+VK_LAYER_PATH 		:=$(VULKAN_DIR)/etc/vulkan/explicit_layer.d
 
 # build the lib
 $(TARGET_LIB): $(OBJS) $(INCS)
@@ -44,27 +37,24 @@ $(OBJROOT)/%.o: $(SRCROOT)/%.cpp
 	@[ -d $(dir $@) ] || mkdir -p $(dir $@)
 	$(CXX) $(CFLAGS) -o $@ -c $< $(INCFLAGS)
 
+# build both engine
 .PHONY: default
-default: $(TARGET_BIN)
+default: $(TARGET_LIB)
 
-.PHONY: lib
-lib: $(TARGET_LIB)
-
-.PHONY: test
-test:
-	$(TARGET_BIN)
+# build hve
+.PHONY: hve
+hve:
+	cd ../honolulu_vulkan_engine && make
 
 .PHONY: clean
 clean:
 	-rm -f $(OBJS)
 	-rm -f $(TARGET_LIB)
-	-rm -f $(TARGET_BIN)
 
 .PHONY: all
 all:
 	make clean
-	sh compile.sh
+	cd honolulu_vulkan_engine && make all
 	make default
-	make test
 
 -include $(DEPENDS)
