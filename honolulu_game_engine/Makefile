@@ -1,6 +1,6 @@
 # config VULKAN_DIR in .env
 # config HVE_DIR in ~/.bachrc and so on
-include .env
+include ../.env
 
 LIB_NAME 		=libhge.a
 BIN_NAME 		=hge_app
@@ -10,7 +10,8 @@ SRCDIRS		 :=$(shell find $(SRCROOT) -type d)
 SRCS 				=$(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.cpp))
 OBJROOT			=./obj
 OBJS 				=$(subst $(SRCROOT), $(OBJROOT), $(SRCS:.cpp=.o))
-INCDIRS 		=$(SRCDIRS)
+INCROOT			=./include
+INCDIRS 		=$(subst $(SRCROOT), $(INCROOT), $(SRCDIRS))
 INCS 				=$(foreach dir, $(INCDIRS), $(wildcard $(INCDIRS)/*.hpp))
 MAINSRC			=./main.cpp
 DEPENDS 		= $(OBJS:.o=.d)
@@ -21,14 +22,15 @@ TARGET_LIB 	=$(LIB_DIR)/$(LIB_NAME)
 CXX 				=g++-10
 CFLAGS 			=-std=c++17 -g3
 
-LDFLAGS 		=$(HVE_DIR)/lib/libhve.a $(VULKAN_DIR)/lib/libvulkan.so.1.3.204 $(VULKAN_DIR)/lib/libvulkan.so.1 /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
+HVE_LIB			=$(HVE_DIR)/lib/libhve.a
+LDFLAGS 		=$(HVE_LIB) $(VULKAN_DIR)/lib/libvulkan.so.1.3.204 $(VULKAN_DIR)/lib/libvulkan.so.1 /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
 INCFLAGS 		=-I$(HVE_DIR)/include -I/usr/include -I$(VULKAN_DIR)/include $(addprefix -I, $(INCDIRS))
 
 VK_ICD_FILENAMES 	:= $(VULKAN_DIR)/etc/vulkan/icd.d/MoltenVK_icd.json
 VK_LAYER_PATH 		:= $(VULKAN_DIR)/etc/vulkan/explicit_layer.d
 
 # build an app
-$(TARGET_BIN): $(MAINSRC) $(TARGET_LIB) $(INCS)
+$(TARGET_BIN): $(MAINSRC) $(TARGET_LIB) $(INCS) $(HVE_LIB)
 	@[ -d $(BIN_DIR) ] || mkdir -p $(BIN_DIR)
 	$(CXX) $(CFLAGS) -o $@ $(MAINSRC) $(INCFLAGS) $(LDFLAGS) 
 
