@@ -31,11 +31,14 @@ public:
 private:
   inline void setGLFWwindow() { glfwWindow_m = upHve_m->passGLFWwindow() ; }
   void processInput();
-  void updateGame();
+  void update();
   void generateOutput();
 
   void loadData();
   void unLoadData();
+  // load all models in modleDir
+  // use filenames as the key of the map
+  void loadHveModels(const std::string& modelDir = "/models");
 
   GLFWwindow* glfwWindow_m;
   std::vector<std::unique_ptr<HgeActor>> upActiveActors_m;

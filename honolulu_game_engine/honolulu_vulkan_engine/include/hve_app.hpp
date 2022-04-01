@@ -15,6 +15,7 @@
 #include <memory>
 #include <vector>
 #include <chrono>
+#include <unordered_map>
 
 namespace hnll {
 
@@ -31,15 +32,17 @@ class Hve
     Hve(const Hve &) = delete;
     Hve &operator= (const Hve &) = delete;
 
-    void run();
     void render();
     inline void waitIdle() { vkDeviceWaitIdle(hveDevice_m.device()); }
 
+    inline HveDevice& hveDevice() { return hveDevice_m; }
+
     inline GLFWwindow* passGLFWwindow() const { return hveWindow_m.getGLFWwindow(); } 
+
+    void createGameObjects(std::unordered_map<std::string, std::shared_ptr<HveModel>> &modelMap);
     
   private:
     void init();
-    void loadGameObjects();
 
     // construct in impl
     HveWindow hveWindow_m;

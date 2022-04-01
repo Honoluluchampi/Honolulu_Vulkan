@@ -29,8 +29,6 @@ void Hve::init()
     .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, HveSwapChain::MAX_FRAMES_IN_FLIGHT)
     .build();
 
-  loadGameObjects(); 
-
   // creating ubo for each frames version
   for (int i = 0; i < uboBuffers.size(); i++) {
     uboBuffers[i] = std::make_unique<HveBuffer>(
@@ -69,17 +67,6 @@ void Hve::init()
     globalSetLayout->getDescriptorSetLayout());
   
   viewerObject.transform_m.translation_m.z = -2.5f;
-}
-
-void Hve::run()
-{
-
-  while (!hveWindow_m.shouldClose()) {
-    glfwPollEvents();
-    render();
-  }
-
-  waitIdle();
 }
 
 void Hve::render()
@@ -129,24 +116,24 @@ void Hve::render()
   }
 }
 
-void Hve::loadGameObjects()
+void Hve::createGameObjects(std::unordered_map<std::string, std::shared_ptr<HveModel>>& modelMap)
 {
-  std::shared_ptr<HveModel> hveModel = HveModel::createModelFromFile(hveDevice_m, std::string(std::getenv("MODEL_DIR")) + "/flat_vase.obj");
+  std::shared_ptr<HveModel> smoothVaseModel = modelMap["smooth_vase"];
   auto gameObj = HveGameObject::createGameObject();
-  gameObj.model_m = hveModel;
+  gameObj.model_m = smoothVaseModel;
   gameObj.transform_m.translation_m = {-0.5f, 0.5f, 0.f};
   gameObj.transform_m.scale_m = {3.f, 1.5f, 3.f};
   // id is a key, HveGameObj is a value
   gameObjects_m.emplace(gameObj.getId(), std::move(gameObj));
 
-  std::shared_ptr<HveModel> vaseModel = HveModel::createModelFromFile(hveDevice_m, std::string(std::getenv("MODEL_DIR")) + "/smooth_vase.obj");
+  std::shared_ptr<HveModel> flatVaseModel = modelMap["flat_vase"];
   auto vase = HveGameObject::createGameObject();
-  vase.model_m = vaseModel;
+  vase.model_m = flatVaseModel;
   vase.transform_m.translation_m = {0.5f, 0.5f, 0.f};
   vase.transform_m.scale_m = glm::vec3{3.f, 1.5f, 3.f};
   gameObjects_m.emplace(vase.getId(), std::move(vase));
 
-  std::shared_ptr<HveModel> floorModel = HveModel::createModelFromFile(hveDevice_m, std::string(std::getenv("MODEL_DIR")) + "/quad.obj");
+  std::shared_ptr<HveModel> floorModel = modelMap["quad"];
   auto floor = HveGameObject::createGameObject();
   floor.model_m = floorModel;
   floor.transform_m.translation_m = {0.f, 0.5f, 0.f};

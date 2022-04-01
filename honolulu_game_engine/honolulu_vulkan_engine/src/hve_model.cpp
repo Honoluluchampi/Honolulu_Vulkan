@@ -44,7 +44,7 @@ std::unique_ptr<HveModel> HveModel::createModelFromFile(HveDevice &device, const
 {
   Builder builder;
   builder.loadModel(filename);
-  std::cout << "Vertex count: " << builder.vertices_m.size() << "\n";
+  std::cout << filename << " Vertex count: " << builder.vertices_m.size() << "\n";
   return std::make_unique<HveModel>(device, builder);
 }
 

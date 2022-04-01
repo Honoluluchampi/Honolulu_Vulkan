@@ -15,12 +15,20 @@ LDFLAGS 	 +=$(VULKAN_DIR)/lib/libvulkan.so.1.3.204 $(VULKAN_DIR)/lib/libvulkan.s
 INCFLAGS		=-I$(HGE_DIR)/include -I$(HVE_DIR)/include 
 
 # build an app
-$(TARGET_BIN): $(MAIN_SRC)
+$(TARGET_BIN): $(MAIN_SRC) $(LDFLAGS)
 	@[ -d $(BIN_DIR) ] || mkdir -p $(BIN_DIR)
 	$(CXX) $(CFLAGS) -o $@ $(MAIN_SRC) $(INCFLAGS) $(LDFLAGS)
 
 .PHONY: default
 default: $(TARGET_BIN)
+
+.PHONY: hge
+hge:
+	cd honolulu_game_engine && make
+
+.PHONY: hve
+hve:
+	cd honolulu_game_engine/honolulu_vulkan_engine && make
 
 .PHONY: test
 test:
