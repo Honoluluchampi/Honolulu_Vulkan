@@ -26,9 +26,17 @@ default: $(TARGET_BIN)
 hge:
 	cd honolulu_game_engine && make
 
+.PHONY: hgefs
+hgefs:
+	cd honolulu_game_engine && make clean && make
+
 .PHONY: hve
 hve:
 	cd honolulu_game_engine/honolulu_vulkan_engine && make
+
+.PHONY: hvefs
+hvefs:
+	cd honolulu_game_engine/honolulu_vulkan_engine && make clean && make
 
 .PHONY: test
 test:

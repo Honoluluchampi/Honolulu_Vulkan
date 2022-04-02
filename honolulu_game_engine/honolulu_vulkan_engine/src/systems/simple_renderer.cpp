@@ -70,7 +70,7 @@ void SimpleRendererSystem::createPipeline(VkRenderPass renderPass)
 }
 
 
-void SimpleRendererSystem::renderGameObjects(FrameInfo frameInfo)
+void SimpleRendererSystem::render(FrameInfo frameInfo)
 {
   hvePipeline_m->bind(frameInfo.commandBuffer_m);
 
@@ -83,14 +83,14 @@ void SimpleRendererSystem::renderGameObjects(FrameInfo frameInfo)
     0, nullptr
   );
 
-  for (auto&  kv : frameInfo.gameObjects_m) {
-    auto& obj = kv.second;
-    if (obj.model_m == nullptr) continue;
+  for (auto& modelCmpt : frameInfo.modelMap_m) {
+    auto& obj = *modelCmpt.second;
+    if (obj.getSpModel() == nullptr) continue;
     SimplePushConstantData push{};
     // camera projection
-    push.modelMatrix_m = obj.transform_m.mat4();
+    push.modelMatrix_m = obj.getTransform().mat4();
     // automatically converse mat3(normalMatrix_m) to mat4 for shader data alignment
-    push.normalMatrix_m = obj.transform_m.normalMatrix();
+    push.normalMatrix_m = obj.getTransform().normalMatrix();
 
     vkCmdPushConstants(
         frameInfo.commandBuffer_m,
@@ -99,8 +99,8 @@ void SimpleRendererSystem::renderGameObjects(FrameInfo frameInfo)
         0, 
         sizeof(SimplePushConstantData), 
         &push);
-    obj.model_m->bind(frameInfo.commandBuffer_m);
-    obj.model_m->draw(frameInfo.commandBuffer_m);
+    obj.getSpModel()->bind(frameInfo.commandBuffer_m);
+    obj.getSpModel()->draw(frameInfo.commandBuffer_m);
   }
 }
 

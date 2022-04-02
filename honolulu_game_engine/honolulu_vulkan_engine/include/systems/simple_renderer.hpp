@@ -25,7 +25,7 @@ class SimpleRendererSystem
     SimpleRendererSystem &operator= (SimpleRendererSystem &&) = default;
 
     // dont make HveCamera object as a member variable so as to share the camera between multiple render system
-    void renderGameObjects(FrameInfo frameInfo);
+    void render(FrameInfo frameInfo);
     
   private:
     void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);

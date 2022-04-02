@@ -46,7 +46,7 @@ void HgeGame::update()
   }
 
   upHve_m->update(dt);
-  upHve_m->render(dt);
+  upHve_m->render(dt, spModelComps_m);
 
   currentTime_m = newTime;
   isUpdating_m = false;
@@ -61,7 +61,8 @@ void HgeGame::loadData()
   // load raw data
   loadHveModels();
   // share above data with vulkan engine
-  upHve_m->createGameObjects(spHveModels_m);
+  createGameObjectTemp();
+  //upHve_m->createGameObjects(spModelComps_m);
 }
 
 // use filenames as the key of the map
@@ -72,7 +73,43 @@ void HgeGame::loadHveModels(const std::string& modelDir)
     auto filename = std::string(file.path());
     auto length = filename.size() - path.size() - 5;
     auto key = filename.substr(path.size() + 1, length);
-    spHveModels_m.emplace(key, HveModel::createModelFromFile(upHve_m->hveDevice(), filename));
+    auto modelComp = HveModel::createModelFromFile(upHve_m->hveDevice(), filename);
+    spModelComps_m.emplace(key, std::make_shared<ModelComponent>(modelComp));
+  }
+}
+
+void HgeGame::createGameObjectTemp()
+{
+  auto& smoothVase = spModelComps_m["smooth_vase"];
+  smoothVase->transform_m.translation_m = {-0.5f, 0.5f, 0.f};
+  smoothVase->transform_m.scale_m = {3.f, 1.5f, 3.f};
+  
+  auto& flatVaseModel = spModelComps_m["flat_vase"];
+  flatVaseModel->transform_m.translation_m = {0.5f, 0.5f, 0.f};
+  flatVaseModel->transform_m.scale_m = glm::vec3{3.f, 1.5f, 3.f};
+
+  auto& floor = spModelComps_m["quad"];
+  floor->transform_m.translation_m = {0.f, 0.5f, 0.f};
+  floor->transform_m.scale_m = glm::vec3{3.f, 1.5f, 3.f};
+
+  std::vector<glm::vec3> lightColors{
+      {1.f, .1f, .1f},
+      {.1f, .1f, 1.f},
+      {.1f, 1.f, .1f},
+      {1.f, 1.f, .1f},
+      {.1f, 1.f, 1.f},
+      {1.f, 1.f, 1.f} 
+  };
+
+  for (int i = 0; i < lightColors.size(); i++) {
+    auto pointLight = HveGameObject::makePointLight(0.2f);
+    pointLight.color_m = lightColors[i];
+    auto lightRotation = glm::rotate(
+        glm::mat4(1),
+        (i * glm::two_pi<float>()) / lightColors.size(),
+        {0.f, -1.0f, 0.f}); // axiz
+    pointLight.transform_m.translation_m = glm::vec3(lightRotation * glm::vec4(-1.f, -1.f, -1.f, 1.f));
+    //gameObjects_m.emplace(pointLight.getId(), std::move(pointLight));
   }
 }
 

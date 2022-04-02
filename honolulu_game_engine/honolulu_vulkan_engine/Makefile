@@ -16,8 +16,10 @@ TARGET_LIB 	=$(LIB_DIR)/$(LIB_NAME)
 CXX 				=g++-10
 CFLAGS 			= -std=c++17 -g3
 
+HGE =/home/honolulu/programs/honolulu_engine/honolulu_game_engine/include
+
 LDFLAGS 		=$(VULKAN_DIR)/lib/libvulkan.so.1.3.204 $(VULKAN_DIR)/lib/libvulkan.so.1 /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
-INCFLAGS 		=-I/usr/include -I$(VULKAN_DIR)/include $(addprefix -I, $(INCDIRS))
+INCFLAGS 		=-I$(HGE) -I/usr/include -I$(VULKAN_DIR)/include $(addprefix -I, $(INCDIRS))
 
 VK_ICD_FILENAMES 	:=$(VULKAN_DIR)/etc/vulkan/icd.d/MoltenVK_icd.json
 VK_LAYER_PATH 		:=$(VULKAN_DIR)/etc/vulkan/explicit_layer.d

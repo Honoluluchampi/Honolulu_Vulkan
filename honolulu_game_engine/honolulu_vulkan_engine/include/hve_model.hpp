@@ -48,7 +48,7 @@ class HveModel
     HveModel(const HveModel &) = delete;
     HveModel& operator=(const HveModel &) = delete;
 
-    static std::unique_ptr<HveModel> createModelFromFile(HveDevice &device, const std::string &filename);
+    static std::shared_ptr<HveModel> createModelFromFile(HveDevice &device, const std::string &filename);
 
     void bind(VkCommandBuffer commandBuffer);
     void draw(VkCommandBuffer commandBuffer);

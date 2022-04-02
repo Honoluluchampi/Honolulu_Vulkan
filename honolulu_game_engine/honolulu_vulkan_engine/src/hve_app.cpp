@@ -78,9 +78,8 @@ void Hve::update(float dt)
   camera_m.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 50.f);
 }
 
-void Hve::render(float dt)
+void Hve::render(float dt, std::unordered_map<std::string, std::shared_ptr<ModelComponent>>& spModelCmpts)
 {
-  // camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
   // returns nullptr if the swap chain is need to be recreated
   if (auto commandBuffer = hveRenderer_m.beginFrame()) {
     int frameIndex = hveRenderer_m.getFrameIndex();
@@ -91,7 +90,7 @@ void Hve::render(float dt)
         commandBuffer, 
         camera_m, 
         globalDescriptorSets_m[frameIndex],
-        gameObjects_m
+        spModelCmpts
     };
 
     // update 
@@ -106,57 +105,11 @@ void Hve::render(float dt)
     hveRenderer_m.beginSwapChainRenderPass(commandBuffer);
     // programmable stage of rendering
     // system can now access gameobjects via frameInfo
-    simpleRendererSystem_m->renderGameObjects(frameInfo);
+    simpleRendererSystem_m->render(frameInfo);
     pointLightSystem_m->render(frameInfo);
 
     hveRenderer_m.endSwapChainRenderPass(commandBuffer);
     hveRenderer_m.endFrame();
   }
-}
-
-void Hve::createGameObjects(std::unordered_map<std::string, std::shared_ptr<HveModel>>& modelMap)
-{
-  std::shared_ptr<HveModel> smoothVaseModel = modelMap["smooth_vase"];
-  auto gameObj = HveGameObject::createGameObject();
-  gameObj.model_m = smoothVaseModel;
-  gameObj.transform_m.translation_m = {-0.5f, 0.5f, 0.f};
-  gameObj.transform_m.scale_m = {3.f, 1.5f, 3.f};
-  // id is a key, HveGameObj is a value
-  gameObjects_m.emplace(gameObj.getId(), std::move(gameObj));
-
-  std::shared_ptr<HveModel> flatVaseModel = modelMap["flat_vase"];
-  auto vase = HveGameObject::createGameObject();
-  vase.model_m = flatVaseModel;
-  vase.transform_m.translation_m = {0.5f, 0.5f, 0.f};
-  vase.transform_m.scale_m = glm::vec3{3.f, 1.5f, 3.f};
-  gameObjects_m.emplace(vase.getId(), std::move(vase));
-
-  std::shared_ptr<HveModel> floorModel = modelMap["quad"];
-  auto floor = HveGameObject::createGameObject();
-  floor.model_m = floorModel;
-  floor.transform_m.translation_m = {0.f, 0.5f, 0.f};
-  floor.transform_m.scale_m = glm::vec3{3.f, 1.5f, 3.f};
-  gameObjects_m.emplace(floor.getId(), std::move(floor));
-
-  std::vector<glm::vec3> lightColors{
-      {1.f, .1f, .1f},
-      {.1f, .1f, 1.f},
-      {.1f, 1.f, .1f},
-      {1.f, 1.f, .1f},
-      {.1f, 1.f, 1.f},
-      {1.f, 1.f, 1.f} 
-  };
-
-  for (int i = 0; i < lightColors.size(); i++) {
-    auto pointLight = HveGameObject::makePointLight(0.2f);
-    pointLight.color_m = lightColors[i];
-    auto lightRotation = glm::rotate(
-        glm::mat4(1),
-        (i * glm::two_pi<float>()) / lightColors.size(),
-        {0.f, -1.0f, 0.f}); // axiz
-    pointLight.transform_m.translation_m = glm::vec3(lightRotation * glm::vec4(-1.f, -1.f, -1.f, 1.f));
-    gameObjects_m.emplace(pointLight.getId(), std::move(pointLight));
-  }
-
 }
 } // namespace hve

@@ -75,16 +75,16 @@ void PointLightSystem::update(FrameInfo &frameInfo, GlobalUbo &ubo)
 {
   auto lightRotation = glm::rotate(glm::mat4(1), frameInfo.frameTime_m, {0.f, -1.0f, 0.f});
   int lightIndex = 0;
-  for (auto& kv : frameInfo.gameObjects_m) {
-    auto &obj = kv.second;
-    if (obj.pointLight_m == nullptr) continue;
+  for (auto& kv : frameInfo.modelMap_m) {
+    auto &modelComp = kv.second;
+    if (modelComp->pointLight_m == nullptr) continue;
 
     // update light position
-    obj.transform_m.translation_m = glm::vec3(lightRotation * glm::vec4(obj.transform_m.translation_m, 1.f));
+    modelComp->getTransform().translation_m = glm::vec3(lightRotation * glm::vec4(modelComp->getTransform().translation_m, 1.f));
     
     // copy light to ubo
-    ubo.pointLights[lightIndex].position = glm::vec4(obj.transform_m.translation_m, 1.f);
-    ubo.pointLights[lightIndex].color = glm::vec4(obj.color_m, obj.pointLight_m->lightIntensity_m);
+    ubo.pointLights[lightIndex].position = glm::vec4(modelComp->getTransform().translation_m, 1.f);
+    ubo.pointLights[lightIndex].color = glm::vec4(modelComp->color_m, modelComp->pointLight_m->lightIntensity_m);
     lightIndex++;
   }
   ubo.numLights = lightIndex;
@@ -104,14 +104,14 @@ void PointLightSystem::render(FrameInfo frameInfo)
   );
 
   // copy the push constants
-  for (auto& kv : frameInfo.gameObjects_m) {
+  for (auto& kv : frameInfo.modelMap_m) {
     auto &obj = kv.second;
-    if (obj.pointLight_m == nullptr) continue;
+    if (obj->pointLight_m == nullptr) continue;
 
     PointLightPushConstants push{};
-    push.position_m = glm::vec4(obj.transform_m.translation_m, 1.f);
-    push.color_m = glm::vec4(obj.color_m, obj.pointLight_m->lightIntensity_m);
-    push.radius_m = obj.transform_m.scale_m.x;
+    push.position_m = glm::vec4(obj->getTransform().translation_m, 1.f);
+    push.color_m = glm::vec4(obj->color_m, obj->pointLight_m->lightIntensity_m);
+    push.radius_m = obj->getTransform().scale_m.x;
 
     vkCmdPushConstants(
       frameInfo.commandBuffer_m,

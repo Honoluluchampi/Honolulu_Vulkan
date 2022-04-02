@@ -3,6 +3,7 @@
 //  hve
 #include <hve.hpp>
 #include <hge_actor.hpp>
+#include <hge_components/model_component.hpp>
 
 //std
 #include <vector>
@@ -34,6 +35,8 @@ private:
   void update();
   void generateOutput();
 
+  void createGameObjectTemp();
+
   void loadData();
   void unLoadData();
   // load all models in modleDir
@@ -47,7 +50,7 @@ private:
   // map of models
   // models would be shared by some actors
   // wanna make it boost::intrusive_ptr 
-  std::unordered_map<std::string, std::shared_ptr<HveModel>> spHveModels_m;
+  std::unordered_map<std::string, std::shared_ptr<ModelComponent>> spModelComps_m;
 
   bool isUpdating_m = false; // for update
   bool isRunning_m = false; // for run loop

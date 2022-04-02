@@ -60,7 +60,7 @@ class HveGameObject
 
     // wanna make it boost::intrusive_ptr
     // optional opinter components
-    std::shared_ptr<HveModel> model_m{};
+    std::shared_ptr<HveModel> model_m = nullptr;
     std::unique_ptr<PointLightComponent> pointLight_m = nullptr;
 
   private:

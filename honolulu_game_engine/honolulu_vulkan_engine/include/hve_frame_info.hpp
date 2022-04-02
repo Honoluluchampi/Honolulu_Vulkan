@@ -2,6 +2,7 @@
 
 #include <hve_camera.hpp>
 #include <hve_game_object.hpp>
+#include <hge_components/model_component.hpp>
 
 // libs
 #include <vulkan/vulkan.h>
@@ -35,7 +36,8 @@ struct FrameInfo
   VkCommandBuffer commandBuffer_m;
   HveCamera &camera_m;
   VkDescriptorSet globalDiscriptorSet_m;
+  // to do : pass only active models, separate hveFrameInfo and hgeFrameInfo
   // enable renderer to access all active gameObjects
-  HveGameObject::Map &gameObjects_m;
+  std::unordered_map<std::string, std::shared_ptr<ModelComponent>>& modelMap_m;
 };
 } // namesapce hve

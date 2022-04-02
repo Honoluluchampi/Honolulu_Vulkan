@@ -33,15 +33,13 @@ class Hve
     Hve &operator= (const Hve &) = delete;
 
     void update(float dt);
-    void render(float dt);
-    
+    void render(float dt, std::unordered_map<std::string, std::shared_ptr<ModelComponent>>& spHveModels);
+
     inline void waitIdle() { vkDeviceWaitIdle(hveDevice_m.device()); }
 
     inline HveDevice& hveDevice() { return hveDevice_m; }
 
     inline GLFWwindow* passGLFWwindow() const { return hveWindow_m.getGLFWwindow(); } 
-
-    void createGameObjects(std::unordered_map<std::string, std::shared_ptr<HveModel>> &modelMap);
     
   private:
     void init();
