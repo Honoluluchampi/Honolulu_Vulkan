@@ -5,6 +5,7 @@
 // std
 #include <vector>
 #include <memory>
+#include <unordered_map>
 
 namespace hnll {
 
@@ -12,6 +13,8 @@ class HgeActor
 {
   public:
     using id_t = unsigned int;
+    using map = std::unordered_map<id_t, std::unique_ptr<HgeActor>>;
+
     // hgeActor can be created only by this fuction
     static HgeActor createActor()
     { static id_t currentId = 0; return HgeActor{currentId++}; }

@@ -41,7 +41,7 @@ void HgeGame::update()
   float dt = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime_m).count();
   dt = std::min(dt, MAX_DT);
 
-  for (auto& actor : upActiveActors_m) {
+  for (auto& actor : activeActorMap_m) {
     // actor->update(dt);
   }
 
@@ -61,8 +61,7 @@ void HgeGame::loadData()
   // load raw data
   loadHveModels();
   // share above data with vulkan engine
-  createGameObjectTemp();
-  //upHve_m->createGameObjects(spModelComps_m);
+  createActor();
 }
 
 // use filenames as the key of the map
@@ -78,19 +77,19 @@ void HgeGame::loadHveModels(const std::string& modelDir)
   }
 }
 
-void HgeGame::createGameObjectTemp()
+void HgeGame::createActor()
 {
   auto& smoothVase = spModelComps_m["smooth_vase"];
-  smoothVase->transform_m.translation_m = {-0.5f, 0.5f, 0.f};
-  smoothVase->transform_m.scale_m = {3.f, 1.5f, 3.f};
+  smoothVase->setTranslation(glm::vec3{-0.5f, 0.5f, 0.f});
+  smoothVase->setScale(glm::vec3{3.f, 1.5f, 3.f});
   
   auto& flatVaseModel = spModelComps_m["flat_vase"];
-  flatVaseModel->transform_m.translation_m = {0.5f, 0.5f, 0.f};
-  flatVaseModel->transform_m.scale_m = glm::vec3{3.f, 1.5f, 3.f};
+  flatVaseModel->setTranslation(glm::vec3{0.5f, 0.5f, 0.f});
+  flatVaseModel->setScale(glm::vec3{3.f, 1.5f, 3.f});
 
   auto& floor = spModelComps_m["quad"];
-  floor->transform_m.translation_m = {0.f, 0.5f, 0.f};
-  floor->transform_m.scale_m = glm::vec3{3.f, 1.5f, 3.f};
+  floor->setTranslation(glm::vec3{0.f, 0.5f, 0.f});
+  floor->setScale(glm::vec3{3.f, 1.5f, 3.f});
 
   std::vector<glm::vec3> lightColors{
       {1.f, .1f, .1f},

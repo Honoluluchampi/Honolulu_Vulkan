@@ -35,7 +35,7 @@ private:
   void update();
   void generateOutput();
 
-  void createGameObjectTemp();
+  void createActor();
 
   void loadData();
   void unLoadData();
@@ -44,8 +44,8 @@ private:
   void loadHveModels(const std::string& modelDir = "/models");
 
   GLFWwindow* glfwWindow_m;
-  std::vector<std::unique_ptr<HgeActor>> upActiveActors_m;
-  std::vector<std::unique_ptr<HgeActor>> upPendingActors_m;
+  HgeActor::map activeActorMap_m;
+  HgeActor::map pendingActorMap_m;
 
   // map of models
   // models would be shared by some actors
