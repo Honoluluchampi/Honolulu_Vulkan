@@ -69,15 +69,9 @@ void Hve::init()
   viewerObject.transform_m.translation_m.z = -2.5f;
 }
 
-void Hve::render()
+void Hve::render(float dt)
 {
-
-  auto newTime = std::chrono::high_resolution_clock::now();
-  float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
-  currentTime = newTime;
-  frameTime = std::min(frameTime, MAX_FRAME_TIME);
-
-  cameraController.moveInPlaneXZ(hveWindow_m.getGLFWwindow(), frameTime, viewerObject);
+  cameraController.moveInPlaneXZ(hveWindow_m.getGLFWwindow(), dt, viewerObject);
   camera.setViewYXZ(viewerObject.transform_m.translation_m, viewerObject.transform_m.rotation_m);
 
   float aspect = hveRenderer_m.getAspectRation();
@@ -89,7 +83,7 @@ void Hve::render()
 
     FrameInfo frameInfo{
         frameIndex, 
-        frameTime, 
+        dt, 
         commandBuffer, 
         camera, 
         globalDescriptorSets[frameIndex],

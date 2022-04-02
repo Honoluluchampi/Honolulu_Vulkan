@@ -32,7 +32,7 @@ class Hve
     Hve(const Hve &) = delete;
     Hve &operator= (const Hve &) = delete;
 
-    void render();
+    void render(float dt);
     inline void waitIdle() { vkDeviceWaitIdle(hveDevice_m.device()); }
 
     inline HveDevice& hveDevice() { return hveDevice_m; }

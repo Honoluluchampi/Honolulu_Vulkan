@@ -10,7 +10,7 @@ int main()
   hnll::HgeGame app{"hello"};
 
   try {
-    app.runLoop();
+    app.run();
   } 
   catch (const std::exception& e) {
     std::cerr << e.what() << '\n';

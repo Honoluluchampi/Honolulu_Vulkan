@@ -22,7 +22,7 @@ public:
   HgeGame& operator=(const HgeGame &) = delete;
 
   bool initialize();
-  void runLoop();
+  void run();
 
   void addActor(const class HveActor& actor);
   std::unique_ptr<Hve> upHve_m;
@@ -52,6 +52,7 @@ private:
   bool isUpdating_m = false; // for update
   bool isRunning_m = false; // for run loop
 
+  std::chrono::_V2::system_clock::time_point currentTime_m;
   // create in a heap
 };
 
