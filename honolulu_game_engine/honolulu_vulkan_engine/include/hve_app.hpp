@@ -32,7 +32,9 @@ class Hve
     Hve(const Hve &) = delete;
     Hve &operator= (const Hve &) = delete;
 
+    void update(float dt);
     void render(float dt);
+    
     inline void waitIdle() { vkDeviceWaitIdle(hveDevice_m.device()); }
 
     inline HveDevice& hveDevice() { return hveDevice_m; }
@@ -55,21 +57,18 @@ class Hve
     // game
     HveGameObject::Map gameObjects_m;
 
-    std::vector<std::unique_ptr<HveBuffer>> uboBuffers {HveSwapChain::MAX_FRAMES_IN_FLIGHT};
-    std::unique_ptr<hnll::HveDescriptorSetLayout> globalSetLayout;
-    std::vector<VkDescriptorSet> globalDescriptorSets {HveSwapChain::MAX_FRAMES_IN_FLIGHT};
+    std::vector<std::unique_ptr<HveBuffer>> uboBuffers_m {HveSwapChain::MAX_FRAMES_IN_FLIGHT};
+    std::unique_ptr<hnll::HveDescriptorSetLayout> globalSetLayout_m;
+    std::vector<VkDescriptorSet> globalDescriptorSets_m {HveSwapChain::MAX_FRAMES_IN_FLIGHT};
     // ptrlize to make it later init 
-    std::unique_ptr<SimpleRendererSystem> simpleRendererSystem;
-    std::unique_ptr<PointLightSystem> pointLightSystem;
+    std::unique_ptr<SimpleRendererSystem> simpleRendererSystem_m;
+    std::unique_ptr<PointLightSystem> pointLightSystem_m;
 
-    HveCamera camera{};
+    HveCamera camera_m{};
     // object for change the camera transform indirectly
     // this object has no model and won't be rendered
-    HveGameObject viewerObject = HveGameObject::createGameObject();
-    KeyboardMovementController cameraController{};
-
-    // for synchronization of the refresh rate
-    std::chrono::_V2::system_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
+    HveGameObject viewerObject_m = HveGameObject::createGameObject();
+    KeyboardMovementController cameraController_m {};
 };
 
 } // namespace hv

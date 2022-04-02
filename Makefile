@@ -40,6 +40,13 @@ clean:
 
 .PHONY: all
 all:
+	make hve
+	make hge
+	make
+	make test
+
+.PHONY: fs
+fs:
 	make clean
 # make all recursively
 	cd honolulu_game_engine && make all

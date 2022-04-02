@@ -44,7 +44,8 @@ void HgeGame::update()
   for (auto& actor : upActiveActors_m) {
     // actor->update(dt);
   }
-  
+
+  upHve_m->update(dt);
   upHve_m->render(dt);
 
   currentTime_m = newTime;

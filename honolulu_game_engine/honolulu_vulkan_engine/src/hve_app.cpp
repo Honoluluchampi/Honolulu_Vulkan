@@ -30,53 +30,57 @@ void Hve::init()
     .build();
 
   // creating ubo for each frames version
-  for (int i = 0; i < uboBuffers.size(); i++) {
-    uboBuffers[i] = std::make_unique<HveBuffer>(
+  for (int i = 0; i < uboBuffers_m.size(); i++) {
+    uboBuffers_m[i] = std::make_unique<HveBuffer>(
       hveDevice_m,
       sizeof(GlobalUbo),
       1,
       VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
     );
-    uboBuffers[i]->map();
+    uboBuffers_m[i]->map();
   }
 
   // this is set layout of master system
   // enable ubo to be referenced by oall stages of a graphics pipeline
-  globalSetLayout = HveDescriptorSetLayout::Builder(hveDevice_m)
+  globalSetLayout_m = HveDescriptorSetLayout::Builder(hveDevice_m)
     .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
     .build();
   // may add additional layout of child system
 
-  for (int i = 0; i < globalDescriptorSets.size(); i++) {
-    auto bufferInfo = uboBuffers[i]->descriptorInfo();
-    HveDescriptorWriter(*globalSetLayout, *globalPool_m)
+  for (int i = 0; i < globalDescriptorSets_m.size(); i++) {
+    auto bufferInfo = uboBuffers_m[i]->descriptorInfo();
+    HveDescriptorWriter(*globalSetLayout_m, *globalPool_m)
       .writeBuffer(0, &bufferInfo)
-      .build(globalDescriptorSets[i]);
+      .build(globalDescriptorSets_m[i]);
   }
 
   // create renderer system as local variable
-  simpleRendererSystem = std::make_unique<SimpleRendererSystem>(
+  simpleRendererSystem_m = std::make_unique<SimpleRendererSystem>(
     hveDevice_m, 
     hveRenderer_m.getSwapChainRenderPass(),
-    globalSetLayout->getDescriptorSetLayout());
+    globalSetLayout_m->getDescriptorSetLayout());
 
-  pointLightSystem = std::make_unique<PointLightSystem>(
+  pointLightSystem_m = std::make_unique<PointLightSystem>(
     hveDevice_m, 
     hveRenderer_m.getSwapChainRenderPass(),
-    globalSetLayout->getDescriptorSetLayout());
+    globalSetLayout_m->getDescriptorSetLayout());
   
-  viewerObject.transform_m.translation_m.z = -2.5f;
+  viewerObject_m.transform_m.translation_m.z = -2.5f;
+}
+
+
+void Hve::update(float dt)
+{
+  cameraController_m.moveInPlaneXZ(hveWindow_m.getGLFWwindow(), dt, viewerObject_m);
+  camera_m.setViewYXZ(viewerObject_m.transform_m.translation_m, viewerObject_m.transform_m.rotation_m);
+  float aspect = hveRenderer_m.getAspectRatio();
+  camera_m.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 50.f);
 }
 
 void Hve::render(float dt)
 {
-  cameraController.moveInPlaneXZ(hveWindow_m.getGLFWwindow(), dt, viewerObject);
-  camera.setViewYXZ(viewerObject.transform_m.translation_m, viewerObject.transform_m.rotation_m);
-
-  float aspect = hveRenderer_m.getAspectRation();
   // camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
-  camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 50.f);
   // returns nullptr if the swap chain is need to be recreated
   if (auto commandBuffer = hveRenderer_m.beginFrame()) {
     int frameIndex = hveRenderer_m.getFrameIndex();
@@ -85,25 +89,25 @@ void Hve::render(float dt)
         frameIndex, 
         dt, 
         commandBuffer, 
-        camera, 
-        globalDescriptorSets[frameIndex],
+        camera_m, 
+        globalDescriptorSets_m[frameIndex],
         gameObjects_m
     };
 
     // update 
     GlobalUbo ubo{};
-    ubo.projection_m = camera.getProjection();
-    ubo.view_m = camera.getView();
-    pointLightSystem->update(frameInfo, ubo);
-    uboBuffers[frameIndex]->writeToBuffer(&ubo);
-    uboBuffers[frameIndex]->flush();
+    ubo.projection_m = camera_m.getProjection();
+    ubo.view_m = camera_m.getView();
+    pointLightSystem_m->update(frameInfo, ubo);
+    uboBuffers_m[frameIndex]->writeToBuffer(&ubo);
+    uboBuffers_m[frameIndex]->flush();
 
     // rendering
     hveRenderer_m.beginSwapChainRenderPass(commandBuffer);
     // programmable stage of rendering
     // system can now access gameobjects via frameInfo
-    simpleRendererSystem->renderGameObjects(frameInfo);
-    pointLightSystem->render(frameInfo);
+    simpleRendererSystem_m->renderGameObjects(frameInfo);
+    pointLightSystem_m->render(frameInfo);
 
     hveRenderer_m.endSwapChainRenderPass(commandBuffer);
     hveRenderer_m.endFrame();
