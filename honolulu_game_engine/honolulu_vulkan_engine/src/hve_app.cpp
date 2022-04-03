@@ -78,7 +78,7 @@ void Hve::update(float dt)
   camera_m.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 50.f);
 }
 
-void Hve::render(float dt, std::unordered_map<std::string, std::shared_ptr<ModelComponent>>& spModelCmpts)
+void Hve::render(float dt, ModelComponent::map& spModelCmpts)
 {
   // returns nullptr if the swap chain is need to be recreated
   if (auto commandBuffer = hveRenderer_m.beginFrame()) {
@@ -97,7 +97,7 @@ void Hve::render(float dt, std::unordered_map<std::string, std::shared_ptr<Model
     GlobalUbo ubo{};
     ubo.projection_m = camera_m.getProjection();
     ubo.view_m = camera_m.getView();
-    pointLightSystem_m->update(frameInfo, ubo);
+    // pointLightSystem_m->update(frameInfo, ubo);
     uboBuffers_m[frameIndex]->writeToBuffer(&ubo);
     uboBuffers_m[frameIndex]->flush();
 
@@ -106,7 +106,7 @@ void Hve::render(float dt, std::unordered_map<std::string, std::shared_ptr<Model
     // programmable stage of rendering
     // system can now access gameobjects via frameInfo
     simpleRendererSystem_m->render(frameInfo);
-    pointLightSystem_m->render(frameInfo);
+    //pointLightSystem_m->render(frameInfo);
 
     hveRenderer_m.endSwapChainRenderPass(commandBuffer);
     hveRenderer_m.endFrame();

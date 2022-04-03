@@ -38,6 +38,6 @@ struct FrameInfo
   VkDescriptorSet globalDiscriptorSet_m;
   // to do : pass only active models, separate hveFrameInfo and hgeFrameInfo
   // enable renderer to access all active gameObjects
-  std::unordered_map<std::string, std::shared_ptr<ModelComponent>>& modelMap_m;
+  std::unordered_map<unsigned int, std::shared_ptr<ModelComponent>>& modelMap_m;
 };
 } // namesapce hve

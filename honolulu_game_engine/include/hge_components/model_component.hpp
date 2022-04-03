@@ -4,14 +4,19 @@
 #include <hge_component.hpp>
 #include <hve_game_object.hpp>
 
+#include <unordered_map>
+#include <memory>
+
 namespace hnll {
 
 class ModelComponent : public HgeComponent
 {
   public:
+    using id_t = unsigned int;
+    using map = std::unordered_map<id_t, std::shared_ptr<ModelComponent>>;
     // copy a passed shared_ptr
-    ModelComponent(std::shared_ptr<HveModel>& spModel) : HgeComponent(), spModel_m(spModel) {}
-    ModelComponent(std::shared_ptr<HveModel>&& spModel) : HgeComponent(), spModel_m(std::move(spModel)) {}
+    ModelComponent(id_t id, const std::shared_ptr<HveModel>& spModel) : HgeComponent(), id_m(id), spModel_m(spModel) {}
+    ModelComponent(id_t id, std::shared_ptr<HveModel>&& spModel) : HgeComponent(), id_m(id), spModel_m(std::move(spModel)) {}
     ~ModelComponent(){}
 
     void update(float dt) override
@@ -20,20 +25,24 @@ class ModelComponent : public HgeComponent
     std::shared_ptr<HveModel>& getSpModel() { return spModel_m; }
     static HveGameObject makePointLight(float intensity = 10.f, float radius = 0.1f, glm::vec3 color = glm::vec3(1.f));
     
-    TransformComponent& getTransform() { return *upTransform_m; }
+    inline TransformComponent& getTransform() { return *upTransform_m; }
     template<class V> void setTranslation(V&& vec) 
-    { (*upTransform_m).translation_m = std::forward<V>(vec); }    
+    { upTransform_m->translation_m = std::forward<V>(vec); }    
     template<class V> void setScale(V&& vec) 
-    { (*upTransform_m).scale_m = std::forward<V>(vec); }
+    { upTransform_m->scale_m = std::forward<V>(vec); }
     template<class V> void setRotation(V&& vec) 
-    { (*upTransform_m).rotation_m = std::forward<V>(vec); }    
+    { upTransform_m->rotation_m = std::forward<V>(vec); }    
 
+    inline id_t getId() const { return id_m; }
+    
     glm::vec3 color_m{};
     std::unique_ptr<PointLightComponent> pointLight_m = nullptr;
 
   private:
+    // same id as owner actor
+    id_t id_m;
     // HveModel can be shared all over a game
-    std::shared_ptr<HveModel> spModel_m;
+    std::shared_ptr<HveModel> spModel_m = nullptr;
     // update this member
     std::unique_ptr<TransformComponent> upTransform_m = std::make_unique<TransformComponent>();
 };

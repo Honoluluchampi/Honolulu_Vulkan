@@ -42,14 +42,31 @@ void HgeGame::update()
   dt = std::min(dt, MAX_DT);
 
   for (auto& actor : activeActorMap_m) {
-    // actor->update(dt);
+    actor.second->update(dt);
+    // check if the actor is dead
+    if (actor.second->getActorState() == HgeActor::state::DEAD) {
+      deadActorMap_m.emplace(actor.first, std::move(actor.second));
+      activeActorMap_m.erase(actor.first);
+      // erase relevant model comp.
+      modelCompMap_m.erase(actor.first);
+    }
   }
 
+  // camera update
   upHve_m->update(dt);
-  upHve_m->render(dt, spModelComps_m);
 
   currentTime_m = newTime;
   isUpdating_m = false;
+
+  // activate pending actor
+  for (auto& pend : pendingActorMap_m) {
+    activeActorMap_m.emplace(pend.first, std::move(pend.second));
+  }
+  pendingActorMap_m.clear();
+  // clear all the dead actors
+  deadActorMap_m.clear();
+
+  upHve_m->render(dt, modelCompMap_m);
 }
 
 void HgeGame::generateOutput()
@@ -72,44 +89,63 @@ void HgeGame::loadHveModels(const std::string& modelDir)
     auto filename = std::string(file.path());
     auto length = filename.size() - path.size() - 5;
     auto key = filename.substr(path.size() + 1, length);
-    auto modelComp = HveModel::createModelFromFile(upHve_m->hveDevice(), filename);
-    spModelComps_m.emplace(key, std::make_shared<ModelComponent>(modelComp));
+    auto hveModel = HveModel::createModelFromFile(upHve_m->hveDevice(), filename);
+    hveModelMap_m.emplace(key, std::move(hveModel));
   }
+}
+
+// actors should be created as unique_ptr
+void HgeGame::addActor(std::unique_ptr<HgeActor>& actor)
+{ pendingActorMap_m.emplace(actor->getId(), std::move(actor)); }
+
+void HgeGame::addActor(std::unique_ptr<HgeActor>&& actor)
+{ pendingActorMap_m.emplace(actor->getId(), std::move(actor)); }
+
+void HgeGame::removeActor(id_t id)
+{
+  pendingActorMap_m.erase(id);
+  activeActorMap_m.erase(id);
+  // renderableActorMap_m.erase(id);
 }
 
 void HgeGame::createActor()
 {
-  auto& smoothVase = spModelComps_m["smooth_vase"];
-  smoothVase->setTranslation(glm::vec3{-0.5f, 0.5f, 0.f});
-  smoothVase->setScale(glm::vec3{3.f, 1.5f, 3.f});
+  auto smoothVase = std::make_unique<HgeActor>(HgeActor::createActor());
+  auto& smoothVaseHveModel = hveModelMap_m["smooth_vase"];
+  auto smoothVaseModelComp = std::make_shared<ModelComponent>(smoothVase->getId(), smoothVaseHveModel);
+  smoothVase->addSharedComponent(smoothVaseModelComp);
+  smoothVaseModelComp->setTranslation(glm::vec3{-0.5f, 0.5f, 0.f});
+  smoothVaseModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
   
-  auto& flatVaseModel = spModelComps_m["flat_vase"];
-  flatVaseModel->setTranslation(glm::vec3{0.5f, 0.5f, 0.f});
-  flatVaseModel->setScale(glm::vec3{3.f, 1.5f, 3.f});
+  modelCompMap_m.emplace(smoothVase->getId(), std::move(smoothVaseModelComp));
+  addActor(std::move(smoothVase));
+  // auto& flatVaseModel = spModelComps_m["flat_vase"];
+  // flatVaseModel->setTranslation(glm::vec3{0.5f, 0.5f, 0.f});
+  // flatVaseModel->setScale(glm::vec3{3.f, 1.5f, 3.f});
 
-  auto& floor = spModelComps_m["quad"];
-  floor->setTranslation(glm::vec3{0.f, 0.5f, 0.f});
-  floor->setScale(glm::vec3{3.f, 1.5f, 3.f});
+  // auto& floor = spModelComps_m["quad"];
+  // floor->setTranslation(glm::vec3{0.f, 0.5f, 0.f});
+  // floor->setScale(glm::vec3{3.f, 1.5f, 3.f});
 
-  std::vector<glm::vec3> lightColors{
-      {1.f, .1f, .1f},
-      {.1f, .1f, 1.f},
-      {.1f, 1.f, .1f},
-      {1.f, 1.f, .1f},
-      {.1f, 1.f, 1.f},
-      {1.f, 1.f, 1.f} 
-  };
+  // std::vector<glm::vec3> lightColors{
+  //     {1.f, .1f, .1f},
+  //     {.1f, .1f, 1.f},
+  //     {.1f, 1.f, .1f},
+  //     {1.f, 1.f, .1f},
+  //     {.1f, 1.f, 1.f},
+  //     {1.f, 1.f, 1.f} 
+  // };
 
-  for (int i = 0; i < lightColors.size(); i++) {
-    auto pointLight = HveGameObject::makePointLight(0.2f);
-    pointLight.color_m = lightColors[i];
-    auto lightRotation = glm::rotate(
-        glm::mat4(1),
-        (i * glm::two_pi<float>()) / lightColors.size(),
-        {0.f, -1.0f, 0.f}); // axiz
-    pointLight.transform_m.translation_m = glm::vec3(lightRotation * glm::vec4(-1.f, -1.f, -1.f, 1.f));
-    //gameObjects_m.emplace(pointLight.getId(), std::move(pointLight));
-  }
+  // for (int i = 0; i < lightColors.size(); i++) {
+  //   auto pointLight = HveGameObject::makePointLight(0.2f);
+  //   pointLight.color_m = lightColors[i];
+  //   auto lightRotation = glm::rotate(
+  //       glm::mat4(1),
+  //       (i * glm::two_pi<float>()) / lightColors.size(),
+  //       {0.f, -1.0f, 0.f}); // axiz
+  //   pointLight.transform_m.translation_m = glm::vec3(lightRotation * glm::vec4(-1.f, -1.f, -1.f, 1.f));
+  //   //gameObjects_m.emplace(pointLight.getId(), std::move(pointLight));
+  // }
 }
 
 } // namespace hnll

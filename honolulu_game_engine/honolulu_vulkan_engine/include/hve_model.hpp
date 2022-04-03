@@ -10,13 +10,15 @@
 
 // std
 #include <memory>
+#include <string>
+#include <unordered_map>
 
 namespace hnll {
 
 class HveModel
 {
   public:
-
+    using map = std::unordered_map<std::string, std::shared_ptr<HveModel>>;
     // compatible with wavefront obj. file
     struct Vertex
     {

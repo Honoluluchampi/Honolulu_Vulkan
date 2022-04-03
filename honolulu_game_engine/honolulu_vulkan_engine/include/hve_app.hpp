@@ -11,6 +11,9 @@
 #include <keyboard_movement_controller.hpp>
 #include <hve_buffer.hpp>
 
+// hge
+#include <hge_components/model_component.hpp>
+
 // std
 #include <memory>
 #include <vector>
@@ -33,7 +36,7 @@ class Hve
     Hve &operator= (const Hve &) = delete;
 
     void update(float dt);
-    void render(float dt, std::unordered_map<std::string, std::shared_ptr<ModelComponent>>& spHveModels);
+    void render(float dt, ModelComponent::map& modelCompMap);
 
     inline void waitIdle() { vkDeviceWaitIdle(hveDevice_m.device()); }
 
@@ -52,8 +55,6 @@ class Hve
 
     // shared between multiple system
     std::unique_ptr<HveDescriptorPool> globalPool_m;
-    // game
-    HveGameObject::Map gameObjects_m;
 
     std::vector<std::unique_ptr<HveBuffer>> uboBuffers_m {HveSwapChain::MAX_FRAMES_IN_FLIGHT};
     std::unique_ptr<hnll::HveDescriptorSetLayout> globalSetLayout_m;

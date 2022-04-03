@@ -25,9 +25,9 @@ public:
   bool initialize();
   void run();
 
-  void addActor(const class HveActor& actor);
-  std::unique_ptr<Hve> upHve_m;
-  void removeActor(const class HveActor& actor);
+  void addActor(std::unique_ptr<HgeActor>& actor);
+  void addActor(std::unique_ptr<HgeActor>&& actor);
+  void removeActor(id_t id);
 
 private:
   inline void setGLFWwindow() { glfwWindow_m = upHve_m->passGLFWwindow() ; }
@@ -46,11 +46,18 @@ private:
   GLFWwindow* glfwWindow_m;
   HgeActor::map activeActorMap_m;
   HgeActor::map pendingActorMap_m;
+  HgeActor::map deadActorMap_m;
 
-  // map of models
-  // models would be shared by some actors
+  std::unique_ptr<Hve> upHve_m;
+
+  // map of modelcomponents
+  // shared by game and some actors
   // wanna make it boost::intrusive_ptr 
-  std::unordered_map<std::string, std::shared_ptr<ModelComponent>> spModelComps_m;
+  ModelComponent::map modelCompMap_m;
+  // map of HveModel
+  // shared by game and some modelComponents
+  // pool all models which would be necessary
+  HveModel::map hveModelMap_m;
 
   bool isUpdating_m = false; // for update
   bool isRunning_m = false; // for run loop
