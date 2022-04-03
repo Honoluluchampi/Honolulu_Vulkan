@@ -31,6 +31,7 @@ public:
 
 private:
   inline void setGLFWwindow() { glfwWindow_m = upHve_m->passGLFWwindow() ; }
+  void cleanup();
   void processInput();
   void update();
   void generateOutput();

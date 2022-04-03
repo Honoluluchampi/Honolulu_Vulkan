@@ -24,8 +24,8 @@ void HgeGame::run()
     update();
     generateOutput();
   }
-
   upHve_m->waitIdle();
+  cleanup();
 }
 
 void HgeGame::processInput()
@@ -146,6 +146,15 @@ void HgeGame::createActor()
   //   pointLight.transform_m.translation_m = glm::vec3(lightRotation * glm::vec4(-1.f, -1.f, -1.f, 1.f));
   //   //gameObjects_m.emplace(pointLight.getId(), std::move(pointLight));
   // }
+}
+
+void HgeGame::cleanup()
+{
+  activeActorMap_m.clear();
+  pendingActorMap_m.clear();
+  deadActorMap_m.clear();
+  hveModelMap_m.clear();
+  modelCompMap_m.clear();
 }
 
 } // namespace hnll
