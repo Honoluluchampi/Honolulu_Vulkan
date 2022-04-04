@@ -3,20 +3,21 @@
 #include <hve_model.hpp>
 #include <hge_component.hpp>
 #include <hve_game_object.hpp>
+#include <hge_components/hge_renderable_component.hpp>
 
 #include <unordered_map>
 #include <memory>
 
 namespace hnll {
 
-class ModelComponent : public HgeComponent
+class ModelComponent : public HgeRenderableComponent
 {
   public:
     using id_t = unsigned int;
     using map = std::unordered_map<id_t, std::shared_ptr<ModelComponent>>;
     // copy a passed shared_ptr
-    ModelComponent(id_t id, const std::shared_ptr<HveModel>& spModel) : HgeComponent(), id_m(id), spModel_m(spModel) {}
-    ModelComponent(id_t id, std::shared_ptr<HveModel>&& spModel) : HgeComponent(), id_m(id), spModel_m(std::move(spModel)) {}
+    ModelComponent(id_t id, const std::shared_ptr<HveModel>& spModel) : HgeRenderableComponent(id, RenderType::SIMPLE), spModel_m(spModel) {}
+    ModelComponent(id_t id, std::shared_ptr<HveModel>&& spModel) : HgeRenderableComponent(id, RenderType::SIMPLE), spModel_m(std::move(spModel)) {}
     ~ModelComponent(){}
 
     void update(float dt) override
@@ -39,8 +40,6 @@ class ModelComponent : public HgeComponent
     std::unique_ptr<PointLightComponent> pointLight_m = nullptr;
 
   private:
-    // same id as owner actor
-    id_t id_m;
     // HveModel can be shared all over a game
     std::shared_ptr<HveModel> spModel_m = nullptr;
     // update this member

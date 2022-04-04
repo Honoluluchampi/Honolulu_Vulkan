@@ -22,16 +22,16 @@ struct SimplePushConstantData
   glm::mat4 normalMatrix_m{1.0f};
 };
 
-SimpleRendererSystem::SimpleRendererSystem(HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout) : hveDevice_m(device)
-{
+SimpleRendererSystem::SimpleRendererSystem
+  (HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
+  : HveRenderingSystem(device, renderPass, globalSetLayout)
+{ 
   createPipelineLayout(globalSetLayout);
   createPipeline(renderPass);
 }
 
 SimpleRendererSystem::~SimpleRendererSystem()
-{
-  vkDestroyPipelineLayout(hveDevice_m.device(), pipelineLayout_m, nullptr);
-}
+{}
 
 void SimpleRendererSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout)
 {
