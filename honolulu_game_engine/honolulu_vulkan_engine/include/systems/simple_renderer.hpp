@@ -1,8 +1,8 @@
 #pragma once
 
 #include <hve_rendering_system.hpp>
-#include <hve_game_object.hpp>
 #include <hve_camera.hpp>
+#include <hge_components/model_component.hpp>
 
 // std
 #include <vector>

@@ -13,6 +13,7 @@
 
 // hge
 #include <hge_components/model_component.hpp>
+#include <hge_components/point_light_component.hpp>
 
 // std
 #include <memory>
@@ -42,20 +43,12 @@ class Hve
     void update(float dt);
     void render(float dt);
 
-    template<class RenderableComponent>
-    void addRenderableComponent(s_ptr<RenderableComponent>& target)
-    {
-      switch(target->getRenderType()) {
-        case RenderType::SIMPLE : 
-          simpleRendererSystem_m->addRenderTarget(target->getId(), target);
-          break;
-        case RenderType::POINT_LIGHT :
-          //pointLightSystem_m->addRenderTarget(target->getId(), target);
-          break;
-        default:
-          throw std::runtime_error("invalid component");
-      }
-    }
+    void addRenderableComponent(s_ptr<ModelComponent>& target)
+    { simpleRendererSystem_m->addRenderTarget(target->getId(), target); }
+    void addRenderableComponent(s_ptr<PointLightComponent>& target)
+    { pointLightSystem_m->addRenderTarget(target->getId(), target); }
+    
+    
     void removeRenderableComponent(id_t id);
 
     inline void waitIdle() { vkDeviceWaitIdle(hveDevice_m.device()); }

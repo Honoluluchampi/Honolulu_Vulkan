@@ -140,33 +140,29 @@ void HgeGame::createActor()
   floorModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
   
   addActor(std::move(floor));
-  // auto& flatVaseModel = spModelComps_m["flat_vase"];
-  // flatVaseModel->setTranslation(glm::vec3{0.5f, 0.5f, 0.f});
-  // flatVaseModel->setScale(glm::vec3{3.f, 1.5f, 3.f});
 
-  // auto& floor = spModelComps_m["quad"];
-  // floor->setTranslation(glm::vec3{0.f, 0.5f, 0.f});
-  // floor->setScale(glm::vec3{3.f, 1.5f, 3.f});
+  std::vector<glm::vec3> lightColors{
+      {1.f, .1f, .1f},
+      {.1f, .1f, 1.f},
+      {.1f, 1.f, .1f},
+      {1.f, 1.f, .1f},
+      {.1f, 1.f, 1.f},
+      {1.f, 1.f, 1.f} 
+  };
 
-  // std::vector<glm::vec3> lightColors{
-  //     {1.f, .1f, .1f},
-  //     {.1f, .1f, 1.f},
-  //     {.1f, 1.f, .1f},
-  //     {1.f, 1.f, .1f},
-  //     {.1f, 1.f, 1.f},
-  //     {1.f, 1.f, 1.f} 
-  // };
+  for (int i = 0; i < lightColors.size(); i++) {
+    auto lightActor = std::make_unique<HgeActor>(HgeActor::createActor());
+    auto lightComp = PointLightComponent::createPointLight(lightActor->getId(), 1, 0.2, lightColors[i]);
+    auto lightRotation = glm::rotate(
+        glm::mat4(1),
+        (i * glm::two_pi<float>()) / lightColors.size(),
+        {0.f, -1.0f, 0.f}); // axiz
+    lightComp->setTranslation(glm::vec3(lightRotation * glm::vec4(-1.f, -1.f, -1.f, 1.f)));
+    lightActor->addRenderableComponent(lightComp);
+    upHve_m->addRenderableComponent(lightComp);
 
-  // for (int i = 0; i < lightColors.size(); i++) {
-  //   auto pointLight = HveGameObject::makePointLight(0.2f);
-  //   pointLight.color_m = lightColors[i];
-  //   auto lightRotation = glm::rotate(
-  //       glm::mat4(1),
-  //       (i * glm::two_pi<float>()) / lightColors.size(),
-  //       {0.f, -1.0f, 0.f}); // axiz
-  //   pointLight.transform_m.translation_m = glm::vec3(lightRotation * glm::vec4(-1.f, -1.f, -1.f, 1.f));
-  //   //gameObjects_m.emplace(pointLight.getId(), std::move(pointLight));
-  // }
+    addActor(std::move(lightActor));    
+  }
 }
 
 void HgeGame::cleanup()

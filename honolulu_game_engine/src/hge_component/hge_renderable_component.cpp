@@ -1,8 +1,8 @@
-#include <hve_game_object.hpp>
+#include <hge_components/hge_renderable_component.hpp>
 
 namespace hnll {
 
-glm::mat4 TransformComponent::mat4() 
+glm::mat4 Transform::mat4() 
 {
   const float c3 = glm::cos(rotation_m.z), s3 = glm::sin(rotation_m.z), c2 = glm::cos(rotation_m.x), 
     s2 = glm::sin(rotation_m.x), c1 = glm::cos(rotation_m.y), s1 = glm::sin(rotation_m.y);
@@ -29,7 +29,7 @@ glm::mat4 TransformComponent::mat4()
 }
 
 // normal = R * S(-1)
-glm::mat3 TransformComponent::normalMatrix()
+glm::mat3 Transform::normalMatrix()
 {
   const float c3 = glm::cos(rotation_m.z), s3 = glm::sin(rotation_m.z), c2 = glm::cos(rotation_m.x), 
     s2 = glm::sin(rotation_m.x), c1 = glm::cos(rotation_m.y), s1 = glm::sin(rotation_m.y);
@@ -53,4 +53,5 @@ glm::mat3 TransformComponent::normalMatrix()
       }
   };
 }
-}
+
+} // namespace hnll

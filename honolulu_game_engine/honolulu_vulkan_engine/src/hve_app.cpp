@@ -107,7 +107,7 @@ void Hve::render(float dt)
     // programmable stage of rendering
     // system can now access gameobjects via frameInfo
     simpleRendererSystem_m->render(frameInfo);
-    //pointLightSystem_m->render(frameInfo);
+    pointLightSystem_m->render(frameInfo);
 
     hveRenderer_m.endSwapChainRenderPass(commandBuffer);
     hveRenderer_m.endFrame();
@@ -117,6 +117,6 @@ void Hve::render(float dt)
 void Hve::removeRenderableComponent(id_t id)
 {
   simpleRendererSystem_m->removeRenderTarget(id);
-  // pointLightSystem_m->removeRenderTarget(id);
+  pointLightSystem_m->removeRenderTarget(id);
 }
 } // namespace hve
