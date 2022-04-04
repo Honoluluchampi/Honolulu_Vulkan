@@ -98,7 +98,7 @@ void Hve::render(float dt)
     GlobalUbo ubo{};
     ubo.projection_m = camera_m.getProjection();
     ubo.view_m = camera_m.getView();
-    // pointLightSystem_m->update(frameInfo, ubo);
+    pointLightSystem_m->update(frameInfo, ubo);
     uboBuffers_m[frameIndex]->writeToBuffer(&ubo);
     uboBuffers_m[frameIndex]->flush();
 
