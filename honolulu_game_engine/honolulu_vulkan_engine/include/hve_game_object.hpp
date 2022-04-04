@@ -26,12 +26,6 @@ struct TransformComponent
   glm::mat3 normalMatrix();
 };
 
-// pointLight can be treated as gameObject
-struct PointLightComponent
-{
-  float lightIntensity_m = 1.0f;
-};
-
 class HveGameObject
 {
   public:
@@ -44,9 +38,6 @@ class HveGameObject
       static id_t currentId = 0;
       return HveGameObject{currentId++};
     }
-
-    static HveGameObject makePointLight(float intensity = 10.f, float radius = 0.1f, glm::vec3 color = glm::vec3(1.f));
-
     // uncopyable, movable
     HveGameObject(const HveGameObject &) = delete;
     HveGameObject& operator=(const HveGameObject &) = delete;
@@ -60,8 +51,7 @@ class HveGameObject
 
     // wanna make it boost::intrusive_ptr
     // optional opinter components
-    std::shared_ptr<HveModel> model_m{};
-    std::unique_ptr<PointLightComponent> pointLight_m = nullptr;
+    std::shared_ptr<HveModel> model_m = nullptr;
 
   private:
     HveGameObject(id_t objId) : id_m(objId) {}

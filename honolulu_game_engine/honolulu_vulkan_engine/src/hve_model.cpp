@@ -40,12 +40,12 @@ HveModel::~HveModel()
   // buffers wille be freed in dotr of Hvebuffer
 }
 
-std::unique_ptr<HveModel> HveModel::createModelFromFile(HveDevice &device, const std::string &filename)
+std::shared_ptr<HveModel> HveModel::createModelFromFile(HveDevice &device, const std::string &filename)
 {
   Builder builder;
   builder.loadModel(filename);
   std::cout << filename << " Vertex count: " << builder.vertices_m.size() << "\n";
-  return std::make_unique<HveModel>(device, builder);
+  return std::make_shared<HveModel>(device, builder);
 }
 
 void HveModel::createVertexBuffers(const std::vector<Vertex> &vertices)

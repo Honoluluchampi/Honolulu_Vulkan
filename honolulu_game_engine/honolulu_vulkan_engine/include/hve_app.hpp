@@ -11,13 +11,21 @@
 #include <keyboard_movement_controller.hpp>
 #include <hve_buffer.hpp>
 
+// hge
+#include <hge_components/model_component.hpp>
+#include <hge_components/point_light_component.hpp>
+
 // std
 #include <memory>
 #include <vector>
 #include <chrono>
+#include <stdexcept>
 #include <unordered_map>
 
 namespace hnll {
+
+template<class U> using u_ptr = std::unique_ptr<U>;
+template<class S> using s_ptr = std::shared_ptr<S>;
 
 class Hve
 {
@@ -32,14 +40,22 @@ class Hve
     Hve(const Hve &) = delete;
     Hve &operator= (const Hve &) = delete;
 
-    void render();
+    void update(float dt);
+    void render(float dt);
+
+    void addRenderableComponent(s_ptr<ModelComponent>& target)
+    { simpleRendererSystem_m->addRenderTarget(target->getId(), target); }
+    void addRenderableComponent(s_ptr<PointLightComponent>& target)
+    { pointLightSystem_m->addRenderTarget(target->getId(), target); }
+    
+    
+    void removeRenderableComponent(id_t id);
+
     inline void waitIdle() { vkDeviceWaitIdle(hveDevice_m.device()); }
 
     inline HveDevice& hveDevice() { return hveDevice_m; }
 
     inline GLFWwindow* passGLFWwindow() const { return hveWindow_m.getGLFWwindow(); } 
-
-    void createGameObjects(std::unordered_map<std::string, std::shared_ptr<HveModel>> &modelMap);
     
   private:
     void init();
@@ -51,25 +67,21 @@ class Hve
     HveRenderer hveRenderer_m {hveWindow_m, hveDevice_m};
 
     // shared between multiple system
-    std::unique_ptr<HveDescriptorPool> globalPool_m;
-    // game
-    HveGameObject::Map gameObjects_m;
+    u_ptr<HveDescriptorPool> globalPool_m;
 
-    std::vector<std::unique_ptr<HveBuffer>> uboBuffers {HveSwapChain::MAX_FRAMES_IN_FLIGHT};
-    std::unique_ptr<hnll::HveDescriptorSetLayout> globalSetLayout;
-    std::vector<VkDescriptorSet> globalDescriptorSets {HveSwapChain::MAX_FRAMES_IN_FLIGHT};
+    std::vector<u_ptr<HveBuffer>> uboBuffers_m {HveSwapChain::MAX_FRAMES_IN_FLIGHT};
+    u_ptr<hnll::HveDescriptorSetLayout> globalSetLayout_m;
+    std::vector<VkDescriptorSet> globalDescriptorSets_m {HveSwapChain::MAX_FRAMES_IN_FLIGHT};
     // ptrlize to make it later init 
-    std::unique_ptr<SimpleRendererSystem> simpleRendererSystem;
-    std::unique_ptr<PointLightSystem> pointLightSystem;
 
-    HveCamera camera{};
+    u_ptr<SimpleRendererSystem> simpleRendererSystem_m;
+    u_ptr<PointLightSystem> pointLightSystem_m;
+
+    HveCamera camera_m{};
     // object for change the camera transform indirectly
     // this object has no model and won't be rendered
-    HveGameObject viewerObject = HveGameObject::createGameObject();
-    KeyboardMovementController cameraController{};
-
-    // for synchronization of the refresh rate
-    std::chrono::_V2::system_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
+    HveGameObject viewerObject_m = HveGameObject::createGameObject();
+    KeyboardMovementController cameraController_m {};
 };
 
 } // namespace hv

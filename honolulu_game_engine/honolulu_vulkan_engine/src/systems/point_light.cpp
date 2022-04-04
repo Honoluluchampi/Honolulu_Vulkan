@@ -20,16 +20,16 @@ struct PointLightPushConstants
   float radius_m;
 };
 
-PointLightSystem::PointLightSystem(HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout) : hveDevice_m(device)
+PointLightSystem::PointLightSystem
+  (HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
+  : HveRenderingSystem(device)
 {
   createPipelineLayout(globalSetLayout);
   createPipeline(renderPass);
 }
 
 PointLightSystem::~PointLightSystem()
-{
-  vkDestroyPipelineLayout(hveDevice_m.device(), pipelineLayout_m, nullptr);
-}
+{ }
 
 void PointLightSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout)
 {
@@ -75,16 +75,14 @@ void PointLightSystem::update(FrameInfo &frameInfo, GlobalUbo &ubo)
 {
   auto lightRotation = glm::rotate(glm::mat4(1), frameInfo.frameTime_m, {0.f, -1.0f, 0.f});
   int lightIndex = 0;
-  for (auto& kv : frameInfo.gameObjects_m) {
-    auto &obj = kv.second;
-    if (obj.pointLight_m == nullptr) continue;
-
+  for (auto& kv : renderTargetMap_m) {
+    auto &lightComp = kv.second;
     // update light position
-    obj.transform_m.translation_m = glm::vec3(lightRotation * glm::vec4(obj.transform_m.translation_m, 1.f));
+    lightComp->getTransform().translation_m = glm::vec3(lightRotation * glm::vec4(lightComp->getTransform().translation_m, 1.f));
     
     // copy light to ubo
-    ubo.pointLights[lightIndex].position = glm::vec4(obj.transform_m.translation_m, 1.f);
-    ubo.pointLights[lightIndex].color = glm::vec4(obj.color_m, obj.pointLight_m->lightIntensity_m);
+    ubo.pointLights[lightIndex].position = glm::vec4(lightComp->getTransform().translation_m, 1.f);
+    ubo.pointLights[lightIndex].color = glm::vec4(lightComp->getColor(), lightComp->getLightInfo().lightIntensity_m);
     lightIndex++;
   }
   ubo.numLights = lightIndex;
@@ -104,14 +102,13 @@ void PointLightSystem::render(FrameInfo frameInfo)
   );
 
   // copy the push constants
-  for (auto& kv : frameInfo.gameObjects_m) {
-    auto &obj = kv.second;
-    if (obj.pointLight_m == nullptr) continue;
+  for (auto& kv : renderTargetMap_m) {
+    auto &lightComp = kv.second;
 
     PointLightPushConstants push{};
-    push.position_m = glm::vec4(obj.transform_m.translation_m, 1.f);
-    push.color_m = glm::vec4(obj.color_m, obj.pointLight_m->lightIntensity_m);
-    push.radius_m = obj.transform_m.scale_m.x;
+    push.position_m = glm::vec4(lightComp->getTransform().translation_m, 1.f);
+    push.color_m = glm::vec4(lightComp->getColor(), lightComp->getLightInfo().lightIntensity_m);
+    push.radius_m = lightComp->getTransform().scale_m.x;
 
     vkCmdPushConstants(
       frameInfo.commandBuffer_m,

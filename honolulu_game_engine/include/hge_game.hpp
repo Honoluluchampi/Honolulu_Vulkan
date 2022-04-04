@@ -3,6 +3,7 @@
 //  hve
 #include <hve.hpp>
 #include <hge_actor.hpp>
+#include <hge_components/model_component.hpp>
 
 //std
 #include <vector>
@@ -22,17 +23,20 @@ public:
   HgeGame& operator=(const HgeGame &) = delete;
 
   bool initialize();
-  void runLoop();
+  void run();
 
-  void addActor(const class HveActor& actor);
-  std::unique_ptr<Hve> upHve_m;
-  void removeActor(const class HveActor& actor);
+  void addActor(std::unique_ptr<HgeActor>& actor);
+  void addActor(std::unique_ptr<HgeActor>&& actor);
+  void removeActor(id_t id);
 
 private:
   inline void setGLFWwindow() { glfwWindow_m = upHve_m->passGLFWwindow() ; }
+  void cleanup();
   void processInput();
   void update();
   void generateOutput();
+
+  void createActor();
 
   void loadData();
   void unLoadData();
@@ -41,17 +45,24 @@ private:
   void loadHveModels(const std::string& modelDir = "/models");
 
   GLFWwindow* glfwWindow_m;
-  std::vector<std::unique_ptr<HgeActor>> upActiveActors_m;
-  std::vector<std::unique_ptr<HgeActor>> upPendingActors_m;
+  HgeActor::map activeActorMap_m;
+  HgeActor::map pendingActorMap_m;
+  HgeActor::map deadActorMap_m;
 
-  // map of models
-  // models would be shared by some actors
+  u_ptr<Hve> upHve_m;
+
+  // map of modelcomponents
+  // shared by game and some actors
   // wanna make it boost::intrusive_ptr 
-  std::unordered_map<std::string, std::shared_ptr<HveModel>> spHveModels_m;
+  // map of HveModel
+  // shared by game and some modelComponents
+  // pool all models which would be necessary
+  HveModel::map hveModelMap_m;
 
   bool isUpdating_m = false; // for update
   bool isRunning_m = false; // for run loop
 
+  std::chrono::_V2::system_clock::time_point currentTime_m;
   // create in a heap
 };
 
