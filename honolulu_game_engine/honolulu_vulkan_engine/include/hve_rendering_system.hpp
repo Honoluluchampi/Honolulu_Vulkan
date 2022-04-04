@@ -13,32 +13,37 @@
 
 namespace hnll {
 
+template<class RenderableComponent>
 class HveRenderingSystem
 {
 public:
   template<class T> using u_ptr = std::unique_ptr<T>;
   template<class T> using s_ptr = std::shared_ptr<T>;
   // share Renderable Component with its owner actor
-  using map = std::unordered_map<id_t, s_ptr<HgeRenderableComponent>>;
+  using map = std::unordered_map<id_t, s_ptr<RenderableComponent>>;
 
-  HveRenderingSystem(HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
-  virtual ~HveRenderingSystem();
-
+  HveRenderingSystem(HveDevice& device) : hveDevice_m(device)
+  {}
+  virtual ~HveRenderingSystem()
+  { vkDestroyPipelineLayout(hveDevice_m.device(), pipelineLayout_m, nullptr); };
+  
   HveRenderingSystem(const HveRenderingSystem &) = delete;
   HveRenderingSystem &operator=(const HveRenderingSystem &) = delete;
   HveRenderingSystem(HveRenderingSystem &&) = default;
   HveRenderingSystem &operator=(HveRenderingSystem &&) = default;
 
   virtual void render(FrameInfo frameInfo) = 0;
-  // to do : complete transfer
-  void addRenderTarget(id_t id, s_ptr<HgeRenderableComponent> target)
-  { renderTargetMap_m.emplace(id, std::move(target)); }
+
+  // takes s_ptr<RenderableComponent>
+  template<class S>
+  void addRenderTarget(id_t id, S&& target)
+  { renderTargetMap_m.emplace(id, std::forward<S>(target)); }
   void removeRenderTarget(id_t id)
   { renderTargetMap_m.erase(id); }
 
 private:
-  virtual void createPipelineLayout(VkDescriptorSetLayout globalSetLayout){}
-  virtual void createPipeline(VkRenderPass renderPass){}
+  virtual void createPipelineLayout(VkDescriptorSetLayout globalSetLayout) = 0;
+  virtual void createPipeline(VkRenderPass renderPass) = 0;
 
 protected:
   HveDevice& hveDevice_m;

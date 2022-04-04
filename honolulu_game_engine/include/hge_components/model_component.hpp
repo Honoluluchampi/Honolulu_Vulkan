@@ -10,20 +10,23 @@
 
 namespace hnll {
 
+template<class U> using u_ptr = std::unique_ptr<U>;
+template<class S> using s_ptr = std::shared_ptr<S>;
+
 class ModelComponent : public HgeRenderableComponent
 {
   public:
     using id_t = unsigned int;
-    using map = std::unordered_map<id_t, std::shared_ptr<ModelComponent>>;
+    using map = std::unordered_map<id_t, s_ptr<ModelComponent>>;
     // copy a passed shared_ptr
-    ModelComponent(id_t id, const std::shared_ptr<HveModel>& spModel) : HgeRenderableComponent(id, RenderType::SIMPLE), spModel_m(spModel) {}
-    ModelComponent(id_t id, std::shared_ptr<HveModel>&& spModel) : HgeRenderableComponent(id, RenderType::SIMPLE), spModel_m(std::move(spModel)) {}
+    ModelComponent(id_t id, const s_ptr<HveModel>& spModel) : HgeRenderableComponent(id, RenderType::SIMPLE), spModel_m(spModel) {}
+    ModelComponent(id_t id, s_ptr<HveModel>&& spModel) : HgeRenderableComponent(id, RenderType::SIMPLE), spModel_m(std::move(spModel)) {}
     ~ModelComponent(){}
 
     void update(float dt) override
     {}
 
-    std::shared_ptr<HveModel>& getSpModel() { return spModel_m; }
+    s_ptr<HveModel>& getSpModel() { return spModel_m; }
     static HveGameObject makePointLight(float intensity = 10.f, float radius = 0.1f, glm::vec3 color = glm::vec3(1.f));
     
     inline TransformComponent& getTransform() { return *upTransform_m; }
@@ -37,13 +40,13 @@ class ModelComponent : public HgeRenderableComponent
     inline id_t getId() const { return id_m; }
     
     glm::vec3 color_m{};
-    std::unique_ptr<PointLightComponent> pointLight_m = nullptr;
+    u_ptr<PointLightComponent> pointLight_m = nullptr;
 
   private:
     // HveModel can be shared all over a game
-    std::shared_ptr<HveModel> spModel_m = nullptr;
+    s_ptr<HveModel> spModel_m = nullptr;
     // update this member
-    std::unique_ptr<TransformComponent> upTransform_m = std::make_unique<TransformComponent>();
+    u_ptr<TransformComponent> upTransform_m = std::make_unique<TransformComponent>();
 };
 
 } // namespace hnll

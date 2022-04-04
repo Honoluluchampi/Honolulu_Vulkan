@@ -9,6 +9,7 @@
 //std
 #include <stdexcept>
 #include <array>
+#include <iostream>
 
 namespace hnll {
 
@@ -78,7 +79,8 @@ void Hve::update(float dt)
   camera_m.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 50.f);
 }
 
-void Hve::render(float dt, ModelComponent::map& spModelCmpts)
+// each render systems automatically detect render target components
+void Hve::render(float dt)
 {
   // returns nullptr if the swap chain is need to be recreated
   if (auto commandBuffer = hveRenderer_m.beginFrame()) {
@@ -89,8 +91,7 @@ void Hve::render(float dt, ModelComponent::map& spModelCmpts)
         dt, 
         commandBuffer, 
         camera_m, 
-        globalDescriptorSets_m[frameIndex],
-        spModelCmpts
+        globalDescriptorSets_m[frameIndex]
     };
 
     // update 
@@ -111,5 +112,11 @@ void Hve::render(float dt, ModelComponent::map& spModelCmpts)
     hveRenderer_m.endSwapChainRenderPass(commandBuffer);
     hveRenderer_m.endFrame();
   }
+}
+
+void Hve::removeRenderableComponent(id_t id)
+{
+  simpleRendererSystem_m->removeRenderTarget(id);
+  // pointLightSystem_m->removeRenderTarget(id);
 }
 } // namespace hve

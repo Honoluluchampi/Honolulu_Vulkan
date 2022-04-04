@@ -48,8 +48,19 @@ class HgeActor
     { sharedComponents_m.push_back(std::forward<S>(comp)); }
     // void addSharedComponent(std::)
 
+    // takes std::shared_ptr<RenderableComponent>
+    template <class S>
+    void addRenderableComponent(S&& comp)
+    { 
+      isRenderable_m = true; 
+      sharedComponents_m.push_back(std::forward<S>(comp)); 
+    }
+
     inline id_t getId() const { return id_m; }
     inline const state& getActorState() const { return state_m; }
+
+    bool IsRenderable() const { return isRenderable_m; }
+
   private:
     HgeActor(id_t id) : id_m(id) {}
 
@@ -58,6 +69,7 @@ class HgeActor
     // would be shared?
     std::vector<std::unique_ptr<HgeComponent>> uniqueComponents_m;
     std::vector<std::shared_ptr<HgeComponent>> sharedComponents_m; 
+    bool isRenderable_m = false;
 };
 
 } // namespace hnll

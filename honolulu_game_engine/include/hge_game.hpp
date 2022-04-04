@@ -49,12 +49,11 @@ private:
   HgeActor::map pendingActorMap_m;
   HgeActor::map deadActorMap_m;
 
-  std::unique_ptr<Hve> upHve_m;
+  u_ptr<Hve> upHve_m;
 
   // map of modelcomponents
   // shared by game and some actors
   // wanna make it boost::intrusive_ptr 
-  ModelComponent::map modelCompMap_m;
   // map of HveModel
   // shared by game and some modelComponents
   // pool all models which would be necessary

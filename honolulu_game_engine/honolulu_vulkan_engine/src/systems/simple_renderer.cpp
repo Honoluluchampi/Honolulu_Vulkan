@@ -24,7 +24,7 @@ struct SimplePushConstantData
 
 SimpleRendererSystem::SimpleRendererSystem
   (HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
-  : HveRenderingSystem(device, renderPass, globalSetLayout)
+  : HveRenderingSystem(device)
 { 
   createPipelineLayout(globalSetLayout);
   createPipeline(renderPass);
@@ -83,8 +83,8 @@ void SimpleRendererSystem::render(FrameInfo frameInfo)
     0, nullptr
   );
 
-  for (auto& modelCmpt : frameInfo.modelMap_m) {
-    auto& obj = *modelCmpt.second;
+  for (auto& target : renderTargetMap_m) {
+    auto& obj = *target.second;
     if (obj.getSpModel() == nullptr) continue;
     SimplePushConstantData push{};
     // camera projection

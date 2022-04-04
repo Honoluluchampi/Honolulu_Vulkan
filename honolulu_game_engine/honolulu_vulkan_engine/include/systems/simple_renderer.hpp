@@ -9,7 +9,7 @@
 
 namespace hnll {
 
-class SimpleRendererSystem : public HveRenderingSystem
+class SimpleRendererSystem : public HveRenderingSystem<ModelComponent>
 {
   public:
     SimpleRendererSystem(HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);

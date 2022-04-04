@@ -48,7 +48,8 @@ void HgeGame::update()
       deadActorMap_m.emplace(actor.first, std::move(actor.second));
       activeActorMap_m.erase(actor.first);
       // erase relevant model comp.
-      modelCompMap_m.erase(actor.first);
+      if(actor.second->IsRenderable())
+        upHve_m->removeRenderableComponent(actor.first);
     }
   }
 
@@ -66,7 +67,7 @@ void HgeGame::update()
   // clear all the dead actors
   deadActorMap_m.clear();
 
-  upHve_m->render(dt, modelCompMap_m);
+  upHve_m->render(dt);
 }
 
 void HgeGame::generateOutput()
@@ -113,31 +114,31 @@ void HgeGame::createActor()
   auto smoothVase = std::make_unique<HgeActor>(HgeActor::createActor());
   auto& smoothVaseHveModel = hveModelMap_m["smooth_vase"];
   auto smoothVaseModelComp = std::make_shared<ModelComponent>(smoothVase->getId(), smoothVaseHveModel);
-  smoothVase->addSharedComponent(smoothVaseModelComp);
+  smoothVase->addRenderableComponent(smoothVaseModelComp);
+  upHve_m->addRenderableComponent(smoothVaseModelComp);
   smoothVaseModelComp->setTranslation(glm::vec3{-0.5f, 0.5f, 0.f});
   smoothVaseModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
   
-  modelCompMap_m.emplace(smoothVase->getId(), std::move(smoothVaseModelComp));
   addActor(std::move(smoothVase));
 
   auto flatVase = std::make_unique<HgeActor>(HgeActor::createActor());
   auto& flatVaseHveModel = hveModelMap_m["flat_vase"];
   auto flatVaseModelComp = std::make_shared<ModelComponent>(flatVase->getId(), flatVaseHveModel);
-  flatVase->addSharedComponent(flatVaseModelComp);
+  flatVase->addRenderableComponent(flatVaseModelComp);
+  upHve_m->addRenderableComponent(flatVaseModelComp);
   flatVaseModelComp->setTranslation(glm::vec3{0.5f, 0.5f, 0.f});
   flatVaseModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
   
-  modelCompMap_m.emplace(flatVase->getId(), std::move(flatVaseModelComp));
   addActor(std::move(flatVase));
 
   auto floor = std::make_unique<HgeActor>(HgeActor::createActor());
   auto& floorHveModel = hveModelMap_m["quad"];
   auto floorModelComp = std::make_shared<ModelComponent>(floor->getId(), floorHveModel);
-  floor->addSharedComponent(floorModelComp);
+  floor->addRenderableComponent(floorModelComp);
+  upHve_m->addRenderableComponent(floorModelComp);
   floorModelComp->setTranslation(glm::vec3{0.f, 0.5f, 0.f});
   floorModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
   
-  modelCompMap_m.emplace(floor->getId(), std::move(floorModelComp));
   addActor(std::move(floor));
   // auto& flatVaseModel = spModelComps_m["flat_vase"];
   // flatVaseModel->setTranslation(glm::vec3{0.5f, 0.5f, 0.f});
@@ -174,7 +175,6 @@ void HgeGame::cleanup()
   pendingActorMap_m.clear();
   deadActorMap_m.clear();
   hveModelMap_m.clear();
-  modelCompMap_m.clear();
 }
 
 } // namespace hnll
