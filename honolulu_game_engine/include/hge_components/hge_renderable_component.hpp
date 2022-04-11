@@ -10,6 +10,13 @@
 
 namespace hnll {
 
+enum class RenderType 
+{
+  SIMPLE,
+  POINT_LIGHT,
+  NEON_LIGHT
+};
+
 template<class U> using u_ptr = std::unique_ptr<U>;
 template<class S> using s_ptr = std::shared_ptr<S>;
 
@@ -34,7 +41,7 @@ class HgeRenderableComponent : public HgeComponent
 
     using id_t = unsigned int;
 
-    HgeRenderableComponent(id_t id) : id_m(id) {}
+    HgeRenderableComponent(id_t id, RenderType type) : id_m(id), renderType_m(type) {}
     ~HgeRenderableComponent() {}
 
     HgeRenderableComponent(const HgeRenderableComponent &) = delete;
@@ -54,11 +61,13 @@ class HgeRenderableComponent : public HgeComponent
 
     id_t getId() const { return id_m; }
 
+    const RenderType getRenderType() const { return renderType_m; }
   protected:
     // same as ownwer's
     id_t id_m;
     // update this member
     u_ptr<Transform> upTransform_m = std::make_unique<Transform>();
+    RenderType renderType_m;
 };
 
 }

@@ -41,15 +41,17 @@ void HgeGame::update()
   float dt = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime_m).count();
   dt = std::min(dt, MAX_DT);
 
-  for (auto& actor : activeActorMap_m) {
-    actor.second->update(dt);
+  for (auto& kv : activeActorMap_m) {
+    const id_t& id = kv.first;
+    auto& actor = kv.second;
+    actor->update(dt);
     // check if the actor is dead
-    if (actor.second->getActorState() == HgeActor::state::DEAD) {
-      deadActorMap_m.emplace(actor.first, std::move(actor.second));
-      activeActorMap_m.erase(actor.first);
+    if (actor->getActorState() == HgeActor::state::DEAD) {
+      deadActorMap_m.emplace(id, std::move(actor));
+      activeActorMap_m.erase(id);
       // erase relevant model comp.
-      if(actor.second->IsRenderable())
-        upHve_m->removeRenderableComponent(actor.first);
+      if(actor->IsRenderable())
+        upHve_m->removeRenderableComponent(id);
     }
   }
 
@@ -152,7 +154,7 @@ void HgeGame::createActor()
 
   for (int i = 0; i < lightColors.size(); i++) {
     auto lightActor = std::make_unique<HgeActor>(HgeActor::createActor());
-    auto lightComp = PointLightComponent::createPointLight(lightActor->getId(), 1, 0.05, lightColors[i]);
+    auto lightComp = PointLightComponent::createPointLight(lightActor->getId(), 1, 0.0f, lightColors[i]);
     auto lightRotation = glm::rotate(
         glm::mat4(1),
         (i * glm::two_pi<float>()) / lightColors.size(),

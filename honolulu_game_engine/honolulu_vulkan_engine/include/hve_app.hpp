@@ -5,15 +5,10 @@
 #include <hve_game_object.hpp>
 #include <hve_renderer.hpp>
 #include <hve_descriptor_set_layout.hpp>
-#include <systems/simple_renderer.hpp>
-#include <systems/point_light.hpp>
 #include <hve_camera.hpp>
 #include <keyboard_movement_controller.hpp>
 #include <hve_buffer.hpp>
-
-// hge
-#include <hge_components/model_component.hpp>
-#include <hge_components/point_light_component.hpp>
+#include <hve_rendering_system.hpp>
 
 // std
 #include <memory>
@@ -29,6 +24,8 @@ template<class S> using s_ptr = std::shared_ptr<S>;
 
 class Hve
 {
+  using map = std::unordered_map<RenderType, std::unique_ptr<HveRenderingSystem>>;
+
   public:
     static constexpr int WIDTH = 800;
     static constexpr int HEIGHT = 600;
@@ -43,11 +40,10 @@ class Hve
     void update(float dt);
     void render(float dt);
 
-    void addRenderableComponent(s_ptr<ModelComponent>& target)
-    { simpleRendererSystem_m->addRenderTarget(target->getId(), target); }
-    void addRenderableComponent(s_ptr<PointLightComponent>& target)
-    { pointLightSystem_m->addRenderTarget(target->getId(), target); }
-    
+    // takes s_ptr<RenderableComponent>
+    template<class RC>
+    void addRenderableComponent(RC&& target)
+    { renderingSystems_m[target->getRenderType()]->addRenderTarget(target->getId(), std::forward<RC>(target)); }
     
     void removeRenderableComponent(id_t id);
 
@@ -74,8 +70,7 @@ class Hve
     std::vector<VkDescriptorSet> globalDescriptorSets_m {HveSwapChain::MAX_FRAMES_IN_FLIGHT};
     // ptrlize to make it later init 
 
-    u_ptr<SimpleRendererSystem> simpleRendererSystem_m;
-    u_ptr<PointLightSystem> pointLightSystem_m;
+    map renderingSystems_m;
 
     HveCamera camera_m{};
     // object for change the camera transform indirectly

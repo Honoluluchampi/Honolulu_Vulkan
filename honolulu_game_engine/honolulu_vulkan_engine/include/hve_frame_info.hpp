@@ -2,7 +2,6 @@
 
 #include <hve_camera.hpp>
 #include <hve_game_object.hpp>
-#include <hge_components/model_component.hpp>
 
 // libs
 #include <vulkan/vulkan.h>

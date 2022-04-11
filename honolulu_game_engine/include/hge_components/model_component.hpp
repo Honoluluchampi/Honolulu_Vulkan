@@ -9,14 +9,19 @@
 
 namespace hnll {
 
+template<class U> using u_ptr = std::unique_ptr<U>;
+template<class S> using s_ptr = std::shared_ptr<S>;
+
 class ModelComponent : public HgeRenderableComponent
 {
   public:
     using id_t = unsigned int;
     using map = std::unordered_map<id_t, s_ptr<ModelComponent>>;
     // copy a passed shared_ptr
-    ModelComponent(id_t id, const s_ptr<HveModel>& spModel) : HgeRenderableComponent(id), spModel_m(spModel) {}
-    ModelComponent(id_t id, s_ptr<HveModel>&& spModel) : HgeRenderableComponent(id), spModel_m(std::move(spModel)) {}
+    ModelComponent(id_t id, const s_ptr<HveModel>& spModel)
+     : HgeRenderableComponent(id, RenderType::SIMPLE), spModel_m(spModel) {}
+    ModelComponent(id_t id, s_ptr<HveModel>&& spModel)
+     : HgeRenderableComponent(id, RenderType::SIMPLE), spModel_m(std::move(spModel)) {}
     ~ModelComponent(){}
 
     void update(float dt) override

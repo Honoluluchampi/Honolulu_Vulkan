@@ -1,7 +1,6 @@
 #pragma once
 
 #include <hve_rendering_system.hpp>
-#include <hve_camera.hpp>
 #include <hge_components/model_component.hpp>
 
 // std
@@ -9,8 +8,10 @@
 
 namespace hnll {
 
-class SimpleRendererSystem : public HveRenderingSystem<ModelComponent>
+class SimpleRendererSystem : public HveRenderingSystem
 {
+  using map = std::unordered_map<id_t, std::shared_ptr<ModelComponent>>;
+
   public:
     SimpleRendererSystem(HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
     ~SimpleRendererSystem();

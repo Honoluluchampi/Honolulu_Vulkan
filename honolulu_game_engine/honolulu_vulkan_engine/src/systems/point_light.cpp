@@ -22,7 +22,7 @@ struct PointLightPushConstants
 
 PointLightSystem::PointLightSystem
   (HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
-  : HveRenderingSystem(device)
+  : HveRenderingSystem(device, RenderType::POINT_LIGHT)
 {
   createPipelineLayout(globalSetLayout);
   createPipeline(renderPass);

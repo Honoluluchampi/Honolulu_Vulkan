@@ -76,7 +76,7 @@ struct SimplePushConstantData
 
 SimpleRendererSystem::SimpleRendererSystem
   (HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
-  : HveRenderingSystem(device)
+  : HveRenderingSystem(device, RenderType::SIMPLE)
 { 
   createPipelineLayout(globalSetLayout);
   createPipeline(renderPass);
