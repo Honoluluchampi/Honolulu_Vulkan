@@ -136,13 +136,14 @@ void SimpleRendererSystem::render(FrameInfo frameInfo)
   );
 
   for (auto& target : renderTargetMap_m) {
-    auto& obj = *target.second;
-    if (obj.getSpModel() == nullptr) continue;
+    
+    auto obj = dynamic_cast<ModelComponent*>(target.second.get());
+    if (obj->getSpModel() == nullptr) continue;
     SimplePushConstantData push{};
     // camera projection
-    push.modelMatrix_m = obj.getTransform().mat4();
+    push.modelMatrix_m = obj->getTransform().mat4();
     // automatically converse mat3(normalMatrix_m) to mat4 for shader data alignment
-    push.normalMatrix_m = obj.getTransform().normalMatrix();
+    push.normalMatrix_m = obj->getTransform().normalMatrix();
 
     vkCmdPushConstants(
         frameInfo.commandBuffer_m,
@@ -151,8 +152,8 @@ void SimpleRendererSystem::render(FrameInfo frameInfo)
         0, 
         sizeof(SimplePushConstantData), 
         &push);
-    obj.getSpModel()->bind(frameInfo.commandBuffer_m);
-    obj.getSpModel()->draw(frameInfo.commandBuffer_m);
+    obj->getSpModel()->bind(frameInfo.commandBuffer_m);
+    obj->getSpModel()->draw(frameInfo.commandBuffer_m);
   }
 }
 

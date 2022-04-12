@@ -69,8 +69,10 @@ void Hve::init()
     hveRenderer_m.getSwapChainRenderPass(),
     globalSetLayout_m->getDescriptorSetLayout());
 
-  renderingSystems_m.emplace(simpleRendererSystem->getRenderType(), static_cast<std:unique_ptr<HveRenderingSystem>>(simpleRendererSystem));
-  renderingSystems_m.emplace(pointLightSystem->getRenderType(), pointLightSystem);
+  renderingSystems_m.emplace
+    (simpleRendererSystem->getRenderType(), std::move(simpleRendererSystem));
+  renderingSystems_m.emplace
+    (pointLightSystem->getRenderType(), std::move(pointLightSystem));
   
   viewerObject_m.transform_m.translation_m.z = -2.5f;
 }

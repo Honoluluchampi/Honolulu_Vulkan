@@ -34,7 +34,7 @@ private:
   void cleanup();
   void processInput();
   void update();
-  void generateOutput();
+  void render();
 
   void createActor();
 

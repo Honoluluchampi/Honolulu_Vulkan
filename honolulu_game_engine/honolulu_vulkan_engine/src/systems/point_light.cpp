@@ -76,7 +76,7 @@ void PointLightSystem::update(FrameInfo &frameInfo, GlobalUbo &ubo)
   auto lightRotation = glm::rotate(glm::mat4(1), frameInfo.frameTime_m, {0.f, -1.0f, 0.f});
   int lightIndex = 0;
   for (auto& kv : renderTargetMap_m) {
-    auto &lightComp = kv.second;
+    auto lightComp = dynamic_cast<PointLightComponent*>(kv.second.get());
     // update light position
     lightComp->getTransform().translation_m = glm::vec3(lightRotation * glm::vec4(lightComp->getTransform().translation_m, 1.f));
     
@@ -103,7 +103,7 @@ void PointLightSystem::render(FrameInfo frameInfo)
 
   // copy the push constants
   for (auto& kv : renderTargetMap_m) {
-    auto &lightComp = kv.second;
+    auto lightComp = dynamic_cast<PointLightComponent*>(kv.second.get());
 
     PointLightPushConstants push{};
     push.position_m = glm::vec4(lightComp->getTransform().translation_m, 1.f);

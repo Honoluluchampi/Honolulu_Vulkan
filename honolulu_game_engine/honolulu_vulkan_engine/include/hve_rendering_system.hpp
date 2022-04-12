@@ -37,7 +37,6 @@ public:
   // delete later
   virtual void update(FrameInfo& frameInfo, GlobalUbo& ubo) {}
 
-  // implement below function in derived classes
   // takes s_ptr<RenderableComponent>
   template<class S>
   void addRenderTarget(id_t id, S&& target)
@@ -57,6 +56,9 @@ protected:
   u_ptr<HvePipeline> hvePipeline_m = nullptr;
   VkPipelineLayout pipelineLayout_m;
   RenderType renderType_m;
+
+  // derived classes must use renderTarget by down-cast values of this map
+  // ex) auto modelComp = dynamic_cast<ModelComponent*>(renderTargetMap_m[1].get());
   map renderTargetMap_m;
 };
 

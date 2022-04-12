@@ -10,8 +10,6 @@ namespace hnll {
 
 class SimpleRendererSystem : public HveRenderingSystem
 {
-  using map = std::unordered_map<id_t, std::shared_ptr<ModelComponent>>;
-
   public:
     SimpleRendererSystem(HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
     ~SimpleRendererSystem();

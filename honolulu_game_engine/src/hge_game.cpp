@@ -22,7 +22,7 @@ void HgeGame::run()
     glfwPollEvents();
     processInput();
     update();
-    generateOutput();
+    render();
   }
   upHve_m->waitIdle();
   cleanup();
@@ -72,7 +72,7 @@ void HgeGame::update()
   upHve_m->render(dt);
 }
 
-void HgeGame::generateOutput()
+void HgeGame::render()
 {
 }
 

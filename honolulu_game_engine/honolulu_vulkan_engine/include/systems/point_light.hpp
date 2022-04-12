@@ -10,7 +10,6 @@ namespace hnll {
 
 class PointLightSystem : public HveRenderingSystem
 {
-  using map = std::unordered_map<id_t, std::shared_ptr<PointLightComponent>>;
   public:
     PointLightSystem(HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
     ~PointLightSystem();
