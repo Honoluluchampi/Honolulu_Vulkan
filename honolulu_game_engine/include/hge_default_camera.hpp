@@ -18,18 +18,18 @@ public:
   HgeCamera(HgeCamera &&) = default;
   HgeCamera& operator=(HgeCamera &&) = default;
 
-  inline Transform& getTransform() { return *upTransform_m; }
+  inline Transform& getTransform() { return transform_m; }
   template<class V> void setTranslation(V&& vec) 
-  { upTransform_m->translation_m = std::forward<V>(vec); }    
+  { transform_m.translation_m = std::forward<V>(vec); }    
   template<class V> void setScale(V&& vec) 
-  { upTransform_m->scale_m = std::forward<V>(vec); }
+  { transform_m.scale_m = std::forward<V>(vec); }
   template<class V> void setRotation(V&& vec) 
-  { upTransform_m->rotation_m = std::forward<V>(vec); }  
+  { transform_m.rotation_m = std::forward<V>(vec); }  
 
   inline s_ptr<ViewerComponent> viewerComponent() const { return spViewerComp_m; }  
 
 private:
-  u_ptr<Transform> upTransform_m;
+  Transform transform_m {};
   s_ptr<ViewerComponent> spViewerComp_m;
 };
 

@@ -61,7 +61,7 @@ class HgeActor
     inline id_t getId() const { return id_m; }
     inline const state& getActorState() const { return state_m; }
 
-    bool IsRenderable() const { return isRenderable_m; }
+    inline bool isRenderable() const { return isRenderable_m; }
 
   private:
     HgeActor(id_t id) : id_m(id) {}

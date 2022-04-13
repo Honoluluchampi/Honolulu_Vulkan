@@ -36,6 +36,7 @@ private:
   void update();
   void render();
 
+  void createCamera();
   void createActor();
 
   void loadData();
@@ -64,7 +65,6 @@ private:
 
   std::chrono::_V2::system_clock::time_point currentTime_m;
   
-  // camera
   s_ptr<ViewerComponent> spViewerComp_m;
 };
 

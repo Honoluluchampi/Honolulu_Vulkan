@@ -4,12 +4,11 @@ namespace hnll {
 
 HgeCamera::HgeCamera(GLFWwindow* window, HveRenderer& renderer) : HgeActor()
 {
-  spViewerComp_m = std::make_unique<ViewerComponent>(*upTransform_m, renderer);
+  spViewerComp_m = std::make_shared<ViewerComponent>(transform_m, renderer);
   // set initial position
-  upTransform_m = std::make_unique<Transform>();
-  upTransform_m->translation_m.z = -2.5f;
+  transform_m.translation_m.z = -2.5f;
   
-  auto keyComp = std::make_unique<KeyboardMovementComponent>(window, *upTransform_m);
+  auto keyComp = std::make_unique<KeyboardMovementComponent>(window, transform_m);
   
   // key move must be updated before view
   addUniqueComponent(keyComp);
