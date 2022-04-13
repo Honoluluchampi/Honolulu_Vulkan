@@ -16,8 +16,8 @@ class HgeActor
     using map = std::unordered_map<id_t, std::unique_ptr<HgeActor>>;
 
     // hgeActor can be created only by this fuction
-    static HgeActor createActor()
-    { static id_t currentId = 0; return HgeActor{currentId++}; }
+    HgeActor()
+    { static id_t currentId = 0; id_m = currentId++; }
 
     enum class state
     {
@@ -33,7 +33,9 @@ class HgeActor
     HgeActor& operator=(HgeActor &&) = default;
     virtual ~HgeActor(){}
 
-    virtual void update(float dt){}
+    void update(float dt);
+    virtual void updateActor(float dt) {}
+    void updateComponents(float dt);
 
     // takes std::unique_ptr<HgeComponent>
     template <class U>

@@ -8,8 +8,10 @@ public:
   HgeComponent(){}
   virtual ~HgeComponent(){}
 
+  inline void update(float dt) 
+  { updateComponent(dt); }
 private:
-  virtual void update(float dt){}
+  virtual void updateComponent(float dt) {}
 };
 
 } // namespace hnll

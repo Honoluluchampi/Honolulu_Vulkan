@@ -2,7 +2,6 @@
 
 #include <hve_model.hpp>
 #include <hge_component.hpp>
-#include <hve_game_object.hpp>
 #include <hge_components/hge_renderable_component.hpp>
 
 #include <unordered_map>
@@ -23,9 +22,6 @@ class ModelComponent : public HgeRenderableComponent
     ModelComponent(id_t id, s_ptr<HveModel>&& spModel)
      : HgeRenderableComponent(id, RenderType::SIMPLE), spModel_m(std::move(spModel)) {}
     ~ModelComponent(){}
-
-    void update(float dt) override
-    {}
 
     s_ptr<HveModel>& getSpModel() { return spModel_m; }
         

@@ -1,4 +1,5 @@
 #include <hge_game.hpp>
+#include <hge_default_camera.hpp>
 
 // std
 #include <filesystem>
@@ -55,9 +56,6 @@ void HgeGame::update()
     }
   }
 
-  // camera update
-  upHve_m->update(dt);
-
   currentTime_m = newTime;
   isUpdating_m = false;
 
@@ -69,7 +67,7 @@ void HgeGame::update()
   // clear all the dead actors
   deadActorMap_m.clear();
 
-  upHve_m->render(dt);
+  upHve_m->render(dt, *spViewerComp_m);
 }
 
 void HgeGame::render()
@@ -113,7 +111,7 @@ void HgeGame::removeActor(id_t id)
 
 void HgeGame::createActor()
 {
-  auto smoothVase = std::make_unique<HgeActor>(HgeActor::createActor());
+  auto smoothVase = std::make_unique<HgeActor>();
   auto& smoothVaseHveModel = hveModelMap_m["smooth_vase"];
   auto smoothVaseModelComp = std::make_shared<ModelComponent>(smoothVase->getId(), smoothVaseHveModel);
   smoothVase->addRenderableComponent(smoothVaseModelComp);
@@ -123,7 +121,7 @@ void HgeGame::createActor()
   
   addActor(std::move(smoothVase));
 
-  auto flatVase = std::make_unique<HgeActor>(HgeActor::createActor());
+  auto flatVase = std::make_unique<HgeActor>();
   auto& flatVaseHveModel = hveModelMap_m["flat_vase"];
   auto flatVaseModelComp = std::make_shared<ModelComponent>(flatVase->getId(), flatVaseHveModel);
   flatVase->addRenderableComponent(flatVaseModelComp);
@@ -133,7 +131,7 @@ void HgeGame::createActor()
   
   addActor(std::move(flatVase));
 
-  auto floor = std::make_unique<HgeActor>(HgeActor::createActor());
+  auto floor = std::make_unique<HgeActor>();
   auto& floorHveModel = hveModelMap_m["quad"];
   auto floorModelComp = std::make_shared<ModelComponent>(floor->getId(), floorHveModel);
   floor->addRenderableComponent(floorModelComp);
@@ -153,7 +151,7 @@ void HgeGame::createActor()
   };
 
   for (int i = 0; i < lightColors.size(); i++) {
-    auto lightActor = std::make_unique<HgeActor>(HgeActor::createActor());
+    auto lightActor = std::make_unique<HgeActor>();
     auto lightComp = PointLightComponent::createPointLight(lightActor->getId(), 1, 0.0f, lightColors[i]);
     auto lightRotation = glm::rotate(
         glm::mat4(1),
@@ -165,6 +163,11 @@ void HgeGame::createActor()
 
     addActor(std::move(lightActor));    
   }
+
+  auto camera = std::make_unique<HgeCamera>
+    (upHve_m->passGLFWwindow(), upHve_m->hveRenderer());
+  spViewerComp_m = camera->viewerComponent();
+  addActor(std::move(camera));
 }
 
 void HgeGame::cleanup()

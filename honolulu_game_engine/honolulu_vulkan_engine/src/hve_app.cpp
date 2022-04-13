@@ -74,20 +74,11 @@ void Hve::init()
   renderingSystems_m.emplace
     (pointLightSystem->getRenderType(), std::move(pointLightSystem));
   
-  viewerObject_m.transform_m.translation_m.z = -2.5f;
-}
-
-
-void Hve::update(float dt)
-{
-  cameraController_m.moveInPlaneXZ(hveWindow_m.getGLFWwindow(), dt, viewerObject_m);
-  camera_m.setViewYXZ(viewerObject_m.transform_m.translation_m, viewerObject_m.transform_m.rotation_m);
-  float aspect = hveRenderer_m.getAspectRatio();
-  camera_m.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 50.f);
+  
 }
 
 // each render systems automatically detect render target components
-void Hve::render(float dt)
+void Hve::render(float dt, ViewerComponent& viewerComp)
 {
   // returns nullptr if the swap chain is need to be recreated
   if (auto commandBuffer = hveRenderer_m.beginFrame()) {
@@ -97,14 +88,13 @@ void Hve::render(float dt)
         frameIndex, 
         dt, 
         commandBuffer, 
-        camera_m, 
         globalDescriptorSets_m[frameIndex]
     };
 
     // update 
     GlobalUbo ubo{};
-    ubo.projection_m = camera_m.getProjection();
-    ubo.view_m = camera_m.getView();
+    ubo.projection_m = viewerComp.getProjection();
+    ubo.view_m = viewerComp.getView();
     renderingSystems_m[RenderType::POINT_LIGHT]->update(frameInfo, ubo);
     uboBuffers_m[frameIndex]->writeToBuffer(&ubo);
     uboBuffers_m[frameIndex]->flush();

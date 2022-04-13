@@ -1,10 +1,18 @@
 #include <hge_components/viewer_component.hpp>
 
+#include <glm/glm.hpp>
+
 // std
 #include <cassert>
 #include <limits>
 
 namespace hnll {
+
+ViewerComponent::ViewerComponent(Transform& transform, HveRenderer& renderer)
+  : HgeComponent(), transform_m(transform), hveRenderer_m(renderer)
+{
+  
+}
 
 void ViewerComponent::setOrthographicProjection(
     float left, float right, float top, float bottom, float near, float far) 
@@ -54,8 +62,10 @@ void ViewerComponent::setViewDirection(const glm::vec3& position, const glm::vec
 void ViewerComponent::setViewTarget(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up) 
 { setViewDirection(position, target - position, up); }
 
-void ViewerComponent::setViewYXZ(const glm::vec3& position, const glm::vec3& rotation) 
+void ViewerComponent::setViewYXZ() 
 {
+  auto& position = transform_m.translation_m;
+  auto& rotation = transform_m.rotation_m;
   const float c3 = glm::cos(rotation.z);
   const float s3 = glm::sin(rotation.z);
   const float c2 = glm::cos(rotation.x);
@@ -79,4 +89,13 @@ void ViewerComponent::setViewYXZ(const glm::vec3& position, const glm::vec3& rot
   viewMatrix_m[3][1] = -glm::dot(v, position);
   viewMatrix_m[3][2] = -glm::dot(w, position);
 }
+
+// owner's transform should be update by keyMoveComp before this function
+void ViewerComponent::updateComponent(float dt)
+{ 
+  setViewYXZ();
+  auto aspect = hveRenderer_m.getAspectRatio();
+  setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 50.f); 
+}
+
 } // namesapce hnll

@@ -2,13 +2,14 @@
 
 #include <hve_window.hpp>
 #include <hve_device.hpp>
-#include <hve_game_object.hpp>
 #include <hve_renderer.hpp>
 #include <hve_descriptor_set_layout.hpp>
 #include <hve_camera.hpp>
-#include <keyboard_movement_controller.hpp>
 #include <hve_buffer.hpp>
 #include <hve_rendering_system.hpp>
+
+// hge
+#include <hge_components/viewer_component.hpp>
 
 // std
 #include <memory>
@@ -37,8 +38,7 @@ class Hve
     Hve(const Hve &) = delete;
     Hve &operator= (const Hve &) = delete;
 
-    void update(float dt);
-    void render(float dt);
+    void render(float dt, ViewerComponent& viewerComp);
 
     // takes s_ptr<RenderableComponent>
     template<class RC>
@@ -50,6 +50,7 @@ class Hve
     inline void waitIdle() { vkDeviceWaitIdle(hveDevice_m.device()); }
 
     inline HveDevice& hveDevice() { return hveDevice_m; }
+    inline HveRenderer& hveRenderer() { return hveRenderer_m; }
 
     inline GLFWwindow* passGLFWwindow() const { return hveWindow_m.getGLFWwindow(); } 
     
@@ -71,12 +72,6 @@ class Hve
     // ptrlize to make it later init 
 
     map renderingSystems_m;
-
-    HveCamera camera_m{};
-    // object for change the camera transform indirectly
-    // this object has no model and won't be rendered
-    HveGameObject viewerObject_m = HveGameObject::createGameObject();
-    KeyboardMovementController cameraController_m {};
 };
 
 } // namespace hv

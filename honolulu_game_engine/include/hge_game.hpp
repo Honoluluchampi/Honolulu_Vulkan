@@ -63,7 +63,9 @@ private:
   bool isRunning_m = false; // for run loop
 
   std::chrono::_V2::system_clock::time_point currentTime_m;
-  // create in a heap
+  
+  // camera
+  s_ptr<ViewerComponent> spViewerComp_m;
 };
 
 } // namespace hnll
