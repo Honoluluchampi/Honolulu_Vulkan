@@ -4,6 +4,7 @@
 #include <hve.hpp>
 #include <hge_actor.hpp>
 #include <hge_components/model_component.hpp>
+#include <hge_default_camera.hpp>
 
 //std
 #include <vector>
@@ -34,7 +35,7 @@ private:
   void cleanup();
   void processInput();
   void update();
-  void generateOutput();
+  void render();
 
   void createActor();
 
@@ -63,7 +64,8 @@ private:
   bool isRunning_m = false; // for run loop
 
   std::chrono::_V2::system_clock::time_point currentTime_m;
-  // create in a heap
+  
+  u_ptr<HgeCamera> upCamera_m;
 };
 
 } // namespace hnll

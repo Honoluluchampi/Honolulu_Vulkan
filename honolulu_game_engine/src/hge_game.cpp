@@ -1,4 +1,5 @@
 #include <hge_game.hpp>
+#include <hge_default_camera.hpp>
 
 // std
 #include <filesystem>
@@ -11,6 +12,8 @@ constexpr float MAX_DT = 0.05f;
 HgeGame::HgeGame(const char* windowName) : upHve_m(std::make_unique<Hve>(windowName))
 {
   setGLFWwindow();
+  // camera creation
+  upCamera_m = std::make_unique<HgeCamera>(*upHve_m);
   loadData();
 }
 
@@ -22,7 +25,7 @@ void HgeGame::run()
     glfwPollEvents();
     processInput();
     update();
-    generateOutput();
+    render();
   }
   upHve_m->waitIdle();
   cleanup();
@@ -41,20 +44,21 @@ void HgeGame::update()
   float dt = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime_m).count();
   dt = std::min(dt, MAX_DT);
 
-  for (auto& actor : activeActorMap_m) {
-    actor.second->update(dt);
+  for (auto& kv : activeActorMap_m) {
+    const id_t& id = kv.first;
+    auto& actor = kv.second;
+    actor->update(dt);
     // check if the actor is dead
-    if (actor.second->getActorState() == HgeActor::state::DEAD) {
-      deadActorMap_m.emplace(actor.first, std::move(actor.second));
-      activeActorMap_m.erase(actor.first);
+    if (actor->getActorState() == HgeActor::state::DEAD) {
+      deadActorMap_m.emplace(id, std::move(actor));
+      activeActorMap_m.erase(id);
       // erase relevant model comp.
-      if(actor.second->IsRenderable())
-        upHve_m->removeRenderableComponent(actor.first);
+      if(actor->isRenderable())
+        upHve_m->removeRenderableComponent(id);
     }
   }
 
-  // camera update
-  upHve_m->update(dt);
+  upCamera_m->update(dt);
 
   currentTime_m = newTime;
   isUpdating_m = false;
@@ -67,10 +71,10 @@ void HgeGame::update()
   // clear all the dead actors
   deadActorMap_m.clear();
 
-  upHve_m->render(dt);
+  upHve_m->render(dt, *(upCamera_m->viewerComponent()));
 }
 
-void HgeGame::generateOutput()
+void HgeGame::render()
 {
 }
 
@@ -85,7 +89,7 @@ void HgeGame::loadData()
 // use filenames as the key of the map
 void HgeGame::loadHveModels(const std::string& modelDir)
 {
-  auto path = std::string(std::filesystem::current_path()) + modelDir;
+  auto path = std::string(std::getenv("HNLL_ENGN")) + modelDir;
   for (const auto & file : std::filesystem::directory_iterator(path)) {
     auto filename = std::string(file.path());
     auto length = filename.size() - path.size() - 5;
@@ -111,7 +115,7 @@ void HgeGame::removeActor(id_t id)
 
 void HgeGame::createActor()
 {
-  auto smoothVase = std::make_unique<HgeActor>(HgeActor::createActor());
+  auto smoothVase = std::make_unique<HgeActor>();
   auto& smoothVaseHveModel = hveModelMap_m["smooth_vase"];
   auto smoothVaseModelComp = std::make_shared<ModelComponent>(smoothVase->getId(), smoothVaseHveModel);
   smoothVase->addRenderableComponent(smoothVaseModelComp);
@@ -121,7 +125,7 @@ void HgeGame::createActor()
   
   addActor(std::move(smoothVase));
 
-  auto flatVase = std::make_unique<HgeActor>(HgeActor::createActor());
+  auto flatVase = std::make_unique<HgeActor>();
   auto& flatVaseHveModel = hveModelMap_m["flat_vase"];
   auto flatVaseModelComp = std::make_shared<ModelComponent>(flatVase->getId(), flatVaseHveModel);
   flatVase->addRenderableComponent(flatVaseModelComp);
@@ -131,7 +135,7 @@ void HgeGame::createActor()
   
   addActor(std::move(flatVase));
 
-  auto floor = std::make_unique<HgeActor>(HgeActor::createActor());
+  auto floor = std::make_unique<HgeActor>();
   auto& floorHveModel = hveModelMap_m["quad"];
   auto floorModelComp = std::make_shared<ModelComponent>(floor->getId(), floorHveModel);
   floor->addRenderableComponent(floorModelComp);
@@ -151,8 +155,8 @@ void HgeGame::createActor()
   };
 
   for (int i = 0; i < lightColors.size(); i++) {
-    auto lightActor = std::make_unique<HgeActor>(HgeActor::createActor());
-    auto lightComp = PointLightComponent::createPointLight(lightActor->getId(), 1, 0.05, lightColors[i]);
+    auto lightActor = std::make_unique<HgeActor>();
+    auto lightComp = PointLightComponent::createPointLight(lightActor->getId(), 1, 0.0f, lightColors[i]);
     auto lightRotation = glm::rotate(
         glm::mat4(1),
         (i * glm::two_pi<float>()) / lightColors.size(),

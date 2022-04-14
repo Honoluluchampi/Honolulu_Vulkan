@@ -6,3 +6,5 @@ bin/
 .env
 tiny_obj_loader.h
 models
+build/
+test/

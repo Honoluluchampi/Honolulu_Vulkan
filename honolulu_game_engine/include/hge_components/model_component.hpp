@@ -2,12 +2,14 @@
 
 #include <hve_model.hpp>
 #include <hge_component.hpp>
-#include <hve_game_object.hpp>
 #include <hge_components/hge_renderable_component.hpp>
 
 #include <unordered_map>
 
 namespace hnll {
+
+template<class U> using u_ptr = std::unique_ptr<U>;
+template<class S> using s_ptr = std::shared_ptr<S>;
 
 class ModelComponent : public HgeRenderableComponent
 {
@@ -15,12 +17,11 @@ class ModelComponent : public HgeRenderableComponent
     using id_t = unsigned int;
     using map = std::unordered_map<id_t, s_ptr<ModelComponent>>;
     // copy a passed shared_ptr
-    ModelComponent(id_t id, const s_ptr<HveModel>& spModel) : HgeRenderableComponent(id), spModel_m(spModel) {}
-    ModelComponent(id_t id, s_ptr<HveModel>&& spModel) : HgeRenderableComponent(id), spModel_m(std::move(spModel)) {}
+    ModelComponent(id_t id, const s_ptr<HveModel>& spModel)
+     : HgeRenderableComponent(id, RenderType::SIMPLE), spModel_m(spModel) {}
+    ModelComponent(id_t id, s_ptr<HveModel>&& spModel)
+     : HgeRenderableComponent(id, RenderType::SIMPLE), spModel_m(std::move(spModel)) {}
     ~ModelComponent(){}
-
-    void update(float dt) override
-    {}
 
     s_ptr<HveModel>& getSpModel() { return spModel_m; }
         

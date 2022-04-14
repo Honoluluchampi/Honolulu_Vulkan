@@ -2,7 +2,8 @@
 
 namespace hnll {
 
-PointLightComponent::PointLightComponent(id_t id) : HgeRenderableComponent(id)
+PointLightComponent::PointLightComponent(id_t id)
+ : HgeRenderableComponent(id, RenderType::POINT_LIGHT)
 {}
 
 s_ptr<PointLightComponent> PointLightComponent::createPointLight

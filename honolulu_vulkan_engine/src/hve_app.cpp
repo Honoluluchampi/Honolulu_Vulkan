@@ -2,6 +2,8 @@
 
 #include <hve_app.hpp>
 
+#include <systems/point_light.hpp>
+#include <systems/simple_renderer.hpp>
 
 // lib
 #include <glm/gtc/constants.hpp>
@@ -57,30 +59,26 @@ void Hve::init()
   }
 
   // create renderer system as local variable
-  simpleRendererSystem_m = std::make_unique<SimpleRendererSystem>(
+  auto simpleRendererSystem = std::make_unique<SimpleRendererSystem>(
     hveDevice_m, 
     hveRenderer_m.getSwapChainRenderPass(),
     globalSetLayout_m->getDescriptorSetLayout());
 
-  pointLightSystem_m = std::make_unique<PointLightSystem>(
+  auto pointLightSystem = std::make_unique<PointLightSystem>(
     hveDevice_m, 
     hveRenderer_m.getSwapChainRenderPass(),
     globalSetLayout_m->getDescriptorSetLayout());
+
+  renderingSystems_m.emplace
+    (simpleRendererSystem->getRenderType(), std::move(simpleRendererSystem));
+  renderingSystems_m.emplace
+    (pointLightSystem->getRenderType(), std::move(pointLightSystem));
   
-  viewerObject_m.transform_m.translation_m.z = -2.5f;
-}
-
-
-void Hve::update(float dt)
-{
-  cameraController_m.moveInPlaneXZ(hveWindow_m.getGLFWwindow(), dt, viewerObject_m);
-  camera_m.setViewYXZ(viewerObject_m.transform_m.translation_m, viewerObject_m.transform_m.rotation_m);
-  float aspect = hveRenderer_m.getAspectRatio();
-  camera_m.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 50.f);
+  
 }
 
 // each render systems automatically detect render target components
-void Hve::render(float dt)
+void Hve::render(float dt, ViewerComponent& viewerComp)
 {
   // returns nullptr if the swap chain is need to be recreated
   if (auto commandBuffer = hveRenderer_m.beginFrame()) {
@@ -90,15 +88,14 @@ void Hve::render(float dt)
         frameIndex, 
         dt, 
         commandBuffer, 
-        camera_m, 
         globalDescriptorSets_m[frameIndex]
     };
 
     // update 
     GlobalUbo ubo{};
-    ubo.projection_m = camera_m.getProjection();
-    ubo.view_m = camera_m.getView();
-    pointLightSystem_m->update(frameInfo, ubo);
+    ubo.projection_m = viewerComp.getProjection();
+    ubo.view_m = viewerComp.getView();
+    renderingSystems_m[RenderType::POINT_LIGHT]->update(frameInfo, ubo);
     uboBuffers_m[frameIndex]->writeToBuffer(&ubo);
     uboBuffers_m[frameIndex]->flush();
 
@@ -106,8 +103,8 @@ void Hve::render(float dt)
     hveRenderer_m.beginSwapChainRenderPass(commandBuffer);
     // programmable stage of rendering
     // system can now access gameobjects via frameInfo
-    simpleRendererSystem_m->render(frameInfo);
-    pointLightSystem_m->render(frameInfo);
+    for (auto& system : renderingSystems_m)
+      system.second->render(frameInfo);
 
     hveRenderer_m.endSwapChainRenderPass(commandBuffer);
     hveRenderer_m.endFrame();
@@ -116,7 +113,7 @@ void Hve::render(float dt)
 
 void Hve::removeRenderableComponent(id_t id)
 {
-  simpleRendererSystem_m->removeRenderTarget(id);
-  pointLightSystem_m->removeRenderTarget(id);
+  for (auto& system : renderingSystems_m)
+    system.second->removeRenderTarget(id);
 }
 } // namespace hve
