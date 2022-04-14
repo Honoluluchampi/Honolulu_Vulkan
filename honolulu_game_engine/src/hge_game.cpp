@@ -12,6 +12,8 @@ constexpr float MAX_DT = 0.05f;
 HgeGame::HgeGame(const char* windowName) : upHve_m(std::make_unique<Hve>(windowName))
 {
   setGLFWwindow();
+  // camera creation
+  upCamera_m = std::make_unique<HgeCamera>(*upHve_m);
   loadData();
 }
 
@@ -56,6 +58,8 @@ void HgeGame::update()
     }
   }
 
+  upCamera_m->update(dt);
+
   currentTime_m = newTime;
   isUpdating_m = false;
 
@@ -67,7 +71,7 @@ void HgeGame::update()
   // clear all the dead actors
   deadActorMap_m.clear();
 
-  upHve_m->render(dt, *dynamic_cast<HgeCamera*>(activeActorMap_m[0].get())->viewerComponent());
+  upHve_m->render(dt, *(upCamera_m->viewerComponent()));
 }
 
 void HgeGame::render()
@@ -76,8 +80,6 @@ void HgeGame::render()
 
 void HgeGame::loadData()
 {
-  // camera should be ID 0
-  createCamera();
   // load raw data
   loadHveModels();
   // share above data with vulkan engine
@@ -165,12 +167,6 @@ void HgeGame::createActor()
 
     addActor(std::move(lightActor));    
   }
-}
-
-void HgeGame::createCamera()
-{
-  activeActorMap_m.emplace(0, std::make_unique<HgeCamera>(upHve_m->passGLFWwindow(), upHve_m->hveRenderer()));
-  // when this camera is deleted, transform is also deleted but viewerComp is not deleted until this sp~ is deleted
 }
 
 void HgeGame::cleanup()

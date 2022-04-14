@@ -4,6 +4,7 @@
 #include <hve.hpp>
 #include <hge_actor.hpp>
 #include <hge_components/model_component.hpp>
+#include <hge_default_camera.hpp>
 
 //std
 #include <vector>
@@ -36,7 +37,6 @@ private:
   void update();
   void render();
 
-  void createCamera();
   void createActor();
 
   void loadData();
@@ -65,7 +65,7 @@ private:
 
   std::chrono::_V2::system_clock::time_point currentTime_m;
   
-  s_ptr<ViewerComponent> spViewerComp_m;
+  u_ptr<HgeCamera> upCamera_m;
 };
 
 } // namespace hnll

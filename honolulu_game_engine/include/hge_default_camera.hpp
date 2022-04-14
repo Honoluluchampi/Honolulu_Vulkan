@@ -3,6 +3,7 @@
 #include <hge_actor.hpp>
 #include <hge_components/viewer_component.hpp>
 #include <hge_components/keyboardMovementComponent.hpp>
+#include <hve_app.hpp>
 #include <utility.hpp>
 
 namespace hnll {
@@ -10,7 +11,7 @@ namespace hnll {
 class HgeCamera : public HgeActor
 {
 public:
-  HgeCamera(GLFWwindow* window, HveRenderer& renderer);
+  HgeCamera(Hve& hve);
   ~HgeCamera(){}
 
   HgeCamera(const HgeCamera &) = delete;
