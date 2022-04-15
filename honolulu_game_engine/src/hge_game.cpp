@@ -89,7 +89,7 @@ void HgeGame::loadData()
 // use filenames as the key of the map
 void HgeGame::loadHveModels(const std::string& modelDir)
 {
-  auto path = std::string(std::filesystem::current_path()) + modelDir;
+  auto path = std::string(std::getenv("HNLL_ENGN")) + modelDir;
   for (const auto & file : std::filesystem::directory_iterator(path)) {
     auto filename = std::string(file.path());
     auto length = filename.size() - path.size() - 5;

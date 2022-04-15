@@ -1,4 +1,4 @@
-#include <point_light.hpp>
+#include <systems/point_light.hpp>
 
 // lib
 #define GLM_FORCE_RADIANS
