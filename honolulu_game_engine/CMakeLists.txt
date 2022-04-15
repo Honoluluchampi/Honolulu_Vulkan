@@ -12,5 +12,3 @@ target_include_directories(hge PUBLIC
                            # vulkan
                            /home/honolulu/programs/external_libraries/vulkanSDK/x86_64/include
 )
-
-#target_link_libraries(hge /usr/lib)
