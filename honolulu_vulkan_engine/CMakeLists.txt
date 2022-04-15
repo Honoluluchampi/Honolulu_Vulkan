@@ -10,5 +10,5 @@ target_include_directories(hve PUBLIC
                            # glfw
                            /usr/include
                            # vulkan
-                           /home/honolulu/programs/external_libraries/vulkanSDK/x86_64/include
+                           $ENV{VULKAN_DIR}/include
 )

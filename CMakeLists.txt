@@ -14,6 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # add subdirectory's library (this call should corresponds to the mathlib's "add_library")
 add_subdirectory(honolulu_vulkan_engine)
 add_subdirectory(honolulu_game_engine)
+add_subdirectory(honolulu_imgui_engine)
 
 # add the executable
 add_executable(app main.cpp)
