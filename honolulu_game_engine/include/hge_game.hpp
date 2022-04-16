@@ -6,6 +6,9 @@
 #include <hge_components/model_component.hpp>
 #include <hge_default_camera.hpp>
 
+// hie
+#include <hie.hpp>
+
 //std
 #include <vector>
 #include <memory>
@@ -51,6 +54,7 @@ private:
   HgeActor::map deadActorMap_m;
 
   u_ptr<Hve> upHve_m;
+  u_ptr<Hie> upHie_m;
 
   // map of modelcomponents
   // shared by game and some actors

@@ -9,7 +9,8 @@ namespace hnll {
 
 constexpr float MAX_DT = 0.05f;
 
-HgeGame::HgeGame(const char* windowName) : upHve_m(std::make_unique<Hve>(windowName))
+HgeGame::HgeGame(const char* windowName) : upHve_m(std::make_unique<Hve>(windowName)),
+  upHie_m(std::make_unique<Hie>())
 {
   setGLFWwindow();
   // camera creation
