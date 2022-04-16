@@ -10,6 +10,9 @@
 // lib
 #include <GLFW/glfw3.h>
 
+// hve
+#include <hve.hpp>
+
 // std
 #include <stdio.h>          // printf, fprintf
 #include <stdlib.h>         // abort
@@ -40,10 +43,33 @@
 
 namespace hnll {
 
+// shared with hve (all created by HveDevice)
+struct SharedVulkanObjects
+{
+  VkInstance instance_;
+  VkPhysicalDevice physicalDevice_;
+  VkDevice device_;
+  VkQueue graphicsQueue_;
+  VkQueue presentQueue_;
+
+  SharedVulkanObjects(HveDevice& hveDevice);
+};
+
+struct SpecificVulkanObjects
+{
+  HveWindow hveWindow_;
+  VkSurfaceKHR surface_; // HveDevice impl
+  HveSwapChain hveSwapChain_;
+  HveDescriptorPool hveDescriptorPool_;
+  VkCommandPool commandPool_; // HveDevice impl
+
+  SpecificVulkanObjects();
+};
+
 class Hie
 {
 public:
-  Hie();
+  Hie(HveDevice& hveDevice);
   ~Hie();
   Hie(const Hie&) = delete;
   Hie& operator=(const Hie&) = delete;
@@ -77,16 +103,11 @@ private:
   }
 
   VkAllocationCallbacks*   g_Allocator = NULL;
-  VkInstance               g_Instance = VK_NULL_HANDLE;
-  VkPhysicalDevice         g_PhysicalDevice = VK_NULL_HANDLE;
-  VkDevice                 g_Device = VK_NULL_HANDLE;
-  uint32_t                 g_QueueFamily = (uint32_t)-1;
-  VkQueue                  g_Queue = VK_NULL_HANDLE;
   VkDebugReportCallbackEXT g_DebugReport = VK_NULL_HANDLE;
   VkPipelineCache          g_PipelineCache = VK_NULL_HANDLE;
-  VkDescriptorPool         g_DescriptorPool = VK_NULL_HANDLE;
 
-  GLFWwindow* window_m; 
+  SharedVulkanObjects sharedVkObjs_;
+  SpecificVulkanObjects specificVkObjs_;
 
   ImGui_ImplVulkanH_Window g_MainWindowData;
   int                      g_MinImageCount = 2;

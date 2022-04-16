@@ -2,11 +2,22 @@
 
 namespace hnll {
 
-Hie::Hie()
+SharedVulkanObjects::SharedVulkanObjects(HveDevice& hd)
 {
-  // debug window creation
-  window_m = glfwCreateWindow(1280, 720, "imgui window", NULL, NULL);
-  
+  instance_ = hd.instance();
+  physicalDevice_ = hd.physicalDevice();
+  device_ = hd.device();
+  graphicsQueue_ = hd.graphicsQueue();
+  presentQueue_ = hd.presentQueue();
+}
+
+SpecificVulkanObjects::SpecificVulkanObjects() : hveWindow_(1280, 720, "hie window")
+{
+
+}
+
+Hie::Hie(HveDevice& hveDevice) : sharedVkObjs_(hveDevice)
+{  
   setupVulkan();
   // seupVulkanWindow();
 }
@@ -16,7 +27,6 @@ Hie::~Hie()
   cleanupVulkanWindow();
   cleanupVulkan();
 
-  glfwDestroyWindow(window_m);
 }
 
 void Hie::setupVulkan()

@@ -44,6 +44,8 @@ class HveDevice
 
     // getter
     VkCommandPool getCommandPool() { return commandPool_m; }
+    VkInstance instance() { return instance_m; }
+    VkPhysicalDevice physicalDevice() { return physicalDevice_m; }
     VkDevice device() { return device_m; }
     VkSurfaceKHR surface() { return surface_m; }
     VkQueue graphicsQueue() { return graphicsQueue_m; }
