@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hve_window.hpp>
+#include <hie.hpp>
 
 // std
 #include <string>
@@ -50,6 +51,7 @@ class HveDevice
     VkSurfaceKHR surface() { return surface_m; }
     VkQueue graphicsQueue() { return graphicsQueue_m; }
     VkQueue presentQueue() { return presentQueue_m; }
+    QueueFamilyIndices queueFamilyIndices() { return queueFamilyIndices_m; }
 
     SwapChainSupportDetails getSwapChainSupport() { return querySwapChainSupport(physicalDevice_m); }
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
@@ -108,6 +110,7 @@ class HveDevice
 
     VkDevice device_m;
     VkSurfaceKHR surface_m;
+    QueueFamilyIndices queueFamilyIndices_m; // for hie ctor
     VkQueue graphicsQueue_m;
     VkQueue presentQueue_m;
 

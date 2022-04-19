@@ -69,12 +69,15 @@ struct SpecificVulkanObjects
 class Hie
 {
 public:
-  Hie(HveDevice& hveDevice);
+  Hie(HveDevice& hveDevice, GLFWwindow* window);
   ~Hie();
   Hie(const Hie&) = delete;
   Hie& operator=(const Hie&) = delete;
   Hie(Hie&&) = default;
   Hie& operator=(Hie&&) = default;
+
+  // set up ImGui context
+  void setupImGui(HveDevice& hveDevice, GLFWwindow* window);
 
   void setupVulkan();
   // All the ImGui_ImplVulkanH_XXX structures/functions are optional helpers used by the demo.
@@ -88,6 +91,8 @@ public:
   void framePresent(ImGui_ImplVulkanH_Window* wd);
 
 private:
+  VkDescriptorPool createDescriptorPool();
+
   static void check_vk_result(VkResult err)
   {
       if (err == 0)
@@ -102,9 +107,10 @@ private:
       fprintf(stderr, "Glfw Error %d: %s\n", error, description);
   }
 
+  // TODO use allocator
   VkAllocationCallbacks*   g_Allocator = NULL;
-  VkDebugReportCallbackEXT g_DebugReport = VK_NULL_HANDLE;
-  VkPipelineCache          g_PipelineCache = VK_NULL_HANDLE;
+  VkDevice device_;
+  VkDescriptorPool descriptorPool_;
 
   SharedVulkanObjects sharedVkObjs_;
   SpecificVulkanObjects specificVkObjs_;

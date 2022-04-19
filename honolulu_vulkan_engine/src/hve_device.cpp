@@ -402,6 +402,8 @@ QueueFamilyIndices HveDevice::findQueueFamilies(VkPhysicalDevice device)
     i++;
   }
 
+  queueFamilyIndices_m = indices;
+
   return indices;
 }
 
