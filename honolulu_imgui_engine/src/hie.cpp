@@ -47,7 +47,7 @@ void Hie::setupImGui(HveDevice& hveDevice, GLFWwindow* window)
   info.Queue = hveDevice.graphicsQueue();
   // TODO : search this
   info.PipelineCache = VK_NULL_HANDLE;
-  info.DescriptorPool = createDescriptorPool(info.Device);
+  info.DescriptorPool = createDescriptorPool();
   ImGui_ImplVulkan_Init(&info, );
   // setup ImGui style
   ImGui::StyleColorsDark();
@@ -109,8 +109,9 @@ VkDescriptorPool Hie::createDescriptorPool()
 	pool_info.maxSets = 1000 * IM_ARRAYSIZE(pool_sizes);
 	pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
 	pool_info.pPoolSizes = pool_sizes;
-	err = vkCreateDescriptorPool(device_, &pool_info, nullptr, &descriptorPool_);
+	auto err = vkCreateDescriptorPool(device_, &pool_info, nullptr, &descriptorPool_);
 	check_vk_result(err);
+  return descriptorPool_;
 }
 
 } // namespace hnll
