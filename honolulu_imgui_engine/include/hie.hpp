@@ -78,7 +78,7 @@ public:
 
   // set up ImGui context
   void setupImGui(HveDevice& hveDevice, GLFWwindow* window);
-
+  // share the basic vulkan object with hve, so there is nothing to do for now
   void setupVulkan();
   // All the ImGui_ImplVulkanH_XXX structures/functions are optional helpers used by the demo.
   // Your real engine/app may not use them.
@@ -103,9 +103,7 @@ private:
   }
 
   static void glfw_error_callback(int error, const char* description)
-  {
-      fprintf(stderr, "Glfw Error %d: %s\n", error, description);
-  }
+  { fprintf(stderr, "Glfw Error %d: %s\n", error, description); }
 
   // TODO use allocator
   VkAllocationCallbacks*   g_Allocator = NULL;
@@ -115,9 +113,11 @@ private:
   SharedVulkanObjects sharedVkObjs_;
   SpecificVulkanObjects specificVkObjs_;
 
-  ImGui_ImplVulkanH_Window g_MainWindowData;
-  int                      g_MinImageCount = 2;
-  bool                     g_SwapChainRebuild = false;
+  ImGui_ImplVulkanH_Window mainWindowData_;
+  // TODO : make it consistent with hve
+  int minImageCount_ = 2;
+  bool swapChainRebuild_ = false;
+  bool isHieRunning_ = false;
 };
 
 } // namespace hnll 

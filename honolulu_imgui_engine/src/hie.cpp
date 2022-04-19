@@ -1,5 +1,9 @@
 #include <hie.hpp>
 
+// embeded fonts
+// download by yourself
+#include <roboto_regular.embed>
+
 namespace hnll {
 
 SharedVulkanObjects::SharedVulkanObjects(HveDevice& hd)
@@ -62,7 +66,9 @@ void Hie::setupVulkan()
 // Your real engine/app may not use them.
 void Hie::setupVulkanWindow(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, int width, int height)
 {
+  wd->Surface = surface;
 
+  // check for wsi support
 }
 
 void Hie::cleanupVulkan()
