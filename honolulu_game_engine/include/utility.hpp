@@ -1,9 +1,14 @@
 #pragma once
 
+// TODO : put this file on a appropriate position
+// TODO : create createOneShotCommandPool();
+
 #include <memory>
+#include <iostream>
 
 // lib
 #include <glm/gtc/matrix_transform.hpp>
+#include <vulkan/vulkan.hpp>
 
 namespace hnll {
 
@@ -24,5 +29,23 @@ struct Transform
   glm::mat4 mat4();
   glm::mat3 normalMatrix();
 };
+
+VkCommandBuffer createOneShotCommandBuffer(VkDevice device, VkCommandPool commandPool)
+{
+  // specify command pool and number of buffers to allocate
+  VkCommandBufferAllocateInfo allocInfo{};
+  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  // if the allocated command buffers are primary or secondary command buffers
+  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  allocInfo.commandPool = commandPool;
+  allocInfo.commandBufferCount = 1;
+
+  VkCommandBuffer commandBuffer;
+  
+  if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) != VK_SUCCESS)
+    throw std::runtime_error("failed to allocate command buffers!");
+
+  return commandBuffer;
+}
 
 } // namespace hnll

@@ -9,6 +9,9 @@
 #include <set>
 #include <stdexcept>
 
+// this should be configurable
+#define IMGUI_ENABLED;
+
 namespace hnll {
 
 HveSwapChain::HveSwapChain(HveDevice &deviceRef, VkExtent2D extent)
@@ -268,8 +271,11 @@ void HveSwapChain::createRenderPass()
   colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
   colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
   colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+#ifdef IMGUI_ENABLED
+  colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+#else
   colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
+#endif
   VkAttachmentReference colorAttachmentRef = {};
   // which attachment to reference by its index
   colorAttachmentRef.attachment = 0;

@@ -43,55 +43,28 @@
 
 namespace hnll {
 
-// shared with hve (all created by HveDevice)
-struct SharedVulkanObjects
-{
-  VkInstance instance_;
-  VkPhysicalDevice physicalDevice_;
-  VkDevice device_;
-  VkQueue graphicsQueue_;
-  VkQueue presentQueue_;
-
-  SharedVulkanObjects(HveDevice& hveDevice);
-};
-
-struct SpecificVulkanObjects
-{
-  HveWindow hveWindow_;
-  VkSurfaceKHR surface_; // HveDevice impl
-  HveSwapChain hveSwapChain_;
-  HveDescriptorPool hveDescriptorPool_;
-  VkCommandPool commandPool_; // HveDevice impl
-
-  SpecificVulkanObjects();
-};
-
 class Hie
 {
 public:
-  Hie(HveDevice& hveDevice, GLFWwindow* window);
+  Hie(HveDevice& hveDevice, HveSwapChain& hveSwapChain, GLFWwindow* window);
   ~Hie();
   Hie(const Hie&) = delete;
   Hie& operator=(const Hie&) = delete;
   Hie(Hie&&) = default;
   Hie& operator=(Hie&&) = default;
 
-  // set up ImGui context
-  void setupImGui(HveDevice& hveDevice, GLFWwindow* window);
-  // share the basic vulkan object with hve, so there is nothing to do for now
-  void setupVulkan();
-  // All the ImGui_ImplVulkanH_XXX structures/functions are optional helpers used by the demo.
-  // Your real engine/app may not use them.
-  void setupVulkanWindow(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, int width, int height);
-
-  void cleanupVulkan();
-  void cleanupVulkanWindow();
-
   void frameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data);
   void framePresent(ImGui_ImplVulkanH_Window* wd);
 
 private:
-  VkDescriptorPool createDescriptorPool();
+  // set up ImGui context
+  void setupImGui(HveDevice& hveDevice, HveSwapChain& hveSwapChain, GLFWwindow* window);
+  // share the basic vulkan object with hve, so there is nothing to do for now
+  void setupSpecificVulkanObjects(HveSwapChain& hveSwapChain);
+  void uploadFonts(HveDevice& hveDevice);
+  void cleanupVulkan();
+  void createDescriptorPool();
+  void createRenderPass(HveSwapChain& hveSwapChain);
 
   static void check_vk_result(VkResult err)
   {
@@ -105,13 +78,10 @@ private:
   static void glfw_error_callback(int error, const char* description)
   { fprintf(stderr, "Glfw Error %d: %s\n", error, description); }
 
-  // TODO use allocator
-  VkAllocationCallbacks*   g_Allocator = NULL;
   VkDevice device_;
   VkDescriptorPool descriptorPool_;
-
-  SharedVulkanObjects sharedVkObjs_;
-  SpecificVulkanObjects specificVkObjs_;
+  VkRenderPass renderPass_;
+  VkQueue graphicsQueue_;
 
   ImGui_ImplVulkanH_Window mainWindowData_;
   // TODO : make it consistent with hve

@@ -24,9 +24,10 @@ class HveRenderer
     HveRenderer &operator= (const HveRenderer &) = delete;
 
     // getter
-    VkRenderPass getSwapChainRenderPass() const { return hveSwapChain_m->getRenderPass(); }
-    float getAspectRatio() const { return hveSwapChain_m->extentAspectRatio(); }
-    bool isFrameInProgress() const { return isFrameStarted_m; }
+    inline VkRenderPass getSwapChainRenderPass() const { return hveSwapChain_m->getRenderPass(); }
+    inline float getAspectRatio() const { return hveSwapChain_m->extentAspectRatio(); }
+    inline bool isFrameInProgress() const { return isFrameStarted_m; }
+    inline HveSwapChain& hveSwapChain() const { return *hveSwapChain_m; }
     
     VkCommandBuffer getCurrentCommandBuffer() const 
     {
