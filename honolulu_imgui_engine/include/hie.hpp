@@ -1,5 +1,7 @@
 #pragma once
 
+#include <hie_renderer.hpp>
+
 // basic header
 #include <imgui.h>
 
@@ -53,19 +55,20 @@ public:
   Hie(Hie&&) = default;
   Hie& operator=(Hie&&) = default;
 
-  void frameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data);
-  void framePresent(ImGui_ImplVulkanH_Window* wd);
+  void render();
+  void frameRender(ImDrawData* draw_data);
+  void framePresent();
 
 private:
   // set up ImGui context
-  void setupImGui(HveDevice& hveDevice, HveSwapChain& hveSwapChain, GLFWwindow* window);
+  void setupImGui(HveDevice& hveDevice, GLFWwindow* window);
   // share the basic vulkan object with hve, so there is nothing to do for now
-  void setupSpecificVulkanObjects(HveSwapChain& hveSwapChain);
-  void uploadFonts(HveDevice& hveDevice);
+  void setupSpecificVulkanObjects();
+  void uploadFonts();
   void cleanupVulkan();
   void createDescriptorPool();
-  void createRenderPass(HveSwapChain& hveSwapChain);
-
+  void createRenderPass();
+  
   static void check_vk_result(VkResult err)
   {
       if (err == 0)
@@ -82,6 +85,11 @@ private:
   VkDescriptorPool descriptorPool_;
   VkRenderPass renderPass_;
   VkQueue graphicsQueue_;
+
+  u_ptr<HieRenderer> upHieRenderer_;
+
+  // hve
+  HveSwapChain& hveSwapChain_;
 
   ImGui_ImplVulkanH_Window mainWindowData_;
   // TODO : make it consistent with hve

@@ -31,6 +31,14 @@ class HveSwapChain {
   VkExtent2D getSwapChainExtent() { return swapChainExtent_m; }
   uint32_t width() { return swapChainExtent_m.width; }
   uint32_t height() { return swapChainExtent_m.height; }
+  const VkSemaphore& getCurrentImageAvailableSemaphore() const
+  { return imageAvailableSemaphores_m[currentFrame_m]; }
+  const VkSemaphore& getCurrentRenderFinishedSemaphore() const
+  { return renderFinishedSemaphores_m[currentFrame_m]; }
+  const VkFence& getCurrentInFlightFence() const 
+  { return inFlightFences_m[currentFrame_m]; }
+  const VkFence& getCurrentImagesInFlightFence() const
+  { return imagesInFlight_m[currentFrame_m]; }
 
   float extentAspectRatio() 
   { return static_cast<float>(swapChainExtent_m.width) / static_cast<float>(swapChainExtent_m.height); }

@@ -38,6 +38,7 @@ void HgeGame::processInput()
 
 }
 
+// TODO : recreate swap chain
 void HgeGame::update()
 {
   isUpdating_m = true;

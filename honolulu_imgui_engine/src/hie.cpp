@@ -7,11 +7,11 @@
 
 namespace hnll {
 
-Hie::Hie(HveDevice& hveDevice, HveSwapChain& hveSwapChain, GLFWwindow* window)
+Hie::Hie(HveDevice& hveDevice, HveSwapChain& hveSwapChain, GLFWwindow* window) : hveSwapChain_(hveSwapChain)
 {  
-  setupSpecificVulkanObjects(hveSwapChain);
-  setupImGui(hveDevice, hveSwapChain, window);
-  uploadFonts(hveDevice);
+  setupSpecificVulkanObjects();
+  setupImGui(hveDevice, window);
+  uploadFonts();
 }
 
 Hie::~Hie()
@@ -19,7 +19,13 @@ Hie::~Hie()
   cleanupVulkan();
 }
 
-void Hie::setupImGui(HveDevice& hveDevice, HveSwapChain& hveSwapChain, GLFWwindow* window)
+void Hie::setupSpecificVulkanObjects()
+{
+  createDescriptorPool();
+  createRenderPass();
+}
+
+void Hie::setupImGui(HveDevice& hveDevice, GLFWwindow* window)
 {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -46,16 +52,10 @@ void Hie::setupImGui(HveDevice& hveDevice, HveSwapChain& hveSwapChain, GLFWwindo
   info.Allocator = nullptr;
   // TODO : make minImageCount consistent with hve
   info.MinImageCount = 2;
-  info.ImageCount = hveSwapChain.imageCount();
+  info.ImageCount = hveSwapChain_.imageCount();
   info.CheckVkResultFn = check_vk_result;
 
   ImGui_ImplVulkan_Init(&info, renderPass_);
-}
-
-void Hie::setupSpecificVulkanObjects(HveSwapChain& hveSwapChain)
-{
-  createDescriptorPool();
-  createRenderPass(hveSwapChain);
 }
 
 void Hie::cleanupVulkan()
@@ -63,12 +63,32 @@ void Hie::cleanupVulkan()
   vkDestroyDescriptorPool(device_, descriptorPool_, nullptr);
 }
 
-void Hie::frameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data)
+void Hie::render()
 {
+  // start the imgui frame
+  ImGui_ImplVulkan_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
+  ImGui::NewFrame();
+
+  // show the demo window
+  ImGui::ShowDemoWindow();
+
+  // render window
+  ImGui::Render();
+  ImDrawData* drawData = ImGui::GetDrawData();
+  // TODO : if not minimized...
+  frameRender(drawData);
+  framePresent();
+}
+
+void Hie::frameRender(ImDrawData* draw_data)
+{
+  auto imageAvailableSemaphore = hveSwapChain_.getCurrentImageAvailableSemaphore();
+  auto renderFinishedSemaphore = hveSwapChain_.getCurrentRenderFinishedSemaphore();
 
 }
 
-void Hie::framePresent(ImGui_ImplVulkanH_Window* wd)
+void Hie::framePresent()
 {
 
 }
@@ -101,10 +121,10 @@ void Hie::createDescriptorPool()
 	check_vk_result(err);
 }
 
-void Hie::createRenderPass(HveSwapChain& hveSwapChain)
+void Hie::createRenderPass()
 {
   VkAttachmentDescription attachment = {};
-  attachment.format = hveSwapChain.getSwapChainImageFormat();
+  attachment.format = hveSwapChain_.getSwapChainImageFormat();
   attachment.samples = VK_SAMPLE_COUNT_1_BIT;
   attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
   attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -142,24 +162,7 @@ void Hie::createRenderPass(HveSwapChain& hveSwapChain)
   check_vk_result(err);
 }
 
-// almost same impl as HveRenderer::createCommandBUffer()
-VkCommandBuffer createCommandBuffer(VkDevice device, VkCommandPool commandPool)
-{
-  // specify command pool and number of buffers to allocate
-  VkCommandBufferAllocateInfo allocInfo{};
-  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  // if the allocated command buffers are primary or secondary command buffers
-  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocInfo.commandPool = commandPool;
-  allocInfo.commandBufferCount = 1;
-
-  VkCommandBuffer commandBuffer;
-  
-  if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) != VK_SUCCESS)
-    throw std::runtime_error("failed to allocate command buffers!");
-}
-
-void Hie::uploadFonts(HveDevice& hveDevice)
+void Hie::uploadFonts()
 {
   // load default font 
   ImFontConfig fontConfig;
@@ -170,8 +173,8 @@ void Hie::uploadFonts(HveDevice& hveDevice)
 
   // upload fonts
   // Use any command queue
-  VkCommandPool commandPool = hveDevice.getCommandPool();
-  VkCommandBuffer commandBuffer = createOneShotCommandBuffer(device_, commandPool);
+  VkCommandPool commandPool = upHieRenderer_->getCommandPool();
+  VkCommandBuffer commandBuffer = upHieRenderer_->getCurrentCommandBuffer();
 
   auto err = vkResetCommandPool(device_, commandPool, 0);
   check_vk_result(err);
