@@ -7,10 +7,11 @@
 
 namespace hnll {
 
-Hie::Hie(HveDevice& hveDevice, HveSwapChain& hveSwapChain, GLFWwindow* window) : hveSwapChain_(hveSwapChain)
+Hie::Hie(HveWindow& hveWindow, HveDevice& hveDevice, HveSwapChain& hveSwapChain) : hveSwapChain_(hveSwapChain)
 {  
   setupSpecificVulkanObjects();
-  setupImGui(hveDevice, window);
+  upHieRenderer_ = std::make_unique<HieRenderer>(hveWindow, hveDevice, hveSwapChain);
+  setupImGui(hveDevice, hveWindow.getGLFWwindow());
   uploadFonts();
 }
 
@@ -22,7 +23,6 @@ Hie::~Hie()
 void Hie::setupSpecificVulkanObjects()
 {
   createDescriptorPool();
-  createRenderPass();
 }
 
 void Hie::setupImGui(HveDevice& hveDevice, GLFWwindow* window)
@@ -55,7 +55,7 @@ void Hie::setupImGui(HveDevice& hveDevice, GLFWwindow* window)
   info.ImageCount = hveSwapChain_.imageCount();
   info.CheckVkResultFn = check_vk_result;
 
-  ImGui_ImplVulkan_Init(&info, renderPass_);
+  ImGui_ImplVulkan_Init(&info, upHieRenderer_->getRenderPass());
 }
 
 void Hie::cleanupVulkan()
@@ -119,47 +119,6 @@ void Hie::createDescriptorPool()
 	pool_info.pPoolSizes = pool_sizes;
 	auto err = vkCreateDescriptorPool(device_, &pool_info, nullptr, &descriptorPool_);
 	check_vk_result(err);
-}
-
-void Hie::createRenderPass()
-{
-  VkAttachmentDescription attachment = {};
-  attachment.format = hveSwapChain_.getSwapChainImageFormat();
-  attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-  attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-  attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-  attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-  attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-  attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-  attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-  VkAttachmentReference color_attachment = {};
-  color_attachment.attachment = 0;
-  color_attachment.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-  VkSubpassDescription subpass = {};
-  subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-  subpass.colorAttachmentCount = 1;
-  subpass.pColorAttachments = &color_attachment;
-
-  VkSubpassDependency dependency = {};
-  dependency.srcSubpass = VK_SUBPASS_EXTERNAL; // implies hve's render pass
-  dependency.dstSubpass = 0;
-  dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-  dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-  dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-  dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-  
-  VkRenderPassCreateInfo info = {};
-  info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-  info.attachmentCount = 1;
-  info.pAttachments = &attachment;
-  info.subpassCount = 1;
-  info.pSubpasses = &subpass;
-  info.dependencyCount = 1;
-  info.pDependencies = &dependency;
-  auto err = vkCreateRenderPass(device_, &info, nullptr, &renderPass_);
-  check_vk_result(err);
 }
 
 void Hie::uploadFonts()

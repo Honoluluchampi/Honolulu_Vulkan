@@ -2,99 +2,91 @@
 
 namespace hnll {
 
-HieRenderer::HieRenderer(HveDevice& hveDevice, HveSwapChain& hveSwapChain) : 
-  device_(hveDevice.device()), graphicsFamilyIndex_(hveDevice.queueFamilyIndices().graphicsFamily_m.value()), hveSwapChain_(hveSwapChain)
+HieRenderer::HieRenderer(HveWindow& window, HveDevice& hveDevice, HveSwapChain& hveSwapChain) : 
+  HveRenderer(window, hveDevice)
 {
-  createCommandPool();
-  createCommandBuffers();
+  isLastRenderer();
 }
 
-HieRenderer::~HieRenderer()
+void HieRenderer::recreateSwapChainDependencies()
 {
-  freeCommandBuffers();
-  freeCommandPool();
+  hveSwapChain_m->setRenderPass(createRenderPass(), HIE_RENDER_PASS_ID);
+  hveSwapChain_m->setFramebuffers(createFramebuffers(), HIE_RENDER_PASS_ID);
 }
 
-VkCommandBuffer HieRenderer::beginFrame()
+VkRenderPass HieRenderer::createRenderPass()
 {
-  assert(!isFrameStarted_m && "can't call beginFrame() while already in progress");
-  auto result = hveSwapChain_.acquireNextImage(&currentImageIndex_);
+  VkAttachmentDescription attachment = {};
+  attachment.format = hveSwapChain_m->getSwapChainImageFormat();
+  attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+  attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+  attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+  attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+  attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+  // hve render pass's final layout
+  attachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+  attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-  // only hveRenderer can recreate swap chain
-  if (result == VK_ERROR_OUT_OF_DATE_KHR)
-    return nullptr;
+  VkAttachmentReference color_attachment = {};
+  color_attachment.attachment = 0;
+  color_attachment.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-  if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-    throw std::runtime_error("failed to acquire swap chain image!");
+  VkSubpassDescription subpass = {};
+  subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+  subpass.colorAttachmentCount = 1;
+  subpass.pColorAttachments = &color_attachment;
 
-  isFrameStarted_m = true;
-
-  auto commandBuffer = getCurrentCommandBuffer();
-  VkCommandBufferBeginInfo beginInfo{};
-  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-  if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
-    throw std::runtime_error("failed to begin recording command buffer!");
+  VkSubpassDependency dependency = {};
+  dependency.srcSubpass = VK_SUBPASS_EXTERNAL; // implies hve's render pass
+  dependency.dstSubpass = 0;
+  dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
   
-  return commandBuffer;
-}
+  VkRenderPassCreateInfo info = {};
+  info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+  info.attachmentCount = 1;
+  info.pAttachments = &attachment;
+  info.subpassCount = 1;
+  info.pSubpasses = &subpass;
+  info.dependencyCount = 1;
+  info.pDependencies = &dependency;
 
-void HieRenderer::endFrame()
-{
-  assert(isFrameStarted_m && "can't call endFrame() while the frame is not in progress.");
-  auto commandBuffer = getCurrentCommandBuffer();
-  if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
-    throw std::runtime_error("failed to record command buffer!");
+  VkRenderPass renderPass;
   
-  // only hverenderer can recreate swap chain
-  auto result = hveSwapChain_.submitCommandBuffers(&commandBuffer, &currentImageIndex_);
-  if (result != VK_SUCCESS) 
-    throw std::runtime_error("failed to present swap chain image!");
+  if (vkCreateRenderPass(hveDevice_m.device(), &info, nullptr, &renderPass) != VK_SUCCESS)
+    throw std::runtime_error("failed to create render pass.");
 
-  isFrameStarted_m = false;
-  if (++currentFrameIndex_ == HveSwapChain::MAX_FRAMES_IN_FLIGHT)
-    currentFrameIndex_ = 0;
+  return renderPass;
 }
 
-void HieRenderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer)
+std::vector<VkFramebuffer> HieRenderer::createFramebuffers()
 {
-  
-}
+  // imgui frame buffer only takes image view attachment 
+  VkImageView attachment;
 
-void HieRenderer::createCommandBuffers()
-{
-  // 2 or 3
-  commandBuffers_.resize(HveSwapChain::MAX_FRAMES_IN_FLIGHT);
+  VkFramebufferCreateInfo info{};
+  info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+  // make sure to create renderpass before frame buffers
+  info.renderPass = hveSwapChain_m->getRenderPass(HIE_RENDER_PASS_ID);
+  info.attachmentCount = 1;
+  info.pAttachments = &attachment;
+  auto extent = hveSwapChain_m->getSwapChainExtent();
+  info.width = extent.width;
+  info.height = extent.height;
+  info.layers = 1;
 
-  VkCommandBufferAllocateInfo info{};
-  info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  info.commandPool = commandPool_;
-  info.commandBufferCount = static_cast<uint32_t>(commandBuffers_.size());
+  // as many as image view count
+  auto imageCount = hveSwapChain_m->imageCount();
+  std::vector<VkFramebuffer> framebuffers(imageCount);
+  for (size_t i = 0; i < imageCount; i++) {
+    attachment = hveSwapChain_m->getImageView(i);
+    if (vkCreateFramebuffer(hveDevice_m.device(), &info, nullptr, &framebuffers[i]) != VK_SUCCESS)
+      throw std::runtime_error("failed to create frame buffer.");
+  }
 
-  if (vkAllocateCommandBuffers(device_, &info, commandBuffers_.data()) != VK_SUCCESS)
-    throw std::runtime_error("failed to allocate command buffers!");
-}
-
-void HieRenderer::createCommandPool()
-{
-  VkCommandPoolCreateInfo info{};
-  info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-  info.queueFamilyIndex = graphicsFamilyIndex_;
-  info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-
-  if (vkCreateCommandPool(device_, &info, nullptr, &commandPool_) != VK_SUCCESS)
-    throw std::runtime_error("could not create grahpics command pool.");
-}
-
-void HieRenderer::freeCommandBuffers()
-{
-  vkFreeCommandBuffers(device_, commandPool_, static_cast<float>(commandBuffers_.size()), commandBuffers_.data());
-  commandBuffers_.clear();
-}
-
-void HieRenderer::freeCommandPool()
-{
-  vkDestroyCommandPool(device_, commandPool_, nullptr);
+  return framebuffers;
 }
 
 } // namespace hnll

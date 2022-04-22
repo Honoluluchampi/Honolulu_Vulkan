@@ -23,8 +23,16 @@ class HveSwapChain {
   HveSwapChain(const HveSwapChain &) = delete;
   HveSwapChain& operator=(const HveSwapChain &) = delete;
 
+#ifdef IMGUI_DISABLED
   VkFramebuffer getFrameBuffer(int index) { return swapChainFramebuffers_m[index]; }
   VkRenderPass getRenderPass() { return renderPass_m; }
+#else
+  VkFramebuffer getFramebuffer(int renderPassId, int index)
+  { return multipleFramebuffers_m[renderPassId][index]; }
+  VkRenderPass getRenderPass(int renderPassId)
+  { return multipleRenderPass_m[renderPassId]; }
+#endif
+
   VkImageView getImageView(int index) { return swapChainImageViews_m[index]; }
   size_t imageCount() { return swapChainImages_m.size(); }
   VkFormat getSwapChainImageFormat() { return swapChainImageFormat_m; }
@@ -51,14 +59,34 @@ class HveSwapChain {
   bool compareSwapChainFormats(const HveSwapChain& swapChain) const 
   { return (swapChain.swapChainDepthFormat_m == swapChainDepthFormat_m) && (swapChain.swapChainImageFormat_m == swapChainImageFormat_m); }
 
+  void setRenderPass(VkRenderPass renderPass, int renderPassId)
+  { multipleRenderPass_m[renderPassId] = renderPass; }
+
+  // VFB : std::vector<VkFramebuffer>
+  template <class VFB>
+  void setFramebuffers(VFB&& framebuffers, int renderPassId)
+  { multipleFramebuffers_m[renderPassId] = std::forward<VFB>(framebuffers); }
+
  private:
   void init();
   void createSwapChain();
   void createImageViews();
   void createDepthResources();
-  void createRenderPass();
-  void createFramebuffers();
   void createSyncObjects();
+
+  VkRenderPass createRenderPass();
+  std::vector<VkFramebuffer> createFramebuffers(VkRenderPass renderPass);
+
+#ifndef __IMGUI_DISABLED
+  void createMultipleFramebuffers();
+  void createMultipleRenderPass();
+  // to add imgui renderPass
+  void addRenderPass(const VkRenderPass& renderPass)
+  { multipleRenderPass_m.emplace_back(renderPass); }
+  // to add imgui frame buffers
+  void addFramebuffers(const std::vector<VkFramebuffer>& framebuffers)
+  { multipleFramebuffers_m.emplace_back(framebuffers); }
+#endif
 
   // Helper functions
   VkSurfaceFormatKHR chooseSwapSurfaceFormat(
@@ -73,11 +101,16 @@ class HveSwapChain {
   VkFormat swapChainDepthFormat_m;
   VkExtent2D swapChainExtent_m;
 
-  std::vector<VkFramebuffer> swapChainFramebuffers_m;
   // tell Vulkan about the framebuffer attachments that will be used while rendering
   // how many color and depth buffers there will be
   // how many samples to use for each of them
+#ifdef __IMGUI_DISABLED
+  std::vector<VkFramebuffer> swapChainFramebuffers_m;
   VkRenderPass renderPass_m;
+#else
+  std::vector<std::vector<VkFramebuffer>> multipleFramebuffers_m;
+  std::vector<VkRenderPass> multipleRenderPass_m;
+#endif
 
   std::vector<VkImage> depthImages_m;
   std::vector<VkDeviceMemory> depthImageMemorys_m;

@@ -48,7 +48,7 @@ namespace hnll {
 class Hie
 {
 public:
-  Hie(HveDevice& hveDevice, HveSwapChain& hveSwapChain, GLFWwindow* window);
+  Hie(HveWindow& hveWindow, HveDevice& hveDevice, HveSwapChain& hveSwapChain);
   ~Hie();
   Hie(const Hie&) = delete;
   Hie& operator=(const Hie&) = delete;
@@ -58,7 +58,7 @@ public:
   void render();
   void frameRender(ImDrawData* draw_data);
   void framePresent();
-
+  
 private:
   // set up ImGui context
   void setupImGui(HveDevice& hveDevice, GLFWwindow* window);
@@ -67,7 +67,6 @@ private:
   void uploadFonts();
   void cleanupVulkan();
   void createDescriptorPool();
-  void createRenderPass();
   
   static void check_vk_result(VkResult err)
   {
@@ -83,7 +82,6 @@ private:
 
   VkDevice device_;
   VkDescriptorPool descriptorPool_;
-  VkRenderPass renderPass_;
   VkQueue graphicsQueue_;
 
   u_ptr<HieRenderer> upHieRenderer_;

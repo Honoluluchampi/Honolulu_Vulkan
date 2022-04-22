@@ -30,12 +30,12 @@ void HveRenderer::recreateSwapChain()
 
   // for first creation
   if (hveSwapChain_m == nullptr)
-    hveSwapChain_m = std::make_unique<HveSwapChain>(hveDevice_m, extent);
+    hveSwapChain_m = std::make_shared<HveSwapChain>(hveDevice_m, extent);
   // recreate
   else {
     // move the ownership of the current swap chain to old one.
     std::shared_ptr<HveSwapChain> oldSwapChain = std::move(hveSwapChain_m);
-    hveSwapChain_m = std::make_unique<HveSwapChain>(hveDevice_m, extent, oldSwapChain);
+    hveSwapChain_m = std::make_shared<HveSwapChain>(hveDevice_m, extent, oldSwapChain);
 
     if (!oldSwapChain->compareSwapChainFormats(*hveSwapChain_m.get()))
       throw std::runtime_error("swap chian image( or depth) format has chainged");
@@ -127,7 +127,7 @@ void HveRenderer::endFrame()
     currentFrameIndex_m = 0;
 }
 
-void HveRenderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer)
+void HveRenderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer, int renderPassId)
 {
   assert(isFrameStarted_m && "Can't call beginSwapChainRenderPass() while the frame is not in progress.");
   assert(commandBuffer == getCurrentCommandBuffer() && "Can't beginig render pass on command buffer from a different frame.");
@@ -135,8 +135,15 @@ void HveRenderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer)
   // starting a render pass
   VkRenderPassBeginInfo renderPassInfo{};
   renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+
+#ifdef __IMGUI_DISABLED
   renderPassInfo.renderPass = hveSwapChain_m->getRenderPass();
   renderPassInfo.framebuffer = hveSwapChain_m->getFrameBuffer(currentImageIndex_m);
+#else
+  renderPassInfo.renderPass = hveSwapChain_m->getRenderPass(renderPassId);
+  renderPassInfo.framebuffer = hveSwapChain_m->getFramebuffer(renderPassId, currentImageIndex_m);
+#endif  
+
   // the pixels outside this region will have undefined values
   renderPassInfo.renderArea.offset = {0, 0};
   renderPassInfo.renderArea.extent = hveSwapChain_m->getSwapChainExtent();

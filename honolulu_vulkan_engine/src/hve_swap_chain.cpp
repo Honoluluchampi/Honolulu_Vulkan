@@ -32,9 +32,18 @@ void HveSwapChain::init()
 {
   createSwapChain();
   createImageViews();
-  createRenderPass();
+
+#ifdef __IMGUI_DISABLED
+  renderPass_m = createRenderPass();
   createDepthResources();
-  createFramebuffers();
+  swapChainFramebuffers_m = createFramebuffers(renderPass_m);
+#else
+  // only create hve's renderPass
+  createMultipleRenderPass();
+  createDepthResources();
+  createMultipleFramebuffers();
+#endif
+
   createSyncObjects();
 }
 
@@ -56,11 +65,20 @@ HveSwapChain::~HveSwapChain()
     vkFreeMemory(device_m.device(), depthImageMemorys_m[i], nullptr);
   }
 
+#ifdef __IMGUI_DISABLED
   for (auto framebuffer : swapChainFramebuffers_m) {
     vkDestroyFramebuffer(device_m.device(), framebuffer, nullptr);
   }
-
   vkDestroyRenderPass(device_m.device(), renderPass_m, nullptr);
+#else
+  for (auto framebuffers : multipleFramebuffers_m) {
+    for (auto framebuffer : framebuffers) {
+      vkDestroyFramebuffer(device_m.device(), framebuffer, nullptr);
+    }
+  }
+  for (auto renderPass : multipleRenderPass_m)
+    vkDestroyRenderPass(device_m.device(), renderPass, nullptr);
+#endif
 
   // cleanup synchronization objects
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -245,7 +263,7 @@ void HveSwapChain::createImageViews()
   }
 }
 
-void HveSwapChain::createRenderPass() 
+VkRenderPass HveSwapChain::createRenderPass() 
 {
   VkAttachmentDescription depthAttachment{};
   depthAttachment.format = findDepthFormat();
@@ -271,11 +289,13 @@ void HveSwapChain::createRenderPass()
   colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
   colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
   colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-#ifdef IMGUI_ENABLED
-  colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-#else
+
+#ifdef __IMGUI_DISABLED
   colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+#else
+  colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 #endif
+
   VkAttachmentReference colorAttachmentRef = {};
   // which attachment to reference by its index
   colorAttachmentRef.attachment = 0;
@@ -315,14 +335,22 @@ void HveSwapChain::createRenderPass()
   renderPassInfo.dependencyCount = 1;
   renderPassInfo.pDependencies = &dependency;
 
-  if (vkCreateRenderPass(device_m.device(), &renderPassInfo, nullptr, &renderPass_m) != VK_SUCCESS) {
+  VkRenderPass renderPass;
+
+  if (vkCreateRenderPass(device_m.device(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
     throw std::runtime_error("failed to create render pass!");
   }
+
+#ifdef __IMGUI_DISABLED
+  renderPass_m = renderPass;
+#endif
+
+  return renderPass;
 }
 
-void HveSwapChain::createFramebuffers() 
+std::vector<VkFramebuffer> HveSwapChain::createFramebuffers(VkRenderPass renderPass) 
 {
-  swapChainFramebuffers_m.resize(imageCount());
+  std::vector<VkFramebuffer> swapChainFramebuffers(imageCount());
   for (size_t i = 0; i < imageCount(); i++) {
     std::array<VkImageView, 2> attachments = {swapChainImageViews_m[i], depthImageViews_m[i]};
 
@@ -330,7 +358,7 @@ void HveSwapChain::createFramebuffers()
     VkFramebufferCreateInfo framebufferInfo = {};
     framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     // renderPass the framebuffer needs to be compatible
-    framebufferInfo.renderPass = renderPass_m;
+    framebufferInfo.renderPass = renderPass;
     framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
     framebufferInfo.pAttachments = attachments.data();
     framebufferInfo.width = swapChainExtent.width;
@@ -338,10 +366,20 @@ void HveSwapChain::createFramebuffers()
     framebufferInfo.layers = 1;
 
     if (vkCreateFramebuffer(device_m.device(), &framebufferInfo, nullptr,
-            &swapChainFramebuffers_m[i]) != VK_SUCCESS) {
+            &swapChainFramebuffers[i]) != VK_SUCCESS) {
       throw std::runtime_error("failed to create framebuffer!");
     }
   }
+}
+
+void HveSwapChain::createMultipleRenderPass()
+{
+  multipleRenderPass_m[HVE_RENDER_PASS_ID] = createRenderPass();
+}
+
+void HveSwapChain::createMultipleFramebuffers()
+{
+  multipleFramebuffers_m[HVE_RENDER_PASS_ID] = createFramebuffers(multipleRenderPass_m[0]);
 }
 
 void HveSwapChain::createDepthResources() 

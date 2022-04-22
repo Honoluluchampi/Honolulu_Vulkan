@@ -4,13 +4,16 @@
 
 #include <hve_device.hpp>
 #include <hve_swap_chain.hpp>
+#include <hve_window.hpp>
 
 namespace hnll {
 
-class HieRenderer
+#define HIE_RENDER_PASS_ID 1
+
+class HieRenderer : public HveRenderer
 {
   public:
-    HieRenderer(HveDevice& hveDevice_, HveSwapChain& hveSwapChain);
+    HieRenderer(HveWindow& window, HveDevice& hveDevice, HveSwapChain& hveSwapChain);
     ~HieRenderer();
 
     HieRenderer(const HieRenderer&) = delete;
@@ -21,31 +24,15 @@ class HieRenderer
     void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
     void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
 
-    // getter
-    VkCommandBuffer getCurrentCommandBuffer() const 
-    { return commandBuffers_[currentFrameIndex_]; }
-    VkCommandPool getCommandPool() const
-    { return commandPool_; }
+    inline VkRenderPass getRenderPass()
+    { return hveSwapChain_m->getRenderPass(HIE_RENDER_PASS_ID); }
+
+    void recreateSwapChainDependencies() override;
 
   private:
-    void createCommandBuffers();
-    // TODO : use HveDevice::commandPool_m;
-    void createCommandPool();
-    void freeCommandBuffers();
-    void freeCommandPool();
-
-    // shared vulkan objects
-    VkDevice device_;
-    HveSwapChain& hveSwapChain_;
-    uint32_t graphicsFamilyIndex_;
-
-    // specific vulkan objects
-    std::vector<VkCommandBuffer> commandBuffers_;
-    VkCommandPool commandPool_;
-
-    uint32_t currentImageIndex_ = 0;
-    int currentFrameIndex_ = 0;
-    bool isFrameStarted_m = false;
+    // specific for hie
+    VkRenderPass createRenderPass();
+    std::vector<VkFramebuffer> createFramebuffers();
 };
 
 } // namespace hnll
