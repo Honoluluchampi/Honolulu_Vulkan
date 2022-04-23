@@ -13,7 +13,7 @@ namespace hnll {
 class HieRenderer : public HveRenderer
 {
   public:
-    HieRenderer(HveWindow& window, HveDevice& hveDevice, HveSwapChain& hveSwapChain);
+    HieRenderer(HveWindow& window, HveDevice& hveDevice, u_ptr<HveSwapChain>& upHveSwapChain);
     ~HieRenderer();
 
     HieRenderer(const HieRenderer&) = delete;
@@ -25,14 +25,15 @@ class HieRenderer : public HveRenderer
     void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
 
     inline VkRenderPass getRenderPass()
-    { return hveSwapChain_m->getRenderPass(HIE_RENDER_PASS_ID); }
+    { return upHveSwapChain_->getRenderPass(HIE_RENDER_PASS_ID); }
 
-    void recreateSwapChainDependencies() override;
+    void recreateSwapChain() override;
 
   private:
     // specific for hie
     VkRenderPass createRenderPass();
     std::vector<VkFramebuffer> createFramebuffers();
+    u_ptr<HveSwapChain>& upHveSwapChain_;
 };
 
 } // namespace hnll

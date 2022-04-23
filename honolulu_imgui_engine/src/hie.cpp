@@ -55,6 +55,7 @@ void Hie::setupImGui(HveDevice& hveDevice, GLFWwindow* window)
   info.ImageCount = hveSwapChain_.imageCount();
   info.CheckVkResultFn = check_vk_result;
 
+  // make sure to create render pass before this function
   ImGui_ImplVulkan_Init(&info, upHieRenderer_->getRenderPass());
 }
 

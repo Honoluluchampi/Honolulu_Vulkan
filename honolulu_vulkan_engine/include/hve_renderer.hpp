@@ -21,7 +21,7 @@ class HveRenderer
 {
   public:
 
-    HveRenderer(HveWindow& window, HveDevice& device);
+    HveRenderer(HveWindow& window, HveDevice& device, HveRenderer* dependentRenderer = nullptr);
     ~HveRenderer();
 
     HveRenderer(const HveRenderer &) = delete;
@@ -57,12 +57,14 @@ class HveRenderer
     void beginSwapChainRenderPass(VkCommandBuffer commandBuffer, int renderPassId);
     void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
 
-    virtual void recreateSwapChainDependencies(){}
+    virtual void recreateSwapChain();
 
   private:
     void createCommandBuffers();
     void freeCommandBuffers();
-    void recreateSwapChain();
+
+    // derived renderer's should take ref's of this
+    u_ptr<HveSwapChain> hveSwapChain_m;
 
   protected:    
     inline void isLastRenderer()
@@ -70,12 +72,14 @@ class HveRenderer
 
     HveWindow& hveWindow_m;
     HveDevice& hveDevice_m;
-    s_ptr<HveSwapChain> hveSwapChain_m;
     std::vector<VkCommandBuffer> commandBuffers_m;
 
     uint32_t currentImageIndex_m = 0;
     int currentFrameIndex_m = 0; // [0, max_frames_in_flight]
     bool isFrameStarted_m = false;
+
+    // TODO : use smart pointer
+    HveRenderer* dependentRenderer_ = nullptr;
 
 // to specify renderer by which command is submitted
 #ifndef __IMGUI_DISABLED

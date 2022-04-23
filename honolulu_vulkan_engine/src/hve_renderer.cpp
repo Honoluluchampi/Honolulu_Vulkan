@@ -6,8 +6,10 @@
 
 namespace hnll {
 
-HveRenderer::HveRenderer(HveWindow& window, HveDevice& device) : hveWindow_m{window}, hveDevice_m{device}
+HveRenderer::HveRenderer(HveWindow& window, HveDevice& device, HveRenderer* dependentRenderer)
+ : hveWindow_m{window}, hveDevice_m{device}
 {
+  // recreate swap chain dependent objects
   recreateSwapChain();
   createCommandBuffers();
 }
@@ -30,12 +32,12 @@ void HveRenderer::recreateSwapChain()
 
   // for first creation
   if (hveSwapChain_m == nullptr)
-    hveSwapChain_m = std::make_shared<HveSwapChain>(hveDevice_m, extent);
+    hveSwapChain_m = std::make_unique<HveSwapChain>(hveDevice_m, extent);
   // recreate
   else {
     // move the ownership of the current swap chain to old one.
     std::shared_ptr<HveSwapChain> oldSwapChain = std::move(hveSwapChain_m);
-    hveSwapChain_m = std::make_shared<HveSwapChain>(hveDevice_m, extent, oldSwapChain);
+    hveSwapChain_m = std::make_unique<HveSwapChain>(hveDevice_m, extent, oldSwapChain);
 
     if (!oldSwapChain->compareSwapChainFormats(*hveSwapChain_m.get()))
       throw std::runtime_error("swap chian image( or depth) format has chainged");
