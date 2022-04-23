@@ -1,7 +1,6 @@
 #pragma once
 
 #include <hve_window.hpp>
-#include <hie.hpp>
 
 // std
 #include <string>

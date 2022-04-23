@@ -7,7 +7,8 @@
 
 namespace hnll {
 
-Hie::Hie(HveWindow& hveWindow, HveDevice& hveDevice, HveSwapChain& hveSwapChain) : hveSwapChain_(hveSwapChain)
+// take s_ptr<HveSwapChain> from hveRenderer
+Hie::Hie(HveWindow& hveWindow, HveDevice& hveDevice, s_ptr<HveSwapChain> hveSwapChain)
 {  
   setupSpecificVulkanObjects();
   upHieRenderer_ = std::make_unique<HieRenderer>(hveWindow, hveDevice, hveSwapChain);
@@ -52,7 +53,7 @@ void Hie::setupImGui(HveDevice& hveDevice, GLFWwindow* window)
   info.Allocator = nullptr;
   // TODO : make minImageCount consistent with hve
   info.MinImageCount = 2;
-  info.ImageCount = hveSwapChain_.imageCount();
+  info.ImageCount = upHieRenderer_->hveSwapChain().imageCount();
   info.CheckVkResultFn = check_vk_result;
 
   // make sure to create render pass before this function
@@ -76,22 +77,21 @@ void Hie::render()
 
   // render window
   ImGui::Render();
-  ImDrawData* drawData = ImGui::GetDrawData();
-  // TODO : if not minimized...
-  frameRender(drawData);
-  framePresent();
+
+  frameRender();
 }
 
-void Hie::frameRender(ImDrawData* draw_data)
+void Hie::frameRender()
 {
-  auto imageAvailableSemaphore = hveSwapChain_.getCurrentImageAvailableSemaphore();
-  auto renderFinishedSemaphore = hveSwapChain_.getCurrentRenderFinishedSemaphore();
+  // wheather swap chain had been recreated
+  if (auto commandBuffer = upHieRenderer_->beginFrame()) {
+    upHieRenderer_->beginSwapChainRenderPass(commandBuffer, HIE_RENDER_PASS_ID);
+    
+    // record the draw data to the command buffer
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 
-}
-
-void Hie::framePresent()
-{
-
+    upHieRenderer_->endSwapChainRenderPass(commandBuffer);
+  }
 }
 
 void Hie::createDescriptorPool()

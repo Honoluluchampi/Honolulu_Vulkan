@@ -54,7 +54,10 @@ private:
   HgeActor::map deadActorMap_m;
 
   u_ptr<Hve> upHve_m;
+
+#ifndef __IMGUI_DISABLED
   u_ptr<Hie> upHie_m;
+#endif
 
   // map of modelcomponents
   // shared by game and some actors

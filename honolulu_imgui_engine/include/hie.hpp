@@ -48,7 +48,7 @@ namespace hnll {
 class Hie
 {
 public:
-  Hie(HveWindow& hveWindow, HveDevice& hveDevice, HveSwapChain& hveSwapChain);
+  Hie(HveWindow& hveWindow, HveDevice& hveDevice, s_ptr<HveSwapChain> hveSwapChain);
   ~Hie();
   Hie(const Hie&) = delete;
   Hie& operator=(const Hie&) = delete;
@@ -56,8 +56,10 @@ public:
   Hie& operator=(Hie&&) = default;
 
   void render();
-  void frameRender(ImDrawData* draw_data);
-  void framePresent();
+  void frameRender();
+
+  const u_ptr<HieRenderer>& upHieRenderer() const { return upHieRenderer_; }
+  HveRenderer* pHieRenderer() const { return upHieRenderer_.get(); }
   
 private:
   // set up ImGui context
@@ -85,9 +87,6 @@ private:
   VkQueue graphicsQueue_;
 
   u_ptr<HieRenderer> upHieRenderer_;
-
-  // hve
-  HveSwapChain& hveSwapChain_;
 
   ImGui_ImplVulkanH_Window mainWindowData_;
   // TODO : make it consistent with hve

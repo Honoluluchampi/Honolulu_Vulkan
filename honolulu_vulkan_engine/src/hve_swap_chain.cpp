@@ -127,7 +127,13 @@ VkResult HveSwapChain::submitCommandBuffers(const VkCommandBuffer *buffers, uint
   // which command buffers to actually submit for execution
   // should submit the command buffer that binds the swap chain image 
   // we just acquired as color attachiment.
+
+  // TODO : configure renderer count in a systematic way
+#ifdef __IMGUI_DISABLED
   submitInfo.commandBufferCount = 1;
+#else
+  submitInfo.commandBufferCount = 2;
+#endif
   submitInfo.pCommandBuffers = buffers;
   // specify which semaphores to signal once the comand buffer have finished execution
   VkSemaphore signalSemaphores[] = {renderFinishedSemaphores_m[currentFrame_m]};

@@ -2,22 +2,24 @@
 
 namespace hnll {
 
-HieRenderer::HieRenderer(HveWindow& window, HveDevice& hveDevice, u_ptr<HveSwapChain>& upHveSwapChain) : 
-  HveRenderer(window, hveDevice), upHveSwapChain_(upHveSwapChain)
+HieRenderer::HieRenderer(HveWindow& window, HveDevice& hveDevice, s_ptr<HveSwapChain> hveSwapChain) : 
+  HveRenderer(window, hveDevice, hveSwapChain)
 {
-  isLastRenderer();
+  recreateSwapChain();
 }
 
 void HieRenderer::recreateSwapChain()
 {
-  upHveSwapChain_->setRenderPass(createRenderPass(), HIE_RENDER_PASS_ID);
-  upHveSwapChain_->setFramebuffers(createFramebuffers(), HIE_RENDER_PASS_ID);
+  hveSwapChain_m->setRenderPass(createRenderPass(), HIE_RENDER_PASS_ID);
+  hveSwapChain_m->setFramebuffers(createFramebuffers(), HIE_RENDER_PASS_ID);
+
+  if (nextRenderer_) nextRenderer_->recreateSwapChain();
 }
 
 VkRenderPass HieRenderer::createRenderPass()
 {
   VkAttachmentDescription attachment = {};
-  attachment.format = upHveSwapChain_->getSwapChainImageFormat();
+  attachment.format = hveSwapChain_m->getSwapChainImageFormat();
   attachment.samples = VK_SAMPLE_COUNT_1_BIT;
   attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
   attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -69,19 +71,19 @@ std::vector<VkFramebuffer> HieRenderer::createFramebuffers()
   VkFramebufferCreateInfo info{};
   info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
   // make sure to create renderpass before frame buffers
-  info.renderPass = upHveSwapChain_->getRenderPass(HIE_RENDER_PASS_ID);
+  info.renderPass = hveSwapChain_m->getRenderPass(HIE_RENDER_PASS_ID);
   info.attachmentCount = 1;
   info.pAttachments = &attachment;
-  auto extent = upHveSwapChain_->getSwapChainExtent();
+  auto extent = hveSwapChain_m->getSwapChainExtent();
   info.width = extent.width;
   info.height = extent.height;
   info.layers = 1;
 
   // as many as image view count
-  auto imageCount = upHveSwapChain_->imageCount();
+  auto imageCount = hveSwapChain_m->imageCount();
   std::vector<VkFramebuffer> framebuffers(imageCount);
   for (size_t i = 0; i < imageCount; i++) {
-    attachment = upHveSwapChain_->getImageView(i);
+    attachment = hveSwapChain_m->getImageView(i);
     if (vkCreateFramebuffer(hveDevice_m.device(), &info, nullptr, &framebuffers[i]) != VK_SUCCESS)
       throw std::runtime_error("failed to create frame buffer.");
   }
