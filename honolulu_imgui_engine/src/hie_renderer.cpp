@@ -10,7 +10,7 @@ HieRenderer::HieRenderer(HveWindow& window, HveDevice& hveDevice, bool recreateF
 
 void HieRenderer::recreateSwapChain()
 {
-  
+
   hveSwapChain_m->setRenderPass(createRenderPass(), HIE_RENDER_PASS_ID);
   hveSwapChain_m->setFramebuffers(createFramebuffers(), HIE_RENDER_PASS_ID);
 

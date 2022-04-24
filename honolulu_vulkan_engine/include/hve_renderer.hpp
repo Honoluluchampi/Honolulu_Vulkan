@@ -61,10 +61,6 @@ class HveRenderer
     void beginSwapChainRenderPass(VkCommandBuffer commandBuffer, int renderPassId);
     void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
 
-#ifndef __IMGUI_DISABLED
-    void submitCommandBuffers();
-#endif
-
     virtual void recreateSwapChain();
 
     inline void setNextRenderer(HveRenderer* renderer)
@@ -74,10 +70,15 @@ class HveRenderer
     { return !nextRenderer_; }
 
     static bool swapChainRecreated_m;
-    static void resetRenderer();
     static void cleanupSwapChain();
 
   private:
+
+#ifndef __IMGUI_DISABLED
+    static void submitCommandBuffers();
+    static void resetFrame();
+#endif
+
     void createCommandBuffers();
     void freeCommandBuffers();
 
@@ -98,7 +99,6 @@ class HveRenderer
     // TODO : use smart pointer
     HveRenderer* nextRenderer_ = nullptr;
 
-    // derived renderer's should take ref's of this
     static u_ptr<HveSwapChain> hveSwapChain_m;
 };
 } // namespace hve

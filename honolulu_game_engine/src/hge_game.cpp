@@ -92,12 +92,9 @@ void HgeGame::update()
 void HgeGame::render()
 {
 #ifndef __IMGUI_DISABLED
-  if (!HveRenderer::swapChainRecreated_m)
+  if (!HveRenderer::swapChainRecreated_m){
     upHie_m->render();
-
-  upHie_m->upHieRenderer()->submitCommandBuffers();
-
-  HveRenderer::resetRenderer();
+  }
 #endif
 }
 

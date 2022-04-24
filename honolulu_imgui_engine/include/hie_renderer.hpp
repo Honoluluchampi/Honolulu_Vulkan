@@ -1,5 +1,3 @@
-// TODO : integrate with hverenderer
-
 #pragma once
 
 #include <hve_renderer.hpp>
