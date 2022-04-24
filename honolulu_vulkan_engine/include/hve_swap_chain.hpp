@@ -12,6 +12,11 @@
 
 namespace hnll {
 
+// TODO : configure renderer count in a systematic way
+#define RENDERER_COUNT 2
+#define HVE_RENDER_PASS_ID 0
+#define HIE_RENDER_PASS_ID 1
+
 class HveSwapChain {
  public:
   static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
@@ -23,7 +28,7 @@ class HveSwapChain {
   HveSwapChain(const HveSwapChain &) = delete;
   HveSwapChain& operator=(const HveSwapChain &) = delete;
 
-#ifdef IMGUI_DISABLED
+#ifdef __IMGUI_DISABLED
   VkFramebuffer getFrameBuffer(int index) { return swapChainFramebuffers_m[index]; }
   VkRenderPass getRenderPass() { return renderPass_m; }
 #else

@@ -73,8 +73,6 @@ void Hve::init()
     (simpleRendererSystem->getRenderType(), std::move(simpleRendererSystem));
   renderingSystems_m.emplace
     (pointLightSystem->getRenderType(), std::move(pointLightSystem));
-  
-  
 }
 
 // each render systems automatically detect render target components

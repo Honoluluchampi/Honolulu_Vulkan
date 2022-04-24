@@ -10,7 +10,6 @@ namespace hnll {
 uint32_t HveRenderer::currentImageIndex_m = 0;
 int HveRenderer::currentFrameIndex_m = 0;
 bool HveRenderer::swapChainRecreated_m = false;
-bool HveRenderer::isFrameStarted_m = false;
 std::vector<VkCommandBuffer> HveRenderer::submittingCommandBuffers_m = {};
 
 HveRenderer::HveRenderer(HveWindow& window, HveDevice& device, s_ptr<HveSwapChain> swapChain)
@@ -55,6 +54,12 @@ void HveRenderer::recreateSwapChain()
 
   // execute this function at the last of derived function's recreateSwapChain();
   if (nextRenderer_) nextRenderer_->recreateSwapChain();
+}
+
+void HveRenderer::resetRenderer()
+{
+  swapChainRecreated_m = false;
+  submittingCommandBuffers_m.clear();
 }
 
 void HveRenderer::createCommandBuffers() 
@@ -126,6 +131,9 @@ void HveRenderer::endFrame()
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) 
     throw std::runtime_error("failed to record command buffer!");
 
+  if (!isLastRenderer())
+    isFrameStarted_m = false;
+
 #ifdef __IMGUI_DISABLED
   auto result = hveSwapChain_m->submitCommandBuffers(&commandBuffer, &currentImageIndex_m);
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || hveWindow_m.wasWindowResized()) {
@@ -140,6 +148,8 @@ void HveRenderer::endFrame()
   // increment currentFrameIndex_m
   if (++currentFrameIndex_m == HveSwapChain::MAX_FRAMES_IN_FLIGHT)
     currentFrameIndex_m = 0;
+#else
+  submittingCommandBuffers_m.push_back(commandBuffer);
 #endif
 }
 

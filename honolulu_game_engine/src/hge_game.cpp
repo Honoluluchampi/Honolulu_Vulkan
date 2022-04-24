@@ -90,6 +90,8 @@ void HgeGame::render()
     upHie_m->render();
 
   upHie_m->upHieRenderer()->submitCommandBuffers();
+
+  HveRenderer::resetRenderer();
 #endif
 }
 

@@ -9,9 +9,6 @@
 #include <set>
 #include <stdexcept>
 
-// this should be configurable
-#define IMGUI_ENABLED;
-
 namespace hnll {
 
 HveSwapChain::HveSwapChain(HveDevice &deviceRef, VkExtent2D extent)
@@ -39,6 +36,8 @@ void HveSwapChain::init()
   swapChainFramebuffers_m = createFramebuffers(renderPass_m);
 #else
   // only create hve's renderPass
+  multipleRenderPass_m.resize(RENDERER_COUNT);
+  multipleFramebuffers_m.resize(RENDERER_COUNT);
   createMultipleRenderPass();
   createDepthResources();
   createMultipleFramebuffers();
@@ -347,10 +346,6 @@ VkRenderPass HveSwapChain::createRenderPass()
     throw std::runtime_error("failed to create render pass!");
   }
 
-#ifdef __IMGUI_DISABLED
-  renderPass_m = renderPass;
-#endif
-
   return renderPass;
 }
 
@@ -376,6 +371,8 @@ std::vector<VkFramebuffer> HveSwapChain::createFramebuffers(VkRenderPass renderP
       throw std::runtime_error("failed to create framebuffer!");
     }
   }
+
+  return swapChainFramebuffers;
 }
 
 void HveSwapChain::createMultipleRenderPass()
@@ -385,7 +382,7 @@ void HveSwapChain::createMultipleRenderPass()
 
 void HveSwapChain::createMultipleFramebuffers()
 {
-  multipleFramebuffers_m[HVE_RENDER_PASS_ID] = createFramebuffers(multipleRenderPass_m[0]);
+  multipleFramebuffers_m[HVE_RENDER_PASS_ID] = createFramebuffers(multipleRenderPass_m[HVE_RENDER_PASS_ID]);
 }
 
 void HveSwapChain::createDepthResources() 

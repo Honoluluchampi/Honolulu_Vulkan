@@ -9,6 +9,7 @@ namespace hnll {
 
 // take s_ptr<HveSwapChain> from hveRenderer
 Hie::Hie(HveWindow& hveWindow, HveDevice& hveDevice, s_ptr<HveSwapChain> hveSwapChain)
+  : device_(hveDevice.device())
 {  
   setupSpecificVulkanObjects();
   upHieRenderer_ = std::make_unique<HieRenderer>(hveWindow, hveDevice, hveSwapChain);
@@ -54,7 +55,7 @@ void Hie::setupImGui(HveDevice& hveDevice, GLFWwindow* window)
   // TODO : make minImageCount consistent with hve
   info.MinImageCount = 2;
   info.ImageCount = upHieRenderer_->hveSwapChain().imageCount();
-  info.CheckVkResultFn = check_vk_result;
+  info.CheckVkResultFn = nullptr;
 
   // make sure to create render pass before this function
   ImGui_ImplVulkan_Init(&info, upHieRenderer_->getRenderPass());
@@ -91,6 +92,7 @@ void Hie::frameRender()
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 
     upHieRenderer_->endSwapChainRenderPass(commandBuffer);
+    upHieRenderer_->endFrame();
   }
 }
 
@@ -118,8 +120,8 @@ void Hie::createDescriptorPool()
 	pool_info.maxSets = 1000 * IM_ARRAYSIZE(pool_sizes);
 	pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
 	pool_info.pPoolSizes = pool_sizes;
-	auto err = vkCreateDescriptorPool(device_, &pool_info, nullptr, &descriptorPool_);
-	check_vk_result(err);
+	if (vkCreateDescriptorPool(device_, &pool_info, nullptr, &descriptorPool_) != VK_SUCCESS)
+    throw std::runtime_error("failed to create descriptor pool.");
 }
 
 void Hie::uploadFonts()
@@ -135,14 +137,14 @@ void Hie::uploadFonts()
   // Use any command queue
   VkCommandPool commandPool = upHieRenderer_->getCommandPool();
   VkCommandBuffer commandBuffer = upHieRenderer_->getCurrentCommandBuffer();
-
-  auto err = vkResetCommandPool(device_, commandPool, 0);
-  check_vk_result(err);
+  if (vkResetCommandPool(device_, commandPool, 0) != VK_SUCCESS)
+    throw std::runtime_error("failed to reset command pool");
+  
   VkCommandBufferBeginInfo beginInfo = {};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
   beginInfo.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-  err = vkBeginCommandBuffer(commandBuffer, &beginInfo);
-  check_vk_result(err);
+  if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+    throw std::runtime_error("failed to begin command buffer.");
 
   ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
 
@@ -150,14 +152,16 @@ void Hie::uploadFonts()
   endInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
   endInfo.commandBufferCount = 1;
   endInfo.pCommandBuffers = &commandBuffer;
-  err = vkEndCommandBuffer(commandBuffer);
-  check_vk_result(err);
-  err = vkQueueSubmit(graphicsQueue_, 1, &endInfo, VK_NULL_HANDLE);
-  check_vk_result(err);
+  if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+    throw std::runtime_error("failed to end command buffer.");
+  
+  if (vkQueueSubmit(graphicsQueue_, 1, &endInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+    throw std::runtime_error("failed to submit font upload queue.");
 
-  err = vkDeviceWaitIdle(device_);
-  check_vk_result(err);
+  vkDeviceWaitIdle(device_);
   ImGui_ImplVulkan_DestroyFontUploadObjects();
+
+  std::cout << "font was successfully uploaded." << std::endl;
 }
 
 } // namespace hnll

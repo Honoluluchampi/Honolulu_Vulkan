@@ -8,7 +8,7 @@ target_include_directories(hie PUBLIC
                            # hie
                            ${CMAKE_CURRENT_SOURCE_DIR}/include
                            # hge
-                           # ${PROJECT_SOURCE_DIR}/honolulu_game_engine/include
+                           ${PROJECT_SOURCE_DIR}/honolulu_game_engine/include
                            # hve
                            ${PROJECT_SOURCE_DIR}/honolulu_vulkan_engine/include
                            # imgui

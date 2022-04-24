@@ -27,7 +27,7 @@ class HveRenderer
   public:
 
     HveRenderer(HveWindow& window, HveDevice& device, s_ptr<HveSwapChain> swapChain = nullptr);
-    ~HveRenderer();
+    virtual ~HveRenderer();
 
     HveRenderer(const HveRenderer &) = delete;
     HveRenderer &operator= (const HveRenderer &) = delete;
@@ -43,17 +43,17 @@ class HveRenderer
     inline float getAspectRatio() const { return hveSwapChain_m->extentAspectRatio(); }
     inline bool isFrameInProgress() const { return isFrameStarted_m; }
     inline HveSwapChain& hveSwapChain() const { return *hveSwapChain_m; }
-    inline const s_ptr<HveSwapChain>& spHveSwapChain() const { return hveSwapChain_m; }
+    inline s_ptr<HveSwapChain>& spHveSwapChain() { return hveSwapChain_m; }
     inline VkCommandPool getCommandPool() const { return hveDevice_m.getCommandPool(); }
     
     VkCommandBuffer getCurrentCommandBuffer() const 
     {
-      assert(isFrameStarted_m && "Cannot get command buffer when frame not in progress");
+      // assert(isFrameStarted_m && "Cannot get command buffer when frame not in progress");
       return commandBuffers_m[currentFrameIndex_m];
     }
     int getFrameIndex() const 
     {
-      assert(isFrameStarted_m && "Cannot get frame when frame not in progress");
+      // assert(isFrameStarted_m && "Cannot get frame when frame not in progress");
       return currentFrameIndex_m;
     }
 
@@ -75,6 +75,7 @@ class HveRenderer
     { return !nextRenderer_; }
 
     static bool swapChainRecreated_m;
+    static void resetRenderer();
 
   private:
     void createCommandBuffers();
@@ -87,7 +88,7 @@ class HveRenderer
 
     static uint32_t currentImageIndex_m;
     static int currentFrameIndex_m; // [0, max_frames_in_flight]
-    static bool isFrameStarted_m;
+    bool isFrameStarted_m = false;
 
 #ifndef __IMGUI_DISABLED
     // store multiple renderers' command buffers

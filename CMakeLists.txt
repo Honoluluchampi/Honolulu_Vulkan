@@ -10,6 +10,7 @@ project(app VERSION 1.0)
 # specify the c++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_FLAGS "-g3 -O0")
 
 # add subdirectory's library (this call should corresponds to the mathlib's "add_library")
 add_subdirectory(honolulu_vulkan_engine)

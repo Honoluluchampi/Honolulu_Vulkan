@@ -69,15 +69,6 @@ private:
   void uploadFonts();
   void cleanupVulkan();
   void createDescriptorPool();
-  
-  static void check_vk_result(VkResult err)
-  {
-      if (err == 0)
-          return;
-      fprintf(stderr, "[vulkan] Error: VkResult = %d\n", err);
-      if (err < 0)
-          abort();
-  }
 
   static void glfw_error_callback(int error, const char* description)
   { fprintf(stderr, "Glfw Error %d: %s\n", error, description); }
