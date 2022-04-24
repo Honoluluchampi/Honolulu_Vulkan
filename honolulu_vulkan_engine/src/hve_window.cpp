@@ -45,5 +45,4 @@ void HveWindow::framebufferResizeCallBack(GLFWwindow *window, int width, int hei
   hveWindow->height_m = height;
 }
 
-
 } // namespace hv

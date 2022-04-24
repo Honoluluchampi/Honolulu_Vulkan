@@ -163,8 +163,6 @@ void Hie::uploadFonts()
 
   vkDeviceWaitIdle(device_);
   ImGui_ImplVulkan_DestroyFontUploadObjects();
-
-  std::cout << "font was successfully uploaded." << std::endl;
 }
 
 } // namespace hnll

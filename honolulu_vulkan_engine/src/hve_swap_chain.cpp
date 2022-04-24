@@ -383,15 +383,19 @@ void HveSwapChain::createMultipleFramebuffers()
 
 void HveSwapChain::resetFramebuffers(int renderPassId)
 { 
-  if (multipleFramebuffers_m[renderPassId].size() > 0)
+  if (multipleFramebuffers_m[renderPassId].size() > 0) {
+    vkDeviceWaitIdle(device_m.device());
     for (auto& framebuffer : multipleFramebuffers_m[renderPassId])
       vkDestroyFramebuffer(device_m.device(), framebuffer, nullptr); 
+  }
 }
 
 void HveSwapChain::resetRenderPass(int renderPassId)
 { 
-  if (multipleRenderPass_m[renderPassId] != VK_NULL_HANDLE)
+  if (multipleRenderPass_m[renderPassId] != VK_NULL_HANDLE) {
+    vkDeviceWaitIdle(device_m.device());
     vkDestroyRenderPass(device_m.device(), multipleRenderPass_m[renderPassId], nullptr); 
+  }
 }
 
 void HveSwapChain::createDepthResources() 
