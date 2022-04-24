@@ -8,17 +8,20 @@
 namespace hnll {
 
 // take s_ptr<HveSwapChain> from hveRenderer
-Hie::Hie(HveWindow& hveWindow, HveDevice& hveDevice, s_ptr<HveSwapChain> hveSwapChain)
+Hie::Hie(HveWindow& hveWindow, HveDevice& hveDevice)
   : device_(hveDevice.device())
 {  
   setupSpecificVulkanObjects();
-  upHieRenderer_ = std::make_unique<HieRenderer>(hveWindow, hveDevice, hveSwapChain);
+  upHieRenderer_ = std::make_unique<HieRenderer>(hveWindow, hveDevice, false);
   setupImGui(hveDevice, hveWindow.getGLFWwindow());
   uploadFonts();
 }
 
 Hie::~Hie()
 {
+  ImGui_ImplVulkan_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
   cleanupVulkan();
 }
 

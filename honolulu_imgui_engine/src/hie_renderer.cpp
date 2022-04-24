@@ -2,14 +2,15 @@
 
 namespace hnll {
 
-HieRenderer::HieRenderer(HveWindow& window, HveDevice& hveDevice, s_ptr<HveSwapChain> hveSwapChain) : 
-  HveRenderer(window, hveDevice, hveSwapChain)
+HieRenderer::HieRenderer(HveWindow& window, HveDevice& hveDevice, bool recreateFromScratch) : 
+  HveRenderer(window, hveDevice, recreateFromScratch)
 {
   recreateSwapChain();
 }
 
 void HieRenderer::recreateSwapChain()
 {
+  
   hveSwapChain_m->setRenderPass(createRenderPass(), HIE_RENDER_PASS_ID);
   hveSwapChain_m->setFramebuffers(createFramebuffers(), HIE_RENDER_PASS_ID);
 

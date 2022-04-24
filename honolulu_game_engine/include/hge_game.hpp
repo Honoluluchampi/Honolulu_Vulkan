@@ -21,7 +21,7 @@ class HgeGame
 {
 public:
   HgeGame(const char* windowName = "honolulu engine");
-  ~HgeGame(){}
+  ~HgeGame();
   // delete copy ctor
   HgeGame(const HgeGame &) = delete;
   HgeGame& operator=(const HgeGame &) = delete;

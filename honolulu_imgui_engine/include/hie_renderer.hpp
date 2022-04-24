@@ -11,7 +11,7 @@ namespace hnll {
 class HieRenderer : public HveRenderer
 {
   public:
-    HieRenderer(HveWindow& window, HveDevice& hveDevice, s_ptr<HveSwapChain> hveSwapChain);
+    HieRenderer(HveWindow& window, HveDevice& hveDevice, bool recreateFromScratch);
 
     HieRenderer(const HieRenderer&) = delete;
     HieRenderer& operator= (const HieRenderer&) = delete;

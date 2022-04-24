@@ -22,7 +22,7 @@ class HveSwapChain {
   static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
   HveSwapChain(HveDevice &deviceRef, VkExtent2D windowExtent);
-  HveSwapChain(HveDevice &deviceRef, VkExtent2D windowExtent, std::shared_ptr<HveSwapChain> previous);
+  HveSwapChain(HveDevice &deviceRef, VkExtent2D windowExtent, std::unique_ptr<HveSwapChain> previous);
   ~HveSwapChain();
 
   HveSwapChain(const HveSwapChain &) = delete;
@@ -64,13 +64,21 @@ class HveSwapChain {
   bool compareSwapChainFormats(const HveSwapChain& swapChain) const 
   { return (swapChain.swapChainDepthFormat_m == swapChainDepthFormat_m) && (swapChain.swapChainImageFormat_m == swapChainImageFormat_m); }
 
+#ifndef __IMGUI_DISABLED
   void setRenderPass(VkRenderPass renderPass, int renderPassId)
-  { multipleRenderPass_m[renderPassId] = renderPass; }
+  { 
+    resetRenderPass(renderPassId);
+    multipleRenderPass_m[renderPassId] = renderPass; 
+  }
 
   // VFB : std::vector<VkFramebuffer>
   template <class VFB>
   void setFramebuffers(VFB&& framebuffers, int renderPassId)
-  { multipleFramebuffers_m[renderPassId] = std::forward<VFB>(framebuffers); }
+  { 
+    resetFramebuffers(renderPassId);
+    multipleFramebuffers_m[renderPassId] = std::forward<VFB>(framebuffers); 
+  }
+#endif
 
  private:
   void init();
@@ -85,12 +93,8 @@ class HveSwapChain {
 #ifndef __IMGUI_DISABLED
   void createMultipleFramebuffers();
   void createMultipleRenderPass();
-  // to add imgui renderPass
-  void addRenderPass(const VkRenderPass& renderPass)
-  { multipleRenderPass_m.emplace_back(renderPass); }
-  // to add imgui frame buffers
-  void addFramebuffers(const std::vector<VkFramebuffer>& framebuffers)
-  { multipleFramebuffers_m.emplace_back(framebuffers); }
+  void resetFramebuffers(int renderPassId);
+  void resetRenderPass(int renderPassId);
 #endif
 
   // Helper functions
@@ -127,7 +131,7 @@ class HveSwapChain {
   VkExtent2D windowExtent_m;
 
   VkSwapchainKHR swapChain_m;
-  std::shared_ptr<HveSwapChain> oldSwapChain_m;
+  std::unique_ptr<HveSwapChain> oldSwapChain_m;
 
   // an image has been acquired and is ready for rendering
   std::vector<VkSemaphore> imageAvailableSemaphores_m;

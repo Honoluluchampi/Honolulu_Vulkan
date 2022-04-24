@@ -17,8 +17,8 @@ HveSwapChain::HveSwapChain(HveDevice &deviceRef, VkExtent2D extent)
   init();
 }
 
-HveSwapChain::HveSwapChain(HveDevice &deviceRef, VkExtent2D extent, std::shared_ptr<HveSwapChain> previous)
-    : device_m{deviceRef}, windowExtent_m{extent}, oldSwapChain_m(previous) 
+HveSwapChain::HveSwapChain(HveDevice &deviceRef, VkExtent2D extent, std::unique_ptr<HveSwapChain> previous)
+    : device_m{deviceRef}, windowExtent_m{extent}, oldSwapChain_m(std::move(previous)) 
 {
   init();
   // clean up old swap chain since it's no longer neeeded
@@ -36,8 +36,8 @@ void HveSwapChain::init()
   swapChainFramebuffers_m = createFramebuffers(renderPass_m);
 #else
   // only create hve's renderPass
-  multipleRenderPass_m.resize(RENDERER_COUNT);
   multipleFramebuffers_m.resize(RENDERER_COUNT);
+  multipleRenderPass_m.resize(RENDERER_COUNT);
   createMultipleRenderPass();
   createDepthResources();
   createMultipleFramebuffers();
@@ -376,13 +376,22 @@ std::vector<VkFramebuffer> HveSwapChain::createFramebuffers(VkRenderPass renderP
 }
 
 void HveSwapChain::createMultipleRenderPass()
-{
-  multipleRenderPass_m[HVE_RENDER_PASS_ID] = createRenderPass();
-}
+{ multipleRenderPass_m[HVE_RENDER_PASS_ID] = createRenderPass(); }
 
 void HveSwapChain::createMultipleFramebuffers()
-{
-  multipleFramebuffers_m[HVE_RENDER_PASS_ID] = createFramebuffers(multipleRenderPass_m[HVE_RENDER_PASS_ID]);
+{ multipleFramebuffers_m[HVE_RENDER_PASS_ID] = createFramebuffers(multipleRenderPass_m[HVE_RENDER_PASS_ID]); }
+
+void HveSwapChain::resetFramebuffers(int renderPassId)
+{ 
+  if (multipleFramebuffers_m[renderPassId].size() > 0)
+    for (auto& framebuffer : multipleFramebuffers_m[renderPassId])
+      vkDestroyFramebuffer(device_m.device(), framebuffer, nullptr); 
+}
+
+void HveSwapChain::resetRenderPass(int renderPassId)
+{ 
+  if (multipleRenderPass_m[renderPassId] != VK_NULL_HANDLE)
+    vkDestroyRenderPass(device_m.device(), multipleRenderPass_m[renderPassId], nullptr); 
 }
 
 void HveSwapChain::createDepthResources() 

@@ -26,7 +26,7 @@ class HveRenderer
 {
   public:
 
-    HveRenderer(HveWindow& window, HveDevice& device, s_ptr<HveSwapChain> swapChain = nullptr);
+    HveRenderer(HveWindow& window, HveDevice& device, bool recreateFromScratch = true);
     virtual ~HveRenderer();
 
     HveRenderer(const HveRenderer &) = delete;
@@ -43,7 +43,6 @@ class HveRenderer
     inline float getAspectRatio() const { return hveSwapChain_m->extentAspectRatio(); }
     inline bool isFrameInProgress() const { return isFrameStarted_m; }
     inline HveSwapChain& hveSwapChain() const { return *hveSwapChain_m; }
-    inline s_ptr<HveSwapChain>& spHveSwapChain() { return hveSwapChain_m; }
     inline VkCommandPool getCommandPool() const { return hveDevice_m.getCommandPool(); }
     
     VkCommandBuffer getCurrentCommandBuffer() const 
@@ -76,6 +75,7 @@ class HveRenderer
 
     static bool swapChainRecreated_m;
     static void resetRenderer();
+    static void cleanupSwapChain();
 
   private:
     void createCommandBuffers();
@@ -99,6 +99,6 @@ class HveRenderer
     HveRenderer* nextRenderer_ = nullptr;
 
     // derived renderer's should take ref's of this
-    s_ptr<HveSwapChain> hveSwapChain_m;
+    static u_ptr<HveSwapChain> hveSwapChain_m;
 };
 } // namespace hve

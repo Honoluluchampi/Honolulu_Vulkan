@@ -11,12 +11,13 @@ uint32_t HveRenderer::currentImageIndex_m = 0;
 int HveRenderer::currentFrameIndex_m = 0;
 bool HveRenderer::swapChainRecreated_m = false;
 std::vector<VkCommandBuffer> HveRenderer::submittingCommandBuffers_m = {};
+u_ptr<HveSwapChain> HveRenderer::hveSwapChain_m = nullptr;
 
-HveRenderer::HveRenderer(HveWindow& window, HveDevice& device, s_ptr<HveSwapChain> swapChain)
- : hveWindow_m{window}, hveDevice_m{device}, hveSwapChain_m(std::move(swapChain))
+HveRenderer::HveRenderer(HveWindow& window, HveDevice& device, bool recreateFromScratch)
+ : hveWindow_m{window}, hveDevice_m{device}
 {
   // recreate swap chain dependent objects
-  recreateSwapChain();
+  if (recreateFromScratch) recreateSwapChain();
   createCommandBuffers();
 }
 
@@ -42,8 +43,8 @@ void HveRenderer::recreateSwapChain()
   // recreate
   else {
     // move the ownership of the current swap chain to old one.
-    std::shared_ptr<HveSwapChain> oldSwapChain = std::move(hveSwapChain_m);
-    hveSwapChain_m = std::make_unique<HveSwapChain>(hveDevice_m, extent, oldSwapChain);
+    std::unique_ptr<HveSwapChain> oldSwapChain = std::move(hveSwapChain_m);
+    hveSwapChain_m = std::make_unique<HveSwapChain>(hveDevice_m, extent, std::move(oldSwapChain));
 
     if (!oldSwapChain->compareSwapChainFormats(*hveSwapChain_m.get()))
       throw std::runtime_error("swap chian image( or depth) format has chainged");
@@ -89,21 +90,28 @@ void HveRenderer::freeCommandBuffers()
   commandBuffers_m.clear();
 }
 
+void HveRenderer::cleanupSwapChain()
+{
+  hveSwapChain_m.reset();
+}
+
 VkCommandBuffer HveRenderer::beginFrame()
 {
   assert(!isFrameStarted_m && "Can't call beginFrame() while already in progress");
   // get finished image from swap chain
-  auto result = hveSwapChain_m->acquireNextImage(&currentImageIndex_m);
+  if (!isLastRenderer()) {
+    auto result = hveSwapChain_m->acquireNextImage(&currentImageIndex_m);
 
-  if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-    recreateSwapChain();
-    swapChainRecreated_m = true;
-    // the frame has not successfully started
-    return nullptr;
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+      recreateSwapChain();
+      swapChainRecreated_m = true;
+      // the frame has not successfully started
+      return nullptr;
+    }
+
+    if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+      throw std::runtime_error("failed to acquire swap chain image!");
   }
-
-  if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-    throw std::runtime_error("failed to acquire swap chain image!");
 
   isFrameStarted_m = true;
 

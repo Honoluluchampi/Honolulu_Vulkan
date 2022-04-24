@@ -48,7 +48,7 @@ namespace hnll {
 class Hie
 {
 public:
-  Hie(HveWindow& hveWindow, HveDevice& hveDevice, s_ptr<HveSwapChain> hveSwapChain);
+  Hie(HveWindow& hveWindow, HveDevice& hveDevice);
   ~Hie();
   Hie(const Hie&) = delete;
   Hie& operator=(const Hie&) = delete;

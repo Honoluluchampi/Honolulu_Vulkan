@@ -15,7 +15,7 @@ HgeGame::HgeGame(const char* windowName) : upHve_m(std::make_unique<Hve>(windowN
 
 #ifndef __IMGUI_DISABLED
   upHie_m = std::make_unique<Hie>
-    (upHve_m->hveWindow(), upHve_m->hveDevice(), upHve_m->hveRenderer().spHveSwapChain());
+    (upHve_m->hveWindow(), upHve_m->hveDevice());
   // configure dependency between renderers
   upHve_m->hveRenderer().setNextRenderer(upHie_m->pHieRenderer());  
 #endif
@@ -23,6 +23,12 @@ HgeGame::HgeGame(const char* windowName) : upHve_m(std::make_unique<Hve>(windowN
   // camera creation
   upCamera_m = std::make_unique<HgeCamera>(*upHve_m);
   loadData();
+}
+
+HgeGame::~HgeGame()
+{
+  // cleanup in HgeGame::cleanup();
+  // HveRenderer::cleanupSwapChain();
 }
 
 void HgeGame::run()
@@ -192,6 +198,7 @@ void HgeGame::cleanup()
   pendingActorMap_m.clear();
   deadActorMap_m.clear();
   hveModelMap_m.clear();
+  HveRenderer::cleanupSwapChain();
 }
 
 } // namespace hnll
