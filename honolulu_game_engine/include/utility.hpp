@@ -1,9 +1,14 @@
 #pragma once
 
+// TODO : put this file on a appropriate position
+// TODO : create createOneShotCommandPool();
+
 #include <memory>
+#include <iostream>
 
 // lib
 #include <glm/gtc/matrix_transform.hpp>
+#include <vulkan/vulkan.hpp>
 
 namespace hnll {
 

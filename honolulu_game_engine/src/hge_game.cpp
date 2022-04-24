@@ -11,10 +11,24 @@ constexpr float MAX_DT = 0.05f;
 
 HgeGame::HgeGame(const char* windowName) : upHve_m(std::make_unique<Hve>(windowName))
 {
-  setGLFWwindow();
+  setGLFWwindow(); // ?
+
+#ifndef __IMGUI_DISABLED
+  upHie_m = std::make_unique<Hie>
+    (upHve_m->hveWindow(), upHve_m->hveDevice());
+  // configure dependency between renderers
+  upHve_m->hveRenderer().setNextRenderer(upHie_m->pHieRenderer());  
+#endif
+
   // camera creation
   upCamera_m = std::make_unique<HgeCamera>(*upHve_m);
   loadData();
+}
+
+HgeGame::~HgeGame()
+{
+  // cleanup in HgeGame::cleanup();
+  // HveRenderer::cleanupSwapChain();
 }
 
 void HgeGame::run()
@@ -36,6 +50,7 @@ void HgeGame::processInput()
 
 }
 
+// TODO : recreate swap chain
 void HgeGame::update()
 {
   isUpdating_m = true;
@@ -76,6 +91,14 @@ void HgeGame::update()
 
 void HgeGame::render()
 {
+#ifndef __IMGUI_DISABLED
+  if (!HveRenderer::swapChainRecreated_m)
+    upHie_m->render();
+
+  upHie_m->upHieRenderer()->submitCommandBuffers();
+
+  HveRenderer::resetRenderer();
+#endif
 }
 
 void HgeGame::loadData()
@@ -175,6 +198,7 @@ void HgeGame::cleanup()
   pendingActorMap_m.clear();
   deadActorMap_m.clear();
   hveModelMap_m.clear();
+  HveRenderer::cleanupSwapChain();
 }
 
 } // namespace hnll

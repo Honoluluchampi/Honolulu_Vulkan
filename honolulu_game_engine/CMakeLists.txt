@@ -5,12 +5,14 @@ add_library(hge STATIC ${TARGETS})
 target_include_directories(hge PUBLIC 
                            # hge
                            ${CMAKE_CURRENT_SOURCE_DIR}/include
-                           #hve
+                           # hve
                            ${PROJECT_SOURCE_DIR}/honolulu_vulkan_engine/include
+                           # hie
+                           ${PROJECT_SOURCE_DIR}/honolulu_imgui_engine/include
+                           # imgui
+                           $ENV{IMGUI_DIR}
                            # glfw
                            /usr/include
                            # vulkan
-                           /home/honolulu/programs/external_libraries/vulkanSDK/x86_64/include
+                           $ENV{VULKAN_DIR}/include
 )
-
-#target_link_libraries(hge /usr/lib)

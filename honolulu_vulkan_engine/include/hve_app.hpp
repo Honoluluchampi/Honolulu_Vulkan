@@ -51,6 +51,8 @@ class Hve
 
     inline HveDevice& hveDevice() { return hveDevice_m; }
     inline HveRenderer& hveRenderer() { return hveRenderer_m; }
+    inline HveSwapChain& hveSwapChain() { return hveRenderer_m.hveSwapChain(); }
+    inline HveWindow& hveWindow() { return hveWindow_m; }
 
     inline GLFWwindow* passGLFWwindow() const { return hveWindow_m.getGLFWwindow(); } 
     

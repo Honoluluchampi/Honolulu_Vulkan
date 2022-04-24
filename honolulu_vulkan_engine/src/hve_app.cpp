@@ -61,20 +61,18 @@ void Hve::init()
   // create renderer system as local variable
   auto simpleRendererSystem = std::make_unique<SimpleRendererSystem>(
     hveDevice_m, 
-    hveRenderer_m.getSwapChainRenderPass(),
+    hveRenderer_m.getSwapChainRenderPass(HVE_RENDER_PASS_ID),
     globalSetLayout_m->getDescriptorSetLayout());
 
   auto pointLightSystem = std::make_unique<PointLightSystem>(
     hveDevice_m, 
-    hveRenderer_m.getSwapChainRenderPass(),
+    hveRenderer_m.getSwapChainRenderPass(HVE_RENDER_PASS_ID),
     globalSetLayout_m->getDescriptorSetLayout());
 
   renderingSystems_m.emplace
     (simpleRendererSystem->getRenderType(), std::move(simpleRendererSystem));
   renderingSystems_m.emplace
     (pointLightSystem->getRenderType(), std::move(pointLightSystem));
-  
-  
 }
 
 // each render systems automatically detect render target components
@@ -100,7 +98,7 @@ void Hve::render(float dt, ViewerComponent& viewerComp)
     uboBuffers_m[frameIndex]->flush();
 
     // rendering
-    hveRenderer_m.beginSwapChainRenderPass(commandBuffer);
+    hveRenderer_m.beginSwapChainRenderPass(commandBuffer, HVE_RENDER_PASS_ID);
     // programmable stage of rendering
     // system can now access gameobjects via frameInfo
     for (auto& system : renderingSystems_m)

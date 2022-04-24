@@ -6,9 +6,18 @@
 
 namespace hnll {
 
-HveRenderer::HveRenderer(HveWindow& window, HveDevice& device) : hveWindow_m{window}, hveDevice_m{device}
+// static members
+uint32_t HveRenderer::currentImageIndex_m = 0;
+int HveRenderer::currentFrameIndex_m = 0;
+bool HveRenderer::swapChainRecreated_m = false;
+std::vector<VkCommandBuffer> HveRenderer::submittingCommandBuffers_m = {};
+u_ptr<HveSwapChain> HveRenderer::hveSwapChain_m = nullptr;
+
+HveRenderer::HveRenderer(HveWindow& window, HveDevice& device, bool recreateFromScratch)
+ : hveWindow_m{window}, hveDevice_m{device}
 {
-  recreateSwapChain();
+  // recreate swap chain dependent objects
+  if (recreateFromScratch) recreateSwapChain();
   createCommandBuffers();
 }
 
@@ -34,8 +43,8 @@ void HveRenderer::recreateSwapChain()
   // recreate
   else {
     // move the ownership of the current swap chain to old one.
-    std::shared_ptr<HveSwapChain> oldSwapChain = std::move(hveSwapChain_m);
-    hveSwapChain_m = std::make_unique<HveSwapChain>(hveDevice_m, extent, oldSwapChain);
+    std::unique_ptr<HveSwapChain> oldSwapChain = std::move(hveSwapChain_m);
+    hveSwapChain_m = std::make_unique<HveSwapChain>(hveDevice_m, extent, std::move(oldSwapChain));
 
     if (!oldSwapChain->compareSwapChainFormats(*hveSwapChain_m.get()))
       throw std::runtime_error("swap chian image( or depth) format has chainged");
@@ -43,6 +52,15 @@ void HveRenderer::recreateSwapChain()
     // command buffers no longer depend on the swap chain image count
   }
   // if render pass compatible, do nothing else 
+
+  // execute this function at the last of derived function's recreateSwapChain();
+  if (nextRenderer_) nextRenderer_->recreateSwapChain();
+}
+
+void HveRenderer::resetRenderer()
+{
+  swapChainRecreated_m = false;
+  submittingCommandBuffers_m.clear();
 }
 
 void HveRenderer::createCommandBuffers() 
@@ -72,20 +90,28 @@ void HveRenderer::freeCommandBuffers()
   commandBuffers_m.clear();
 }
 
+void HveRenderer::cleanupSwapChain()
+{
+  hveSwapChain_m.reset();
+}
+
 VkCommandBuffer HveRenderer::beginFrame()
 {
   assert(!isFrameStarted_m && "Can't call beginFrame() while already in progress");
   // get finished image from swap chain
-  auto result = hveSwapChain_m->acquireNextImage(&currentImageIndex_m);
+  if (!isLastRenderer()) {
+    auto result = hveSwapChain_m->acquireNextImage(&currentImageIndex_m);
 
-  if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-    recreateSwapChain();
-    // the frame has not successfully started
-    return nullptr;
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+      recreateSwapChain();
+      swapChainRecreated_m = true;
+      // the frame has not successfully started
+      return nullptr;
+    }
+
+    if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+      throw std::runtime_error("failed to acquire swap chain image!");
   }
-
-  if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-    throw std::runtime_error("failed to acquire swap chain image!");
 
   isFrameStarted_m = true;
 
@@ -113,10 +139,15 @@ void HveRenderer::endFrame()
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) 
     throw std::runtime_error("failed to record command buffer!");
 
+  if (!isLastRenderer())
+    isFrameStarted_m = false;
+
+#ifdef __IMGUI_DISABLED
   auto result = hveSwapChain_m->submitCommandBuffers(&commandBuffer, &currentImageIndex_m);
   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || hveWindow_m.wasWindowResized()) {
     hveWindow_m.resetWindowResizedFlag();
     recreateSwapChain();
+    swapChainRecreated_m = true;
   }
   else if (result != VK_SUCCESS)
     throw std::runtime_error("failed to present swap chain image!");
@@ -125,9 +156,12 @@ void HveRenderer::endFrame()
   // increment currentFrameIndex_m
   if (++currentFrameIndex_m == HveSwapChain::MAX_FRAMES_IN_FLIGHT)
     currentFrameIndex_m = 0;
+#else
+  submittingCommandBuffers_m.push_back(commandBuffer);
+#endif
 }
 
-void HveRenderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer)
+void HveRenderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer, int renderPassId)
 {
   assert(isFrameStarted_m && "Can't call beginSwapChainRenderPass() while the frame is not in progress.");
   assert(commandBuffer == getCurrentCommandBuffer() && "Can't beginig render pass on command buffer from a different frame.");
@@ -135,8 +169,15 @@ void HveRenderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer)
   // starting a render pass
   VkRenderPassBeginInfo renderPassInfo{};
   renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+
+#ifdef __IMGUI_DISABLED
   renderPassInfo.renderPass = hveSwapChain_m->getRenderPass();
   renderPassInfo.framebuffer = hveSwapChain_m->getFrameBuffer(currentImageIndex_m);
+#else
+  renderPassInfo.renderPass = hveSwapChain_m->getRenderPass(renderPassId);
+  renderPassInfo.framebuffer = hveSwapChain_m->getFramebuffer(renderPassId, currentImageIndex_m);
+#endif  
+
   // the pixels outside this region will have undefined values
   renderPassInfo.renderArea.offset = {0, 0};
   renderPassInfo.renderArea.extent = hveSwapChain_m->getSwapChainExtent();
@@ -178,5 +219,24 @@ void HveRenderer::endSwapChainRenderPass(VkCommandBuffer commandBuffer)
   // finish render pass and recording the comand buffer
   vkCmdEndRenderPass(commandBuffer);
 }
+
+#ifndef __IMGUI_DISABLED
+void HveRenderer::submitCommandBuffers()
+{
+  auto result = hveSwapChain_m->submitCommandBuffers(submittingCommandBuffers_m.data(), &currentImageIndex_m);
+  if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || hveWindow_m.wasWindowResized()) {
+    hveWindow_m.resetWindowResizedFlag();
+    recreateSwapChain();
+    swapChainRecreated_m = true;
+  }
+  else if (result != VK_SUCCESS)
+    throw std::runtime_error("failed to present swap chain image!");
+
+  isFrameStarted_m = false;
+  // increment currentFrameIndex_m
+  if (++currentFrameIndex_m == HveSwapChain::MAX_FRAMES_IN_FLIGHT)
+    currentFrameIndex_m = 0;
+}
+#endif
 
 } // namespace hve

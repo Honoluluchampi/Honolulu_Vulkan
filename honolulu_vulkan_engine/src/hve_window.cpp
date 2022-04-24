@@ -19,12 +19,12 @@ HveWindow::~HveWindow()
 void HveWindow::initWindow()
 {
   glfwInit();
-    // disable openGL
+  // disable openGL
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
   window_m = glfwCreateWindow(width_m, height_m, windowName_m.c_str(), nullptr, nullptr);
-    // handle framebuffer resizes
+  // handle framebuffer resizes
   glfwSetWindowUserPointer(window_m, this);
   glfwSetFramebufferSizeCallback(window_m, framebufferResizeCallBack);
 }

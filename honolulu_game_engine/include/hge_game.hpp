@@ -6,6 +6,9 @@
 #include <hge_components/model_component.hpp>
 #include <hge_default_camera.hpp>
 
+// hie
+#include <hie.hpp>
+
 //std
 #include <vector>
 #include <memory>
@@ -18,7 +21,7 @@ class HgeGame
 {
 public:
   HgeGame(const char* windowName = "honolulu engine");
-  ~HgeGame(){}
+  ~HgeGame();
   // delete copy ctor
   HgeGame(const HgeGame &) = delete;
   HgeGame& operator=(const HgeGame &) = delete;
@@ -51,6 +54,10 @@ private:
   HgeActor::map deadActorMap_m;
 
   u_ptr<Hve> upHve_m;
+
+#ifndef __IMGUI_DISABLED
+  u_ptr<Hie> upHie_m;
+#endif
 
   // map of modelcomponents
   // shared by game and some actors
