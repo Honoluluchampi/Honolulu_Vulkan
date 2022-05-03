@@ -86,6 +86,9 @@ void HgeGame::update()
   // clear all the dead actors
   deadActorMap_m.clear();
 
+  HgeRenderableComponent& comp = dynamic_cast<HgeRenderableComponent&>(activeActorMap_m[hieModelID_]->getRenderableComponent());
+  upHie_m->update(comp.getTransform().translation_m);
+
   upHve_m->render(dt, *(upCamera_m->viewerComponent()));
 }
 
@@ -143,6 +146,8 @@ void HgeGame::createActor()
   smoothVaseModelComp->setTranslation(glm::vec3{-0.5f, 0.5f, 0.f});
   smoothVaseModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
   
+  hieModelID_ = smoothVase->getId();
+
   addActor(std::move(smoothVase));
 
   auto flatVase = std::make_unique<HgeActor>();

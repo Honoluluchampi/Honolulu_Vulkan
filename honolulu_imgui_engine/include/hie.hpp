@@ -57,6 +57,7 @@ public:
 
   void render();
   void frameRender();
+  void update(glm::vec3& translation);
 
   const u_ptr<HieRenderer>& upHieRenderer() const { return upHieRenderer_; }
   HveRenderer* pHieRenderer() const { return upHieRenderer_.get(); }
@@ -84,6 +85,8 @@ private:
   int minImageCount_ = 2;
   bool swapChainRebuild_ = false;
   bool isHieRunning_ = false;
+
+  float vec_[3] = {0, 0, 0};
 };
 
 } // namespace hnll 

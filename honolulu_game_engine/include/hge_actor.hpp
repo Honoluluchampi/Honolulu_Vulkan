@@ -55,7 +55,13 @@ class HgeActor
     void addRenderableComponent(S&& comp)
     { 
       isRenderable_m = true; 
+      renderableComponentID_m = sharedComponents_m.size();
       sharedComponents_m.push_back(std::forward<S>(comp)); 
+    }
+
+    HgeComponent& getRenderableComponent()
+    {
+      return *sharedComponents_m[renderableComponentID_m];
     }
 
     inline id_t getId() const { return id_m; }
@@ -72,6 +78,7 @@ class HgeActor
     std::vector<std::unique_ptr<HgeComponent>> uniqueComponents_m;
     std::vector<std::shared_ptr<HgeComponent>> sharedComponents_m; 
     bool isRenderable_m = false;
+    id_t renderableComponentID_m;
 };
 
 } // namespace hnll

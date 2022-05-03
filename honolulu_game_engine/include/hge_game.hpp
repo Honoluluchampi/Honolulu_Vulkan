@@ -73,6 +73,8 @@ private:
   std::chrono::_V2::system_clock::time_point currentTime_m;
   
   u_ptr<HgeCamera> upCamera_m;
+
+  id_t hieModelID_;
 };
 
 } // namespace hnll
