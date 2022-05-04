@@ -7,6 +7,7 @@
 
 namespace hnll {
 
+constexpr float MAX_FPS = 30.0f;
 constexpr float MAX_DT = 0.05f;
 
 HgeGame::HgeGame(const char* windowName) : upHve_m(std::make_unique<Hve>(windowName))
@@ -54,9 +55,15 @@ void HgeGame::processInput()
 void HgeGame::update()
 {
   isUpdating_m = true;
+  float dt;
+  std::chrono::_V2::system_clock::time_point newTime;
   // calc dt
-  auto newTime = std::chrono::high_resolution_clock::now();
-  float dt = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime_m).count();
+  do {
+  newTime = std::chrono::high_resolution_clock::now();
+
+  dt = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime_m).count();
+  } while(dt < 1.0f / MAX_FPS);
+
   dt = std::min(dt, MAX_DT);
 
   for (auto& kv : activeActorMap_m) {

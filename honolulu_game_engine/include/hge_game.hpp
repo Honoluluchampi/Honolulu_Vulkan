@@ -33,6 +33,9 @@ public:
   void addActor(std::unique_ptr<HgeActor>&& actor);
   void removeActor(id_t id);
 
+protected:
+  GLFWwindow* glfwWindow_m;
+
 private:
   inline void setGLFWwindow() { glfwWindow_m = upHve_m->passGLFWwindow() ; }
   void cleanup();
@@ -40,7 +43,7 @@ private:
   void update();
   void render();
 
-  void createActor();
+  virtual void createActor();
 
   void loadData();
   void unLoadData();
@@ -48,7 +51,7 @@ private:
   // use filenames as the key of the map
   void loadHveModels(const std::string& modelDir = "/models");
 
-  GLFWwindow* glfwWindow_m;
+
   HgeActor::map activeActorMap_m;
   HgeActor::map pendingActorMap_m;
   HgeActor::map deadActorMap_m;
