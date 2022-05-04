@@ -188,7 +188,7 @@ void HgeGame::createActor()
 
   for (int i = 0; i < lightColors.size(); i++) {
     auto lightActor = std::make_unique<HgeActor>();
-    auto lightComp = PointLightComponent::createPointLight(lightActor->getId(), 1, 0.0f, lightColors[i]);
+    auto lightComp = PointLightComponent::createPointLight(lightActor->getId(), 1.0f, 0.1f, lightColors[i]);
     auto lightRotation = glm::rotate(
         glm::mat4(1),
         (i * glm::two_pi<float>()) / lightColors.size(),

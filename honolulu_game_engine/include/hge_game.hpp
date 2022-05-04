@@ -9,6 +9,9 @@
 // hie
 #include <hie.hpp>
 
+// lib
+#include <GLFW/glfw3.h>
+
 //std
 #include <vector>
 #include <memory>
