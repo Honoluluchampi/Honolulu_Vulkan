@@ -34,9 +34,6 @@ public:
 
   virtual void render(FrameInfo frameInfo) {}
 
-  // delete later
-  virtual void update(FrameInfo& frameInfo, GlobalUbo& ubo) {}
-
   // takes s_ptr<RenderableComponent>
   template<class S>
   void addRenderTarget(id_t id, S&& target)

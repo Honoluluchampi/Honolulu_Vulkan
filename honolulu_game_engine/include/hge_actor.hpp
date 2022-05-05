@@ -37,6 +37,7 @@ class HgeActor
     virtual void updateActor(float dt) {}
     void updateComponents(float dt);
 
+    // TODO : override addComp func to add specific comp
     // takes std::unique_ptr<HgeComponent>
     template <class U>
     void addUniqueComponent(U&& comp)
@@ -50,12 +51,19 @@ class HgeActor
     { sharedComponents_m.push_back(std::forward<S>(comp)); }
     // void addSharedComponent(std::)
 
+     // TODO : overload addSharedComponent
     // takes std::shared_ptr<RenderableComponent>
     template <class S>
     void addRenderableComponent(S&& comp)
     { 
       isRenderable_m = true; 
+      renderableComponentID_m = sharedComponents_m.size();
       sharedComponents_m.push_back(std::forward<S>(comp)); 
+    }
+
+    HgeComponent& getRenderableComponent()
+    {
+      return *sharedComponents_m[renderableComponentID_m];
     }
 
     inline id_t getId() const { return id_m; }
@@ -72,6 +80,7 @@ class HgeActor
     std::vector<std::unique_ptr<HgeComponent>> uniqueComponents_m;
     std::vector<std::shared_ptr<HgeComponent>> sharedComponents_m; 
     bool isRenderable_m = false;
+    id_t renderableComponentID_m;
 };
 
 } // namespace hnll

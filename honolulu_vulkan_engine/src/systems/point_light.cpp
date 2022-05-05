@@ -71,23 +71,6 @@ void PointLightSystem::createPipeline(VkRenderPass renderPass)
       pipelineConfig);
 }
 
-void PointLightSystem::update(FrameInfo &frameInfo, GlobalUbo &ubo) 
-{
-  auto lightRotation = glm::rotate(glm::mat4(1), frameInfo.frameTime_m, {0.f, -1.0f, 0.f});
-  int lightIndex = 0;
-  for (auto& kv : renderTargetMap_m) {
-    auto lightComp = dynamic_cast<PointLightComponent*>(kv.second.get());
-    // update light position
-    lightComp->getTransform().translation_m = glm::vec3(lightRotation * glm::vec4(lightComp->getTransform().translation_m, 1.f));
-    
-    // copy light to ubo
-    ubo.pointLights[lightIndex].position = glm::vec4(lightComp->getTransform().translation_m, 1.f);
-    ubo.pointLights[lightIndex].color = glm::vec4(lightComp->getColor(), lightComp->getLightInfo().lightIntensity_m);
-    lightIndex++;
-  }
-  ubo.numLights = lightIndex;
-}
-
 void PointLightSystem::render(FrameInfo frameInfo)
 {
   hvePipeline_m->bind(frameInfo.commandBuffer_m);

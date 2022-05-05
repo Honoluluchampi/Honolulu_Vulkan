@@ -1,5 +1,4 @@
 #include <hge_game.hpp>
-#include <hge_default_camera.hpp>
 
 // std
 #include <filesystem>
@@ -7,6 +6,7 @@
 
 namespace hnll {
 
+constexpr float MAX_FPS = 30.0f;
 constexpr float MAX_DT = 0.05f;
 
 HgeGame::HgeGame(const char* windowName) : upHve_m(std::make_unique<Hve>(windowName))
@@ -20,8 +20,7 @@ HgeGame::HgeGame(const char* windowName) : upHve_m(std::make_unique<Hve>(windowN
   upHve_m->hveRenderer().setNextRenderer(upHie_m->pHieRenderer());  
 #endif
 
-  // camera creation
-  upCamera_m = std::make_unique<HgeCamera>(*upHve_m);
+  initHgeActors();
   loadData();
 }
 
@@ -47,16 +46,20 @@ void HgeGame::run()
 
 void HgeGame::processInput()
 {
-
 }
 
-// TODO : recreate swap chain
 void HgeGame::update()
 {
   isUpdating_m = true;
+  float dt;
+  std::chrono::_V2::system_clock::time_point newTime;
   // calc dt
-  auto newTime = std::chrono::high_resolution_clock::now();
-  float dt = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime_m).count();
+  do {
+  newTime = std::chrono::high_resolution_clock::now();
+
+  dt = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime_m).count();
+  } while(dt < 1.0f / MAX_FPS);
+
   dt = std::min(dt, MAX_DT);
 
   for (auto& kv : activeActorMap_m) {
@@ -73,7 +76,9 @@ void HgeGame::update()
     }
   }
 
+  // camera
   upCamera_m->update(dt);
+  upLightManager_->update(dt);
 
   currentTime_m = newTime;
   isUpdating_m = false;
@@ -86,16 +91,29 @@ void HgeGame::update()
   // clear all the dead actors
   deadActorMap_m.clear();
 
-  upHve_m->render(dt, *(upCamera_m->viewerComponent()));
+  HgeRenderableComponent& comp = dynamic_cast<HgeRenderableComponent&>(activeActorMap_m[hieModelID_]->getRenderableComponent());
+  upHie_m->update(comp.getTransform().translation_m);
 }
 
 void HgeGame::render()
 {
+
+  upHve_m->render(*(upCamera_m->viewerComponent()));
 #ifndef __IMGUI_DISABLED
   if (!HveRenderer::swapChainRecreated_m){
     upHie_m->render();
   }
 #endif
+}
+
+void HgeGame::initHgeActors()
+{
+  // hge actors
+  upCamera_m = std::make_unique<HgeCamera>(*upHve_m);
+  
+  // TODO : configure priorities of actors, then update light manager after all light comp
+  upLightManager_ = std::make_unique<HgePointLightManager>(upHve_m->globalUbo());
+
 }
 
 void HgeGame::loadData()
@@ -143,6 +161,8 @@ void HgeGame::createActor()
   smoothVaseModelComp->setTranslation(glm::vec3{-0.5f, 0.5f, 0.f});
   smoothVaseModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
   
+  hieModelID_ = smoothVase->getId();
+
   addActor(std::move(smoothVase));
 
   auto flatVase = std::make_unique<HgeActor>();
@@ -176,18 +196,26 @@ void HgeGame::createActor()
 
   for (int i = 0; i < lightColors.size(); i++) {
     auto lightActor = std::make_unique<HgeActor>();
-    auto lightComp = PointLightComponent::createPointLight(lightActor->getId(), 1, 0.0f, lightColors[i]);
+    auto lightComp = PointLightComponent::createPointLight(lightActor->getId(), 1.0f, 0.f, lightColors[i]);
     auto lightRotation = glm::rotate(
         glm::mat4(1),
         (i * glm::two_pi<float>()) / lightColors.size(),
         {0.f, -1.0f, 0.f}); // axiz
     lightComp->setTranslation(glm::vec3(lightRotation * glm::vec4(-1.f, -1.f, -1.f, 1.f)));
-    lightActor->addRenderableComponent(lightComp);
-    upHve_m->addRenderableComponent(lightComp);
+    addPointLight(lightActor, lightComp);
 
     addActor(std::move(lightActor));    
   }
 }
+
+void HgeGame::addPointLight(u_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& lightComp)
+{
+  // shared by three actor 
+  owner->addRenderableComponent(lightComp);
+  upHve_m->addRenderableComponent(lightComp);
+  upLightManager_->addLightComp(lightComp);
+}
+
 
 void HgeGame::cleanup()
 {

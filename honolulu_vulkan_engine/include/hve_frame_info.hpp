@@ -30,7 +30,6 @@ struct GlobalUbo
 struct FrameInfo
 {
   int frameIndex_m;
-  float frameTime_m;
   VkCommandBuffer commandBuffer_m;
   VkDescriptorSet globalDiscriptorSet_m;
 };
