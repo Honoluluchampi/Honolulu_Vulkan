@@ -76,7 +76,7 @@ void Hve::init()
 }
 
 // each render systems automatically detect render target components
-void Hve::render(float dt, ViewerComponent& viewerComp)
+void Hve::render(ViewerComponent& viewerComp)
 {
   // returns nullptr if the swap chain is need to be recreated
   if (auto commandBuffer = hveRenderer_m.beginFrame()) {
@@ -84,17 +84,14 @@ void Hve::render(float dt, ViewerComponent& viewerComp)
 
     FrameInfo frameInfo{
         frameIndex, 
-        dt, 
         commandBuffer, 
         globalDescriptorSets_m[frameIndex]
     };
 
     // update 
-    GlobalUbo ubo{};
-    ubo.projection_m = viewerComp.getProjection();
-    ubo.view_m = viewerComp.getView();
-    renderingSystems_m[RenderType::POINT_LIGHT]->update(frameInfo, ubo);
-    uboBuffers_m[frameIndex]->writeToBuffer(&ubo);
+    ubo_.projection_m = viewerComp.getProjection();
+    ubo_.view_m = viewerComp.getView();
+    uboBuffers_m[frameIndex]->writeToBuffer(&ubo_);
     uboBuffers_m[frameIndex]->flush();
 
     // rendering

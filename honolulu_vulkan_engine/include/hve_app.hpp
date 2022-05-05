@@ -38,7 +38,7 @@ class Hve
     Hve(const Hve &) = delete;
     Hve &operator= (const Hve &) = delete;
 
-    void render(float dt, ViewerComponent& viewerComp);
+    void render(ViewerComponent& viewerComp);
 
     // takes s_ptr<RenderableComponent>
     template<class RC>
@@ -53,6 +53,7 @@ class Hve
     inline HveRenderer& hveRenderer() { return hveRenderer_m; }
     inline HveSwapChain& hveSwapChain() { return hveRenderer_m.hveSwapChain(); }
     inline HveWindow& hveWindow() { return hveWindow_m; }
+    inline GlobalUbo& globalUbo() { return ubo_; }
 
     inline GLFWwindow* passGLFWwindow() const { return hveWindow_m.getGLFWwindow(); } 
     
@@ -74,6 +75,7 @@ class Hve
     // ptrlize to make it later init 
 
     map renderingSystems_m;
+    GlobalUbo ubo_{};
 };
 
 } // namespace hv

@@ -1,4 +1,4 @@
-#include <hge_default_camera.hpp>
+#include <hge_actors/hge_default_camera.hpp>
 
 namespace hnll {
 

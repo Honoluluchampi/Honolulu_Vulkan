@@ -37,6 +37,7 @@ class HgeActor
     virtual void updateActor(float dt) {}
     void updateComponents(float dt);
 
+    // TODO : override addComp func to add specific comp
     // takes std::unique_ptr<HgeComponent>
     template <class U>
     void addUniqueComponent(U&& comp)
@@ -50,6 +51,7 @@ class HgeActor
     { sharedComponents_m.push_back(std::forward<S>(comp)); }
     // void addSharedComponent(std::)
 
+     // TODO : overload addSharedComponent
     // takes std::shared_ptr<RenderableComponent>
     template <class S>
     void addRenderableComponent(S&& comp)

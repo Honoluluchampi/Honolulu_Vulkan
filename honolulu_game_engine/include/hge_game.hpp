@@ -4,7 +4,8 @@
 #include <hve.hpp>
 #include <hge_actor.hpp>
 #include <hge_components/model_component.hpp>
-#include <hge_default_camera.hpp>
+#include <hge_actors/hge_default_camera.hpp>
+#include <hge_actors/hge_point_light_manager.hpp>
 
 // hie
 #include <hie.hpp>
@@ -32,12 +33,14 @@ public:
   bool initialize();
   void run();
 
-  void addActor(std::unique_ptr<HgeActor>& actor);
-  void addActor(std::unique_ptr<HgeActor>&& actor);
+  void addActor(u_ptr<HgeActor>& actor);
+  void addActor(u_ptr<HgeActor>&& actor);
+  void addPointLight(u_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& lightComp);
   void removeActor(id_t id);
 
 protected:
   GLFWwindow* glfwWindow_m;
+  u_ptr<HgePointLightManager> upLightManager_;
 
 private:
   inline void setGLFWwindow() { glfwWindow_m = upHve_m->passGLFWwindow() ; }
@@ -46,9 +49,11 @@ private:
   void update();
   void render();
 
+  // init 
+  void initHgeActors();
+  void loadData();
   virtual void createActor();
 
-  void loadData();
   void unLoadData();
   // load all models in modleDir
   // use filenames as the key of the map
@@ -78,6 +83,7 @@ private:
 
   std::chrono::_V2::system_clock::time_point currentTime_m;
   
+  // hge actors
   u_ptr<HgeCamera> upCamera_m;
 
   id_t hieModelID_;
