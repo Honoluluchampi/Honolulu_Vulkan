@@ -39,7 +39,8 @@ public:
   // TODO : delete this func
   void addPointLightWithoutOwner(s_ptr<PointLightComponent>& lightComp);
   void removeActor(id_t id);
-
+  void setCameraTransform(const Transform& transform)
+  { upCamera_m->getTransform() = transform; }
 protected:
   GLFWwindow* glfwWindow_m;
   // hge actors
