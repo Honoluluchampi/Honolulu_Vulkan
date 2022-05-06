@@ -8,6 +8,9 @@
 
 namespace hnll {
 
+float ViewerComponent::nearDistance_ = 0.1f;
+float ViewerComponent::fovy_ = glm::radians(50.f);
+
 ViewerComponent::ViewerComponent(Transform& transform, HveRenderer& renderer)
   : HgeComponent(), transform_m(transform), hveRenderer_m(renderer)
 {
@@ -90,12 +93,47 @@ void ViewerComponent::setViewYXZ()
   viewMatrix_m[3][2] = -glm::dot(w, position);
 }
 
+glm::mat4 ViewerComponent::getInversePerspectiveProjection() const
+{
+  // TODO : calc this in a safe manner
+  return glm::inverse(projectionMatrix_m);
+}
+
+glm::mat4 ViewerComponent::getInverseViewYXZ() const
+{
+  auto position = -transform_m.translation_m;
+  auto rotation = -transform_m.rotation_m;
+  const float c3 = glm::cos(rotation.z);
+  const float s3 = glm::sin(rotation.z);
+  const float c2 = glm::cos(rotation.x);
+  const float s2 = glm::sin(rotation.x);
+  const float c1 = glm::cos(rotation.y);
+  const float s1 = glm::sin(rotation.y);
+  const glm::vec3 u{(c1 * c3 + s1 * s2 * s3), (c2 * s3), (c1 * s2 * s3 - c3 * s1)};
+  const glm::vec3 v{(c3 * s1 * s2 - c1 * s3), (c2 * c3), (c1 * c3 * s2 + s1 * s3)};
+  const glm::vec3 w{(c2 * s1), (-s2), (c1 * c2)};
+  auto invView = glm::mat4{1.f};
+  invView[0][0] = u.x;
+  invView[1][0] = u.y;
+  invView[2][0] = u.z;
+  invView[0][1] = v.x;
+  invView[1][1] = v.y;
+  invView[2][1] = v.z;
+  invView[0][2] = w.x;
+  invView[1][2] = w.y;
+  invView[2][2] = w.z;
+  invView[3][0] = -glm::dot(u, position);
+  invView[3][1] = -glm::dot(v, position);
+  invView[3][2] = -glm::dot(w, position);
+  return invView;
+}
+
 // owner's transform should be update by keyMoveComp before this function
 void ViewerComponent::updateComponent(float dt)
 { 
   setViewYXZ();
   auto aspect = hveRenderer_m.getAspectRatio();
-  setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 50.f); 
+  setPerspectiveProjection(fovy_, aspect, nearDistance_, 50.f); 
 }
 
 } // namesapce hnll

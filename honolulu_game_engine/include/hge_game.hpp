@@ -40,6 +40,8 @@ public:
 
 protected:
   GLFWwindow* glfwWindow_m;
+  // hge actors
+  u_ptr<HgeCamera> upCamera_m;
   u_ptr<HgePointLightManager> upLightManager_;
 
 private:
@@ -82,9 +84,6 @@ private:
   bool isRunning_m = false; // for run loop
 
   std::chrono::_V2::system_clock::time_point currentTime_m;
-  
-  // hge actors
-  u_ptr<HgeCamera> upCamera_m;
 
   id_t hieModelID_;
 };

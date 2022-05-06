@@ -31,6 +31,9 @@ class ViewerComponent : public HgeComponent
     const glm::mat4& getProjection() const { return projectionMatrix_m; }
     const glm::mat4& getView() const { return viewMatrix_m; }
 
+    glm::mat4 getInversePerspectiveProjection() const;
+    glm::mat4 getInverseViewYXZ() const;
+
     void updateComponent(float dt) override;
 
   private:
@@ -39,5 +42,9 @@ class ViewerComponent : public HgeComponent
     glm::mat4 projectionMatrix_m{1.f};
     glm::mat4 viewMatrix_m{1.f};
     HveRenderer& hveRenderer_m;
+
+    // distance to the screen
+    static float nearDistance_;
+    static float fovy_;
 };
 } // namespace hnll

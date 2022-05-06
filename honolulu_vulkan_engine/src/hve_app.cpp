@@ -95,6 +95,8 @@ void Hve::render(ViewerComponent& viewerComp)
     uboBuffers_m[frameIndex]->flush();
 
     // rendering
+    // TODO : configure hve_render_pass_id as the 
+    // member and detect it in beginSwapChainRenderPass func
     hveRenderer_m.beginSwapChainRenderPass(commandBuffer, HVE_RENDER_PASS_ID);
     // programmable stage of rendering
     // system can now access gameobjects via frameInfo
