@@ -36,10 +36,15 @@ public:
   void addActor(u_ptr<HgeActor>& actor);
   void addActor(u_ptr<HgeActor>&& actor);
   void addPointLight(u_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& lightComp);
+  // TODO : delete this func
+  void addPointLightWithoutOwner(s_ptr<PointLightComponent>& lightComp);
   void removeActor(id_t id);
-
+  void setCameraTransform(const Transform& transform)
+  { upCamera_m->getTransform() = transform; }
 protected:
   GLFWwindow* glfwWindow_m;
+  // hge actors
+  u_ptr<HgeCamera> upCamera_m;
   u_ptr<HgePointLightManager> upLightManager_;
 
 private:
@@ -47,6 +52,8 @@ private:
   void cleanup();
   void processInput();
   void update();
+  // game spacific update
+  virtual void updateGame(float dt){}
   void render();
 
   // init 
@@ -82,9 +89,6 @@ private:
   bool isRunning_m = false; // for run loop
 
   std::chrono::_V2::system_clock::time_point currentTime_m;
-  
-  // hge actors
-  u_ptr<HgeCamera> upCamera_m;
 
   id_t hieModelID_;
 };

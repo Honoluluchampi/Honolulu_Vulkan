@@ -2,6 +2,7 @@
 
 #include <hve_rendering_system.hpp>
 #include <hge_components/model_component.hpp>
+#include <utility.hpp>
 
 // std
 #include <vector>

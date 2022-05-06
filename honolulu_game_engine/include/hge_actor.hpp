@@ -7,6 +7,9 @@
 #include <memory>
 #include <unordered_map>
 
+template <class T> using s_ptr = std::shared_ptr<T>;
+template <class T> using u_ptr = std::unique_ptr<T>;
+
 namespace hnll {
 
 class HgeActor
@@ -80,7 +83,7 @@ class HgeActor
     std::vector<std::unique_ptr<HgeComponent>> uniqueComponents_m;
     std::vector<std::shared_ptr<HgeComponent>> sharedComponents_m; 
     bool isRenderable_m = false;
-    id_t renderableComponentID_m;
+    id_t renderableComponentID_m = -1;
 };
 
 } // namespace hnll

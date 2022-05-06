@@ -14,7 +14,7 @@ void HgePointLightManager::updateActor(float dt)
   for (auto& kv : lightCompMap_) {
     auto lightComp = kv.second;
     // update light position
-    lightComp->getTransform().translation_m = glm::vec3(lightRotation * glm::vec4(lightComp->getTransform().translation_m, 1.f));
+    // lightComp->getTransform().translation_m = glm::vec3(lightRotation * glm::vec4(lightComp->getTransform().translation_m, 1.f));
     // copy light data to ubo 
     ubo_.pointLights[lightIndex].position = glm::vec4(lightComp->getTransform().translation_m, 1.f);
     ubo_.pointLights[lightIndex].color = glm::vec4(lightComp->getColor(), lightComp->getLightInfo().lightIntensity_m);

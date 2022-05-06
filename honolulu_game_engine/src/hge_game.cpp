@@ -3,6 +3,7 @@
 // std
 #include <filesystem>
 #include <iostream>
+#include <typeinfo>
 
 namespace hnll {
 
@@ -76,6 +77,9 @@ void HgeGame::update()
     }
   }
 
+  // game specific update
+  updateGame(dt);
+
   // camera
   upCamera_m->update(dt);
   upLightManager_->update(dt);
@@ -91,8 +95,10 @@ void HgeGame::update()
   // clear all the dead actors
   deadActorMap_m.clear();
 
-  HgeRenderableComponent& comp = dynamic_cast<HgeRenderableComponent&>(activeActorMap_m[hieModelID_]->getRenderableComponent());
-  upHie_m->update(comp.getTransform().translation_m);
+  // TODO : delete gui demo
+  // if (renderableComponentID_m != -1)
+  //   HgeRenderableComponent& comp = dynamic_cast<HgeRenderableComponent&>(activeActorMap_m[hieModelID_]->getRenderableComponent());
+  // upHie_m->update(comp.getTransform().translation_m);
 }
 
 void HgeGame::render()
@@ -121,7 +127,7 @@ void HgeGame::loadData()
   // load raw data
   loadHveModels();
   // share above data with vulkan engine
-  createActor();
+  // createActor();
 }
 
 // use filenames as the key of the map
@@ -213,6 +219,14 @@ void HgeGame::addPointLight(u_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& 
   // shared by three actor 
   owner->addRenderableComponent(lightComp);
   upHve_m->addRenderableComponent(lightComp);
+  upLightManager_->addLightComp(lightComp);
+} 
+
+void HgeGame::addPointLightWithoutOwner(s_ptr<PointLightComponent>& lightComp)
+{
+  // path to the renderer
+  upHve_m->addRenderableComponent(lightComp);
+  // path to the manager
   upLightManager_->addLightComp(lightComp);
 }
 
