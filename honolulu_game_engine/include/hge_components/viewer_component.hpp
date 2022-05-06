@@ -36,6 +36,9 @@ class ViewerComponent : public HgeComponent
 
     void updateComponent(float dt) override;
 
+    static float getNearDistance() { return nearDistance_; }
+    static float getFovy() { return fovy_; }
+
   private:
     // ref of owner transform
     Transform& transform_m;
