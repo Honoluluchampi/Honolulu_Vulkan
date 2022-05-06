@@ -77,6 +77,9 @@ void HgeGame::update()
     }
   }
 
+  // game specific update
+  updateGame(dt);
+
   // camera
   upCamera_m->update(dt);
   upLightManager_->update(dt);
@@ -214,6 +217,14 @@ void HgeGame::addPointLight(u_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& 
   // shared by three actor 
   owner->addRenderableComponent(lightComp);
   upHve_m->addRenderableComponent(lightComp);
+  upLightManager_->addLightComp(lightComp);
+} 
+
+void HgeGame::addPointLightWithoutOwner(const s_ptr<PointLightComponent>& lightComp)
+{
+  // path to the renderer
+  upHve_m->addRenderableComponent(lightComp);
+  // path to the manager
   upLightManager_->addLightComp(lightComp);
 }
 

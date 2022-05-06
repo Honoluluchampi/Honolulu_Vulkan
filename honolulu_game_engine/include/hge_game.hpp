@@ -36,6 +36,8 @@ public:
   void addActor(u_ptr<HgeActor>& actor);
   void addActor(u_ptr<HgeActor>&& actor);
   void addPointLight(u_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& lightComp);
+  // TODO : delete this func
+  void addPointLightWithoutOwner(const s_ptr<PointLightComponent>& lightComp);
   void removeActor(id_t id);
 
 protected:
@@ -49,6 +51,8 @@ private:
   void cleanup();
   void processInput();
   void update();
+  // game spacific update
+  virtual void updateGame(float dt){}
   void render();
 
   // init 
