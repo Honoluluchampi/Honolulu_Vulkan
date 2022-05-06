@@ -83,7 +83,7 @@ class HgeActor
     std::vector<std::unique_ptr<HgeComponent>> uniqueComponents_m;
     std::vector<std::shared_ptr<HgeComponent>> sharedComponents_m; 
     bool isRenderable_m = false;
-    id_t renderableComponentID_m;
+    id_t renderableComponentID_m = -1;
 };
 
 } // namespace hnll

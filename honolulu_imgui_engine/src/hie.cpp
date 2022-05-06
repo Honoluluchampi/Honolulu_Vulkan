@@ -69,6 +69,7 @@ void Hie::cleanupVulkan()
   vkDestroyDescriptorPool(device_, descriptorPool_, nullptr);
 }
 
+// TODO : delete gui demo
 void Hie::update(glm::vec3& translation)
 {
   // configure position of vase
@@ -84,10 +85,11 @@ void Hie::render()
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
 
-  ImGui::SliderFloat3("translation", vec_, -5, 5);
+  // TODO : delete gui demo
+  // ImGui::SliderFloat3("translation", vec_, -5, 5);
 
   // show the demo window
-  ImGui::ShowDemoWindow();
+  // ImGui::ShowDemoWindow();
 
   // render window
   ImGui::Render();

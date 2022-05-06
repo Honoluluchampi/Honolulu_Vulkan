@@ -37,7 +37,7 @@ public:
   void addActor(u_ptr<HgeActor>&& actor);
   void addPointLight(u_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& lightComp);
   // TODO : delete this func
-  void addPointLightWithoutOwner(const s_ptr<PointLightComponent>& lightComp);
+  void addPointLightWithoutOwner(s_ptr<PointLightComponent>& lightComp);
   void removeActor(id_t id);
 
 protected:

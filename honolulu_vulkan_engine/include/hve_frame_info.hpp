@@ -7,7 +7,8 @@
 
 namespace hnll {
 
-#define MAX_LIGHTS 10
+// TODO : decrese this
+#define MAX_LIGHTS 20
 
 struct PointLight
 {
