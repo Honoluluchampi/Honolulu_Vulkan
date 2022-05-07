@@ -39,6 +39,10 @@ public:
   void addRenderTarget(id_t id, S&& target)
   { renderTargetMap_m.emplace(id, std::forward<S>(target)); }
 
+  template<class S>
+  void replaceRenderTarget(id_t id, S&& target)
+  { renderTargetMap_m[id] = std::forward<S>(target); }
+
   void removeRenderTarget(id_t id)
   { renderTargetMap_m.erase(id); }
 

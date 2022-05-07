@@ -36,11 +36,20 @@ public:
   void addActor(u_ptr<HgeActor>& actor);
   void addActor(u_ptr<HgeActor>&& actor);
   void addPointLight(u_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& lightComp);
+  // takes s_ptr<HgeRenderableComponent>
+  template <class S>
+  void addRenderableComponent(S&& comp)
+  { upHve_m->addRenderableComponent(std::forward<S>(comp)); }
+  template <class S>
+  void replaceRenderableComponent(S&& comp)
+  { upHve_m->replaceRenderableComponent(std::forward<S>(comp)); }
   // TODO : delete this func
   void addPointLightWithoutOwner(s_ptr<PointLightComponent>& lightComp);
   void removeActor(id_t id);
   void setCameraTransform(const Transform& transform)
   { upCamera_m->getTransform() = transform; }
+  // getter
+  HveDevice& hveDevice() { return upHve_m->hveDevice(); }
 protected:
   GLFWwindow* glfwWindow_m;
   // hge actors
