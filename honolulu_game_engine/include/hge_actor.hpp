@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
+#include <iostream>
 
 template <class T> using s_ptr = std::shared_ptr<T>;
 template <class T> using u_ptr = std::unique_ptr<T>;
@@ -62,6 +63,14 @@ class HgeActor
       isRenderable_m = true; 
       renderableComponentID_m = sharedComponents_m.size();
       sharedComponents_m.push_back(std::forward<S>(comp)); 
+    }
+
+    template <class S>
+    void replaceRenderableComponent(S&& comp)
+    {
+      if (isRenderable_m)
+        sharedComponents_m[renderableComponentID_m] = std::forward<S>(comp);
+      else std::cout << "add RenderableComponent first!" << std::endl;
     }
 
     HgeComponent& getRenderableComponent()

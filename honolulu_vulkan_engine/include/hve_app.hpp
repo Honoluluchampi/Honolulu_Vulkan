@@ -45,6 +45,10 @@ class Hve
     void addRenderableComponent(RC&& target)
     { renderingSystems_m[target->getRenderType()]->addRenderTarget(target->getId(), std::forward<RC>(target)); }
     
+    template<class RC>
+    void replaceRenderableComponent(RC&& target)
+    { renderingSystems_m[target->getRenderType()]->replaceRenderTarget(target->getId(), std::forward<RC>(target)); }
+
     void removeRenderableComponent(id_t id);
 
     inline void waitIdle() { vkDeviceWaitIdle(hveDevice_m.device()); }

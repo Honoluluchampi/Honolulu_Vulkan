@@ -1,5 +1,4 @@
 #include <hve_model.hpp>
-#include <hve_utils.hpp>
 
 // libs
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -25,7 +24,7 @@ struct hash<hnll::HveModel::Vertex>
     return seed;
   }
 };
-} // namespace stD
+}
 
 namespace hnll {
 

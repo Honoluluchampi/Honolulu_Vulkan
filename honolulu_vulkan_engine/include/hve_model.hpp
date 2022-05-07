@@ -2,6 +2,7 @@
 
 #include <hve_device.hpp>
 #include <hve_buffer.hpp>
+#include <hve_utils.hpp>
 
 // lib
 #define GLM_FORCE_RADIANS
@@ -11,7 +12,6 @@
 // std
 #include <memory>
 #include <string>
-#include <unordered_map>
 
 namespace hnll {
 
@@ -68,4 +68,5 @@ class HveModel
 
     bool hasIndexBuffer_m = false;
 };
+
 } // namespace hve
