@@ -52,6 +52,7 @@ void HgeGame::processInput()
 void HgeGame::update()
 {
   isUpdating_m = true;
+
   float dt;
   std::chrono::_V2::system_clock::time_point newTime;
   // calc dt
@@ -72,8 +73,9 @@ void HgeGame::update()
       deadActorMap_m.emplace(id, std::move(actor));
       activeActorMap_m.erase(id);
       // erase relevant model comp.
-      if(actor->isRenderable())
-        upHve_m->removeRenderableComponent(id);
+      // TODO dont use hgeActor::id_t but HgeComponent::id_t
+      // if(actor->isRenderable())
+        // upHve_m->removeRenderableComponent(id);
     }
   }
 
@@ -107,10 +109,25 @@ void HgeGame::render()
   upHve_m->render(*(upCamera_m->viewerComponent()));
 #ifndef __IMGUI_DISABLED
   if (!HveRenderer::swapChainRecreated_m){
+    upHie_m->beginImGui();
+    updateImgui();
     upHie_m->render();
   }
 #endif
 }
+
+#ifndef __IMGUI_DISABLED
+void HgeGame::updateImgui()
+{
+  // some general imgui upgrade
+  updateGameImgui();
+  for (auto& kv : activeActorMap_m) {
+  const id_t& id = kv.first;
+  auto& actor = kv.second;
+  actor->updateImgui();
+  }
+}
+#endif
 
 void HgeGame::initHgeActors()
 {
@@ -228,6 +245,12 @@ void HgeGame::addPointLightWithoutOwner(s_ptr<PointLightComponent>& lightComp)
   upHve_m->addRenderableComponent(lightComp);
   // path to the manager
   upLightManager_->addLightComp(lightComp);
+}
+
+void HgeGame::removePointLightWithoutOwner(HgeComponent::compId id)
+{
+  upHve_m->removeRenderableComponentWithoutOwner(RenderType::POINT_LIGHT, id);
+  upLightManager_->removeLightComp(id);
 }
 
 

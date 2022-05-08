@@ -16,12 +16,12 @@ namespace hnll {
 class HgeActor
 {
   public:
-    using id_t = unsigned int;
-    using map = std::unordered_map<id_t, std::unique_ptr<HgeActor>>;
+    using actorId = unsigned int;
+    using map = std::unordered_map<actorId, std::unique_ptr<HgeActor>>;
 
     // hgeActor can be created only by this fuction
     HgeActor()
-    { static id_t currentId = 0; id_m = currentId++; }
+    { static actorId currentId = 0; id_m = currentId++; }
 
     enum class state
     {
@@ -40,6 +40,12 @@ class HgeActor
     void update(float dt);
     virtual void updateActor(float dt) {}
     void updateComponents(float dt);
+
+#ifndef __IMGUI_DISABLED
+    void updateImgui();
+    virtual void updateActorImgui(){}
+    void updateComponentsImgui();
+#endif
 
     // TODO : override addComp func to add specific comp
     // takes std::unique_ptr<HgeComponent>
@@ -78,21 +84,21 @@ class HgeActor
       return *sharedComponents_m[renderableComponentID_m];
     }
 
-    inline id_t getId() const { return id_m; }
+    inline actorId getId() const { return id_m; }
     inline const state& getActorState() const { return state_m; }
 
     inline bool isRenderable() const { return isRenderable_m; }
 
   private:
-    HgeActor(id_t id) : id_m(id) {}
+    HgeActor(actorId id) : id_m(id) {}
 
-    id_t id_m;
+    actorId id_m;
     state state_m = state::ACTIVE;
     // would be shared?
     std::vector<std::unique_ptr<HgeComponent>> uniqueComponents_m;
     std::vector<std::shared_ptr<HgeComponent>> sharedComponents_m; 
     bool isRenderable_m = false;
-    id_t renderableComponentID_m = -1;
+    actorId renderableComponentID_m = -1;
 };
 
 } // namespace hnll

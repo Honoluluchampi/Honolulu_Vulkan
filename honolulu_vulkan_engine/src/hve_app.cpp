@@ -108,9 +108,8 @@ void Hve::render(ViewerComponent& viewerComp)
   }
 }
 
-void Hve::removeRenderableComponent(id_t id)
+void Hve::removeRenderableComponentWithoutOwner(RenderType type, HgeComponent::compId id)
 {
-  for (auto& system : renderingSystems_m)
-    system.second->removeRenderTarget(id);
+  renderingSystems_m[type]->removeRenderTarget(id);
 }
 } // namespace hve

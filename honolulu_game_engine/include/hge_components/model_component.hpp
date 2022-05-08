@@ -24,6 +24,9 @@ class ModelComponent : public HgeRenderableComponent
     ~ModelComponent(){}
 
     s_ptr<HveModel>& getSpModel() { return spModel_m; }
+    template<class S>
+    void replaceHveModel(S&& model)
+    { spModel_m = std::forward<S>(model); }
         
   private:
     // HveModel can be shared all over a game

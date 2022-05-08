@@ -35,7 +35,8 @@ public:
 
   void addActor(u_ptr<HgeActor>& actor);
   void addActor(u_ptr<HgeActor>&& actor);
-  void addPointLight(u_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& lightComp);
+  void removeActor(id_t id);
+
   // takes s_ptr<HgeRenderableComponent>
   template <class S>
   void addRenderableComponent(S&& comp)
@@ -43,13 +44,21 @@ public:
   template <class S>
   void replaceRenderableComponent(S&& comp)
   { upHve_m->replaceRenderableComponent(std::forward<S>(comp)); }
+
+  void addPointLight(u_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& lightComp);
   // TODO : delete this func
   void addPointLightWithoutOwner(s_ptr<PointLightComponent>& lightComp);
-  void removeActor(id_t id);
+  void removePointLightWithoutOwner(HgeComponent::compId id);
+
   void setCameraTransform(const Transform& transform)
   { upCamera_m->getTransform() = transform; }
+
   // getter
   HveDevice& hveDevice() { return upHve_m->hveDevice(); }
+#ifndef __IMGUI_DISABLED
+  u_ptr<Hie>& hie() { return upHie_m; }
+#endif
+
 protected:
   GLFWwindow* glfwWindow_m;
   // hge actors
@@ -64,6 +73,11 @@ private:
   // game spacific update
   virtual void updateGame(float dt){}
   void render();
+
+#ifndef __IMGUI_DISABLED
+  void updateImgui();
+  virtual void updateGameImgui(){}
+#endif
 
   // init 
   void initHgeActors();

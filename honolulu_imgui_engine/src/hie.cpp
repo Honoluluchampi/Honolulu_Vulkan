@@ -69,6 +69,14 @@ void Hie::cleanupVulkan()
   vkDestroyDescriptorPool(device_, descriptorPool_, nullptr);
 }
 
+void Hie::beginImGui()
+{
+  // start the imgui frame
+  ImGui_ImplVulkan_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
+  ImGui::NewFrame();
+}
+
 // TODO : delete gui demo
 void Hie::update(glm::vec3& translation)
 {
@@ -80,10 +88,6 @@ void Hie::update(glm::vec3& translation)
 
 void Hie::render()
 {
-  // start the imgui frame
-  ImGui_ImplVulkan_NewFrame();
-  ImGui_ImplGlfw_NewFrame();
-  ImGui::NewFrame();
 
   // TODO : delete gui demo
   // ImGui::SliderFloat3("translation", vec_, -5, 5);

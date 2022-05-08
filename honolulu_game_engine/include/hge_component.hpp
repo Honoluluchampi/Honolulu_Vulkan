@@ -5,7 +5,7 @@ namespace hnll {
 class HgeComponent
 {
 public:
-  using id_t = unsigned;
+  using compId = unsigned;
 
   HgeComponent();
   virtual ~HgeComponent(){}
@@ -13,10 +13,14 @@ public:
   inline void update(float dt) 
   { updateComponent(dt); }
 
-  id_t getCompId() const { return id_m; }
+#ifndef __IMGUI_DISABLED
+  virtual void updateImgui(){}
+#endif
+
+  compId getCompId() const { return id_m; }
 private:
   virtual void updateComponent(float dt) {}
-  id_t id_m;
+  compId id_m;
 };
 
 } // namespace hnll
