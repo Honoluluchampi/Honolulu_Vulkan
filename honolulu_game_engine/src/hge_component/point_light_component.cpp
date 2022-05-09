@@ -2,7 +2,7 @@
 
 namespace hnll {
 
-PointLightComponent::PointLightComponent(id_t id)
+PointLightComponent::PointLightComponent(HgeActor::actorId id)
  : HgeRenderableComponent(id, RenderType::POINT_LIGHT)
 {}
 

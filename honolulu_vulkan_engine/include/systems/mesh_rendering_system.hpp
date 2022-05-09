@@ -1,7 +1,6 @@
 #pragma once
 
 #include <hve_rendering_system.hpp>
-#include <hge_components/model_component.hpp>
 #include <utility.hpp>
 
 // std
@@ -9,11 +8,11 @@
 
 namespace hnll {
 
-class SimpleRendererSystem : public HveRenderingSystem
+class MeshRenderingSystem : public HveRenderingSystem
 {
   public:
-    SimpleRendererSystem(HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
-    ~SimpleRendererSystem();
+    MeshRenderingSystem(HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
+    ~MeshRenderingSystem();
 
     // dont make HveCamera object as a member variable so as to share the camera between multiple render system
     void render(FrameInfo frameInfo) override;

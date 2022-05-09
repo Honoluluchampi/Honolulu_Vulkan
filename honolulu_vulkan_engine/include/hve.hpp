@@ -11,4 +11,5 @@
 #include <hve_utils.hpp>
 #include <hve_window.hpp>
 #include <systems/point_light.hpp>
-#include <systems/simple_renderer.hpp>
+#include <systems/mesh_rendering_system.hpp>
+#include <systems/line_rendering_system.hpp>

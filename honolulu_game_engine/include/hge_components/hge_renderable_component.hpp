@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hge_component.hpp>
+#include <hge_actor.hpp>
 #include <utility.hpp>
 
 // std
@@ -12,16 +13,13 @@ enum class RenderType
 {
   SIMPLE,
   POINT_LIGHT,
-  NEON_LIGHT
+  LINE
 };
 
 class HgeRenderableComponent : public HgeComponent
 {
   public:
-
-    using id_t = unsigned int;
-
-    HgeRenderableComponent(id_t id, RenderType type) : id_m(id), renderType_m(type) {}
+    HgeRenderableComponent(HgeActor::actorId id, RenderType type) : id_m(id), renderType_m(type) {}
     ~HgeRenderableComponent() {}
 
     HgeRenderableComponent(const HgeRenderableComponent &) = delete;
@@ -39,12 +37,12 @@ class HgeRenderableComponent : public HgeComponent
 
     virtual void updateComponent(float dt) override {}
 
-    id_t getId() const { return id_m; }
+    HgeActor::actorId getActorId() const { return id_m; }
 
     const RenderType getRenderType() const { return renderType_m; }
   protected:
     // same as ownwer's
-    id_t id_m;
+    HgeActor::actorId id_m;
     // update this member
     u_ptr<Transform> upTransform_m = std::make_unique<Transform>();
     RenderType renderType_m;

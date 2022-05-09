@@ -14,12 +14,11 @@ template<class S> using s_ptr = std::shared_ptr<S>;
 class ModelComponent : public HgeRenderableComponent
 {
   public:
-    using id_t = unsigned int;
-    using map = std::unordered_map<id_t, s_ptr<ModelComponent>>;
+    using map = std::unordered_map<compId, s_ptr<ModelComponent>>;
     // copy a passed shared_ptr
-    ModelComponent(id_t id, const s_ptr<HveModel>& spModel)
+    ModelComponent(HgeActor::actorId id, const s_ptr<HveModel>& spModel)
      : HgeRenderableComponent(id, RenderType::SIMPLE), spModel_m(spModel) {}
-    ModelComponent(id_t id, s_ptr<HveModel>&& spModel)
+    ModelComponent(HgeActor::actorId id, s_ptr<HveModel>&& spModel)
      : HgeRenderableComponent(id, RenderType::SIMPLE), spModel_m(std::move(spModel)) {}
     ~ModelComponent(){}
 

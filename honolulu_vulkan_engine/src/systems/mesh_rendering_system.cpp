@@ -1,10 +1,10 @@
-#include <systems/simple_renderer.hpp>
+#include <systems/mesh_rendering_system.hpp>
+#include <hge_components/model_component.hpp>
 
 // lib
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
-// lib
 #include <glm/gtc/constants.hpp>
 
 //std
@@ -15,14 +15,14 @@
 namespace hnll {
 
 // should be compatible with a shader
-struct SimplePushConstantData
+struct MeshPushConstant
 {
   glm::mat4 modelMatrix_m{1.0f};
   // to align data offsets with shader
   glm::mat4 normalMatrix_m{1.0f};
 };
 
-SimpleRendererSystem::SimpleRendererSystem
+MeshRenderingSystem::MeshRenderingSystem
   (HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
   : HveRenderingSystem(device, RenderType::SIMPLE)
 { 
@@ -30,17 +30,17 @@ SimpleRendererSystem::SimpleRendererSystem
   createPipeline(renderPass);
 }
 
-SimpleRendererSystem::~SimpleRendererSystem()
+MeshRenderingSystem::~MeshRenderingSystem()
 {}
 
-void SimpleRendererSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout)
+void MeshRenderingSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout)
 {
   // config push constant range
   VkPushConstantRange pushConstantRange{};
   pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
   // mainly for if you are going to separate ranges for the vertex and fragment shaders
   pushConstantRange.offset = 0;
-  pushConstantRange.size = sizeof(SimplePushConstantData);
+  pushConstantRange.size = sizeof(MeshPushConstant);
 
   std::vector<VkDescriptorSetLayout> descriptorSetLayouts{globalSetLayout};
 
@@ -54,7 +54,7 @@ void SimpleRendererSystem::createPipelineLayout(VkDescriptorSetLayout globalSetL
       throw std::runtime_error("failed to create pipeline layout!");
 }
 
-void SimpleRendererSystem::createPipeline(VkRenderPass renderPass)
+void MeshRenderingSystem::createPipeline(VkRenderPass renderPass)
 {
   assert(pipelineLayout_m != nullptr && "cannot create pipeline before pipeline layout");
 
@@ -70,7 +70,7 @@ void SimpleRendererSystem::createPipeline(VkRenderPass renderPass)
 }
 
 
-void SimpleRendererSystem::render(FrameInfo frameInfo)
+void MeshRenderingSystem::render(FrameInfo frameInfo)
 {
   hvePipeline_m->bind(frameInfo.commandBuffer_m);
 
@@ -87,7 +87,7 @@ void SimpleRendererSystem::render(FrameInfo frameInfo)
     
     auto obj = dynamic_cast<ModelComponent*>(target.second.get());
     if (obj->getSpModel() == nullptr) continue;
-    SimplePushConstantData push{};
+    MeshPushConstant push{};
     // camera projection
     push.modelMatrix_m = obj->getTransform().mat4();
     // automatically converse mat3(normalMatrix_m) to mat4 for shader data alignment
@@ -98,7 +98,7 @@ void SimpleRendererSystem::render(FrameInfo frameInfo)
         pipelineLayout_m, 
         VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 
         0, 
-        sizeof(SimplePushConstantData), 
+        sizeof(MeshPushConstant), 
         &push);
     obj->getSpModel()->bind(frameInfo.commandBuffer_m);
     obj->getSpModel()->draw(frameInfo.commandBuffer_m);

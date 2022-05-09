@@ -3,7 +3,8 @@
 #include <hve_app.hpp>
 
 #include <systems/point_light.hpp>
-#include <systems/simple_renderer.hpp>
+#include <systems/mesh_rendering_system.hpp>
+#include <systems/line_rendering_system.hpp>
 
 // lib
 #include <glm/gtc/constants.hpp>
@@ -59,20 +60,30 @@ void Hve::init()
   }
 
   // create renderer system as local variable
-  auto simpleRendererSystem = std::make_unique<SimpleRendererSystem>(
+  auto meshRenderingSystem = std::make_unique<MeshRenderingSystem>(
     hveDevice_m, 
     hveRenderer_m.getSwapChainRenderPass(HVE_RENDER_PASS_ID),
-    globalSetLayout_m->getDescriptorSetLayout());
+    globalSetLayout_m->getDescriptorSetLayout()
+  );
 
   auto pointLightSystem = std::make_unique<PointLightSystem>(
     hveDevice_m, 
     hveRenderer_m.getSwapChainRenderPass(HVE_RENDER_PASS_ID),
-    globalSetLayout_m->getDescriptorSetLayout());
+    globalSetLayout_m->getDescriptorSetLayout()
+  );
+
+  auto lineRenderingSystem = std::make_unique<LineRenderingSystem>(
+    hveDevice_m,
+    hveRenderer_m.getSwapChainRenderPass(HVE_RENDER_PASS_ID),
+    globalSetLayout_m->getDescriptorSetLayout()
+  );
 
   renderingSystems_m.emplace
-    (simpleRendererSystem->getRenderType(), std::move(simpleRendererSystem));
+    (meshRenderingSystem->getRenderType(), std::move(meshRenderingSystem));
   renderingSystems_m.emplace
     (pointLightSystem->getRenderType(), std::move(pointLightSystem));
+  renderingSystems_m.emplace
+    (lineRenderingSystem->getRenderType(), std::move(lineRenderingSystem));
 }
 
 // each render systems automatically detect render target components

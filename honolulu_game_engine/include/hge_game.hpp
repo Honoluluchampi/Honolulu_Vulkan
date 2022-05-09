@@ -44,6 +44,8 @@ public:
   template <class S>
   void replaceRenderableComponent(S&& comp)
   { upHve_m->replaceRenderableComponent(std::forward<S>(comp)); }
+  void removeRenderableComponent(RenderType type, HgeComponent::compId id)
+  { upHve_m->removeRenderableComponentWithoutOwner(type, id); }
 
   void addPointLight(u_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& lightComp);
   // TODO : delete this func

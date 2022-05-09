@@ -12,12 +12,14 @@ struct PointLightInfo
 
 class PointLightComponent : public HgeRenderableComponent
 {
-  using id_t = unsigned int;
-
   public:
-    PointLightComponent(id_t id);
+    PointLightComponent(HgeActor::actorId id);
     ~PointLightComponent(){}
 
+    // setter
+    void setRadius(float radius) 
+    { this->setScale(glm::vec3(radius, radius, radius)); }
+    // getter
     PointLightInfo& getLightInfo() { return lightInfo_m; }
     glm::vec3& getColor() { return color_m; }
     static s_ptr<PointLightComponent> createPointLight
