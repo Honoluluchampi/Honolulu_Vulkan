@@ -32,3 +32,7 @@ struct Transform
 };
 
 } // namespace hnll
+
+
+static inline glm::vec3 sclXvec(const float scalar, const glm::vec3& vec)
+{ return {vec.x * scalar, vec.y * scalar, vec.z * scalar}; }
