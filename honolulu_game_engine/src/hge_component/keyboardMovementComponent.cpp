@@ -1,9 +1,12 @@
 #include <hge_components/keyboardMovementComponent.hpp>
+#include <hge_game.hpp>
 
 // lib
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
+
+#include <X11/extensions/XTest.h>
 
 void joystickCallback(int jid, int event)
 {
@@ -99,6 +102,25 @@ void KeyboardMovementComponent::processMoveInput(GLFWgamepadstate& state, float 
 
 void KeyboardMovementComponent::processButtonInput(GLFWgamepadstate& state, float dt)
 {
+  // TODO : impl as lambda
+  static bool isPressing = false;
+  Display* display;
+  // click
+  if (!isPressing && state.buttons[pads.buttonA] == GLFW_PRESS) {
+    display = XOpenDisplay(NULL);
+    XTestFakeButtonEvent(display, 1, True, CurrentTime);
+    XFlush(display);
+    XCloseDisplay(display);
+    isPressing = true;
+  }
+  // drag -> nothing to do
+  else if (isPressing && state.buttons[pads.buttonA] == GLFW_RELEASE) {
+    display = XOpenDisplay(NULL);
+    XTestFakeButtonEvent(display, 1, False, CurrentTime);
+    XFlush(display);
+    XCloseDisplay(display);
+    isPressing = false;
+  }
 }
 
 void KeyboardMovementComponent::adjustAxisErrors()

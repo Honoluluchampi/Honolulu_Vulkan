@@ -10,8 +10,12 @@ namespace hnll {
 constexpr float MAX_FPS = 30.0f;
 constexpr float MAX_DT = 0.05f;
 
+// glfw
 GLFWwindow* HgeGame::glfwWindow_m;
 std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> HgeGame::glfwMouseButtonCallbacks_{};
+
+// x12
+Display* HgeGame::display_ = XOpenDisplay(NULL);
 
 HgeGame::HgeGame(const char* windowName) : upHve_m(std::make_unique<Hve>(windowName))
 {

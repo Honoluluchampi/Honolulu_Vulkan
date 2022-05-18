@@ -12,6 +12,7 @@
 
 // lib
 #include <GLFW/glfw3.h>
+#include <X11/extensions/XTest.h>
 
 //std
 #include <vector>
@@ -65,6 +66,8 @@ public:
   // move u_ptr<func> before add
   static void addGlfwMouseButtonCallback(u_ptr<std::function<void(GLFWwindow*, int, int, int)>>&& func);
 
+  // X11
+  static Display* x11Display() { return display_; }
 protected:
   // TODO : remove static
   static GLFWwindow* glfwWindow_m;
@@ -100,7 +103,6 @@ private:
   static void setGlfwMouseButtonCallbacks();
   static void glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 
-
   HgeActor::map activeActorMap_m;
   HgeActor::map pendingActorMap_m;
   HgeActor::map deadActorMap_m;
@@ -129,6 +131,9 @@ private:
   // glfw
   static std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> 
     glfwMouseButtonCallbacks_;
+
+  // X11
+  static Display* display_;
 };
 
 } // namespace hnll

@@ -24,6 +24,8 @@ target_link_libraries(app PUBLIC hge hie hve
         $ENV{VULKAN_DIR}/lib/libvulkan.so.1.3.204 
         $ENV{VULKAN_DIR}/lib/libvulkan.so.1 
         /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
+        X11
+        Xtst
 )
 
 # specify the include directories
