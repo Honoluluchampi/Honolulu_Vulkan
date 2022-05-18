@@ -61,8 +61,13 @@ public:
   u_ptr<Hie>& hie() { return upHie_m; }
 #endif
 
+  // glfw
+  // move u_ptr<func> before add
+  static void addGlfwMouseButtonCallback(u_ptr<std::function<void(GLFWwindow*, int, int, int)>>&& func);
+
 protected:
-  GLFWwindow* glfwWindow_m;
+  // TODO : remove static
+  static GLFWwindow* glfwWindow_m;
   // hge actors
   u_ptr<HgeCamera> upCamera_m;
   u_ptr<HgePointLightManager> upLightManager_;
@@ -91,6 +96,10 @@ private:
   // use filenames as the key of the map
   void loadHveModels(const std::string& modelDir = "/models");
 
+  // glfw
+  static void setGlfwMouseButtonCallbacks();
+  static void glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+
 
   HgeActor::map activeActorMap_m;
   HgeActor::map pendingActorMap_m;
@@ -116,6 +125,10 @@ private:
   std::chrono::_V2::system_clock::time_point currentTime_m;
 
   id_t hieModelID_;
+
+  // glfw
+  static std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> 
+    glfwMouseButtonCallbacks_;
 };
 
 } // namespace hnll

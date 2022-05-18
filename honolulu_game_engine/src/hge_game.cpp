@@ -10,6 +10,9 @@ namespace hnll {
 constexpr float MAX_FPS = 30.0f;
 constexpr float MAX_DT = 0.05f;
 
+GLFWwindow* HgeGame::glfwWindow_m;
+std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> HgeGame::glfwMouseButtonCallbacks_{};
+
 HgeGame::HgeGame(const char* windowName) : upHve_m(std::make_unique<Hve>(windowName))
 {
   setGLFWwindow(); // ?
@@ -23,6 +26,9 @@ HgeGame::HgeGame(const char* windowName) : upHve_m(std::make_unique<Hve>(windowN
 
   initHgeActors();
   loadData();
+
+  // glfw
+  setGlfwMouseButtonCallbacks();
 }
 
 HgeGame::~HgeGame()
@@ -261,6 +267,28 @@ void HgeGame::cleanup()
   deadActorMap_m.clear();
   hveModelMap_m.clear();
   HveRenderer::cleanupSwapChain();
+}
+
+// glfw
+void HgeGame::setGlfwMouseButtonCallbacks()
+{
+  glfwSetMouseButtonCallback(glfwWindow_m, glfwMouseButtonCallback);
+}
+
+void HgeGame::addGlfwMouseButtonCallback(u_ptr<std::function<void(GLFWwindow* window, int button, int action, int mods)>>&& func)
+{
+  glfwMouseButtonCallbacks_.emplace_back(std::move(func));
+  setGlfwMouseButtonCallbacks();
+}
+
+void HgeGame::glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+{
+  for (const auto& func : glfwMouseButtonCallbacks_)
+    func->operator()(window, button, action, mods);
+  
+#ifndef __IMGUI_DISABLED
+  ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+#endif
 }
 
 } // namespace hnll
