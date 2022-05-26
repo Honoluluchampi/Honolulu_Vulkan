@@ -15,7 +15,8 @@ class HgePointLightManager : public HgeActor
 {
   using map = std::unordered_map<HgeComponent::compId, s_ptr<PointLightComponent>>;
   public:
-    HgePointLightManager(GlobalUbo& ubo);
+    static s_ptr<HgePointLightManager> create(HgeGame* owner);
+    ~HgePointLightManager(){}
 
     // complete transport
     template <class SP> void addLightComp(SP&& spLightComp)
@@ -29,7 +30,7 @@ class HgePointLightManager : public HgeActor
     void updateActor(float dt) override;
 
   private:
-
+    HgePointLightManager(HgeGame* owner);
     map lightCompMap_;
     GlobalUbo& ubo_;    
 };

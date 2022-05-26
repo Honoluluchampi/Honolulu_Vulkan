@@ -13,16 +13,18 @@ template <class T> using u_ptr = std::unique_ptr<T>;
 
 namespace hnll {
 
-class HgeActor
+// forward declaration
+class HgeGame;
+
+class HgeActor : public std::enable_shared_from_this<HgeActor>
 {
   public:
     using actorId = unsigned int;
-    using map = std::unordered_map<actorId, std::unique_ptr<HgeActor>>;
+    using map = std::unordered_map<actorId, s_ptr<HgeActor>>;
 
     // hgeActor can be created only by this fuction
-    HgeActor()
-    { static actorId currentId = 0; id_m = currentId++; }
-
+    static s_ptr<HgeActor> create(HgeGame* owner);
+    
     enum class state
     {
        ACTIVE,
@@ -89,11 +91,16 @@ class HgeActor
 
     inline bool isRenderable() const { return isRenderable_m; }
 
-  private:
-    HgeActor(actorId id) : id_m(id) {}
+  protected:
+    HgeActor(HgeGame* owner);
 
+  private:
+    static void createImpl();
     actorId id_m;
     state state_m = state::ACTIVE;
+    // raw ptr (cannot create s_ptr<HgeGame> in HgeGame)
+    HgeGame* owner_;
+
     // would be shared?
     std::vector<std::unique_ptr<HgeComponent>> uniqueComponents_m;
     std::vector<std::shared_ptr<HgeComponent>> sharedComponents_m; 

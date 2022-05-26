@@ -34,8 +34,8 @@ public:
   bool initialize();
   void run();
 
-  void addActor(u_ptr<HgeActor>& actor);
-  void addActor(u_ptr<HgeActor>&& actor);
+  void addActor(const s_ptr<HgeActor>& actor);
+  // void addActor(s_ptr<HgeActor>&& actor);
   void removeActor(id_t id);
 
   // takes s_ptr<HgeRenderableComponent>
@@ -48,7 +48,7 @@ public:
   void removeRenderableComponent(RenderType type, HgeComponent::compId id)
   { upHve_m->removeRenderableComponentWithoutOwner(type, id); }
 
-  void addPointLight(u_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& lightComp);
+  void addPointLight(s_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& lightComp);
   // TODO : delete this func
   void addPointLightWithoutOwner(s_ptr<PointLightComponent>& lightComp);
   void removePointLightWithoutOwner(HgeComponent::compId id);
@@ -57,6 +57,7 @@ public:
   { upCamera_m->getTransform() = transform; }
 
   // getter
+  Hve& hve() { return *upHve_m; }
   HveDevice& hveDevice() { return upHve_m->hveDevice(); }
 #ifndef __IMGUI_DISABLED
   u_ptr<Hie>& hie() { return upHie_m; }
@@ -72,8 +73,8 @@ protected:
   // TODO : remove static
   static GLFWwindow* glfwWindow_m;
   // hge actors
-  u_ptr<HgeCamera> upCamera_m;
-  u_ptr<HgePointLightManager> upLightManager_;
+  s_ptr<HgeCamera> upCamera_m;
+  s_ptr<HgePointLightManager> upLightManager_;
 
 private:
   inline void setGLFWwindow() { glfwWindow_m = upHve_m->passGLFWwindow() ; }
@@ -84,6 +85,9 @@ private:
   virtual void updateGame(float dt){}
   void render();
 
+  // factory funcs
+  s_ptr<HgeActor> createActor();
+
 #ifndef __IMGUI_DISABLED
   void updateImgui();
   virtual void updateGameImgui(){}
@@ -92,7 +96,7 @@ private:
   // init 
   void initHgeActors();
   void loadData();
-  virtual void createActor();
+  virtual void loadActor();
 
   void unLoadData();
   // load all models in modleDir

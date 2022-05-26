@@ -8,10 +8,10 @@
 
 namespace hnll {
 
-class HgeCamera : public HgeActor
+class HgeCamera : public HgeActor, public std::enable_shared_from_this<HgeCamera>
 {
 public:
-  HgeCamera(Hve& hve);
+  static s_ptr<HgeCamera> create(HgeGame* owner);
   ~HgeCamera(){}
 
   HgeCamera(const HgeCamera &) = delete;
@@ -30,6 +30,8 @@ public:
   inline s_ptr<ViewerComponent> viewerComponent() const { return spViewerComp_m; }  
 
 private:
+  HgeCamera(HgeGame* owner);
+
   Transform transform_m {};
   s_ptr<ViewerComponent> spViewerComp_m;
 };

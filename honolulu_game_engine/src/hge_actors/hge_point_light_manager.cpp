@@ -1,8 +1,15 @@
 #include <hge_actors/hge_point_light_manager.hpp>
+#include <hge_game.hpp>
 
 namespace hnll {
 
-HgePointLightManager::HgePointLightManager(GlobalUbo& ubo) : ubo_(ubo)
+s_ptr<HgePointLightManager> HgePointLightManager::create(HgeGame* owner)
+{
+  return s_ptr<HgePointLightManager>(new HgePointLightManager(owner));
+}
+
+HgePointLightManager::HgePointLightManager(HgeGame* owner) : 
+  HgeActor(owner), ubo_(owner->hve().globalUbo())
 {
 
 }
