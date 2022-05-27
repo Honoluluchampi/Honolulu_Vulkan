@@ -86,7 +86,7 @@ private:
   void render();
 
   // factory funcs
-  s_ptr<HgeActor> createActor();
+  static s_ptr<HgeActor> createActor();
 
 #ifndef __IMGUI_DISABLED
   void updateImgui();
@@ -108,7 +108,7 @@ private:
   static void glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 
   HgeActor::map activeActorMap_m;
-  HgeActor::map pendingActorMap_m;
+  static HgeActor::map pendingActorMap_m;
   HgeActor::map deadActorMap_m;
 
   u_ptr<Hve> upHve_m;

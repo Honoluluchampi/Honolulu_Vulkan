@@ -3,19 +3,19 @@
 #include <hge_actor.hpp>
 #include <hge_components/point_light_component.hpp>
 
-// hve
-#include <hve_frame_info.hpp>
-
 // std
 #include <unordered_map>
 
 namespace hnll {
 
+// forward declaration
+class GlobalUbo;
+
 class HgePointLightManager : public HgeActor
 {
   using map = std::unordered_map<HgeComponent::compId, s_ptr<PointLightComponent>>;
   public:
-    static s_ptr<HgePointLightManager> create(HgeGame* owner);
+    HgePointLightManager(GlobalUbo& ubo);
     ~HgePointLightManager(){}
 
     // complete transport
@@ -30,7 +30,6 @@ class HgePointLightManager : public HgeActor
     void updateActor(float dt) override;
 
   private:
-    HgePointLightManager(HgeGame* owner);
     map lightCompMap_;
     GlobalUbo& ubo_;    
 };

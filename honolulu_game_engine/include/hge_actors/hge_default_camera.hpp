@@ -3,15 +3,17 @@
 #include <hge_actor.hpp>
 #include <hge_components/viewer_component.hpp>
 #include <hge_components/keyboardMovementComponent.hpp>
-#include <hve_app.hpp>
 #include <utility.hpp>
 
 namespace hnll {
 
-class HgeCamera : public HgeActor, public std::enable_shared_from_this<HgeCamera>
+// forward declaration
+class Hve;
+
+class HgeCamera : public HgeActor
 {
 public:
-  static s_ptr<HgeCamera> create(HgeGame* owner);
+  HgeCamera(Hve& hve);
   ~HgeCamera(){}
 
   HgeCamera(const HgeCamera &) = delete;
@@ -30,8 +32,6 @@ public:
   inline s_ptr<ViewerComponent> viewerComponent() const { return spViewerComp_m; }  
 
 private:
-  HgeCamera(HgeGame* owner);
-
   Transform transform_m {};
   s_ptr<ViewerComponent> spViewerComp_m;
 };

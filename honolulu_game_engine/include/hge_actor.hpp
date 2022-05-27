@@ -16,14 +16,14 @@ namespace hnll {
 // forward declaration
 class HgeGame;
 
-class HgeActor : public std::enable_shared_from_this<HgeActor>
+class HgeActor
 {
   public:
     using actorId = unsigned int;
     using map = std::unordered_map<actorId, s_ptr<HgeActor>>;
 
     // hgeActor can be created only by this fuction
-    static s_ptr<HgeActor> create(HgeGame* owner);
+    HgeActor();
     
     enum class state
     {
@@ -91,15 +91,9 @@ class HgeActor : public std::enable_shared_from_this<HgeActor>
 
     inline bool isRenderable() const { return isRenderable_m; }
 
-  protected:
-    HgeActor(HgeGame* owner);
-
   private:
-    static void createImpl();
     actorId id_m;
     state state_m = state::ACTIVE;
-    // raw ptr (cannot create s_ptr<HgeGame> in HgeGame)
-    HgeGame* owner_;
 
     // would be shared?
     std::vector<std::unique_ptr<HgeComponent>> uniqueComponents_m;

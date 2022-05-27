@@ -10,6 +10,9 @@ namespace hnll {
 constexpr float MAX_FPS = 30.0f;
 constexpr float MAX_DT = 0.05f;
 
+// static members
+HgeActor::map HgeGame::pendingActorMap_m;
+
 // glfw
 GLFWwindow* HgeGame::glfwWindow_m;
 std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> HgeGame::glfwMouseButtonCallbacks_{};
@@ -142,10 +145,10 @@ void HgeGame::updateImgui()
 void HgeGame::initHgeActors()
 {
   // hge actors
-  upCamera_m = HgeCamera::create(this);
+  upCamera_m = std::make_shared<HgeCamera>(*upHve_m);
   
   // TODO : configure priorities of actors, then update light manager after all light comp
-  upLightManager_ = HgePointLightManager::create(this);
+  upLightManager_ = std::make_shared<HgePointLightManager>(upHve_m->globalUbo());
 
 }
 
@@ -170,7 +173,7 @@ void HgeGame::loadHveModels(const std::string& modelDir)
   }
 }
 
-// actors should be created as unique_ptr
+// actors should be created as shared_ptr
 void HgeGame::addActor(const s_ptr<HgeActor>& actor)
 { pendingActorMap_m.emplace(actor->getId(), actor); }
 
@@ -187,11 +190,14 @@ void HgeGame::removeActor(id_t id)
 // functory funcs
 s_ptr<HgeActor> HgeGame::createActor()
 {
+  auto actor = std::make_shared<HgeActor>();
+  pendingActorMap_m.emplace(actor->getId(), actor);
+  return actor;
 }
 
 void HgeGame::loadActor()
 {
-  auto smoothVase = HgeActor::create(this);
+  auto smoothVase = createActor();
   auto& smoothVaseHveModel = hveModelMap_m["smooth_vase"];
   auto smoothVaseModelComp = std::make_shared<ModelComponent>(smoothVase->getId(), smoothVaseHveModel);
   smoothVase->addRenderableComponent(smoothVaseModelComp);
@@ -201,7 +207,7 @@ void HgeGame::loadActor()
   
   hieModelID_ = smoothVase->getId();
 
-  auto flatVase = HgeActor::create(this);
+  auto flatVase = createActor();
   auto& flatVaseHveModel = hveModelMap_m["flat_vase"];
   auto flatVaseModelComp = std::make_shared<ModelComponent>(flatVase->getId(), flatVaseHveModel);
   flatVase->addRenderableComponent(flatVaseModelComp);
@@ -209,7 +215,7 @@ void HgeGame::loadActor()
   flatVaseModelComp->setTranslation(glm::vec3{0.5f, 0.5f, 0.f});
   flatVaseModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
   
-  auto floor = HgeActor::create(this);
+  auto floor = createActor();
   auto& floorHveModel = hveModelMap_m["quad"];
   auto floorModelComp = std::make_shared<ModelComponent>(floor->getId(), floorHveModel);
   floor->addRenderableComponent(floorModelComp);
@@ -227,7 +233,7 @@ void HgeGame::loadActor()
   };
 
   for (int i = 0; i < lightColors.size(); i++) {
-    auto lightActor = HgeActor::create(this);
+    auto lightActor = createActor();
     auto lightComp = PointLightComponent::createPointLight(lightActor->getId(), 1.0f, 0.f, lightColors[i]);
     auto lightRotation = glm::rotate(
         glm::mat4(1),

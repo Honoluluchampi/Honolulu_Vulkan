@@ -1,16 +1,11 @@
 #include <hge_actors/hge_default_camera.hpp>
 #include <hge_game.hpp>
+#include <hve_app.hpp>
 
 namespace hnll {
 
-s_ptr<HgeCamera> HgeCamera::create(HgeGame* owner)
+HgeCamera::HgeCamera(Hve& hve) : HgeActor()
 {
-  return s_ptr<HgeCamera>(new HgeCamera(owner));
-}
-
-HgeCamera::HgeCamera(HgeGame* owner) : HgeActor(owner)
-{
-  auto& hve = owner->hve();
   spViewerComp_m = std::make_shared<ViewerComponent>(transform_m, hve.hveRenderer());
   // set initial position
   transform_m.translation_m.z = -2.5f;
