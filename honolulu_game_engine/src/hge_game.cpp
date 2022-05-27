@@ -104,6 +104,8 @@ void HgeGame::update()
 
   // activate pending actor
   for (auto& pend : pendingActorMap_m) {
+    if(pend.second->isRenderable())
+      upHve_m->addRenderableComponent(pend.second->getRenderableComponent());
     activeActorMap_m.emplace(pend.first, std::move(pend.second));
   }
   pendingActorMap_m.clear();
@@ -201,7 +203,6 @@ void HgeGame::loadActor()
   auto& smoothVaseHveModel = hveModelMap_m["smooth_vase"];
   auto smoothVaseModelComp = std::make_shared<ModelComponent>(smoothVase->getId(), smoothVaseHveModel);
   smoothVase->addRenderableComponent(smoothVaseModelComp);
-  upHve_m->addRenderableComponent(smoothVaseModelComp);
   smoothVaseModelComp->setTranslation(glm::vec3{-0.5f, 0.5f, 0.f});
   smoothVaseModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
   
@@ -211,7 +212,6 @@ void HgeGame::loadActor()
   auto& flatVaseHveModel = hveModelMap_m["flat_vase"];
   auto flatVaseModelComp = std::make_shared<ModelComponent>(flatVase->getId(), flatVaseHveModel);
   flatVase->addRenderableComponent(flatVaseModelComp);
-  upHve_m->addRenderableComponent(flatVaseModelComp);
   flatVaseModelComp->setTranslation(glm::vec3{0.5f, 0.5f, 0.f});
   flatVaseModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
   
@@ -219,7 +219,6 @@ void HgeGame::loadActor()
   auto& floorHveModel = hveModelMap_m["quad"];
   auto floorModelComp = std::make_shared<ModelComponent>(floor->getId(), floorHveModel);
   floor->addRenderableComponent(floorModelComp);
-  upHve_m->addRenderableComponent(floorModelComp);
   floorModelComp->setTranslation(glm::vec3{0.f, 0.5f, 0.f});
   floorModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
 
@@ -248,7 +247,6 @@ void HgeGame::addPointLight(s_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& 
 {
   // shared by three actor 
   owner->addRenderableComponent(lightComp);
-  upHve_m->addRenderableComponent(lightComp);
   upLightManager_->addLightComp(lightComp);
 } 
 
