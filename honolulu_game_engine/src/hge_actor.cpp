@@ -18,9 +18,9 @@ void HgeActor::update(float dt)
 
 void HgeActor::updateComponents(float dt)
 {
-for (const auto& comp : uniqueComponents_m)
+for (const auto& comp : uniqueComponents_)
   comp->update(dt);
-for (const auto& comp : sharedComponents_m)
+for (const auto& comp : sharedComponents_)
   comp->update(dt);
 }
 
@@ -33,9 +33,9 @@ for (const auto& comp : sharedComponents_m)
 
  void HgeActor::updateComponentsImgui()
  {
-  for (const auto& comp : uniqueComponents_m)
+  for (const auto& comp : uniqueComponents_)
     comp->updateImgui();
-  for (const auto& comp : sharedComponents_m)
+  for (const auto& comp : sharedComponents_)
     comp->updateImgui();
  }
 #endif

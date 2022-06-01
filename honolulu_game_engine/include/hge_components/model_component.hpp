@@ -16,9 +16,9 @@ class ModelComponent : public HgeRenderableComponent
   public:
     using map = std::unordered_map<compId, s_ptr<ModelComponent>>;
     // copy a passed shared_ptr
-    ModelComponent(HgeActor::actorId id, const s_ptr<HveModel>& spModel)
+    ModelComponent(actorId id, const s_ptr<HveModel>& spModel)
      : HgeRenderableComponent(id, RenderType::SIMPLE), spModel_m(spModel) {}
-    ModelComponent(HgeActor::actorId id, s_ptr<HveModel>&& spModel)
+    ModelComponent(actorId id, s_ptr<HveModel>&& spModel)
      : HgeRenderableComponent(id, RenderType::SIMPLE), spModel_m(std::move(spModel)) {}
     ~ModelComponent(){}
 

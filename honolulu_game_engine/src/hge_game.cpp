@@ -206,6 +206,7 @@ void HgeGame::loadActor()
   smoothVaseModelComp->setTranslation(glm::vec3{-0.5f, 0.5f, 0.f});
   smoothVaseModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
   
+  // temporary
   hieModelID_ = smoothVase->getId();
 
   auto flatVase = createActor();

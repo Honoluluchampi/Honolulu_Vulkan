@@ -11,7 +11,7 @@ namespace hnll {
 class LineComponent : public HgeRenderableComponent
 {
   public:
-    LineComponent(HgeActor::actorId id, glm::vec3& head, glm::vec3& tail, glm::vec3 color, float radius) 
+    LineComponent(actorId id, glm::vec3& head, glm::vec3& tail, glm::vec3 color, float radius) 
     : HgeRenderableComponent(id, RenderType::LINE), head_(head), tail_(tail), color_(color), radius_(radius)
     {}
     ~LineComponent(){}

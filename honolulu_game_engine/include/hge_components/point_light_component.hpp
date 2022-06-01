@@ -13,7 +13,7 @@ struct PointLightInfo
 class PointLightComponent : public HgeRenderableComponent
 {
   public:
-    PointLightComponent(HgeActor::actorId id);
+    PointLightComponent(actorId id);
     ~PointLightComponent(){}
 
     // setter
