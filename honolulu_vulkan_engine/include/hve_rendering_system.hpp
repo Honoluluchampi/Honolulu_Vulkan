@@ -19,7 +19,7 @@ template<class T> using s_ptr = std::shared_ptr<T>;
 
 class HveRenderingSystem
 {
-  using map = std::unordered_map<id_t, std::shared_ptr<HgeRenderableComponent>>;
+  using map = std::unordered_map<HgeComponent::compId, std::shared_ptr<HgeRenderableComponent>>;
 
 public:
   HveRenderingSystem(HveDevice& device, RenderType type) 
@@ -36,14 +36,14 @@ public:
 
   // takes s_ptr<RenderableComponent>
   template<class S>
-  void addRenderTarget(id_t id, S&& target)
+  void addRenderTarget(HgeComponent::compId id, S&& target)
   { renderTargetMap_m.emplace(id, std::forward<S>(target)); }
 
   template<class S>
-  void replaceRenderTarget(id_t id, S&& target)
+  void replaceRenderTarget(HgeComponent::compId id, S&& target)
   { renderTargetMap_m[id] = std::forward<S>(target); }
 
-  void removeRenderTarget(id_t id)
+  void removeRenderTarget(HgeComponent::compId id)
   { renderTargetMap_m.erase(id); }
 
   RenderType getRenderType() const { return renderType_m; }

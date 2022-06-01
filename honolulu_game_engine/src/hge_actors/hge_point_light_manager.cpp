@@ -1,10 +1,14 @@
 #include <hge_actors/hge_point_light_manager.hpp>
+#include <hge_game.hpp>
+
+// hve
+#include <hve_frame_info.hpp>
 
 namespace hnll {
 
-HgePointLightManager::HgePointLightManager(GlobalUbo& ubo) : ubo_(ubo)
+HgePointLightManager::HgePointLightManager(GlobalUbo& ubo) : 
+  HgeActor(), ubo_(ubo)
 {
-
 }
 
 void HgePointLightManager::updateActor(float dt)

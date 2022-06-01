@@ -12,16 +12,18 @@ enum class RenderType
 {
   SIMPLE,
   POINT_LIGHT,
-  NEON_LIGHT
+  LINE
 };
+
+// forward declaration
+class HgeActor;
+using actorId = unsigned int;
 
 class HgeRenderableComponent : public HgeComponent
 {
   public:
-
-    using id_t = unsigned int;
-
-    HgeRenderableComponent(id_t id, RenderType type) : id_m(id), renderType_m(type) {}
+    HgeRenderableComponent(actorId id, RenderType type) : 
+    HgeComponent(), id_m(id), renderType_m(type) {}
     ~HgeRenderableComponent() {}
 
     HgeRenderableComponent(const HgeRenderableComponent &) = delete;
@@ -39,12 +41,12 @@ class HgeRenderableComponent : public HgeComponent
 
     virtual void updateComponent(float dt) override {}
 
-    id_t getId() const { return id_m; }
+    actorId getActorId() const { return id_m; }
 
     const RenderType getRenderType() const { return renderType_m; }
   protected:
     // same as ownwer's
-    id_t id_m;
+    actorId id_m;
     // update this member
     u_ptr<Transform> upTransform_m = std::make_unique<Transform>();
     RenderType renderType_m;

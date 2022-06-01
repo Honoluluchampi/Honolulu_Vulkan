@@ -3,10 +3,12 @@
 #include <hge_actor.hpp>
 #include <hge_components/viewer_component.hpp>
 #include <hge_components/keyboardMovementComponent.hpp>
-#include <hve_app.hpp>
 #include <utility.hpp>
 
 namespace hnll {
+
+// forward declaration
+class Hve;
 
 class HgeCamera : public HgeActor
 {

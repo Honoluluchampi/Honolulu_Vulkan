@@ -55,6 +55,7 @@ public:
   Hie(Hie&&) = default;
   Hie& operator=(Hie&&) = default;
 
+  void beginImGui();
   void render();
   void frameRender();
   void update(glm::vec3& translation);

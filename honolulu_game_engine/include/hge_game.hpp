@@ -12,6 +12,7 @@
 
 // lib
 #include <GLFW/glfw3.h>
+#include <X11/extensions/XTest.h>
 
 //std
 #include <vector>
@@ -33,9 +34,10 @@ public:
   bool initialize();
   void run();
 
-  void addActor(u_ptr<HgeActor>& actor);
-  void addActor(u_ptr<HgeActor>&& actor);
-  void addPointLight(u_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& lightComp);
+  void addActor(const s_ptr<HgeActor>& actor);
+  // void addActor(s_ptr<HgeActor>&& actor);
+  void removeActor(id_t id);
+
   // takes s_ptr<HgeRenderableComponent>
   template <class S>
   void addRenderableComponent(S&& comp)
@@ -43,18 +45,36 @@ public:
   template <class S>
   void replaceRenderableComponent(S&& comp)
   { upHve_m->replaceRenderableComponent(std::forward<S>(comp)); }
+  void removeRenderableComponent(RenderType type, HgeComponent::compId id)
+  { upHve_m->removeRenderableComponentWithoutOwner(type, id); }
+
+  void addPointLight(s_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& lightComp);
   // TODO : delete this func
   void addPointLightWithoutOwner(s_ptr<PointLightComponent>& lightComp);
-  void removeActor(id_t id);
+  void removePointLightWithoutOwner(HgeComponent::compId id);
+
   void setCameraTransform(const Transform& transform)
   { upCamera_m->getTransform() = transform; }
+
   // getter
+  Hve& hve() { return *upHve_m; }
   HveDevice& hveDevice() { return upHve_m->hveDevice(); }
+#ifndef __IMGUI_DISABLED
+  u_ptr<Hie>& hie() { return upHie_m; }
+#endif
+
+  // glfw
+  // move u_ptr<func> before add
+  static void addGlfwMouseButtonCallback(u_ptr<std::function<void(GLFWwindow*, int, int, int)>>&& func);
+
+  // X11
+  static Display* x11Display() { return display_; }
 protected:
-  GLFWwindow* glfwWindow_m;
+  // TODO : remove static
+  static GLFWwindow* glfwWindow_m;
   // hge actors
-  u_ptr<HgeCamera> upCamera_m;
-  u_ptr<HgePointLightManager> upLightManager_;
+  s_ptr<HgeCamera> upCamera_m;
+  s_ptr<HgePointLightManager> upLightManager_;
 
 private:
   inline void setGLFWwindow() { glfwWindow_m = upHve_m->passGLFWwindow() ; }
@@ -65,19 +85,30 @@ private:
   virtual void updateGame(float dt){}
   void render();
 
+  // factory funcs
+  static s_ptr<HgeActor> createActor();
+
+#ifndef __IMGUI_DISABLED
+  void updateImgui();
+  virtual void updateGameImgui(){}
+#endif
+
   // init 
   void initHgeActors();
   void loadData();
-  virtual void createActor();
+  virtual void loadActor();
 
   void unLoadData();
   // load all models in modleDir
   // use filenames as the key of the map
   void loadHveModels(const std::string& modelDir = "/models");
 
+  // glfw
+  static void setGlfwMouseButtonCallbacks();
+  static void glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 
   HgeActor::map activeActorMap_m;
-  HgeActor::map pendingActorMap_m;
+  static HgeActor::map pendingActorMap_m;
   HgeActor::map deadActorMap_m;
 
   u_ptr<Hve> upHve_m;
@@ -100,6 +131,13 @@ private:
   std::chrono::_V2::system_clock::time_point currentTime_m;
 
   id_t hieModelID_;
+
+  // glfw
+  static std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> 
+    glfwMouseButtonCallbacks_;
+
+  // X11
+  static Display* display_;
 };
 
 } // namespace hnll

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <hve_rendering_system.hpp>
-#include <hge_components/point_light_component.hpp>
 
 // std
 #include <vector>

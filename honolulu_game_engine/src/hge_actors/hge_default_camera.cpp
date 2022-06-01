@@ -1,4 +1,6 @@
 #include <hge_actors/hge_default_camera.hpp>
+#include <hge_game.hpp>
+#include <hve_app.hpp>
 
 namespace hnll {
 
@@ -11,9 +13,9 @@ HgeCamera::HgeCamera(Hve& hve) : HgeActor()
   auto keyComp = std::make_shared<KeyboardMovementComponent>(hve.passGLFWwindow(), transform_m);
   
   // key move must be updated before view
-  addSharedComponent(keyComp);
+  addComponent(keyComp);
   // shared by hveApp
-  addSharedComponent(spViewerComp_m);
+  addComponent(spViewerComp_m);
 }
 
 } // namesapce hnll

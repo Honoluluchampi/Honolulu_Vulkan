@@ -43,13 +43,13 @@ class Hve
     // takes s_ptr<RenderableComponent>
     template<class RC>
     void addRenderableComponent(RC&& target)
-    { renderingSystems_m[target->getRenderType()]->addRenderTarget(target->getId(), std::forward<RC>(target)); }
+    { renderingSystems_m[target->getRenderType()]->addRenderTarget(target->getCompId(), std::forward<RC>(target)); }
     
     template<class RC>
     void replaceRenderableComponent(RC&& target)
-    { renderingSystems_m[target->getRenderType()]->replaceRenderTarget(target->getId(), std::forward<RC>(target)); }
+    { renderingSystems_m[target->getRenderType()]->replaceRenderTarget(target->getCompId(), std::forward<RC>(target)); }
 
-    void removeRenderableComponent(id_t id);
+    void removeRenderableComponentWithoutOwner(RenderType type, HgeComponent::compId id);
 
     inline void waitIdle() { vkDeviceWaitIdle(hveDevice_m.device()); }
 
