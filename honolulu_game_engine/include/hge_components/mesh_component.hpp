@@ -11,16 +11,16 @@ namespace hnll {
 template<class U> using u_ptr = std::unique_ptr<U>;
 template<class S> using s_ptr = std::shared_ptr<S>;
 
-class ModelComponent : public HgeRenderableComponent
+class MeshComponent : public HgeRenderableComponent
 {
   public:
-    using map = std::unordered_map<compId, s_ptr<ModelComponent>>;
+    using map = std::unordered_map<compId, s_ptr<MeshComponent>>;
     // copy a passed shared_ptr
-    ModelComponent(actorId id, const s_ptr<HveModel>& spModel)
+    MeshComponent(actorId id, const s_ptr<HveModel>& spModel)
      : HgeRenderableComponent(id, RenderType::SIMPLE), spModel_m(spModel) {}
-    ModelComponent(actorId id, s_ptr<HveModel>&& spModel)
+    MeshComponent(actorId id, s_ptr<HveModel>&& spModel)
      : HgeRenderableComponent(id, RenderType::SIMPLE), spModel_m(std::move(spModel)) {}
-    ~ModelComponent(){}
+    ~MeshComponent(){}
 
     s_ptr<HveModel>& getSpModel() { return spModel_m; }
     template<class S>

@@ -1,5 +1,5 @@
 #include <systems/mesh_rendering_system.hpp>
-#include <hge_components/model_component.hpp>
+#include <hge_components/mesh_component.hpp>
 
 // lib
 #define GLM_FORCE_RADIANS
@@ -85,7 +85,7 @@ void MeshRenderingSystem::render(FrameInfo frameInfo)
 
   for (auto& target : renderTargetMap_m) {
     
-    auto obj = dynamic_cast<ModelComponent*>(target.second.get());
+    auto obj = dynamic_cast<MeshComponent*>(target.second.get());
     if (obj->getSpModel() == nullptr) continue;
     MeshPushConstant push{};
     // camera projection

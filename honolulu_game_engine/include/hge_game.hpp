@@ -3,7 +3,7 @@
 //  hve
 #include <hve.hpp>
 #include <hge_actor.hpp>
-#include <hge_components/model_component.hpp>
+#include <hge_components/mesh_component.hpp>
 #include <hge_actors/hge_default_camera.hpp>
 #include <hge_actors/hge_point_light_manager.hpp>
 
