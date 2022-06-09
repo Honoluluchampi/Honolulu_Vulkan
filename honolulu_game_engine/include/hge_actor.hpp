@@ -87,6 +87,7 @@ class HgeActor
 
     inline actorId getId() const { return id_m; }
     inline const state& getActorState() const { return state_m; }
+    inline void setActorState(state st) { state_m = st; }
 
     inline bool isRenderable() const { return renderableComponent_ != nullptr; }
 
