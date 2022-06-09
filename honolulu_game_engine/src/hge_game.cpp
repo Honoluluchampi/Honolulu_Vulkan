@@ -191,14 +191,6 @@ void HgeGame::removeActor(id_t id)
   // renderableActorMap_m.erase(id);
 }
 
-// functory funcs
-s_ptr<HgeActor> HgeGame::createActor()
-{
-  auto actor = std::make_shared<HgeActor>();
-  pendingActorMap_m.emplace(actor->getId(), actor);
-  return actor;
-}
-
 void HgeGame::loadActor()
 {
   auto smoothVase = createActor();

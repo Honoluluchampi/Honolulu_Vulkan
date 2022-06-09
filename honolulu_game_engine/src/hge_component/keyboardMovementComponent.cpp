@@ -79,12 +79,12 @@ void KeyboardMovementComponent::processMoveInput(GLFWgamepadstate& state, float 
 
   glm::vec3 moveDir{0.f};
   float forward = moveY * (state.buttons[pads.leftBumper] == GLFW_PRESS)
-    + (keys.moveForward == GLFW_PRESS)
-    - (keys.moveBackward == GLFW_PRESS);
+    + (glfwGetKey(window_m, keys.moveForward) == GLFW_PRESS)
+    - (glfwGetKey(window_m, keys.moveBackward) == GLFW_PRESS);
   float right = moveX * (state.buttons[pads.leftBumper] == GLFW_PRESS)
-    + (keys.moveRight == GLFW_PRESS)
-    - (keys.moveLeft == GLFW_PRESS);
-  float up = (keys.moveUp == GLFW_PRESS) - (keys.moveDown == GLFW_PRESS)
+    + (glfwGetKey(window_m, keys.moveRight) == GLFW_PRESS)
+    - (glfwGetKey(window_m, keys.moveLeft) == GLFW_PRESS);
+  float up = (glfwGetKey(window_m, keys.moveUp) == GLFW_PRESS) - (glfwGetKey(window_m, keys.moveDown) == GLFW_PRESS)
     + moveZ;
   
   moveDir += sclXvec(forward, forwardDir) + sclXvec(right, rightDir) + sclXvec(up, upDir);
