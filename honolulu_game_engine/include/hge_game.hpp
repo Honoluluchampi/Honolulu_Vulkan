@@ -3,7 +3,7 @@
 //  hve
 #include <hve.hpp>
 #include <hge_actor.hpp>
-#include <hge_components/model_component.hpp>
+#include <hge_components/mesh_component.hpp>
 #include <hge_actors/hge_default_camera.hpp>
 #include <hge_actors/hge_point_light_manager.hpp>
 
@@ -38,6 +38,19 @@ public:
   // void addActor(s_ptr<HgeActor>&& actor);
   void removeActor(id_t id);
 
+  // factory funcs
+  // takes hgeActor derived class as template argument
+  template<class ActorClass = HgeActor, class... Args>
+  static s_ptr<ActorClass> createActor(Args... args)
+  {
+    auto actor = std::make_shared<ActorClass>(args...);
+    // create s_ptr of actor perform as HgeActor
+    std::shared_ptr<HgeActor> ptr4actorMap = actor;
+    // register it to the actor map
+    pendingActorMap_m.emplace(ptr4actorMap->getId(), ptr4actorMap);
+    return actor;
+  }
+
   // takes s_ptr<HgeRenderableComponent>
   template <class S>
   void addRenderableComponent(S&& comp)
@@ -59,6 +72,9 @@ public:
   // getter
   Hve& hve() { return *upHve_m; }
   HveDevice& hveDevice() { return upHve_m->hveDevice(); }
+  s_ptr<HveModel> getHveModel(std::string modelName) 
+  { return hveModelMap_m[modelName]; }
+
 #ifndef __IMGUI_DISABLED
   u_ptr<Hie>& hie() { return upHie_m; }
 #endif
@@ -84,9 +100,6 @@ private:
   // game spacific update
   virtual void updateGame(float dt){}
   void render();
-
-  // factory funcs
-  static s_ptr<HgeActor> createActor();
 
 #ifndef __IMGUI_DISABLED
   void updateImgui();
@@ -117,12 +130,9 @@ private:
   u_ptr<Hie> upHie_m;
 #endif
 
-  // map of modelcomponents
-  // shared by game and some actors
-  // wanna make it boost::intrusive_ptr 
   // map of HveModel
   // shared by game and some modelComponents
-  // pool all models which would be necessary
+  // pool all models which could be necessary
   HveModel::map hveModelMap_m;
 
   bool isUpdating_m = false; // for update

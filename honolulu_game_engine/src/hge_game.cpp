@@ -158,14 +158,16 @@ void HgeGame::loadData()
 {
   // load raw data
   loadHveModels();
-  // share above data with vulkan engine
-  loadActor();
+  // temporary
+  // loadActor();
 }
 
 // use filenames as the key of the map
+// TODO : add models by adding folders or files
 void HgeGame::loadHveModels(const std::string& modelDir)
 {
-  auto path = std::string(std::getenv("HNLL_ENGN")) + modelDir;
+  // auto path = std::string(std::getenv("HNLL_ENGN")) + modelDir;
+  auto path = std::string("/home/honolulu/models/primitives");
   for (const auto & file : std::filesystem::directory_iterator(path)) {
     auto filename = std::string(file.path());
     auto length = filename.size() - path.size() - 5;
@@ -189,19 +191,11 @@ void HgeGame::removeActor(id_t id)
   // renderableActorMap_m.erase(id);
 }
 
-// functory funcs
-s_ptr<HgeActor> HgeGame::createActor()
-{
-  auto actor = std::make_shared<HgeActor>();
-  pendingActorMap_m.emplace(actor->getId(), actor);
-  return actor;
-}
-
 void HgeGame::loadActor()
 {
   auto smoothVase = createActor();
   auto& smoothVaseHveModel = hveModelMap_m["smooth_vase"];
-  auto smoothVaseModelComp = std::make_shared<ModelComponent>(smoothVase->getId(), smoothVaseHveModel);
+  auto smoothVaseModelComp = std::make_shared<MeshComponent>(smoothVase->getId(), smoothVaseHveModel);
   smoothVase->addRenderableComponent(smoothVaseModelComp);
   smoothVaseModelComp->setTranslation(glm::vec3{-0.5f, 0.5f, 0.f});
   smoothVaseModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
@@ -211,14 +205,14 @@ void HgeGame::loadActor()
 
   auto flatVase = createActor();
   auto& flatVaseHveModel = hveModelMap_m["flat_vase"];
-  auto flatVaseModelComp = std::make_shared<ModelComponent>(flatVase->getId(), flatVaseHveModel);
+  auto flatVaseModelComp = std::make_shared<MeshComponent>(flatVase->getId(), flatVaseHveModel);
   flatVase->addRenderableComponent(flatVaseModelComp);
   flatVaseModelComp->setTranslation(glm::vec3{0.5f, 0.5f, 0.f});
   flatVaseModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
   
   auto floor = createActor();
   auto& floorHveModel = hveModelMap_m["quad"];
-  auto floorModelComp = std::make_shared<ModelComponent>(floor->getId(), floorHveModel);
+  auto floorModelComp = std::make_shared<MeshComponent>(floor->getId(), floorHveModel);
   floor->addRenderableComponent(floorModelComp);
   floorModelComp->setTranslation(glm::vec3{0.f, 0.5f, 0.f});
   floorModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
