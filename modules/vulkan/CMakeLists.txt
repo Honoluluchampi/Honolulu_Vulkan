@@ -1,14 +1,18 @@
 file(GLOB_RECURSE TARGETS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-add_library(hve STATIC ${TARGETS})
+add_library(hnll_vulkan STATIC ${TARGETS})
 
-# add external libraries
-target_include_directories(hve PUBLIC 
-                           # hve
-                           ${CMAKE_CURRENT_SOURCE_DIR}/include
-                           # hge
-                           ${PROJECT_SOURCE_DIR}/honolulu_game_engine/include
-                           # glfw
-                           /usr/include
-                           # vulkan
-                           $ENV{VULKAN_DIR}/include
+target_include_directories(hnll_vulkan PUBLIC
+    # hnll
+    ${PROJECT_SOURCE_DIR}/include
+    # vulkan
+    $ENV{VULKAN_DIR}/include
 )
+
+if (APPLE)
+    target_include_directories(hnll_vulkan PUBLIC
+    ${PROJECT_SOURCE_DIR}/include
+    $ENV{GLFW_DIR}/include
+    $ENV{GLM_DIR}/include
+    $ENV{VULKAN_DIR}/include
+    )
+endif (APPLE)

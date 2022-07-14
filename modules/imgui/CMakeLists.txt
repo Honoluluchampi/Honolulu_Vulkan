@@ -1,20 +1,23 @@
 file(GLOB_RECURSE TARGETS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 # Honolulu Imgui Engine
-add_library(hie STATIC ${TARGETS})
+add_library(hnll_imgui STATIC ${TARGETS})
 
-# add external libraries
-target_include_directories(hie PUBLIC
-                           # hie
-                           ${CMAKE_CURRENT_SOURCE_DIR}/include
-                           # hge
-                           ${PROJECT_SOURCE_DIR}/honolulu_game_engine/include
-                           # hve
-                           ${PROJECT_SOURCE_DIR}/honolulu_vulkan_engine/include
-                           # imgui
-                           $ENV{IMGUI_DIR}
-                           # glfw
-                           /usr/include
-                           # vulkan
-                           $ENV{VULKAN_DIR}/include
+target_include_directories(hnll_imgui PUBLIC
+    # hnll
+    ${PROJECT_SOURCE_DIR}/include
+    # imgui
+    $ENV{IMGUI_DIR}
+    # vulkan
+    $ENV{VULKAN_DIR}/include
 )
+
+if (APPLE)
+    target_include_directories(hnll_imgui PUBLIC
+    ${PROJECT_SOURCE_DIR}/include
+    $ENV{GLFW_DIR}/include
+    $ENV{GLM_DIR}/include
+    $ENV{IMGUI_DIR}
+    $ENV{VULKAN_DIR}/include
+    )
+endif (APPLE)

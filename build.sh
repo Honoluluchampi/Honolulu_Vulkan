@@ -1,12 +1,10 @@
+# setup env
+source setup-env.sh
+
 # compile shader
-cd honolulu_vulkan_engine
-sh compile.sh
-cd ..
+sh modules/vulkan/compile.sh
 
 # build
-mkdir -p build
-cd build
-cmake ..
-make
-cd ..
-sh copy_libs.sh
+cmake -S . -B build
+cmake --build build
+# sh copy_libs.sh

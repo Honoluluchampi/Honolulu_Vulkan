@@ -12,20 +12,32 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "-g3 -O0")
 
-# add subdirectory's library (this call should corresponds to the mathlib's "add_library")
-add_subdirectory(honolulu_vulkan_engine)
-add_subdirectory(honolulu_imgui_engine)
-add_subdirectory(honolulu_game_engine)
+# add modules as libraries
+add_subdirectory(modules/game)
+add_subdirectory(modules/imgui)
+add_subdirectory(modules/vulkan)
 
 # add the executable
 add_executable(app main.cpp)
 
-target_link_libraries(app PUBLIC hge hie hve 
-        $ENV{VULKAN_DIR}/lib/libvulkan.so.1.3.204 
-        $ENV{VULKAN_DIR}/lib/libvulkan.so.1 
-        /usr/lib/x86_64-linux-gnu/libglfw.so.3.3
-        X11
-        Xtst
+target_link_directories(app PUBLIC
+    $ENV{VULKAN_DIR}/lib
+)
+if (APPLE)
+    target_link_directories(app PUBLIC
+        $ENV{VULKAN_DIR}/lib
+        $ENV{GLFW_DIR}/lib
+    )
+endif (APPLE)
+
+target_link_libraries(app PUBLIC
+    hnll_game
+    hnll_imgui
+    hnll_vulkan
+    vulkan
+    glfw
+#    X11
+#    Xtst
 )
 
 # specify the include directories
@@ -33,5 +45,5 @@ target_link_libraries(app PUBLIC hge hie hve
 # target_include_directories(test PUBLIC ${PROJECT_BINARY_DIR})
 
 # install destination
-install(TARGETS app DESTINATION bin)
+# install(TARGETS app DESTINATION bin)
 # install(FILES ${PROJECT_BINARY_DIR}/testConfig.h DESTINATION include)
