@@ -1,4 +1,4 @@
-#include <hge_game.hpp>
+#include <game/game_engine.hpp>
 
 // std
 #include <cstdlib>
