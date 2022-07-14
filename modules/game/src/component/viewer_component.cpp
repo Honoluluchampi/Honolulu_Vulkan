@@ -1,10 +1,12 @@
-#include <hge_components/viewer_component.hpp>
-
-#include <glm/glm.hpp>
+// hnll
+#include <game/components/viewer_component.hpp>
 
 // std
 #include <cassert>
 #include <limits>
+
+// lib
+#include <glm/glm.hpp>
 
 namespace hnll {
 

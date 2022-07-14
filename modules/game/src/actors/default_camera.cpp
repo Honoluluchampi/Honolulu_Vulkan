@@ -1,6 +1,6 @@
-#include <hge_actors/hge_default_camera.hpp>
-#include <hge_game.hpp>
-#include <hve_app.hpp>
+// hnll
+#include <game/actors/default_camera.hpp>
+#include <graphics/engine.hpp>
 
 namespace hnll {
 

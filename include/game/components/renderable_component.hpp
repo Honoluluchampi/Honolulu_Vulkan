@@ -1,6 +1,7 @@
 #pragma once
 
-#include <component.hpp>
+// hnll
+#include <game/component.hpp>
 #include <utils/utils.hpp>
 
 // std

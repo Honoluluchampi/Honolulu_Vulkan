@@ -1,7 +1,7 @@
 #pragma once
 
 // hnll
-#include <vulkan/engine.hpp>
+#include <graphics/engine.hpp>
 #include <imgui/renderer.hpp>
 
 // basic header
@@ -65,7 +65,7 @@ public:
 private:
   // set up ImGui context
   void setupImGui(HveDevice& hveDevice, GLFWwindow* window);
-  // share the basic vulkan object with hve, so there is nothing to do for now
+  // share the basic graphics object with hve, so there is nothing to do for now
   void setupSpecificVulkanObjects();
   void uploadFonts();
   void cleanupVulkan();

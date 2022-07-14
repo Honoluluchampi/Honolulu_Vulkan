@@ -1,9 +1,11 @@
 #pragma once
 
-#include <hve_model.hpp>
+// hnll
+#include <graphics/model.hpp>
 #include <game/component.hpp>
 #include <game/components/renderable_component.hpp>
 
+// std
 #include <unordered_map>
 
 namespace hnll {

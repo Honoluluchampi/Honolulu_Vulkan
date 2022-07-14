@@ -1,8 +1,6 @@
-#include <hge_actors/hge_point_light_manager.hpp>
-#include <hge_game.hpp>
-
-// hve
-#include <hve_frame_info.hpp>
+// hnll
+#include <game/actors/point_light_manager.hpp>
+#include <graphics/frame_info.hpp>
 
 namespace hnll {
 

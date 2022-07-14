@@ -1,4 +1,5 @@
-#include <hge_components/point_light_component.hpp>
+// hnll
+#include <game/components/point_light_component.hpp>
 
 namespace hnll {
 

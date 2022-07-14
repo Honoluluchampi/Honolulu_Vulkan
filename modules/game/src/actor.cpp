@@ -1,5 +1,5 @@
-#include <hge_actor.hpp>
-#include <hge_game.hpp>
+// hnll
+#include <game/actor.hpp>
 
 namespace hnll {
 

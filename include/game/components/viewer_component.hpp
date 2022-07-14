@@ -2,7 +2,7 @@
 
 // hnll
 #include <game/component.hpp>
-#include <vulkan/renderer.hpp>
+#include <graphics/renderer.hpp>
 #include <utils/utils.hpp>
 
 // lib

@@ -2,7 +2,7 @@
 source setup-env.sh
 
 # compile shader
-sh modules/vulkan/compile.sh
+sh modules/graphics/compile.sh
 
 # build
 cmake -S . -B build

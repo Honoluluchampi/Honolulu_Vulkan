@@ -6,13 +6,14 @@
 #include <game/actors/default_camera.hpp>
 #include <game/actors/point_light_manager.hpp>
 #include <imgui/engine.hpp>
-#include <vulkan/engine.hpp>
+#include <graphics/engine.hpp>
 
 // lib
 #include <GLFW/glfw3.h>
-#include <X11/extensions/XTest.h>
+// #include <X11/extensions/XTest.h>
 
 //std
+#include <chrono>
 #include <vector>
 #include <memory>
 #include <unordered_map>
@@ -82,7 +83,7 @@ public:
   static void addGlfwMouseButtonCallback(u_ptr<std::function<void(GLFWwindow*, int, int, int)>>&& func);
 
   // X11
-  static Display* x11Display() { return display_; }
+  // static Display* x11Display() { return display_; }
 protected:
   // TODO : remove static
   static GLFWwindow* glfwWindow_m;
@@ -136,7 +137,7 @@ private:
   bool isUpdating_m = false; // for update
   bool isRunning_m = false; // for run loop
 
-  std::chrono::_V2::system_clock::time_point currentTime_m;
+  std::chrono::system_clock::time_point currentTime_m;
 
   id_t hieModelID_;
 
@@ -145,7 +146,7 @@ private:
     glfwMouseButtonCallbacks_;
 
   // X11
-  static Display* display_;
+  // static Display* display_;
 };
 
 } // namespace hnll

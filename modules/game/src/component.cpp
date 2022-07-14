@@ -1,4 +1,5 @@
-#include <hge_component.hpp>
+// hnll
+#include <game/component.hpp>
 
 namespace hnll {
 
