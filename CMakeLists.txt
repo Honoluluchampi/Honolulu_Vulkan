@@ -14,7 +14,7 @@ set(CMAKE_CXX_FLAGS "-g3 -O0")
 
 # add modules as libraries
 add_subdirectory(modules/game)
-add_subdirectory(modules/imgui)
+add_subdirectory(modules/gui)
 add_subdirectory(modules/graphics)
 add_subdirectory(modules/utils)
 
@@ -33,7 +33,7 @@ endif (APPLE)
 
 target_link_libraries(app PUBLIC
     hnll_game
-    hnll_imgui
+    hnll_gui
     hnll_graphics
     hnll_utils
     vulkan

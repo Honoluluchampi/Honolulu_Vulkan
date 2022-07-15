@@ -1,8 +1,10 @@
 # execute this script in ~/.bashrc and so on
 
-VULKAN_DIR=~/programs/external_libraries/vulkanSDK
-source $VULKAN_DIR/setup-env.sh
 # configure this part depending on your environment
+export HNLL_ENGN=~/programs/honolulu_engine
+VULKAN_DIR=~/programs/external_libraries/vulkanSDK
+
+source $VULKAN_DIR/setup-env.sh
 if [ "$(uname)" == 'Darwin' ]; then
   export VULKAN_DIR=$VULKAN_DIR/macOS
 elif [ "$(expr substr $(uname -s) 1 5)" == 'Linux' ]; then
@@ -10,23 +12,21 @@ elif [ "$(expr substr $(uname -s) 1 5)" == 'Linux' ]; then
 fi
 
 # git submodules
-export IMGUI_DIR=$PWD/submodules/imgui
+export IMGUI_DIR=$HNLL_ENGN/submodules/imgui
 
 # download imgui font
-if [ ! -e include/gui/roboto_regular.embed ]; then
-  curl -o include/gui/roboto_regular.embed https://raw.githubusercontent.com/TheCherno/Walnut/master/Walnut/src/Walnut/ImGui/Roboto-Regular.embed
+if [ ! -e $HNLL_ENGN/include/gui/roboto_regular.embed ]; then
+  curl -o $HNLL_ENGN/include/gui/roboto_regular.embed https://raw.githubusercontent.com/TheCherno/Walnut/master/Walnut/src/Walnut/ImGui/Roboto-Regular.embed
 fi
 
 # download tiny_obj_loader
-if [ ! -e submodules/tiny_obj_loader/tiny_obj_loader.h ]; then
-  mkdir submodules/tiny_obj_loader
+if [ ! -e $HNLL_ENGN/submodules/tiny_obj_loader/tiny_obj_loader.h ]; then
+  mkdir $HNLL_ENGN/submodules/tiny_obj_loader
   echo "download tiny obj loader"
-  curl -o submodules/tiny_obj_loader/tiny_obj_loader.h https://raw.githubusercontent.com/tinyobjloader/tinyobjloader/master/tiny_obj_loader.h
+  curl -o $HNLL_ENGN/submodules/tiny_obj_loader/tiny_obj_loader.h https://raw.githubusercontent.com/tinyobjloader/tinyobjloader/master/tiny_obj_loader.h
 fi
-export TINY_OBJ_LOADER_DIR=$PWD/submodules/tiny_obj_loader
+export TINY_OBJ_LOADER_DIR=$HNLL_ENGN/submodules/tiny_obj_loader
 
-# hnll
-export HNLL_ENGN=$PWD
 export MODEL_DIR=$HNLL_ENGN/models
 
 # glfw glm
