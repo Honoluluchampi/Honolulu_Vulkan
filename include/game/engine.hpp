@@ -22,14 +22,14 @@
 namespace hnll {
 namespace game {
 
-class game
+class engine
 {
 public:
-  game(const char* windowName = "honolulu engine");
-  ~game();
+  engine(const char* windowName = "honolulu engine");
+  ~engine();
   // delete copy ctor
-  game(const game &) = delete;
-  game& operator=(const game &) = delete;
+  engine(const engine &) = delete;
+  engine& operator=(const engine &) = delete;
 
   bool initialize();
   void run();
@@ -80,17 +80,17 @@ public:
   // static Display* x11Display() { return display_; }
 protected:
   // TODO : remove static
-  static GLFWwindow* glfwWindow_m;
+  static GLFWwindow* glfw_window_;
   // hge actors
   s_ptr<default_camera> camera_up_;
-  s_ptr<point_light_manager> upLightManager_;
+  s_ptr<point_light_manager> light_manager_up_;
 
 private:
-  inline void set_glfw_window() { glfwWindow_m = graphics_engine_up_->get_glfw_window() ; }
+  inline void set_glfw_window() { glfw_window_ = graphics_engine_up_->get_glfw_window() ; }
   void cleanup();
   void process_input();
   void update();
-  // game spacific update
+  // engine spacific update
   virtual void update_game(float dt){}
   void render();
 
@@ -124,7 +124,7 @@ private:
 #endif
 
   // map of mesh_model
-  // shared by game and some modelComponents
+  // shared by engine and some modelComponents
   // pool all models which could be necessary
   hnll::graphics::mesh_model::map mesh_model_map_;
 

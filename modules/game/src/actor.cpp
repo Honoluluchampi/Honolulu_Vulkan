@@ -2,6 +2,7 @@
 #include <game/actor.hpp>
 
 namespace hnll {
+namespace game {
 
 actor::actor()
 { 
@@ -40,4 +41,5 @@ for (const auto& comp : shared_components_)
  }
 #endif
 
+} // namespace game
 } // namespace hnll

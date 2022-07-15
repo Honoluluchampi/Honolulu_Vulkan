@@ -17,7 +17,7 @@ namespace hnll {
 namespace game {
 
 // forward declaration
-class game;
+class engine;
 
 class actor
 {
