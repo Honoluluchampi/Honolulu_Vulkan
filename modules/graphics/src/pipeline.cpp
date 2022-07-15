@@ -1,6 +1,6 @@
 // hnll
 #include <graphics/pipeline.hpp>
-#include <graphics/model.hpp>
+#include <graphics/mesh_model.hpp>
 
 // std
 #include <iostream>
@@ -8,6 +8,7 @@
 #include <stdexcept>
 
 namespace hnll {
+namespace graphics {
 
 // what kind of geometry will be drawn from the vertices (topoloby) and
 // if primitive restart should be enabled
@@ -128,18 +129,16 @@ void pipeline_config_info::create_dynamic_state()
 
 pipeline::pipeline(
   device &device,
-  const std::string &vertFilepath,
-  const std::string &fragFilepath,
-  const pipeline_config_info &configInfo) : device_(device)
-{
-  create_graphics_pipeline(vertFilepath, fragFilepath, configInfo);
-}
+  const std::string &vertex_file_path,
+  const std::string &fragment_file_path,
+  const pipeline_config_info &config_info) : device_(device)
+{ create_graphics_pipeline(vertex_file_path, fragment_file_path, config_info); }
 
 pipeline::~pipeline()
 {
-  vkDestroyShaderModule(device_.device(), vertex_shader_module_, nullptr);
-  vkDestroyShaderModule(device_.device(), fragment_shader_module_, nullptr);
-  vkDestroyPipeline(device_.device(), graphics_pipeline_, nullptr);
+  vkDestroyShaderModule(device_.get_device(), vertex_shader_module_, nullptr);
+  vkDestroyShaderModule(device_.get_device(), fragment_shader_module_, nullptr);
+  vkDestroyPipeline(device_.get_device(), graphics_pipeline_, nullptr);
 }
 
 std::vector<char> pipeline::read_file(const std::string& filepath)
@@ -151,138 +150,140 @@ std::vector<char> pipeline::read_file(const std::string& filepath)
   if (!file.is_open())
     throw std::runtime_error("failed to open file: " + filepath);
 
-  size_t fileSize = static_cast<size_t>(file.tellg());
-  std::vector<char> buffer(fileSize);
+  size_t file_size = static_cast<size_t>(file.tellg());
+  std::vector<char> buffer(file_size);
 
   file.seekg(0);
-  file.read(buffer.data(), fileSize);
+  file.read(buffer.data(), file_size);
   file.close();
 
   return buffer;
 }
 
 void pipeline::create_graphics_pipeline(
-    const std::string &vertFilepath, 
-    const std::string &fragFilepath, 
-    const pipeline_config_info &configInfo)
+    const std::string &vertex_file_path, 
+    const std::string &fragment_file_path, 
+    const pipeline_config_info &config_info)
 {
-  auto vertCode = read_file(vertFilepath);
-  auto fragCode = read_file(fragFilepath);
+  auto vertex_code = read_file(vertex_file_path);
+  auto fragment_code = read_file(fragment_file_path);
 
-  create_shader_module(vertCode, &vertex_shader_module_);
-  create_shader_module(fragCode, &fragment_shader_module_);
+  create_shader_module(vertex_code, &vertex_shader_module_);
+  create_shader_module(fragment_code, &fragment_shader_module_);
 
-  VkPipelineShaderStageCreateInfo shaderStages[2] =
+  VkPipelineShaderStageCreateInfo shader_stages[2] =
     { create_vertex_shader_stage_info(), create_fragment_shader_stage_info() };
 
-  auto vertexInputInfo = create_vertex_input_info();
+  auto vertex_input_info = create_vertex_input_info();
 
   // accept vertex data
-  auto& binding_descriptions = configInfo.binding_descriptions;
-  auto& attribute_descriptions = configInfo.attribute_descriptions; 
-  vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(binding_descriptions.size());
-  vertexInputInfo.pVertexBindingDescriptions = binding_descriptions.data(); //optional
-  vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_descriptions.size());
-  vertexInputInfo.pVertexAttributeDescriptions = attribute_descriptions.data(); //optional
+  auto& binding_descriptions = config_info.binding_descriptions;
+  auto& attribute_descriptions = config_info.attribute_descriptions; 
+  vertex_input_info.vertexBindingDescriptionCount = static_cast<uint32_t>(binding_descriptions.size());
+  vertex_input_info.pVertexBindingDescriptions = binding_descriptions.data(); //optional
+  vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_descriptions.size());
+  vertex_input_info.pVertexAttributeDescriptions = attribute_descriptions.data(); //optional
 
-  VkGraphicsPipelineCreateInfo pipelineInfo{};
-  pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+  VkGraphicsPipelineCreateInfo pipeline_info{};
+  pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
   // programable stage count (in this case vertex and shader stage)
-  pipelineInfo.stageCount = 2;
-  pipelineInfo.pStages = shaderStages;
-  pipelineInfo.pVertexInputState = &vertexInputInfo;
-  pipelineInfo.pInputAssemblyState = &configInfo.input_assembly_info;
-  pipelineInfo.pViewportState = &configInfo.viewport_info;
-  pipelineInfo.pRasterizationState = &configInfo.rasterization_info;
-  pipelineInfo.pMultisampleState = &configInfo.multi_sample_info;
-  pipelineInfo.pColorBlendState = &configInfo.color_blend_info;
-  pipelineInfo.pDepthStencilState = &configInfo.depth_stencil_info;
-  pipelineInfo.pDynamicState = &configInfo.dynamic_state_info;
+  pipeline_info.stageCount = 2;
+  pipeline_info.pStages = shader_stages;
+  pipeline_info.pVertexInputState = &vertex_input_info;
+  pipeline_info.pInputAssemblyState = &config_info.input_assembly_info;
+  pipeline_info.pViewportState = &config_info.viewport_info;
+  pipeline_info.pRasterizationState = &config_info.rasterization_info;
+  pipeline_info.pMultisampleState = &config_info.multi_sample_info;
+  pipeline_info.pColorBlendState = &config_info.color_blend_info;
+  pipeline_info.pDepthStencilState = &config_info.depth_stencil_info;
+  pipeline_info.pDynamicState = &config_info.dynamic_state_info;
 
-  pipelineInfo.layout = configInfo.pipeline_layout;
-  pipelineInfo.renderPass = configInfo.render_pass;
-  pipelineInfo.subpass = configInfo.subpass;
+  pipeline_info.layout = config_info.pipeline_layout;
+  pipeline_info.renderPass = config_info.render_pass;
+  pipeline_info.subpass = config_info.subpass;
 
-  pipelineInfo.basePipelineIndex = -1;
-  pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+  pipeline_info.basePipelineIndex = -1;
+  pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
 
   // its possible to create multiple VkPipeline objects in a single call
   // second parameter means cache objects enables significantly faster creation
-  if (vkCreateGraphicsPipelines(device_.device(), VK_NULL_HANDLE, 1,
-    &pipelineInfo, nullptr, &graphics_pipeline_) != VK_SUCCESS)
+  if (vkCreateGraphicsPipelines(device_.get_device(), VK_NULL_HANDLE, 1,
+    &pipeline_info, nullptr, &graphics_pipeline_) != VK_SUCCESS)
     throw std::runtime_error("failed to create graphics pipeline!");
 
 
 }
 
-void pipeline::create_shader_module(const std::vector<char>& code, VkShaderModule* shaderModule)
+void pipeline::create_shader_module(const std::vector<char>& code, VkShaderModule* shader_module)
 {
-  VkShaderModuleCreateInfo createInfo{};
-  createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-  createInfo.codeSize = code.size();
+  VkShaderModuleCreateInfo create_info{};
+  create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+  create_info.codeSize = code.size();
   // char to uint32_t
-  createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+  create_info.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
-  if (vkCreateShaderModule(device_.device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS)
+  if (vkCreateShaderModule(device_.get_device(), &create_info, nullptr, shader_module) != VK_SUCCESS)
     throw std::runtime_error("failed to create shader module!");
 } 
 
 
 VkPipelineShaderStageCreateInfo pipeline::create_vertex_shader_stage_info()
 {
-  VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
-  vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-  vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-  vertShaderStageInfo.module = vertex_shader_module_;
+  VkPipelineShaderStageCreateInfo vertex_shader_stage_info{};
+  vertex_shader_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  vertex_shader_stage_info.stage = VK_SHADER_STAGE_VERTEX_BIT;
+  vertex_shader_stage_info.module = vertex_shader_module_;
   // the function to invoke
-  vertShaderStageInfo.pName = "main";
-  return vertShaderStageInfo;
+  vertex_shader_stage_info.pName = "main";
+  return vertex_shader_stage_info;
 }
 
 VkPipelineShaderStageCreateInfo pipeline::create_fragment_shader_stage_info()
 {
-  VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
-  fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-  fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-  fragShaderStageInfo.module = fragment_shader_module_;
+  VkPipelineShaderStageCreateInfo fragment_shader_stage_info{};
+  fragment_shader_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  fragment_shader_stage_info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+  fragment_shader_stage_info.module = fragment_shader_module_;
   // the function to invoke
-  fragShaderStageInfo.pName = "main";
-  return fragShaderStageInfo;
+  fragment_shader_stage_info.pName = "main";
+  return fragment_shader_stage_info;
 }
 
 VkPipelineVertexInputStateCreateInfo pipeline::create_vertex_input_info()
 {
-    VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-    vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    VkPipelineVertexInputStateCreateInfo vertex_input_info{};
+    vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     // configrate in create_graphics_pipeline()
-    // vertexInputInfo.vertexAttributeDescriptionCount = 0;
-    // vertexInputInfo.vertexBindingDescriptionCount = 0;
-    // vertexInputInfo.pVertexAttributeDescriptions = nullptr;
-    // vertexInputInfo.pVertexBindingDescriptions = nullptr;
+    // vertex_input_info.vertexAttributeDescriptionCount = 0;
+    // vertex_input_info.vertexBindingDescriptionCount = 0;
+    // vertex_input_info.pVertexAttributeDescriptions = nullptr;
+    // vertex_input_info.pVertexBindingDescriptions = nullptr;
 
-    return vertexInputInfo;
+    return vertex_input_info;
 }
 
-void pipeline::bind(VkCommandBuffer commandBuffer)
+void pipeline::bind(VkCommandBuffer command_buffer)
 {
   // basic drawing commands
   // bind the graphics pipeline
   // the second parameter specifies if the pipeline object is a graphics or compute pipeline or ray tracer
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphics_pipeline_);
+  vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphics_pipeline_);
 }
 
-void pipeline::default_pipeline_config_info(pipeline_config_info &configInfo)
+void pipeline::default_pipeline_config_info(pipeline_config_info &config_info)
 {
-  configInfo.create_input_assembly_info();
-  configInfo.create_viewport_info();
-  configInfo.create_rasterization_info();
-  configInfo.create_multi_sample_state();
-  configInfo.create_color_blend_attachment();
-  configInfo.create_color_blend_state();
-  configInfo.create_depth_stencil_state();
-  configInfo.create_dynamic_state();
+  config_info.create_input_assembly_info();
+  config_info.create_viewport_info();
+  config_info.create_rasterization_info();
+  config_info.create_multi_sample_state();
+  config_info.create_color_blend_attachment();
+  config_info.create_color_blend_state();
+  config_info.create_depth_stencil_state();
+  config_info.create_dynamic_state();
 
-  configInfo.binding_descriptions = mesh_model::vertex::get_binding_descriptions();
-  configInfo.attribute_descriptions = mesh_model::vertex::get_attribute_descriptions();
+  config_info.binding_descriptions = mesh_model::vertex::get_binding_descriptions();
+  config_info.attribute_descriptions = mesh_model::vertex::get_attribute_descriptions();
 }
-} // namespace hve
+
+} // namespace graphics
+} // namespace hnll

@@ -15,19 +15,20 @@
 namespace std {
 
 template <>
-struct hash<hnll::mesh_model::vertex>
+struct hash<hnll::graphics::mesh_model::vertex>
 {
-  size_t operator() (hnll::mesh_model::vertex const &vertex) const
+  size_t operator() (hnll::graphics::mesh_model::vertex const &vertex) const
   {
     // stores final hash value
     size_t seed = 0;
-    hnll::hash_combine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
+    hnll::graphics::hash_combine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
     return seed;
   }
 };
 }
 
 namespace hnll {
+namespace graphics {
 
 mesh_model::mesh_model(device& device, const mesh_model::builder &builder) : device_{device}
 {
@@ -37,7 +38,7 @@ mesh_model::mesh_model(device& device, const mesh_model::builder &builder) : dev
 
 mesh_model::~mesh_model()
 {
-  // buffers wille be freed in dotr of Hvebuffer
+  // buffers wille be freed in dtor of Hvebuffer
 }
 
 std::shared_ptr<mesh_model> mesh_model::create_model_from_file(device &device, const std::string &filename)
@@ -53,31 +54,31 @@ void mesh_model::create_vertex_buffers(const std::vector<vertex> &vertices)
   // vertexCount must be larger than 3 (triangle) 
   // use a host visible buffer as temporary buffer, use a device local buffer as actual vertex buffer
   vertex_count_ = static_cast<uint32_t>(vertices.size());
-  VkDeviceSize bufferSize = sizeof(vertices[0]) * vertex_count_;
-  uint32_t vertexSize = sizeof(vertices[0]);
+  VkDeviceSize buffer_size = sizeof(vertices[0]) * vertex_count_;
+  uint32_t vertex_size = sizeof(vertices[0]);
 
   // staging buffer creation
-  buffer stagingBuffer {
+  buffer staging_buffer {
     device_,
-    vertexSize, // for calculating alignment
+    vertex_size, // for calculating alignment
     vertex_count_, // same as above
     VK_BUFFER_USAGE_TRANSFER_SRC_BIT, // usage
     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT // property
   };
   // mapping the data to the buffer
-  stagingBuffer.map();
-  stagingBuffer.write_to_buffer((void *)vertices.data());
+  staging_buffer.map();
+  staging_buffer.write_to_buffer((void *)vertices.data());
 
   // vertex buffer creation
   vertex_buffer_ = std::make_unique<buffer>(
     device_,
-    vertexSize, // for calculating alignment
+    vertex_size, // for calculating alignment
     vertex_count_, // same as above
     VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, // usage
     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT// property
   );
   // copy the data from staging buffer to the vertex buffer
-  device_.copy_buffer(stagingBuffer.get_buffer(), vertex_buffer_->get_buffer(), bufferSize);
+  device_.copy_buffer(staging_buffer.get_buffer(), vertex_buffer_->get_buffer(), buffer_size);
   // staging buffer is automatically freed in the dtor 
 }
 
@@ -88,11 +89,11 @@ void mesh_model::create_index_buffers(const std::vector<uint32_t> &indices)
   had_index_buffer_ = index_count_ > 0;
   if (!had_index_buffer_) return;
 
-  VkDeviceSize bufferSize = sizeof(indices[0]) * index_count_;
+  VkDeviceSize buffer_size = sizeof(indices[0]) * index_count_;
   uint32_t indexSize = sizeof(indices[0]);
 
   // copy the data to the staging buffer
-  buffer stagingBuffer {
+  buffer staging_buffer {
     device_,
     indexSize,
     index_count_,
@@ -100,8 +101,8 @@ void mesh_model::create_index_buffers(const std::vector<uint32_t> &indices)
     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
   };
 
-  stagingBuffer.map();
-  stagingBuffer.write_to_buffer((void *)indices.data());
+  staging_buffer.map();
+  staging_buffer.write_to_buffer((void *)indices.data());
 
   index_buffer_ = std::make_unique<buffer> (
     device_,
@@ -112,26 +113,26 @@ void mesh_model::create_index_buffers(const std::vector<uint32_t> &indices)
   );
 
   // copy the data from staging buffer to the vertex buffer
-  device_.copy_buffer(stagingBuffer.get_buffer(), index_buffer_->get_buffer(), bufferSize);
+  device_.copy_buffer(staging_buffer.get_buffer(), index_buffer_->get_buffer(), buffer_size);
 }
 
-void mesh_model::draw(VkCommandBuffer commandBuffer)
+void mesh_model::draw(VkCommandBuffer command_buffer)
 {
   if (had_index_buffer_)
-    vkCmdDrawIndexed(commandBuffer, index_count_, 1, 0, 0, 0);
+    vkCmdDrawIndexed(command_buffer, index_count_, 1, 0, 0, 0);
   else 
-    vkCmdDraw(commandBuffer, vertex_count_, 1, 0, 0);
+    vkCmdDraw(command_buffer, vertex_count_, 1, 0, 0);
 }
 
-void mesh_model::bind(VkCommandBuffer commandBuffer)
+void mesh_model::bind(VkCommandBuffer command_buffer)
 {
   VkBuffer buffers[] = {vertex_buffer_->get_buffer()};
   VkDeviceSize offsets[] = {0};
-  vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
+  vkCmdBindVertexBuffers(command_buffer, 0, 1, buffers, offsets);
 
   // last parameter should be same as the type of the Build::indices
   if (had_index_buffer_) 
-    vkCmdBindIndexBuffer(commandBuffer, index_buffer_->get_buffer(), 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindIndexBuffer(command_buffer, index_buffer_->get_buffer(), 0, VK_INDEX_TYPE_UINT32);
 }
 
 std::vector<VkVertexInputBindingDescription> mesh_model::vertex::get_binding_descriptions()
@@ -173,7 +174,7 @@ void mesh_model::builder::load_model(const std::string& filename)
   vertices.clear();
   indices.clear();
 
-  std::unordered_map<vertex, uint32_t> uniqueVertices{};
+  std::unordered_map<vertex, uint32_t> unique_vertices{};
 
 
   for (const auto &shape : shapes) {
@@ -209,12 +210,14 @@ void mesh_model::builder::load_model(const std::string& filename)
         };
       }
       // if vertex is a new vertex
-      if (uniqueVertices.count(vertex) == 0) {
-        uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+      if (unique_vertices.count(vertex) == 0) {
+        unique_vertices[vertex] = static_cast<uint32_t>(vertices.size());
         vertices.push_back(std::move(vertex));
       }
-      indices.push_back(uniqueVertices[vertex]);
+      indices.push_back(unique_vertices[vertex]);
     }
   }
 }
-} // namespace hveo
+
+} // namespace graphics
+} // namespace hnll

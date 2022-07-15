@@ -14,97 +14,99 @@
 #include <array>
 
 namespace hnll {
+namespace graphics {
 
-struct PointLightPushConstants
+struct point_light_push_constant
 {
-  glm::vec4 position_m{};
-  glm::vec4 color_{};
-  float radius_m;
+  glm::vec4 position{};
+  glm::vec4 color{};
+  float radius;
 };
 
 point_light_rendering_system::point_light_rendering_system
-  (device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
-  : rendering_system(device, render_type::POINT_LIGHT)
+  (device& device, VkRenderPass render_pass, VkDescriptorSetLayout global_set_layout)
+  : rendering_system(device, hnll::game::render_type::POINT_LIGHT)
 {
-  create_pipeline_layout(globalSetLayout);
-  create_pipeline(renderPass);
+  create_pipeline_layout(global_set_layout);
+  create_pipeline(render_pass);
 }
 
 point_light_rendering_system::~point_light_rendering_system()
 { }
 
-void point_light_rendering_system::create_pipeline_layout(VkDescriptorSetLayout globalSetLayout)
+void point_light_rendering_system::create_pipeline_layout(VkDescriptorSetLayout global_set_layout)
 {
   // config push constant range
-  VkPushConstantRange pushConstantRange{};
-  pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+  VkPushConstantRange push_constant_range{};
+  push_constant_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
   // mainly for if you are going to separate ranges for the vertex and fragment shaders
-  pushConstantRange.offset = 0;
-  pushConstantRange.size = sizeof(PointLightPushConstants);
+  push_constant_range.offset = 0;
+  push_constant_range.size = sizeof(point_light_push_constant);
 
-  std::vector<VkDescriptorSetLayout> descriptorSetLayouts{globalSetLayout};
+  std::vector<VkDescriptorSetLayout> descriptor_set_layouts{global_set_layout};
 
-  VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-  pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
-  pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
-  pipelineLayoutInfo.pushConstantRangeCount = 1;
-  pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-  if (vkCreatePipelineLayout(device_.device(), &pipelineLayoutInfo, nullptr, &pipeline_layout_) != VK_SUCCESS)
+  VkPipelineLayoutCreateInfo pipeline_layout_info{};
+  pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  pipeline_layout_info.setLayoutCount = static_cast<uint32_t>(descriptor_set_layouts.size());
+  pipeline_layout_info.pSetLayouts = descriptor_set_layouts.data();
+  pipeline_layout_info.pushConstantRangeCount = 1;
+  pipeline_layout_info.pPushConstantRanges = &push_constant_range;
+  if (vkCreatePipelineLayout(device_.get_device(), &pipeline_layout_info, nullptr, &pipeline_layout_) != VK_SUCCESS)
       throw std::runtime_error("failed to create pipeline layout!");
 }
 
-void point_light_rendering_system::create_pipeline(VkRenderPass renderPass)
+void point_light_rendering_system::create_pipeline(VkRenderPass render_pass)
 {
   assert(pipeline_layout_ != nullptr && "cannot create pipeline before pipeline layout");
 
-  pipeline_config_info pipelineConfig{};
-  pipeline::default_pipeline_config_info(pipelineConfig);
+  pipeline_config_info pipeline_config{};
+  pipeline::default_pipeline_config_info(pipeline_config);
   // for special config 
-  pipelineConfig.attribute_descriptions.clear();
-  pipelineConfig.binding_descriptions.clear();
+  pipeline_config.attribute_descriptions.clear();
+  pipeline_config.binding_descriptions.clear();
 
-  pipelineConfig.renderPass_m = renderPass;
-  pipelineConfig.pipeline_layout_ = pipeline_layout_;
+  pipeline_config.render_pass = render_pass;
+  pipeline_config.pipeline_layout = pipeline_layout_;
   pipeline_ = std::make_unique<pipeline>(
       device_,
       std::string(std::getenv("HVE_DIR")) + std::string("/shader/spv/point_light.vert.spv"), 
       std::string(std::getenv("HVE_DIR")) + std::string("/shader/spv/point_light.frag.spv"),
-      pipelineConfig);
+      pipeline_config);
 }
 
-void point_light_rendering_system::render(frame_info frameInfo)
+void point_light_rendering_system::render(frame_info frame_info)
 {
-  pipeline_->bind(frameInfo.commandBuffer_m);
+  pipeline_->bind(frame_info.command_buffer);
 
   vkCmdBindDescriptorSets(
-    frameInfo.commandBuffer_m,
+    frame_info.command_buffer,
     VK_PIPELINE_BIND_POINT_GRAPHICS,
     pipeline_layout_,
     0, 1,
-    &frameInfo.global_discriptor_set,
+    &frame_info.global_discriptor_set,
     0, nullptr
   );
 
   // copy the push constants
   for (auto& kv : render_target_map_) {
-    auto lightComp = dynamic_cast<point_light_component*>(kv.second.get());
+    auto light_comp = dynamic_cast<hnll::game::point_light_component*>(kv.second.get());
 
-    PointLightPushConstants push{};
-    push.position_m = glm::vec4(lightComp->get_transform().translation, 1.f);
-    push.color_ = glm::vec4(lightComp->get_color(), lightComp->get_light_info().light_intensity);
-    push.radius_m = lightComp->get_transform().scale.x;
+    point_light_push_constant push{};
+    push.position = glm::vec4(light_comp->get_transform().translation, 1.f);
+    push.color = glm::vec4(light_comp->get_color(), light_comp->get_light_info().light_intensity);
+    push.radius = light_comp->get_transform().scale.x;
 
     vkCmdPushConstants(
-      frameInfo.commandBuffer_m,
+      frame_info.command_buffer,
       pipeline_layout_,
       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
       0, 
-      sizeof(PointLightPushConstants),
+      sizeof(point_light_push_constant),
       &push
     );
-    vkCmdDraw(frameInfo.commandBuffer_m, 6, 1, 0, 0);
+    vkCmdDraw(frame_info.command_buffer, 6, 1, 0, 0);
   }
 }
 
-} // namespace hve
+} // namespace graphics
+} // namespace hnll

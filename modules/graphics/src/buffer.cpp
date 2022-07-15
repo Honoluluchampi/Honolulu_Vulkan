@@ -13,86 +13,55 @@
 #include <cstring>
  
 namespace hnll {
- 
-/**
- * Returns the minimum instance size required to be compatible with devices minOffsetAlignment
- *
- * @param instanceSize The size of an instance
- * @param minOffsetAlignment The minimum required alignment, in bytes, for the offset member (eg
- * minUniformBufferOffsetAlignment)
- *
- * @return VkResult of the buffer mapping call
- */
-VkDeviceSize buffer::get_alignment(VkDeviceSize instanceSize, VkDeviceSize minOffsetAlignment) 
+namespace graphics {
+
+VkDeviceSize buffer::get_alignment(VkDeviceSize instance_size, VkDeviceSize min_offset_alignment) 
 {
-  if (minOffsetAlignment > 0) {
-    return (instanceSize + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1);
+  if (min_offset_alignment > 0) {
+    return (instance_size + min_offset_alignment - 1) & ~(min_offset_alignment - 1);
   }
-  return instanceSize;
+  return instance_size;
 }
  
 buffer::buffer(
     device &device,
-    VkDeviceSize instanceSize,
-    uint32_t instanceCount,
-    VkBufferUsageFlags usageFlags,
-    VkMemoryPropertyFlags memoryPropertyFlags,
-    VkDeviceSize minOffsetAlignment)
+    VkDeviceSize instance_size,
+    uint32_t instace_count,
+    VkBufferUsageFlags usage_flags,
+    VkMemoryPropertyFlags memory_property_flags,
+    VkDeviceSize min_offset_alignment)
     : device_{device},
-      instance_size_{instanceSize},
-      instance_count_{instanceCount},
-      usage_flags_{usageFlags},
-      memory_property_flags_{memoryPropertyFlags} 
+      instance_size_{instance_size},
+      instance_count_{instace_count},
+      usage_flags_{usage_flags},
+      memory_property_flags_{memory_property_flags} 
 {
-  alignment_size_ = get_alignment(instanceSize, minOffsetAlignment);
-  buffer_size_ = alignment_size_ * instanceCount;
-  device_.create_buffer(buffer_size_, usageFlags, memoryPropertyFlags, buffer_, memory_);
+  alignment_size_ = get_alignment(instance_size, min_offset_alignment);
+  buffer_size_ = alignment_size_ * instace_count;
+  device_.create_buffer(buffer_size_, usage_flags, memory_property_flags, buffer_, memory_);
 }
  
 buffer::~buffer() 
 {
   unmap();
-  vkDestroyBuffer(device_.device(), buffer_, nullptr);
-  vkFreeMemory(device_.device(), memory_, nullptr);
+  vkDestroyBuffer(device_.get_device(), buffer_, nullptr);
+  vkFreeMemory(device_.get_device(), memory_, nullptr);
 }
- 
-/**
- * Map a memory range of this buffer. If successful, mapped points to the specified buffer range.
- *
- * @param size (Optional) Size of the memory range to map. Pass VK_WHOLE_SIZE to map the complete
- * buffer range.
- * @param offset (Optional) Byte offset from beginning
- *
- * @return VkResult of the buffer mapping call
- */
+
 VkResult buffer::map(VkDeviceSize size, VkDeviceSize offset) 
 {
   assert(buffer_ && memory_ && "Called map on buffer before create");
-  return vkMapMemory(device_.device(), memory_, offset, size, 0, &mapped_);
+  return vkMapMemory(device_.get_device(), memory_, offset, size, 0, &mapped_);
 }
  
-/**
- * Unmap a mapped memory range
- *
- * @note Does not return a result as vkUnmapMemory can't fail
- */
 void buffer::unmap() 
 {
   if (mapped_) {
-    vkUnmapMemory(device_.device(), memory_);
+    vkUnmapMemory(device_.get_device(), memory_);
     mapped_ = nullptr;
   }
 }
- 
-/**
- * Copies the specified data to the mapped buffer. Default value writes whole buffer range
- *
- * @param data Pointer to the data to copy
- * @param size (Optional) Size of the data to copy. Pass VK_WHOLE_SIZE to flush the complete buffer
- * range.
- * @param offset (Optional) Byte offset from beginning of mapped region
- *
- */
+
 void buffer::write_to_buffer(void *data, VkDeviceSize size, VkDeviceSize offset) 
 {
   assert(mapped_ && "Cannot copy to unmapped buffer");
@@ -100,9 +69,9 @@ void buffer::write_to_buffer(void *data, VkDeviceSize size, VkDeviceSize offset)
   if (size == VK_WHOLE_SIZE) {
     memcpy(mapped_, data, buffer_size_);
   } else {
-    char *memOffset = (char *)mapped_;
-    memOffset += offset;
-    memcpy(memOffset, data, size);
+    char *memory_offset = (char *)mapped_;
+    memory_offset += offset;
+    memcpy(memory_offset, data, size);
   }
 }
  
@@ -119,12 +88,12 @@ void buffer::write_to_buffer(void *data, VkDeviceSize size, VkDeviceSize offset)
  */
 VkResult buffer::flush(VkDeviceSize size, VkDeviceSize offset) 
 {
-  VkMappedMemoryRange mappedRange = {};
-  mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-  mappedRange.memory = memory_;
-  mappedRange.offset = offset;
-  mappedRange.size = size;
-  return vkFlushMappedMemoryRanges(device_.device(), 1, &mappedRange);
+  VkMappedMemoryRange mapped_range = {};
+  mapped_range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+  mapped_range.memory = memory_;
+  mapped_range.offset = offset;
+  mapped_range.size = size;
+  return vkFlushMappedMemoryRanges(device_.get_device(), 1, &mapped_range);
 }
  
 /**
@@ -140,12 +109,12 @@ VkResult buffer::flush(VkDeviceSize size, VkDeviceSize offset)
  */
 VkResult buffer::invalidate(VkDeviceSize size, VkDeviceSize offset) 
 {
-  VkMappedMemoryRange mappedRange = {};
-  mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-  mappedRange.memory = memory_;
-  mappedRange.offset = offset;
-  mappedRange.size = size;
-  return vkInvalidateMappedMemoryRanges(device_.device(), 1, &mappedRange);
+  VkMappedMemoryRange mapped_range = {};
+  mapped_range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+  mapped_range.memory = memory_;
+  mapped_range.offset = offset;
+  mapped_range.size = size;
+  return vkInvalidateMappedMemoryRanges(device_.get_device(), 1, &mapped_range);
 }
  
 /**
@@ -160,7 +129,7 @@ VkDescriptorBufferInfo buffer::descriptor_info(VkDeviceSize size, VkDeviceSize o
 { return VkDescriptorBufferInfo{buffer_, offset, size,}; }
  
 /**
- * Copies "instanceSize" bytes of data to the mapped buffer at an offset of index * alignmentSize
+ * Copies "instance_size" bytes of data to the mapped buffer at an offset of index * alignmentSize
  *
  * @param data Pointer to the data to copy
  * @param index Used in offset calculation
@@ -200,4 +169,5 @@ VkDescriptorBufferInfo buffer::descriptor_info_for_index(int index)
 VkResult buffer::invalidate_index(int index)
 { return invalidate(alignment_size_, index * alignment_size_); }
  
-}  // namespace engine
+} // namespace graphics 
+} // namespace hnll

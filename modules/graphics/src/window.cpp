@@ -5,6 +5,7 @@
 #include <stdexcept>
 
 namespace hnll {
+namespace graphics {
 
 window::window(const int w, const int h, const std::string name) : width_(w), height_(h), window_name_(name) 
 {
@@ -40,10 +41,11 @@ void window::create_window_surface(VkInstance instance, VkSurfaceKHR* surface)
 
 void window::frame_buffer_resize_callback(GLFWwindow *window, int width, int height)
 {
-  auto hveWindow = reinterpret_cast<window *>(glfwGetWindowUserPointer(window));
-  hveWindow->frame_buffer_resized_ = true;
-  hveWindow->width_ = width;
-  hveWindow->height_ = height;
+  auto graphics_window = reinterpret_cast<hnll::graphics::window *>(glfwGetWindowUserPointer(window));
+  graphics_window->frame_buffer_resized_ = true;
+  graphics_window->width_ = width;
+  graphics_window->height_ = height;
 }
 
-} // namespace hv
+} // namespace graphics
+} // namespace hnll

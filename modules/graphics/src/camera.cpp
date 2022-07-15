@@ -6,6 +6,7 @@
 #include <limits>
 
 namespace hnll {
+namespace graphics {
 
 void camera::set_orthographics_projection(
     float left, float right, float top, float bottom, float near, float far) {
@@ -20,10 +21,10 @@ void camera::set_orthographics_projection(
  
 void camera::set_perspective_projection(float fovy, float aspect, float near, float far) {
   assert(glm::abs(aspect - std::numeric_limits<float>::epsilon()) > 0.0f);
-  const float tanHalfFovy = tan(fovy / 2.f);
+  const float tah_hal_foxy = tan(fovy / 2.f);
   projection_matrix_ = glm::mat4{0.0f};
-  projection_matrix_[0][0] = 1.f / (aspect * tanHalfFovy);
-  projection_matrix_[1][1] = 1.f / (tanHalfFovy);
+  projection_matrix_[0][0] = 1.f / (aspect * tah_hal_foxy);
+  projection_matrix_[1][1] = 1.f / (tah_hal_foxy);
   projection_matrix_[2][2] = far / (far - near);
   projection_matrix_[2][3] = 1.f;
   projection_matrix_[3][2] = -(far * near) / (far - near);
@@ -77,4 +78,6 @@ void camera::set_veiw_yxz(glm::vec3 position, glm::vec3 rotation) {
   veiw_matrix_[3][1] = -glm::dot(v, position);
   veiw_matrix_[3][2] = -glm::dot(w, position);
 }
-} // namesapce hve
+
+} // namespace graphics
+} // namesapce hnll
