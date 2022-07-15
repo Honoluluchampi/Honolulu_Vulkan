@@ -10,7 +10,7 @@ namespace hnll {
 class PointLightSystem : public HveRenderingSystem
 {
   public:
-    PointLightSystem(HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
+    PointLightSystem(device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
     ~PointLightSystem();
 
     PointLightSystem(const PointLightSystem &) = delete;

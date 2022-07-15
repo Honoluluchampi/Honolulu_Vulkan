@@ -7,6 +7,7 @@
 #include <vulkan/vulkan.h>
 
 namespace hnll {
+namespace graphics {
 
 // TODO : decrese this
 #define MAX_LIGHTS 20
@@ -18,7 +19,7 @@ struct PointLight
 };
 
 // global uniform buffer object
-struct GlobalUbo
+struct global_ubo
 {
   // check alignment rules
   glm::mat4 projection_m{1.f};
@@ -35,4 +36,6 @@ struct FrameInfo
   VkCommandBuffer commandBuffer_m;
   VkDescriptorSet globalDiscriptorSet_m;
 };
+
+} // namespace graphics
 } // namesapce hve

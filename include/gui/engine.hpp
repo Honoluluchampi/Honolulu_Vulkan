@@ -2,7 +2,7 @@
 
 // hnll
 #include <graphics/engine.hpp>
-#include <imgui/renderer.hpp>
+#include <gui/renderer.hpp>
 
 // basic header
 #include <imgui.h>
@@ -43,16 +43,17 @@
 // command buffer
 
 namespace hnll {
+namespace gui {
 
-class Hie
+class engine
 {
 public:
-  Hie(HveWindow& hveWindow, HveDevice& hveDevice);
-  ~Hie();
-  Hie(const Hie&) = delete;
-  Hie& operator=(const Hie&) = delete;
-  Hie(Hie&&) = default;
-  Hie& operator=(Hie&&) = default;
+  engine(HveWindow& hveWindow, device& get_device);
+  ~engine();
+  engine(const engine&) = delete;
+  engine& operator=(const engine&) = delete;
+  engine(engine&&) = default;
+  engine& operator=(engine&&) = default;
 
   void beginImGui();
   void render();
@@ -60,11 +61,11 @@ public:
   void update(glm::vec3& translation);
 
   const u_ptr<HieRenderer>& upHieRenderer() const { return upHieRenderer_; }
-  HveRenderer* pHieRenderer() const { return upHieRenderer_.get(); }
+  renderer* pHieRenderer() const { return upHieRenderer_.get(); }
   
 private:
   // set up ImGui context
-  void setupImGui(HveDevice& hveDevice, GLFWwindow* window);
+  void setupImGui(device& get_device, GLFWwindow* window);
   // share the basic graphics object with hve, so there is nothing to do for now
   void setupSpecificVulkanObjects();
   void uploadFonts();
@@ -89,4 +90,5 @@ private:
   float vec_[3] = {0, 0, 0};
 };
 
+} // namespace gui
 } // namespace hnll 

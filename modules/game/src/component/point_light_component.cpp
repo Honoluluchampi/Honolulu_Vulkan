@@ -2,19 +2,18 @@
 #include <game/components/point_light_component.hpp>
 
 namespace hnll {
+namespace game {
 
-PointLightComponent::PointLightComponent(actorId id)
- : HgeRenderableComponent(id, RenderType::POINT_LIGHT)
-{}
+template <typename T> using s_ptr = std::shared_ptr<T>;
 
-s_ptr<PointLightComponent> PointLightComponent::createPointLight
-  (id_t id, float intensity, float radius, glm::vec3 color)
+s_ptr<point_light_component> point_light_component::create_point_light(float intensity, float radius, glm::vec3 color)
 {
-  auto light = std::make_shared<PointLightComponent>(id);
-  light->color_m = color;
-  light->setScale(glm::vec3(radius, radius, radius));
-  light->lightInfo_m.lightIntensity_m = intensity;
+  auto light = std::make_shared<point_light_component>();
+  light->color_ = color;
+  light->set_scale(glm::vec3(radius, radius, radius));
+  light->light_info_.light_intensity = intensity;
   return std::move(light);
 }
 
+}
 } // namespace hnll

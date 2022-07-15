@@ -12,13 +12,13 @@
 
 namespace hnll {
 
-HveSwapChain::HveSwapChain(HveDevice &deviceRef, VkExtent2D extent)
+HveSwapChain::HveSwapChain(device &deviceRef, VkExtent2D extent)
     : device_m{deviceRef}, windowExtent_m{extent} 
 {
   init();
 }
 
-HveSwapChain::HveSwapChain(HveDevice &deviceRef, VkExtent2D extent, std::unique_ptr<HveSwapChain> previous)
+HveSwapChain::HveSwapChain(device &deviceRef, VkExtent2D extent, std::unique_ptr<HveSwapChain> previous)
     : device_m{deviceRef}, windowExtent_m{extent}, oldSwapChain_m(std::move(previous)) 
 {
   init();

@@ -7,10 +7,10 @@ namespace hnll {
 
 #define HIE_RENDER_PASS_ID 1
 
-class HieRenderer : public HveRenderer
+class HieRenderer : public renderer
 {
   public:
-    HieRenderer(HveWindow& window, HveDevice& hveDevice, bool recreateFromScratch);
+    HieRenderer(HveWindow& window, device& hveDevice, bool recreateFromScratch);
 
     HieRenderer(const HieRenderer&) = delete;
     HieRenderer& operator= (const HieRenderer&) = delete;

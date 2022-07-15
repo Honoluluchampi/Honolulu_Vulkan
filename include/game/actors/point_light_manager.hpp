@@ -10,29 +10,28 @@
 namespace hnll {
 
 // forward declaration
-class GlobalUbo;
+namespace graphics { class global_ubo; }
 
-class HgePointLightManager : public HgeActor
+namespace game {
+class point_light_manager : public actor
 {
-  using map = std::unordered_map<HgeComponent::compId, s_ptr<PointLightComponent>>;
+  using map = std::unordered_map<component::id, s_ptr<point_light_component>>;
   public:
-    HgePointLightManager(GlobalUbo& ubo);
-    ~HgePointLightManager(){}
+    point_light_manager(hnll::graphics::global_ubo& ubo);
+    ~point_light_manager(){}
 
     // complete transport
-    template <class SP> void addLightComp(SP&& spLightComp)
-    { 
-      HgeComponent::compId id = spLightComp->getCompId();
-      lightCompMap_.emplace(id, std::forward<SP>(spLightComp)); 
-    }
-    void removeLightComp(HgeComponent::compId id)
-    { lightCompMap_.erase(id); }
+    template <class SP> void add_light_comp(SP&& spLightComp)
+    { component::id id = spLightComp->get_id(); light_comp_map_.emplace(id, std::forward<SP>(spLightComp)); }
+    void remove_light_comp(component::id id)
+    { light_comp_map_.erase(id); }
 
-    void updateActor(float dt) override;
+    void update_actor(float dt) override;
 
   private:
-    map lightCompMap_;
-    GlobalUbo& ubo_;    
+    map light_comp_map_;
+    hnll::graphics::global_ubo& ubo_;    
 };
 
+} // namespace game
 } // namespace hnll

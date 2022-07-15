@@ -3,8 +3,8 @@
 
 namespace hnll {
 
-HieRenderer::HieRenderer(HveWindow& window, HveDevice& hveDevice, bool recreateFromScratch) : 
-  HveRenderer(window, hveDevice, recreateFromScratch)
+HieRenderer::HieRenderer(HveWindow& window, device& hveDevice, bool recreateFromScratch) : 
+  renderer(window, hveDevice, recreateFromScratch)
 {
   recreateSwapChain();
 }

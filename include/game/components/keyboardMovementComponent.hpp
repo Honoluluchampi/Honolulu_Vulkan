@@ -6,91 +6,92 @@
 
 // std
 #include <unordered_map>
+#include <functional>
 
 // lib
 #include <GLFW/glfw3.h>
 
 namespace hnll {
+namespace game {
 
-class KeyboardMovementComponent : public HgeComponent
+class keyboard_movement_component : public component
 {
   public:
-    using KeyId = int;
-    using PadId = int;
-    using ButtonMap = std::unordered_map<KeyId, u_ptr<std::function<void()>>>;
-    using PadMap = std::unordered_map<PadId, u_ptr<std::function<glm::vec3(float,float)>>>;
+    using key_id = int;
+    using pad_id = int;
+    using button_map = std::unordered_map<key_id, u_ptr<std::function<void()>>>;
+    using pad_map = std::unordered_map<pad_id, u_ptr<std::function<glm::vec3(float,float)>>>;
     
-    KeyboardMovementComponent(GLFWwindow* window, Transform& transform);
+    keyboard_movement_component(GLFWwindow* window, hnll::utils::transform& transform);
     
-    struct KeyMappings 
+    struct key_mappings 
     {
-      KeyId moveLeft = GLFW_KEY_A;
-      KeyId moveRight = GLFW_KEY_D;
-      KeyId moveForward = GLFW_KEY_W;
-      KeyId moveBackward = GLFW_KEY_S;
-      KeyId moveUp = GLFW_KEY_E;
-      KeyId moveDown = GLFW_KEY_Q;
-      KeyId lookLeft = GLFW_KEY_LEFT;
-      KeyId lookRight = GLFW_KEY_RIGHT;
-      KeyId lookUp = GLFW_KEY_UP;
-      KeyId lookDown = GLFW_KEY_DOWN;
+      key_id move_left = GLFW_KEY_A;
+      key_id move_right = GLFW_KEY_D;
+      key_id move_forward = GLFW_KEY_W;
+      key_id move_backward = GLFW_KEY_S;
+      key_id move_up = GLFW_KEY_E;
+      key_id move_down = GLFW_KEY_Q;
+      key_id look_left = GLFW_KEY_LEFT;
+      key_id look_right = GLFW_KEY_RIGHT;
+      key_id look_up = GLFW_KEY_UP;
+      key_id look_down = GLFW_KEY_DOWN;
     };
 
     struct PadMappings
     {
-      PadId buttonA = GLFW_GAMEPAD_BUTTON_A;
-      PadId buttonB = GLFW_GAMEPAD_BUTTON_B;
-      PadId buttonY = GLFW_GAMEPAD_BUTTON_Y;
-      PadId buttonX = GLFW_GAMEPAD_BUTTON_X;
-      PadId buttonGuide = GLFW_GAMEPAD_BUTTON_GUIDE;
-      PadId buttonStart = GLFW_GAMEPAD_BUTTON_START;
-      PadId leftBumper = GLFW_GAMEPAD_BUTTON_LEFT_BUMPER;
-      PadId rightBumper = GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER;
-      PadId dpUp = GLFW_GAMEPAD_BUTTON_DPAD_UP;
-      PadId dpDown = GLFW_GAMEPAD_BUTTON_DPAD_DOWN;
-      PadId moveX = GLFW_GAMEPAD_AXIS_LEFT_X;
-      PadId moveY = GLFW_GAMEPAD_AXIS_LEFT_Y;
-      PadId rotaX = GLFW_GAMEPAD_AXIS_RIGHT_Y;
-      PadId rotaY = GLFW_GAMEPAD_AXIS_RIGHT_X;
+      pad_id button_a = GLFW_GAMEPAD_BUTTON_A;
+      pad_id button_b = GLFW_GAMEPAD_BUTTON_B;
+      pad_id button_y = GLFW_GAMEPAD_BUTTON_Y;
+      pad_id button_x = GLFW_GAMEPAD_BUTTON_X;
+      pad_id button_guide = GLFW_GAMEPAD_BUTTON_GUIDE;
+      pad_id button_start = GLFW_GAMEPAD_BUTTON_START;
+      pad_id left_bumper = GLFW_GAMEPAD_BUTTON_LEFT_BUMPER;
+      pad_id right_bumper = GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER;
+      pad_id dp_up = GLFW_GAMEPAD_BUTTON_DPAD_UP;
+      pad_id dp_down = GLFW_GAMEPAD_BUTTON_DPAD_DOWN;
+      pad_id move_x = GLFW_GAMEPAD_AXIS_LEFT_X;
+      pad_id move_y = GLFW_GAMEPAD_AXIS_LEFT_Y;
+      pad_id rota_x = GLFW_GAMEPAD_AXIS_RIGHT_Y;
+      pad_id rota_y = GLFW_GAMEPAD_AXIS_RIGHT_X;
     };
 
     // update owner's position (owner's transformation's ref was passed in the ctor)
-    void updateComponent(float dt) override;
+    void update_component(float dt) override;
 
     // dont use lambda's capture
     // TODO : check whether using checkingButtonList fasten the checking sequence
-    void setButtonFunc(KeyId keyId, std::function<void()> func)
-    { buttonMap_.emplace(keyId, std::make_unique<std::function<void()>>(func)); }
+    void set_button_func(key_id keyId, std::function<void()> func)
+    { button_map_.emplace(keyId, std::make_unique<std::function<void()>>(func)); }
     // dont use lambda's capture
-    void setAxisFunc(PadId axisId, std::function<glm::vec3(float, float)> func)
-    { padMap_.emplace(axisId, std::make_unique<std::function<glm::vec3(float, float)>>(func)); }
+    void set_axis_func(pad_id axisId, std::function<glm::vec3(float, float)> func)
+    { pad_map_.emplace(axisId, std::make_unique<std::function<glm::vec3(float, float)>>(func)); }
 
-    void removeButtonFunc(KeyId keyId)
-    { buttonMap_.erase(keyId); }
-    void removeAxisFunc(PadId axisId)
-    { padMap_.erase(axisId); }
+    void remove_button_func(key_id keyId) { button_map_.erase(keyId); }
+    void remove_axis_func(pad_id axisId) { pad_map_.erase(axisId); }
 
   private:
-    void adjustAxisErrors();
-    void setDefaultMapping();
-    void processRotateInput(GLFWgamepadstate& state, float dt);
-    void processMoveInput(GLFWgamepadstate& state, float dt);
-    void processButtonInput(GLFWgamepadstate& state, float dt);
+    void adjust_axis_errors();
+    void set_default_mapping();
+    void process_rotate_input(GLFWgamepadstate& state, float dt);
+    void process_move_input(GLFWgamepadstate& state, float dt);
+    void process_button_input(GLFWgamepadstate& state, float dt);
 
     // mapping
-    static KeyMappings keys;
+    static key_mappings keys;
     static PadMappings pads;
     
-    GLFWwindow* window_m;
+    GLFWwindow* window_;
     // this component should be deleted before the owner
-    Transform& transform_m;
+    hnll::utils::transform& transform_;
 
-    ButtonMap buttonMap_;
+    button_map button_map_;
     // funcs take GLFWgamepadstate.axes[glfw_gamepad_axis_leftorright_xory], dt
-    PadMap padMap_;
-    int padId = GLFW_JOYSTICK_1;
+    pad_map pad_map_;
+    int pad_number_ = GLFW_JOYSTICK_1;
     // to adjust default input
-    float rightError_ = 0.f, upError_ = 0.f;
+    float right_error_ = 0.f, up_error_ = 0.f;
 };
 
+} // namespace game
 } // namespace hnll

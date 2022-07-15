@@ -14,93 +14,63 @@ template <class T> using s_ptr = std::shared_ptr<T>;
 template <class T> using u_ptr = std::unique_ptr<T>;
 
 namespace hnll {
+namespace game {
 
 // forward declaration
-class HgeGame;
+class game;
 
-class HgeActor
+class actor
 {
   public:
-    using actorId = unsigned int;
-    using map = std::unordered_map<actorId, s_ptr<HgeActor>>;
+    using id = unsigned int;
+    using map = std::unordered_map<id, s_ptr<actor>>;
+
+    enum class state { ACTIVE, PAUSED, DEAD };
 
     // hgeActor can be created only by this fuction
-    HgeActor();
-    
-    enum class state
-    {
-       ACTIVE,
-       PAUSED,
-       DEAD
-    };
-
+    actor();
     // uncopyable, movable
-    HgeActor(const HgeActor &) = delete;
-    HgeActor& operator=(const HgeActor &) = delete;
-    HgeActor(HgeActor &&) = default;
-    HgeActor& operator=(HgeActor &&) = default;
-    virtual ~HgeActor(){}
+    actor(const actor &) = delete;
+    actor& operator=(const actor &) = delete;
+    actor(actor &&) = default;
+    actor& operator=(actor &&) = default;
+    virtual ~actor(){}
 
     void update(float dt);
-    virtual void updateActor(float dt) {}
-    void updateComponents(float dt);
+    void update_components(float dt);
+    virtual void update_actor(float dt) {}
 
 #ifndef __IMGUI_DISABLED
-    void updateImgui();
-    virtual void updateActorImgui(){}
-    void updateComponentsImgui();
+    void update_gui();
+    void update_component_imgui();
+    virtual void update_actor_imgui(){}
 #endif
 
-    // takes std::unique_ptr<HgeComponent>
-    // template <class U>
-    // void addUniqueComponent(U&& comp)
-    // { uniqueComponents_m.push_back(std::move(comp)); }
-    void addComponent(u_ptr<HgeComponent>&& comp)
-    { uniqueComponents_.emplace_back(std::move(comp)); }
+    // getter
+    inline id get_id() const { return id_; }
+    inline const state get_actor_state() const { return state_; }
+    inline s_ptr<renderable_component> get_renderable_component() { return renderable_component_; }
+    inline bool is_renderable() const { return renderable_component_ != nullptr; }
 
-    // takes std::shared_ptr<HgeComponent>
-    // template <class S>
-    // void addSharedComponent(S&& comp)
-    // { sharedComponents_m.push_back(std::forward<S>(comp)); }
-    void addComponent(const s_ptr<HgeComponent>& comp)
-    { sharedComponents_.emplace_back(comp); }
-    void addComponent(s_ptr<HgeComponent>&& comp)
-    { sharedComponents_.emplace_back(std::move(comp)); }
-
-     // TODO : overload addSharedComponent
+    // setter
+    void add_component(u_ptr<component>&& comp) { unique_components_.emplace_back(std::move(comp)); }
+    void add_component(s_ptr<component>&& comp) { shared_components_.emplace_back(std::move(comp)); }
+    void add_component(const s_ptr<component>& comp) { shared_components_.emplace_back(comp); }
     // takes std::shared_ptr<RenderableComponent>
-    template <class S>
-    void addRenderableComponent(S&& comp)
-    { 
-      renderableComponent_ = std::forward<S>(comp); 
-    }
+    void set_renderable_component(s_ptr<renderable_component>&& comp) { renderable_component_ = std::move(comp); }
+    void set_renderable_component(const s_ptr<renderable_component>& comp) { renderable_component_ = comp; }
+    inline void set_actor_state(state st) { state_ = st; }
 
-    // TODO : choose rcomp and replace in multiple rcomps
-    // template <class S>
-    // void replaceRenderableComponent(S&& comp)
-    // {
-    //   renderableComponent_ = std::forward<S>(comp);
-    // }
-
-    // TODO : not to use dynamic_cast
-    inline s_ptr<HgeRenderableComponent> getRenderableComponent()
-    { return renderableComponent_; }
-
-    inline actorId getId() const { return id_m; }
-    inline const state& getActorState() const { return state_m; }
-    inline void setActorState(state st) { state_m = st; }
-
-    inline bool isRenderable() const { return renderableComponent_ != nullptr; }
 
   private:
-    actorId id_m;
-    state state_m = state::ACTIVE;
+    id id_;
+    state state_ = state::ACTIVE;
 
-    // would be shared?
-    std::vector<u_ptr<HgeComponent>> uniqueComponents_;
-    std::vector<s_ptr<HgeComponent>> sharedComponents_;
+    std::vector<u_ptr<component>> unique_components_;
+    std::vector<s_ptr<component>> shared_components_;
     // TODO : multiple renderableComponent for one actor 
-    s_ptr<HgeRenderableComponent> renderableComponent_ = nullptr;
+    s_ptr<renderable_component> renderable_component_ = nullptr;
 };
 
+} // namespace game
 } // namespace hnll

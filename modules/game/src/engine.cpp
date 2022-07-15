@@ -15,60 +15,60 @@ constexpr float MAX_FPS = 30.0f;
 constexpr float MAX_DT = 0.05f;
 
 // static members
-HgeActor::map HgeGame::pendingActorMap_m;
+actor::map game::pending_actor_map_;
 
 // glfw
-GLFWwindow* HgeGame::glfwWindow_m;
-std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> HgeGame::glfwMouseButtonCallbacks_{};
+GLFWwindow* game::glfwWindow_m;
+std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> game::glfwMouseButtonCallbacks_{};
 
 // x11
-// Display* HgeGame::display_ = XOpenDisplay(NULL);
+// Display* game::display_ = XOpenDisplay(NULL);
 
-HgeGame::HgeGame(const char* windowName) : upHve_m(std::make_unique<Hve>(windowName))
+game::game(const char* windowName) : graphics_engine_up_(std::make_unique<engine>(windowName))
 {
-  setGLFWwindow(); // ?
+  set_glfw_window(); // ?
 
 #ifndef __IMGUI_DISABLED
-  upHie_m = std::make_unique<Hie>
-    (upHve_m->hveWindow(), upHve_m->hveDevice());
+  gui_engine_up_ = std::make_unique<Hie>
+    (graphics_engine_up_->hveWindow(), graphics_engine_up_->get_graphics_device());
   // configure dependency between renderers
-  upHve_m->hveRenderer().setNextRenderer(upHie_m->pHieRenderer());  
+  graphics_engine_up_->hveRenderer().setNextRenderer(gui_engine_up_->pHieRenderer());  
 #endif
 
-  initHgeActors();
-  loadData();
+  init_actors();
+  load_data();
 
   // glfw
-  setGlfwMouseButtonCallbacks();
+  set_glfw_mouse_button_callbacks();
 }
 
-HgeGame::~HgeGame()
+game::~game()
 {
-  // cleanup in HgeGame::cleanup();
-  // HveRenderer::cleanupSwapChain();
+  // cleanup in game::cleanup();
+  // renderer::cleanupSwapChain();
 }
 
-void HgeGame::run()
+void game::run()
 {
-  currentTime_m = std::chrono::system_clock::now();
+  current_time_ = std::chrono::system_clock::now();
   while (!glfwWindowShouldClose(glfwWindow_m))
   {
     glfwPollEvents();
-    processInput();
+    process_input();
     update();
     render();
   }
-  upHve_m->waitIdle();
+  graphics_engine_up_->waitIdle();
   cleanup();
 }
 
-void HgeGame::processInput()
+void game::process_input()
 {
 }
 
-void HgeGame::update()
+void game::update()
 {
-  isUpdating_m = true;
+  is_updating_ = true;
 
   float dt;
   std::chrono::system_clock::time_point newTime;
@@ -76,99 +76,99 @@ void HgeGame::update()
   do {
   newTime = std::chrono::system_clock::now();
 
-  dt = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime_m).count();
+  dt = std::chrono::duration<float, std::chrono::seconds::period>(newTime - current_time_).count();
   } while(dt < 1.0f / MAX_FPS);
 
   dt = std::min(dt, MAX_DT);
 
-  for (auto& kv : activeActorMap_m) {
+  for (auto& kv : active_actor_map_) {
     const id_t& id = kv.first;
     auto& actor = kv.second;
     actor->update(dt);
     // check if the actor is dead
-    if (actor->getActorState() == HgeActor::state::DEAD) {
-      deadActorMap_m.emplace(id, std::move(actor));
-      activeActorMap_m.erase(id);
+    if (actor->get_actor_state() == actor::state::DEAD) {
+      dead_actor_map_.emplace(id, std::move(actor));
+      active_actor_map_.erase(id);
       // erase relevant model comp.
-      // TODO dont use hgeActor::id_t but HgeComponent::id_t
-      // if(actor->isRenderable())
-        // upHve_m->removeRenderableComponent(id);
+      // TODO dont use hgeActor::id_t but component::id_t
+      // if(actor->is_renderable())
+        // graphics_engine_up_->remove_renderable_component(id);
     }
   }
 
   // game specific update
-  updateGame(dt);
+  update_game(dt);
 
   // camera
-  upCamera_m->update(dt);
+  camera_up_->update(dt);
   upLightManager_->update(dt);
 
-  currentTime_m = newTime;
-  isUpdating_m = false;
+  current_time_ = newTime;
+  is_updating_ = false;
 
   // activate pending actor
-  for (auto& pend : pendingActorMap_m) {
-    if(pend.second->isRenderable())
-      upHve_m->addRenderableComponent(pend.second->getRenderableComponent());
-    activeActorMap_m.emplace(pend.first, std::move(pend.second));
+  for (auto& pend : pending_actor_map_) {
+    if(pend.second->is_renderable())
+      graphics_engine_up_->set_renderable_component(pend.second->get_renderable_component());
+    active_actor_map_.emplace(pend.first, std::move(pend.second));
   }
-  pendingActorMap_m.clear();
+  pending_actor_map_.clear();
   // clear all the dead actors
-  deadActorMap_m.clear();
+  dead_actor_map_.clear();
 
   // TODO : delete gui demo
   // if (renderableComponentID_m != -1)
-  //   HgeRenderableComponent& comp = dynamic_cast<HgeRenderableComponent&>(activeActorMap_m[hieModelID_]->getRenderableComponent());
-  // upHie_m->update(comp.getTransform().translation_m);
+  //   HgeRenderableComponent& comp = dynamic_cast<HgeRenderableComponent&>(active_actor_map_[hieModelID_]->get_renderable_component());
+  // gui_engine_up_->update(comp.get_transform().translation);
 }
 
-void HgeGame::render()
+void game::render()
 {
 
-  upHve_m->render(*(upCamera_m->viewerComponent()));
+  graphics_engine_up_->render(*(camera_up_->viewer_component()));
 #ifndef __IMGUI_DISABLED
-  if (!HveRenderer::swapChainRecreated_m){
-    upHie_m->beginImGui();
-    updateImgui();
-    upHie_m->render();
+  if (!renderer::swapChainRecreated_m){
+    gui_engine_up_->beginImGui();
+    update_gui();
+    gui_engine_up_->render();
   }
 #endif
 }
 
 #ifndef __IMGUI_DISABLED
-void HgeGame::updateImgui()
+void game::update_gui()
 {
   // some general imgui upgrade
-  updateGameImgui();
-  for (auto& kv : activeActorMap_m) {
+  update_game_gui();
+  for (auto& kv : active_actor_map_) {
   const id_t& id = kv.first;
   auto& actor = kv.second;
-  actor->updateImgui();
+  actor->update_gui();
   }
 }
 #endif
 
-void HgeGame::initHgeActors()
+void game::init_actors()
 {
   // hge actors
-  upCamera_m = std::make_shared<HgeCamera>(*upHve_m);
+  camera_up_ = std::make_shared<default_camera>(*graphics_engine_up_);
   
   // TODO : configure priorities of actors, then update light manager after all light comp
-  upLightManager_ = std::make_shared<HgePointLightManager>(upHve_m->globalUbo());
+  upLightManager_ = std::make_shared<point_light_manager>(graphics_engine_up_->globalUbo());
 
 }
 
-void HgeGame::loadData()
+void game::load_data()
 {
   // load raw data
-  loadHveModels();
+  load_mesh_models();
   // temporary
-  // loadActor();
+  // load_actor();
 }
 
 // use filenames as the key of the map
 // TODO : add models by adding folders or files
-void HgeGame::loadHveModels(const std::string& modelDir)
+void game::load_mesh_models(const std::string& modelDir)
 {
   // auto path = std::string(std::getenv("HNLL_ENGN")) + modelDir;
   auto path = std::string("/home/honolulu/models/primitives");
@@ -176,50 +176,50 @@ void HgeGame::loadHveModels(const std::string& modelDir)
     auto filename = std::string(file.path());
     auto length = filename.size() - path.size() - 5;
     auto key = filename.substr(path.size() + 1, length);
-    auto hveModel = HveModel::createModelFromFile(upHve_m->hveDevice(), filename);
-    hveModelMap_m.emplace(key, std::move(hveModel));
+    auto hveModel = mesh_model::createModelFromFile(graphics_engine_up_->get_graphics_device(), filename);
+    mesh_model_map_.emplace(key, std::move(hveModel));
   }
 }
 
 // actors should be created as shared_ptr
-void HgeGame::addActor(const s_ptr<HgeActor>& actor)
-{ pendingActorMap_m.emplace(actor->getId(), actor); }
+void game::add_actor(const s_ptr<actor>& actor)
+{ pending_actor_map_.emplace(actor->get_id(), actor); }
 
-// void HgeGame::addActor(s_ptr<HgeActor>&& actor)
-// { pendingActorMap_m.emplace(actor->getId(), std::move(actor)); }
+// void game::add_actor(s_ptr<actor>&& actor)
+// { pending_actor_map_.emplace(actor->get_id(), std::move(actor)); }
 
-void HgeGame::removeActor(id_t id)
+void game::remove_actor(id_t id)
 {
-  pendingActorMap_m.erase(id);
-  activeActorMap_m.erase(id);
+  pending_actor_map_.erase(id);
+  active_actor_map_.erase(id);
   // renderableActorMap_m.erase(id);
 }
 
-void HgeGame::loadActor()
+void game::load_actor()
 {
-  auto smoothVase = createActor();
-  auto& smoothVaseHveModel = hveModelMap_m["smooth_vase"];
-  auto smoothVaseModelComp = std::make_shared<MeshComponent>(smoothVase->getId(), smoothVaseHveModel);
-  smoothVase->addRenderableComponent(smoothVaseModelComp);
-  smoothVaseModelComp->setTranslation(glm::vec3{-0.5f, 0.5f, 0.f});
-  smoothVaseModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
+  auto smoothVase = create_actor();
+  auto& smoothVaseHveModel = mesh_model_map_["smooth_vase"];
+  auto smoothVaseModelComp = std::make_shared<mesh_component>(smoothVase->get_id(), smoothVaseHveModel);
+  smoothVase->set_renderable_component(smoothVaseModelComp);
+  smoothVaseModelComp->set_translation(glm::vec3{-0.5f, 0.5f, 0.f});
+  smoothVaseModelComp->set_scale(glm::vec3{3.f, 1.5f, 3.f});
   
   // temporary
-  hieModelID_ = smoothVase->getId();
+  hieModelID_ = smoothVase->get_id();
 
-  auto flatVase = createActor();
-  auto& flatVaseHveModel = hveModelMap_m["flat_vase"];
-  auto flatVaseModelComp = std::make_shared<MeshComponent>(flatVase->getId(), flatVaseHveModel);
-  flatVase->addRenderableComponent(flatVaseModelComp);
-  flatVaseModelComp->setTranslation(glm::vec3{0.5f, 0.5f, 0.f});
-  flatVaseModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
+  auto flatVase = create_actor();
+  auto& flatVaseHveModel = mesh_model_map_["flat_vase"];
+  auto flatVaseModelComp = std::make_shared<mesh_component>(flatVase->get_id(), flatVaseHveModel);
+  flatVase->set_renderable_component(flatVaseModelComp);
+  flatVaseModelComp->set_translation(glm::vec3{0.5f, 0.5f, 0.f});
+  flatVaseModelComp->set_scale(glm::vec3{3.f, 1.5f, 3.f});
   
-  auto floor = createActor();
-  auto& floorHveModel = hveModelMap_m["quad"];
-  auto floorModelComp = std::make_shared<MeshComponent>(floor->getId(), floorHveModel);
-  floor->addRenderableComponent(floorModelComp);
-  floorModelComp->setTranslation(glm::vec3{0.f, 0.5f, 0.f});
-  floorModelComp->setScale(glm::vec3{3.f, 1.5f, 3.f});
+  auto floor = create_actor();
+  auto& floorHveModel = mesh_model_map_["quad"];
+  auto floorModelComp = std::make_shared<mesh_component>(floor->get_id(), floorHveModel);
+  floor->set_renderable_component(floorModelComp);
+  floorModelComp->set_translation(glm::vec3{0.f, 0.5f, 0.f});
+  floorModelComp->set_scale(glm::vec3{3.f, 1.5f, 3.f});
 
   std::vector<glm::vec3> lightColors{
       {1.f, .1f, .1f},
@@ -231,61 +231,61 @@ void HgeGame::loadActor()
   };
 
   for (int i = 0; i < lightColors.size(); i++) {
-    auto lightActor = createActor();
-    auto lightComp = PointLightComponent::createPointLight(lightActor->getId(), 1.0f, 0.f, lightColors[i]);
+    auto lightActor = create_actor();
+    auto lightComp = point_light_component::create_point_light(lightActor->get_id(), 1.0f, 0.f, lightColors[i]);
     auto lightRotation = glm::rotate(
         glm::mat4(1),
         (i * glm::two_pi<float>()) / lightColors.size(),
         {0.f, -1.0f, 0.f}); // axiz
-    lightComp->setTranslation(glm::vec3(lightRotation * glm::vec4(-1.f, -1.f, -1.f, 1.f)));
-    addPointLight(lightActor, lightComp);
+    lightComp->set_translation(glm::vec3(lightRotation * glm::vec4(-1.f, -1.f, -1.f, 1.f)));
+    add_point_light(lightActor, lightComp);
   }
 }
 
-void HgeGame::addPointLight(s_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& lightComp)
+void game::add_point_light(s_ptr<actor>& owner, s_ptr<point_light_component>& lightComp)
 {
   // shared by three actor 
-  owner->addRenderableComponent(lightComp);
-  upLightManager_->addLightComp(lightComp);
+  owner->set_renderable_component(lightComp);
+  upLightManager_->add_light_comp(lightComp);
 } 
 
-void HgeGame::addPointLightWithoutOwner(s_ptr<PointLightComponent>& lightComp)
+void game::add_point_light_without_owner(s_ptr<point_light_component>& lightComp)
 {
   // path to the renderer
-  upHve_m->addRenderableComponent(lightComp);
+  graphics_engine_up_->set_renderable_component(lightComp);
   // path to the manager
-  upLightManager_->addLightComp(lightComp);
+  upLightManager_->add_light_comp(lightComp);
 }
 
-void HgeGame::removePointLightWithoutOwner(HgeComponent::compId id)
+void game::remove_point_light_without_owner(component::id id)
 {
-  upHve_m->removeRenderableComponentWithoutOwner(RenderType::POINT_LIGHT, id);
-  upLightManager_->removeLightComp(id);
+  graphics_engine_up_->remove_renderable_component_without_owner(render_type::POINT_LIGHT, id);
+  upLightManager_->remove_light_comp(id);
 }
 
 
-void HgeGame::cleanup()
+void game::cleanup()
 {
-  activeActorMap_m.clear();
-  pendingActorMap_m.clear();
-  deadActorMap_m.clear();
-  hveModelMap_m.clear();
-  HveRenderer::cleanupSwapChain();
+  active_actor_map_.clear();
+  pending_actor_map_.clear();
+  dead_actor_map_.clear();
+  mesh_model_map_.clear();
+  renderer::cleanupSwapChain();
 }
 
 // glfw
-void HgeGame::setGlfwMouseButtonCallbacks()
+void game::set_glfw_mouse_button_callbacks()
 {
-  glfwSetMouseButtonCallback(glfwWindow_m, glfwMouseButtonCallback);
+  glfwSetMouseButtonCallback(glfwWindow_m, glfw_mouse_button_callback);
 }
 
-void HgeGame::addGlfwMouseButtonCallback(u_ptr<std::function<void(GLFWwindow* window, int button, int action, int mods)>>&& func)
+void game::add_glfw_mouse_button_callback(u_ptr<std::function<void(GLFWwindow* window, int button, int action, int mods)>>&& func)
 {
   glfwMouseButtonCallbacks_.emplace_back(std::move(func));
-  setGlfwMouseButtonCallbacks();
+  set_glfw_mouse_button_callbacks();
 }
 
-void HgeGame::glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+void game::glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
   for (const auto& func : glfwMouseButtonCallbacks_)
     func->operator()(window, button, action, mods);

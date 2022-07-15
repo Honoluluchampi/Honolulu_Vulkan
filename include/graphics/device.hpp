@@ -12,6 +12,7 @@
 #include <optional>
 
 namespace hnll {
+namespace graphics {
 
 // non-member function
 struct SwapChainSupportDetails
@@ -28,7 +29,7 @@ struct QueueFamilyIndices
   inline bool isComplete() { return (graphicsFamily_m != std::nullopt) && (presentFamily_m != std::nullopt); };
 };
 
-class HveDevice 
+class device 
 {
   public:
     #ifdef NDEBUG
@@ -37,14 +38,14 @@ class HveDevice
       const bool enableValidationLayers = true;
     #endif
 
-    HveDevice(HveWindow &window);
-    ~HveDevice();
+    device(HveWindow &window);
+    ~device();
 
     // Not copyable or movable
-    HveDevice(const HveDevice &) = delete;
-    HveDevice& operator=(const HveDevice &) = delete;
-    HveDevice(HveDevice &&) = delete;
-    HveDevice &operator=(HveDevice &&) = delete;
+    device(const device &) = delete;
+    device& operator=(const device &) = delete;
+    device(device &&) = delete;
+    device &operator=(device &&) = delete;
 
     // getter
     VkCommandPool getCommandPool() { return commandPool_m; }
@@ -106,7 +107,7 @@ class HveDevice
     VkDebugUtilsMessengerEXT debugMessenger_m;
     // implicitly destroyed when vkInstance is destroyed
     VkPhysicalDevice physicalDevice_m = VK_NULL_HANDLE;
-    HveWindow &window_m;
+    HveWindow &window_;
     // Command pools manage the memory that is used to store the buffers 
     // and command buffers are allocated from them.
     VkCommandPool commandPool_m;
@@ -121,4 +122,5 @@ class HveDevice
     const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 };
 
-}  // namespace lve
+} // namespace graphics
+} // namespace hnll

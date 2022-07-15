@@ -19,14 +19,14 @@ class HveWindow
     HveWindow(const HveWindow &) = delete;
     HveWindow& operator= (const HveWindow &) = delete;
 
-    inline bool shouldClose() { return glfwWindowShouldClose(window_m); }
+    inline bool shouldClose() { return glfwWindowShouldClose(window_); }
     VkExtent2D getExtent() { return { static_cast<uint32_t>(width_m), static_cast<uint32_t>(height_m)}; }
     bool wasWindowResized() { return framebufferResized_m; }
     void resetWindowResizedFlag() { framebufferResized_m = false; }
-    GLFWwindow* getGLFWwindow() const { return window_m; }
+    GLFWwindow* getGLFWwindow() const { return window_; }
       
     void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
-    GLFWwindow* window() { return window_m; }
+    GLFWwindow* window() { return window_; }
       
   private:
     static void framebufferResizeCallBack(GLFWwindow *window, int width, int height);
@@ -37,7 +37,7 @@ class HveWindow
     bool framebufferResized_m = false;
 
     std::string windowName_m;
-    GLFWwindow *window_m;
+    GLFWwindow *window_;
 };
     
 } // namespace hv

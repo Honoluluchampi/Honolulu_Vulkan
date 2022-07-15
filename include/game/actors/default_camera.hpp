@@ -9,32 +9,33 @@
 namespace hnll {
 
 // forward declaration
-class Hve;
+namespace graphics { class engine; }
 
-class HgeCamera : public HgeActor
+namespace game {
+
+class default_camera : public actor
 {
 public:
-  HgeCamera(Hve& hve);
-  ~HgeCamera(){}
+  default_camera(hnll::graphics::engine& engine);
+  ~default_camera(){}
 
-  HgeCamera(const HgeCamera &) = delete;
-  HgeCamera& operator=(const HgeCamera &) = delete;
-  HgeCamera(HgeCamera &&) = default;
-  HgeCamera& operator=(HgeCamera &&) = default;
+  default_camera(const default_camera &) = delete;
+  default_camera& operator=(const default_camera &) = delete;
+  default_camera(default_camera &&) = default;
+  default_camera& operator=(default_camera &&) = default;
 
-  inline Transform& getTransform() { return transform_m; }
-  template<class V> void setTranslation(V&& vec) 
-  { transform_m.translation_m = std::forward<V>(vec); }    
-  template<class V> void setScale(V&& vec) 
-  { transform_m.scale_m = std::forward<V>(vec); }
-  template<class V> void setRotation(V&& vec) 
-  { transform_m.rotation_m = std::forward<V>(vec); }  
-
-  inline s_ptr<ViewerComponent> viewerComponent() const { return spViewerComp_m; }  
+  // getter
+  inline hnll::utils::transform& get_transform() { return transform_; }
+  inline s_ptr<viewer_component> get_viewer_component_sp() const { return viewer_comp_sp_; }  
+  // setter
+  template<class V> void set_translation(V&& vec) { transform_.translation = std::forward<V>(vec); }    
+  template<class V> void set_scale(V&& vec) { transform_.scale = std::forward<V>(vec); }
+  template<class V> void set_rotation(V&& vec) { transform_.rotation = std::forward<V>(vec); }  
 
 private:
-  Transform transform_m {};
-  s_ptr<ViewerComponent> spViewerComp_m;
+  hnll::utils::transform transform_ {};
+  s_ptr<viewer_component> viewer_comp_sp_;
 };
 
+} // namespace graphics
 } // namespace hnll

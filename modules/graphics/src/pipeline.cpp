@@ -127,7 +127,7 @@ void PipelineConfigInfo::createDynamicState()
 
 
 HvePipeline::HvePipeline(
-  HveDevice &device,
+  device &device,
   const std::string &vertFilepath,
   const std::string &fragFilepath,
   const PipelineConfigInfo &configInfo) : hveDevice_m(device)
@@ -282,7 +282,7 @@ void HvePipeline::defaultPipelineConfigInfo(PipelineConfigInfo &configInfo)
   configInfo.createDepthStencilState();
   configInfo.createDynamicState();
 
-  configInfo.bindingDescriptions = HveModel::Vertex::getBindingDescriptions();
-  configInfo.attributeDescriptions = HveModel::Vertex::getAttributeDescriptions();
+  configInfo.bindingDescriptions = mesh_model::Vertex::getBindingDescriptions();
+  configInfo.attributeDescriptions = mesh_model::Vertex::getAttributeDescriptions();
 }
 } // namespace hve

@@ -31,7 +31,7 @@ std::unique_ptr<HveDescriptorSetLayout> HveDescriptorSetLayout::Builder::build()
 // *************** Descriptor Set Layout *********************
 
 HveDescriptorSetLayout::HveDescriptorSetLayout
-  (HveDevice &hveDevice, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings) : hveDevice_m{hveDevice}, bindings_m{bindings} 
+  (device &get_device, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings) : hveDevice_m{get_device}, bindings_m{bindings} 
 {
   std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings{};
   for (auto kv : bindings) {
@@ -43,7 +43,7 @@ HveDescriptorSetLayout::HveDescriptorSetLayout
   descriptorSetLayoutInfo.bindingCount = static_cast<uint32_t>(setLayoutBindings.size());
   descriptorSetLayoutInfo.pBindings = setLayoutBindings.data();
 
-  if (vkCreateDescriptorSetLayout(hveDevice.device(), &descriptorSetLayoutInfo, nullptr, &descriptorSetLayout_m) != VK_SUCCESS) {
+  if (vkCreateDescriptorSetLayout(get_device.device(), &descriptorSetLayoutInfo, nullptr, &descriptorSetLayout_m) != VK_SUCCESS) {
     throw std::runtime_error("failed to create descriptor set layout!");
   }
 }
@@ -76,8 +76,8 @@ std::unique_ptr<HveDescriptorPool> HveDescriptorPool::Builder::build() const
 
 // *************** Descriptor Pool *********************
 
-HveDescriptorPool::HveDescriptorPool(HveDevice &hveDevice, uint32_t maxSets, VkDescriptorPoolCreateFlags poolFlags, 
-const std::vector<VkDescriptorPoolSize> &poolSizes) : hveDevice_m{hveDevice} 
+HveDescriptorPool::HveDescriptorPool(device &get_device, uint32_t maxSets, VkDescriptorPoolCreateFlags poolFlags, 
+const std::vector<VkDescriptorPoolSize> &poolSizes) : hveDevice_m{get_device} 
 {
   VkDescriptorPoolCreateInfo descriptorPoolInfo{};
   descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;

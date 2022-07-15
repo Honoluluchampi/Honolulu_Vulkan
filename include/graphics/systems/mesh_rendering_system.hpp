@@ -12,7 +12,7 @@ namespace hnll {
 class MeshRenderingSystem : public HveRenderingSystem
 {
   public:
-    MeshRenderingSystem(HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
+    MeshRenderingSystem(device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
     ~MeshRenderingSystem();
 
     // dont make HveCamera object as a member variable so as to share the camera between multiple render system

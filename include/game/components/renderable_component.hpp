@@ -8,49 +8,43 @@
 #include <memory>
 
 namespace hnll {
+namespace game {
 
-enum class RenderType 
+enum class render_type 
 {
   SIMPLE,
   POINT_LIGHT,
   LINE
 };
 
-// forward declaration
-class HgeActor;
-using actorId = unsigned int;
-
-class HgeRenderableComponent : public HgeComponent
+class renderable_component : public hnll::game::component
 {
   public:
-    HgeRenderableComponent(actorId id, RenderType type) : 
-    HgeComponent(), id_m(id), renderType_m(type) {}
-    ~HgeRenderableComponent() {}
+    renderable_component(render_type type) : component(), render_type_(type) {}
+    ~renderable_component() {}
 
-    HgeRenderableComponent(const HgeRenderableComponent &) = delete;
-    HgeRenderableComponent& operator=(const HgeRenderableComponent &) = delete;
-    HgeRenderableComponent(HgeRenderableComponent &&) = default;
-    HgeRenderableComponent& operator=(HgeRenderableComponent &&) = default;
+    renderable_component(const renderable_component &) = delete;
+    renderable_component& operator=(const renderable_component &) = delete;
+    renderable_component(renderable_component &&) = default;
+    renderable_component& operator=(renderable_component &&) = default;
 
-    inline Transform& getTransform() { return *upTransform_m; }
-    template<class V> void setTranslation(V&& vec) 
-    { upTransform_m->translation_m = std::forward<V>(vec); }    
-    template<class V> void setScale(V&& vec) 
-    { upTransform_m->scale_m = std::forward<V>(vec); }
-    template<class V> void setRotation(V&& vec) 
-    { upTransform_m->rotation_m = std::forward<V>(vec); }    
+    // getter
+    inline hnll::utils::transform get_transform() { return *transform_up_; }
+    const render_type get_render_type() const { return render_type_; }
 
-    virtual void updateComponent(float dt) override {}
+    // setter
+    template<class V> void set_transform(V&& vec) { transform_up = std::make_unique<hnll::utils::transform>(vec); }
+    template<class V> void set_translation(V&& vec) { transform_up_->translation = std::forward<V>(vec); }    
+    template<class V> void set_scale(V&& vec) { transform_up_->scale = std::forward<V>(vec); }
+    template<class V> void set_rotation(V&& vec) { transform_up_->rotation = std::forward<V>(vec); }    
 
-    actorId getActorId() const { return id_m; }
+    virtual void update_component(float dt) override {}
 
-    const RenderType getRenderType() const { return renderType_m; }
   protected:
-    // same as ownwer's
-    actorId id_m;
     // update this member
-    u_ptr<Transform> upTransform_m = std::make_unique<Transform>();
-    RenderType renderType_m;
+    u_ptr<hnll::utils::transform> transform_up_ = nullptr;
+    render_type render_type_;
 };
 
-}
+} // namespace graphics
+} // namespace hnll

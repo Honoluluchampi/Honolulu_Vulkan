@@ -18,13 +18,13 @@ namespace hnll {
 struct PointLightPushConstants
 {
   glm::vec4 position_m{};
-  glm::vec4 color_m{};
+  glm::vec4 color_{};
   float radius_m;
 };
 
 PointLightSystem::PointLightSystem
-  (HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
-  : HveRenderingSystem(device, RenderType::POINT_LIGHT)
+  (device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
+  : HveRenderingSystem(device, render_type::POINT_LIGHT)
 {
   createPipelineLayout(globalSetLayout);
   createPipeline(renderPass);
@@ -88,12 +88,12 @@ void PointLightSystem::render(FrameInfo frameInfo)
 
   // copy the push constants
   for (auto& kv : renderTargetMap_m) {
-    auto lightComp = dynamic_cast<PointLightComponent*>(kv.second.get());
+    auto lightComp = dynamic_cast<point_light_component*>(kv.second.get());
 
     PointLightPushConstants push{};
-    push.position_m = glm::vec4(lightComp->getTransform().translation_m, 1.f);
-    push.color_m = glm::vec4(lightComp->getColor(), lightComp->getLightInfo().lightIntensity_m);
-    push.radius_m = lightComp->getTransform().scale_m.x;
+    push.position_m = glm::vec4(lightComp->get_transform().translation, 1.f);
+    push.color_ = glm::vec4(lightComp->get_color(), lightComp->get_light_info().light_intensity);
+    push.radius_m = lightComp->get_transform().scale.x;
 
     vkCmdPushConstants(
       frameInfo.commandBuffer_m,

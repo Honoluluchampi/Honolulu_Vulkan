@@ -7,22 +7,23 @@
 #include <glm/glm.hpp>
 
 namespace hnll {
+namespace game {
 
-class LineComponent : public HgeRenderableComponent
+class line_component : public renderable_component
 {
   public:
-    LineComponent(actorId id, glm::vec3& head, glm::vec3& tail, glm::vec3 color, float radius) 
-    : HgeRenderableComponent(id, RenderType::LINE), head_(head), tail_(tail), color_(color), radius_(radius)
-    {}
-    ~LineComponent(){}
+    line_component(glm::vec3& head, glm::vec3& tail, glm::vec3 color, float radius) 
+    : renderable_component(render_type::LINE), head_(head), tail_(tail), color_(color), radius_(radius) {}
+    ~line_component(){}
+
     // setter
-    void setHead(const glm::vec3& head) { head_ = head; }
-    void setTail(const glm::vec3& tail) { tail_ = tail; }
+    void set_head(const glm::vec3& head) { head_ = head; }
+    void set_tail(const glm::vec3& tail) { tail_ = tail; }
     // getter
-    glm::vec3& getHead() { return head_; }
-    glm::vec3& getTail() { return tail_; }
-    glm::vec3& getColor() { return color_; }
-    float getRadius() const { return radius_; }
+    glm::vec3& get_head() { return head_; }
+    glm::vec3& get_tail() { return tail_; }
+    glm::vec3& get_color() { return color_; }
+    float get_radius() const { return radius_; }
 
   private:
     // bind to something
@@ -31,4 +32,5 @@ class LineComponent : public HgeRenderableComponent
     float radius_ = 1.f;
 };
 
+} // namespace game
 } // namespace hnll

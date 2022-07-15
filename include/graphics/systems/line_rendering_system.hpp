@@ -14,7 +14,7 @@ namespace hnll{
 class LineRenderingSystem : public HveRenderingSystem
 {
   public:
-    LineRenderingSystem(HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
+    LineRenderingSystem(device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
     ~LineRenderingSystem();
 
     void render(FrameInfo frameInfo) override;

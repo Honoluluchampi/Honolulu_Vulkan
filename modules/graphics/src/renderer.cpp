@@ -8,13 +8,13 @@
 namespace hnll {
 
 // static members
-uint32_t HveRenderer::currentImageIndex_m = 0;
-int HveRenderer::currentFrameIndex_m = 0;
-bool HveRenderer::swapChainRecreated_m = false;
-std::vector<VkCommandBuffer> HveRenderer::submittingCommandBuffers_m = {};
-u_ptr<HveSwapChain> HveRenderer::hveSwapChain_m = nullptr;
+uint32_t renderer::currentImageIndex_m = 0;
+int renderer::currentFrameIndex_m = 0;
+bool renderer::swapChainRecreated_m = false;
+std::vector<VkCommandBuffer> renderer::submittingCommandBuffers_m = {};
+u_ptr<HveSwapChain> renderer::hveSwapChain_m = nullptr;
 
-HveRenderer::HveRenderer(HveWindow& window, HveDevice& device, bool recreateFromScratch)
+renderer::renderer(HveWindow& window, device& device, bool recreateFromScratch)
  : hveWindow_m{window}, hveDevice_m{device}
 {
   // recreate swap chain dependent objects
@@ -22,12 +22,12 @@ HveRenderer::HveRenderer(HveWindow& window, HveDevice& device, bool recreateFrom
   createCommandBuffers();
 }
 
-HveRenderer::~HveRenderer()
+renderer::~renderer()
 {
   freeCommandBuffers();
 }
 
-void HveRenderer::recreateSwapChain()
+void renderer::recreateSwapChain()
 {
   // stop calculation until the window is minimized
   auto extent = hveWindow_m.getExtent();
@@ -61,7 +61,7 @@ void HveRenderer::recreateSwapChain()
   swapChainRecreated_m = true;
 }
 
-void HveRenderer::resetFrame()
+void renderer::resetFrame()
 {
   swapChainRecreated_m = false;
   submittingCommandBuffers_m.clear();
@@ -70,7 +70,7 @@ void HveRenderer::resetFrame()
     currentFrameIndex_m = 0;
 }
 
-void HveRenderer::createCommandBuffers() 
+void renderer::createCommandBuffers() 
 {
   // 2 or 3
   commandBuffers_m.resize(HveSwapChain::MAX_FRAMES_IN_FLIGHT);
@@ -87,7 +87,7 @@ void HveRenderer::createCommandBuffers()
     throw std::runtime_error("failed to allocate command buffers!");
 }
 
-void HveRenderer::freeCommandBuffers()
+void renderer::freeCommandBuffers()
 {
   vkFreeCommandBuffers(
       hveDevice_m.device(), 
@@ -97,12 +97,12 @@ void HveRenderer::freeCommandBuffers()
   commandBuffers_m.clear();
 }
 
-void HveRenderer::cleanupSwapChain()
+void renderer::cleanupSwapChain()
 {
   hveSwapChain_m.reset();
 }
 
-VkCommandBuffer HveRenderer::beginFrame()
+VkCommandBuffer renderer::beginFrame()
 {
   assert(!isFrameStarted_m && "Can't call beginFrame() while already in progress");
   // get finished image from swap chain
@@ -140,7 +140,7 @@ VkCommandBuffer HveRenderer::beginFrame()
   return commandBuffer;
 }
 
-void HveRenderer::endFrame()
+void renderer::endFrame()
 {
   assert(isFrameStarted_m && "Can't call endFrame() while the frame is not in progress");
   auto commandBuffer = getCurrentCommandBuffer();
@@ -172,7 +172,7 @@ void HveRenderer::endFrame()
   }
 }
 
-void HveRenderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer, int renderPassId)
+void renderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer, int renderPassId)
 {
   assert(isFrameStarted_m && "Can't call beginSwapChainRenderPass() while the frame is not in progress.");
   assert(commandBuffer == getCurrentCommandBuffer() && "Can't beginig render pass on command buffer from a different frame.");
@@ -222,7 +222,7 @@ void HveRenderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer, int re
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }
 
-void HveRenderer::endSwapChainRenderPass(VkCommandBuffer commandBuffer)
+void renderer::endSwapChainRenderPass(VkCommandBuffer commandBuffer)
 {
   assert(isFrameStarted_m && "Can't call endSwapChainRenderPass() while the frame is not in progress.");
   assert(commandBuffer == getCurrentCommandBuffer() && "Can't ending render pass on command buffer from a different frame.");
@@ -232,7 +232,7 @@ void HveRenderer::endSwapChainRenderPass(VkCommandBuffer commandBuffer)
 }
 
 #ifndef __IMGUI_DISABLED
-void HveRenderer::submitCommandBuffers()
+void renderer::submitCommandBuffers()
 {
   auto result = hveSwapChain_m->submitCommandBuffers(submittingCommandBuffers_m.data(), &currentImageIndex_m);
   if (result != VK_ERROR_OUT_OF_DATE_KHR && result != VK_SUBOPTIMAL_KHR && result != VK_SUCCESS) 

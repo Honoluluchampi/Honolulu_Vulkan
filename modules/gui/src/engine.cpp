@@ -9,7 +9,7 @@
 namespace hnll {
 
 // take s_ptr<HveSwapChain> from hveRenderer
-Hie::Hie(HveWindow& hveWindow, HveDevice& hveDevice)
+Hie::Hie(HveWindow& hveWindow, device& hveDevice)
   : device_(hveDevice.device())
 {  
   setupSpecificVulkanObjects();
@@ -31,7 +31,7 @@ void Hie::setupSpecificVulkanObjects()
   createDescriptorPool();
 }
 
-void Hie::setupImGui(HveDevice& hveDevice, GLFWwindow* window)
+void Hie::setupImGui(device& hveDevice, GLFWwindow* window)
 {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -48,7 +48,7 @@ void Hie::setupImGui(HveDevice& hveDevice, GLFWwindow* window)
   info.PhysicalDevice = hveDevice.physicalDevice();
   device_ = hveDevice.device();
   info.Device = device_;
-  // graphicsFamily's indice is needed (see HveDevice::createCommandPool)
+  // graphicsFamily's indice is needed (see device::createCommandPool)
   // but these are never used...
   info.QueueFamily = hveDevice.queueFamilyIndices().graphicsFamily_m.value();
   graphicsQueue_ = hveDevice.graphicsQueue();

@@ -20,11 +20,11 @@ template<class T> using s_ptr = std::shared_ptr<T>;
 
 class HveRenderingSystem
 {
-  using map = std::unordered_map<HgeComponent::compId, std::shared_ptr<HgeRenderableComponent>>;
+  using map = std::unordered_map<component::id, std::shared_ptr<renderable_component>>;
 
 public:
-  HveRenderingSystem(HveDevice& device, RenderType type) 
-   : hveDevice_m(device), renderType_m(type) {}
+  HveRenderingSystem(device& device, render_type type) 
+   : hveDevice_m(device), render_type_(type) {}
   virtual ~HveRenderingSystem()
   { vkDestroyPipelineLayout(hveDevice_m.device(), pipelineLayout_m, nullptr); };
   
@@ -37,27 +37,27 @@ public:
 
   // takes s_ptr<RenderableComponent>
   template<class S>
-  void addRenderTarget(HgeComponent::compId id, S&& target)
+  void addRenderTarget(component::id id, S&& target)
   { renderTargetMap_m.emplace(id, std::forward<S>(target)); }
 
   template<class S>
-  void replaceRenderTarget(HgeComponent::compId id, S&& target)
+  void replaceRenderTarget(component::id id, S&& target)
   { renderTargetMap_m[id] = std::forward<S>(target); }
 
-  void removeRenderTarget(HgeComponent::compId id)
+  void removeRenderTarget(component::id id)
   { renderTargetMap_m.erase(id); }
 
-  RenderType getRenderType() const { return renderType_m; }
+  render_type get_render_type() const { return render_type_; }
 
 private:
   virtual void createPipelineLayout(VkDescriptorSetLayout globalSetLayout) {}
   virtual void createPipeline(VkRenderPass renderPass) {}
 
 protected:
-  HveDevice& hveDevice_m;
+  device& hveDevice_m;
   u_ptr<HvePipeline> hvePipeline_m = nullptr;
   VkPipelineLayout pipelineLayout_m;
-  RenderType renderType_m;
+  render_type render_type_;
 
   // derived classes must use renderTarget by down-cast values of this map
   // ex) auto modelComp = dynamic_cast<ModelComponent*>(renderTargetMap_m[1].get());

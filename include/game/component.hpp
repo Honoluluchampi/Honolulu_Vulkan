@@ -1,26 +1,28 @@
 #pragma once
 
 namespace hnll {
+namespace game {
 
-class HgeComponent
+class component
 {
 public:
-  using compId = unsigned;
+  using id = unsigned;
 
-  HgeComponent();
-  virtual ~HgeComponent(){}
+  component();
+  virtual ~component(){}
 
-  inline void update(float dt) 
-  { updateComponent(dt); }
+  inline void update(float dt) { update_component(dt); }
 
-#ifndef __IMGUI_DISABLED
-  virtual void updateImgui(){}
+#ifndef IMGUI_DISABLED
+  virtual void update_gui(){}
 #endif
 
-  compId getCompId() const { return id_m; }
+  // getter
+  id get_id() const { return id_; }
 private:
-  virtual void updateComponent(float dt) {}
-  compId id_m;
+  virtual void update_component(float dt) {}
+  id id_;
 };
 
+} // namespace game
 } // namespace hnll

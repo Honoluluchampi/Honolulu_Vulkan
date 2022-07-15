@@ -18,8 +18,8 @@ struct LinePushConstant
 };
 
 LineRenderingSystem::LineRenderingSystem
-  (HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
-  : HveRenderingSystem(device, RenderType::LINE)
+  (device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
+  : HveRenderingSystem(device, render_type::LINE)
 {
   createPipelineLayout(globalSetLayout);
   createPipeline(renderPass);
@@ -83,18 +83,18 @@ void LineRenderingSystem::render(FrameInfo frameInfo)
 
   for (auto& target : renderTargetMap_m) {
     
-    auto obj = dynamic_cast<LineComponent*>(target.second.get());
+    auto obj = dynamic_cast<line_component*>(target.second.get());
 
-    auto head2tail = obj->getTail() - obj->getHead();
+    auto head2tail = obj->get_tail() - obj->get_head();
     // TODO : draw line
     for (int i = 1; i < interpolatingPointsCount + 1; i++) {
       // fill push constant
       LinePushConstant push{};
       push.position_ = glm::vec4(head2tail, 0.f);
       push.position_ *= (float)i / (interpolatingPointsCount + 1);
-      push.position_ += glm::vec4(obj->getHead(), 0.f);
-      push.color_ = glm::vec4(obj->getColor(), 0.f);
-      push.radius_ = obj->getRadius();
+      push.position_ += glm::vec4(obj->get_head(), 0.f);
+      push.color_ = glm::vec4(obj->get_color(), 0.f);
+      push.radius_ = obj->get_radius();
 
       vkCmdPushConstants(
           frameInfo.commandBuffer_m,

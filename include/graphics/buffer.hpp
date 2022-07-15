@@ -7,7 +7,7 @@ namespace hnll {
 class HveBuffer {
   public:
     HveBuffer(
-        HveDevice& device,
+        device& device,
         VkDeviceSize instanceSize,
         uint32_t instanceCount,
         VkBufferUsageFlags usageFlags,
@@ -44,7 +44,7 @@ class HveBuffer {
   private:
     static VkDeviceSize getAlignment(VkDeviceSize instanceSize, VkDeviceSize minOffsetAlignment);
   
-    HveDevice& hveDevice_m;
+    device& hveDevice_m;
     void* mapped_m = nullptr;
     
     // separating buffer and its assigned memory enables programmer to manage memory manually
@@ -59,4 +59,4 @@ class HveBuffer {
     VkMemoryPropertyFlags memoryPropertyFlags_m;
 };
  
-}  // namespace Hve
+}  // namespace engine

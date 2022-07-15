@@ -18,45 +18,46 @@
 #include <unordered_map>
 
 namespace hnll {
+namespace graphics {
 
 template<class U> using u_ptr = std::unique_ptr<U>;
 template<class S> using s_ptr = std::shared_ptr<S>;
 
-class Hve
+class engine
 {
-  using map = std::unordered_map<RenderType, std::unique_ptr<HveRenderingSystem>>;
+  using map = std::unordered_map<hnll::game::render_type, std::unique_ptr<HveRenderingSystem>>;
 
   public:
     static constexpr int WIDTH = 800;
     static constexpr int HEIGHT = 600;
     static constexpr float MAX_FRAME_TIME = 0.05;
 
-    Hve(const char* windowName = "honolulu engine");
-    ~Hve();
+    engine(const char* windowName = "honolulu engine");
+    ~engine();
 
-    Hve(const Hve &) = delete;
-    Hve &operator= (const Hve &) = delete;
+    engine(const engine &) = delete;
+    engine &operator= (const engine &) = delete;
 
-    void render(ViewerComponent& viewerComp);
+    void render(viewer_component& viewerComp);
 
     // takes s_ptr<RenderableComponent>
     template<class RC>
-    void addRenderableComponent(RC&& target)
-    { renderingSystems_m[target->getRenderType()]->addRenderTarget(target->getCompId(), std::forward<RC>(target)); }
+    void set_renderable_component(RC&& target)
+    { renderingSystems_m[target->get_render_type()]->addRenderTarget(target->get_id(), std::forward<RC>(target)); }
     
     template<class RC>
-    void replaceRenderableComponent(RC&& target)
-    { renderingSystems_m[target->getRenderType()]->replaceRenderTarget(target->getCompId(), std::forward<RC>(target)); }
+    void replace_renderable_component(RC&& target)
+    { renderingSystems_m[target->get_render_type()]->replaceRenderTarget(target->get_id(), std::forward<RC>(target)); }
 
-    void removeRenderableComponentWithoutOwner(RenderType type, HgeComponent::compId id);
+    void remove_renderable_component_without_owner(hnll::game::render_type type, hnll::game::component::id id);
 
     inline void waitIdle() { vkDeviceWaitIdle(hveDevice_m.device()); }
 
-    inline HveDevice& hveDevice() { return hveDevice_m; }
-    inline HveRenderer& hveRenderer() { return hveRenderer_m; }
-    inline HveSwapChain& hveSwapChain() { return hveRenderer_m.hveSwapChain(); }
+    inline device& get_device() { return hveDevice_m; }
+    inline renderer& hveRenderer() { return renderer_; }
+    inline HveSwapChain& hveSwapChain() { return renderer_.hveSwapChain(); }
     inline HveWindow& hveWindow() { return hveWindow_m; }
-    inline GlobalUbo& globalUbo() { return ubo_; }
+    inline global_ubo& globalUbo() { return ubo_; }
 
     inline GLFWwindow* passGLFWwindow() const { return hveWindow_m.getGLFWwindow(); } 
     
@@ -66,8 +67,8 @@ class Hve
     // construct in impl
     HveWindow hveWindow_m;
 
-    HveDevice hveDevice_m {hveWindow_m};
-    HveRenderer hveRenderer_m {hveWindow_m, hveDevice_m};
+    device hveDevice_m {hveWindow_m};
+    renderer renderer_ {hveWindow_m, hveDevice_m};
 
     // shared between multiple system
     u_ptr<HveDescriptorPool> globalPool_m;
@@ -78,7 +79,8 @@ class Hve
     // ptrlize to make it later init 
 
     map renderingSystems_m;
-    GlobalUbo ubo_{};
+    global_ubo ubo_{};
 };
 
-} // namespace hv
+} // namespace graphics
+} // namespace hnll

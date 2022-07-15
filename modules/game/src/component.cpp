@@ -2,10 +2,9 @@
 #include <game/component.hpp>
 
 namespace hnll {
+namespace game {
 
-HgeComponent::HgeComponent()
-{
-  static compId id = 0;
-  id_m = id++;
-}
+component::component() { static id id = 0; id_ = id++;}
+
+} // namespace game
 } // namespace hnll

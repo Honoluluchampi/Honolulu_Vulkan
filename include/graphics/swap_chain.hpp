@@ -22,8 +22,8 @@ class HveSwapChain {
  public:
   static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
-  HveSwapChain(HveDevice &deviceRef, VkExtent2D windowExtent);
-  HveSwapChain(HveDevice &deviceRef, VkExtent2D windowExtent, std::unique_ptr<HveSwapChain> previous);
+  HveSwapChain(device &deviceRef, VkExtent2D windowExtent);
+  HveSwapChain(device &deviceRef, VkExtent2D windowExtent, std::unique_ptr<HveSwapChain> previous);
   ~HveSwapChain();
 
   HveSwapChain(const HveSwapChain &) = delete;
@@ -128,7 +128,7 @@ class HveSwapChain {
   std::vector<VkImage> swapChainImages_m;
   std::vector<VkImageView> swapChainImageViews_m;
 
-  HveDevice &device_m;
+  device &device_m;
   VkExtent2D windowExtent_m;
 
   VkSwapchainKHR swapChain_m;

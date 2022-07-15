@@ -24,8 +24,8 @@ struct MeshPushConstant
 };
 
 MeshRenderingSystem::MeshRenderingSystem
-  (HveDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
-  : HveRenderingSystem(device, RenderType::SIMPLE)
+  (device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
+  : HveRenderingSystem(device, render_type::SIMPLE)
 { 
   createPipelineLayout(globalSetLayout);
   createPipeline(renderPass);
@@ -86,13 +86,13 @@ void MeshRenderingSystem::render(FrameInfo frameInfo)
 
   for (auto& target : renderTargetMap_m) {
     
-    auto obj = dynamic_cast<MeshComponent*>(target.second.get());
-    if (obj->getSpModel() == nullptr) continue;
+    auto obj = dynamic_cast<mesh_component*>(target.second.get());
+    if (obj->get_model_sp() == nullptr) continue;
     MeshPushConstant push{};
     // camera projection
-    push.modelMatrix_m = obj->getTransform().mat4();
+    push.modelMatrix_m = obj->get_transform().mat4();
     // automatically converse mat3(normalMatrix_m) to mat4 for shader data alignment
-    push.normalMatrix_m = obj->getTransform().normalMatrix();
+    push.normalMatrix_m = obj->get_transform().normal_matrix();
 
     vkCmdPushConstants(
         frameInfo.commandBuffer_m,
@@ -101,8 +101,8 @@ void MeshRenderingSystem::render(FrameInfo frameInfo)
         0, 
         sizeof(MeshPushConstant), 
         &push);
-    obj->getSpModel()->bind(frameInfo.commandBuffer_m);
-    obj->getSpModel()->draw(frameInfo.commandBuffer_m);
+    obj->get_model_sp()->bind(frameInfo.commandBuffer_m);
+    obj->get_model_sp()->draw(frameInfo.commandBuffer_m);
   }
 }
 

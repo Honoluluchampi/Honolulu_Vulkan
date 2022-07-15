@@ -5,7 +5,7 @@
 #include <game/components/mesh_component.hpp>
 #include <game/actors/default_camera.hpp>
 #include <game/actors/point_light_manager.hpp>
-#include <imgui/engine.hpp>
+#include <gui/engine.hpp>
 #include <graphics/engine.hpp>
 
 // lib
@@ -20,67 +20,61 @@
 #include <string>
 
 namespace hnll {
+namespace game {
 
-class HgeGame
+class game
 {
 public:
-  HgeGame(const char* windowName = "honolulu engine");
-  ~HgeGame();
+  game(const char* windowName = "honolulu engine");
+  ~game();
   // delete copy ctor
-  HgeGame(const HgeGame &) = delete;
-  HgeGame& operator=(const HgeGame &) = delete;
+  game(const game &) = delete;
+  game& operator=(const game &) = delete;
 
   bool initialize();
   void run();
 
-  void addActor(const s_ptr<HgeActor>& actor);
-  // void addActor(s_ptr<HgeActor>&& actor);
-  void removeActor(id_t id);
+  void add_actor(const s_ptr<actor>& actor);
+  // void add_actor(s_ptr<actor>&& actor);
+  void remove_actor(actor::id id);
 
   // factory funcs
   // takes hgeActor derived class as template argument
-  template<class ActorClass = HgeActor, class... Args>
-  static s_ptr<ActorClass> createActor(Args... args)
+  template<class ActorClass = actor, class... Args>
+  static s_ptr<ActorClass> create_actor(Args... args)
   {
     auto actor = std::make_shared<ActorClass>(args...);
-    // create s_ptr of actor perform as HgeActor
-    std::shared_ptr<HgeActor> ptr4actorMap = actor;
+    // create s_ptr of actor perform as actor
+    std::shared_ptr<actor> prt_for_actor_map = actor;
     // register it to the actor map
-    pendingActorMap_m.emplace(ptr4actorMap->getId(), ptr4actorMap);
+    pending_actor_map_.emplace(prt_for_actor_map->get_id(), prt_for_actor_map);
     return actor;
   }
 
-  // takes s_ptr<HgeRenderableComponent>
+  // takes s_ptr<renderable_component>
   template <class S>
-  void addRenderableComponent(S&& comp)
-  { upHve_m->addRenderableComponent(std::forward<S>(comp)); }
-  template <class S>
-  void replaceRenderableComponent(S&& comp)
-  { upHve_m->replaceRenderableComponent(std::forward<S>(comp)); }
-  void removeRenderableComponent(RenderType type, HgeComponent::compId id)
-  { upHve_m->removeRenderableComponentWithoutOwner(type, id); }
+  void set_renderable_component(S&& comp) { graphics_engine_up_->set_renderable_component(std::forward<S>(comp)); }
+  template <class S> 
+  void replace_renderable_component(S&& comp) { graphics_engine_up_->replace_renderable_component(std::forward<S>(comp)); }
+  void remove_renderable_component(render_type type, component::id id) { graphics_engine_up_->remove_renderable_component_without_owner(type, id); }
 
-  void addPointLight(s_ptr<HgeActor>& owner, s_ptr<PointLightComponent>& lightComp);
+  void add_point_light(s_ptr<actor>& owner, s_ptr<point_light_component>& lightComp);
   // TODO : delete this func
-  void addPointLightWithoutOwner(s_ptr<PointLightComponent>& lightComp);
-  void removePointLightWithoutOwner(HgeComponent::compId id);
+  void add_point_light_without_owner(s_ptr<point_light_component>& lightComp);
+  void remove_point_light_without_owner(component::id id);
 
-  void setCameraTransform(const Transform& transform)
-  { upCamera_m->getTransform() = transform; }
+  void set_camera_transform(const hnll::utils::transform& transform){ camera_up_->get_transform() = transform; }
 
   // getter
-  Hve& hve() { return *upHve_m; }
-  HveDevice& hveDevice() { return upHve_m->hveDevice(); }
-  s_ptr<HveModel> getHveModel(std::string modelName) 
-  { return hveModelMap_m[modelName]; }
+  hnll::graphics::engine& get_graphics_engine() { return *graphics_engine_up_; }
+  hnll::graphics::device& get_graphics_device() { return graphics_engine_up_->get_device(); }
+  s_ptr<hnll::graphics::mesh_model> get_mesh_model_sp(std::string modelName) { return mesh_model_map_[modelName]; }
 
 #ifndef __IMGUI_DISABLED
-  u_ptr<Hie>& hie() { return upHie_m; }
+  u_ptr<hnll::gui::engine>& get_gui_engine_up() { return gui_engine_up_; }
 #endif
-
-  // glfw
   // move u_ptr<func> before add
-  static void addGlfwMouseButtonCallback(u_ptr<std::function<void(GLFWwindow*, int, int, int)>>&& func);
+  static void add_glfw_mouse_button_callback(u_ptr<std::function<void(GLFWwindow*, int, int, int)>>&& func);
 
   // X11
   // static Display* x11Display() { return display_; }
@@ -88,65 +82,67 @@ protected:
   // TODO : remove static
   static GLFWwindow* glfwWindow_m;
   // hge actors
-  s_ptr<HgeCamera> upCamera_m;
-  s_ptr<HgePointLightManager> upLightManager_;
+  s_ptr<default_camera> camera_up_;
+  s_ptr<point_light_manager> upLightManager_;
 
 private:
-  inline void setGLFWwindow() { glfwWindow_m = upHve_m->passGLFWwindow() ; }
+  inline void set_glfw_window() { glfwWindow_m = graphics_engine_up_->passGLFWwindow() ; }
   void cleanup();
-  void processInput();
+  void process_input();
   void update();
   // game spacific update
-  virtual void updateGame(float dt){}
+  virtual void update_game(float dt){}
   void render();
 
 #ifndef __IMGUI_DISABLED
-  void updateImgui();
-  virtual void updateGameImgui(){}
+  void update_gui();
+  virtual void update_game_gui(){}
 #endif
 
   // init 
-  void initHgeActors();
-  void loadData();
-  virtual void loadActor();
+  void init_actors();
+  void load_data();
+  virtual void load_actor();
 
-  void unLoadData();
+  void unload_data();
   // load all models in modleDir
   // use filenames as the key of the map
-  void loadHveModels(const std::string& modelDir = "/models");
+  void load_mesh_models(const std::string& modelDir = "/models");
 
   // glfw
-  static void setGlfwMouseButtonCallbacks();
-  static void glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+  static void set_glfw_mouse_button_callbacks();
+  static void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
-  HgeActor::map activeActorMap_m;
-  static HgeActor::map pendingActorMap_m;
-  HgeActor::map deadActorMap_m;
+  actor::map active_actor_map_;
+  static actor::map pending_actor_map_;
+  actor::map dead_actor_map_;
 
-  u_ptr<Hve> upHve_m;
+  u_ptr<hnll::graphics::engine> graphics_engine_up_;
 
 #ifndef __IMGUI_DISABLED
-  u_ptr<Hie> upHie_m;
+  u_ptr<hnll::gui::engine> gui_engine_up_;
 #endif
 
-  // map of HveModel
+  // map of mesh_model
   // shared by game and some modelComponents
   // pool all models which could be necessary
-  HveModel::map hveModelMap_m;
+  hnll::graphics::mesh_model::map mesh_model_map_;
 
-  bool isUpdating_m = false; // for update
-  bool isRunning_m = false; // for run loop
+  bool is_updating_ = false; // for update
+  bool is_running_ = false; // for run loop
 
-  std::chrono::system_clock::time_point currentTime_m;
+  std::chrono::system_clock::time_point current_time_;
 
-  id_t hieModelID_;
+  // temp
+  actor::id hieModelID_;
 
   // glfw
   static std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> 
-    glfwMouseButtonCallbacks_;
+    glfw_mouse_button_callbacks_;
 
   // X11
   // static Display* display_;
 };
 
+} // namespace game
 } // namespace hnll

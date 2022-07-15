@@ -4,18 +4,18 @@
 
 namespace hnll {
 
-HgeCamera::HgeCamera(Hve& hve) : HgeActor()
+default_camera::default_camera(engine& hve) : actor()
 {
-  spViewerComp_m = std::make_shared<ViewerComponent>(transform_m, hve.hveRenderer());
+  viewer_comp_sp_ = std::make_shared<viewer_component>(transform_, hve.hveRenderer());
   // set initial position
-  transform_m.translation_m.z = -2.5f;
+  transform_.translation.z = -2.5f;
   
-  auto keyComp = std::make_shared<KeyboardMovementComponent>(hve.passGLFWwindow(), transform_m);
+  auto keyComp = std::make_shared<keyboard_movement_component>(hve.passGLFWwindow(), transform_);
   
   // key move must be updated before view
-  addComponent(keyComp);
+  add_component(keyComp);
   // shared by hveApp
-  addComponent(spViewerComp_m);
+  add_component(viewer_comp_sp_);
 }
 
 } // namesapce hnll

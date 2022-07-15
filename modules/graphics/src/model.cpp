@@ -15,9 +15,9 @@
 namespace std {
 
 template <>
-struct hash<hnll::HveModel::Vertex>
+struct hash<hnll::mesh_model::Vertex>
 {
-  size_t operator() (hnll::HveModel::Vertex const &vertex) const
+  size_t operator() (hnll::mesh_model::Vertex const &vertex) const
   {
     // stores final hash value
     size_t seed = 0;
@@ -29,26 +29,26 @@ struct hash<hnll::HveModel::Vertex>
 
 namespace hnll {
 
-HveModel::HveModel(HveDevice& device, const HveModel::Builder &builder) : hveDevice_m{device}
+mesh_model::mesh_model(device& device, const mesh_model::Builder &builder) : hveDevice_m{device}
 {
   createVertexBuffers(builder.vertices_m);
   createIndexBuffers(builder.indices_m);
 }
 
-HveModel::~HveModel()
+mesh_model::~mesh_model()
 {
   // buffers wille be freed in dotr of Hvebuffer
 }
 
-std::shared_ptr<HveModel> HveModel::createModelFromFile(HveDevice &device, const std::string &filename)
+std::shared_ptr<mesh_model> mesh_model::createModelFromFile(device &device, const std::string &filename)
 {
   Builder builder;
   builder.loadModel(filename);
   std::cout << filename << " Vertex count: " << builder.vertices_m.size() << "\n";
-  return std::make_shared<HveModel>(device, builder);
+  return std::make_shared<mesh_model>(device, builder);
 }
 
-void HveModel::createVertexBuffers(const std::vector<Vertex> &vertices)
+void mesh_model::createVertexBuffers(const std::vector<Vertex> &vertices)
 {
   // vertexCount must be larger than 3 (triangle) 
   // use a host visible buffer as temporary buffer, use a device local buffer as actual vertex buffer
@@ -81,7 +81,7 @@ void HveModel::createVertexBuffers(const std::vector<Vertex> &vertices)
   // staging buffer is automatically freed in the dtor 
 }
 
-void HveModel::createIndexBuffers(const std::vector<uint32_t> &indices)
+void mesh_model::createIndexBuffers(const std::vector<uint32_t> &indices)
 {
   indexCount_m = static_cast<uint32_t>(indices.size());
   // if there is no index, nothing to do
@@ -115,7 +115,7 @@ void HveModel::createIndexBuffers(const std::vector<uint32_t> &indices)
   hveDevice_m.copyBuffer(stagingBuffer.getBuffer(), indexBuffer_m->getBuffer(), bufferSize);
 }
 
-void HveModel::draw(VkCommandBuffer commandBuffer)
+void mesh_model::draw(VkCommandBuffer commandBuffer)
 {
   if (hasIndexBuffer_m)
     vkCmdDrawIndexed(commandBuffer, indexCount_m, 1, 0, 0, 0);
@@ -123,7 +123,7 @@ void HveModel::draw(VkCommandBuffer commandBuffer)
     vkCmdDraw(commandBuffer, vertexCount_m, 1, 0, 0);
 }
 
-void HveModel::bind(VkCommandBuffer commandBuffer)
+void mesh_model::bind(VkCommandBuffer commandBuffer)
 {
   VkBuffer buffers[] = {vertexBuffer_m->getBuffer()};
   VkDeviceSize offsets[] = {0};
@@ -134,7 +134,7 @@ void HveModel::bind(VkCommandBuffer commandBuffer)
     vkCmdBindIndexBuffer(commandBuffer, indexBuffer_m->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
 }
 
-std::vector<VkVertexInputBindingDescription> HveModel::Vertex::getBindingDescriptions()
+std::vector<VkVertexInputBindingDescription> mesh_model::Vertex::getBindingDescriptions()
 {
   std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
   // per-vertex data is packed together in one array, so the index of the 
@@ -145,7 +145,7 @@ std::vector<VkVertexInputBindingDescription> HveModel::Vertex::getBindingDescrip
   bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
   return bindingDescriptions;
 }
-std::vector<VkVertexInputAttributeDescription> HveModel::Vertex::getAttributeDescriptions()
+std::vector<VkVertexInputAttributeDescription> mesh_model::Vertex::getAttributeDescriptions()
 {
   // how to extract a vertex attribute from a chunk of vertex data
   std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
@@ -159,7 +159,7 @@ std::vector<VkVertexInputAttributeDescription> HveModel::Vertex::getAttributeDes
   return attributeDescriptions;
 }
 
-void HveModel::Builder::loadModel(const std::string& filename)
+void mesh_model::Builder::loadModel(const std::string& filename)
 {
   // loader
   tinyobj::attrib_t attrib;

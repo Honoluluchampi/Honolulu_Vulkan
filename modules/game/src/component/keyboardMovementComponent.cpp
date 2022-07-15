@@ -24,89 +24,89 @@ constexpr float MOVE_SPEED = 5.f;
 constexpr float LOOK_SPEED = 1.5f;
 constexpr float CURSOR_SPEED = 15.f;
 
-KeyboardMovementComponent::KeyMappings KeyboardMovementComponent::keys{};
-KeyboardMovementComponent::PadMappings KeyboardMovementComponent::pads{};
+keyboard_movement_component::key_mappings keyboard_movement_component::keys{};
+keyboard_movement_component::PadMappings keyboard_movement_component::pads{};
 
-KeyboardMovementComponent::KeyboardMovementComponent(GLFWwindow* window, Transform& transform)
-  : HgeComponent(), window_m(window), transform_m(transform)
+keyboard_movement_component::keyboard_movement_component(GLFWwindow* window, transform& transform)
+  : component(), window_(window), transform_(transform)
 {
     // mapping
   const char* mapping = "03000000790000004618000010010000,Nintendo GameCube Controller Adapter,a:b1,b:b2,dpdown:b14,dpleft:b15,dpright:b13,dpup:b12,lefttrigger:b4,leftx:a0,lefty:a1,leftshoulder:b4,rightshoulder:b5,guide:b7,rightx:a5~,righty:a2~,start:b9,x:b0,y:b3,platform:Linux";
   glfwUpdateGamepadMappings(mapping);
   glfwSetJoystickCallback(joystickCallback);
-  adjustAxisErrors();
+  adjust_axis_errors();
 }
 
-void KeyboardMovementComponent::updateComponent(float dt)
+void keyboard_movement_component::update_component(float dt)
 {
   GLFWgamepadstate state;
-  glfwGetGamepadState(padId, &state);
-  processRotateInput(state, dt);
-  processMoveInput(state,dt);
-  processButtonInput(state, dt);
+  glfwGetGamepadState(pad_number_, &state);
+  process_rotate_input(state, dt);
+  process_move_input(state,dt);
+  process_button_input(state, dt);
 }
 
-void KeyboardMovementComponent::processRotateInput(GLFWgamepadstate& state, float dt)
+void keyboard_movement_component::process_rotate_input(GLFWgamepadstate& state, float dt)
 { 
-  float rotaX = state.axes[pads.rotaX] 
-              + (glfwGetKey(window_m, keys.lookUp) == GLFW_PRESS)
-              - (glfwGetKey(window_m, keys.lookDown) == GLFW_PRESS);
-  float rotaY = -state.axes[pads.rotaY]
-              + (glfwGetKey(window_m, keys.lookRight) == GLFW_PRESS)
-              - (glfwGetKey(window_m, keys.lookLeft) == GLFW_PRESS);
-  glm::vec3 rotate = {rotaX, rotaY, 0.f};
+  float rota_x = state.axes[pads.rota_x] 
+              + (glfwGetKey(window_, keys.look_up) == GLFW_PRESS)
+              - (glfwGetKey(window_, keys.look_down) == GLFW_PRESS);
+  float rota_y = -state.axes[pads.rota_y]
+              + (glfwGetKey(window_, keys.look_right) == GLFW_PRESS)
+              - (glfwGetKey(window_, keys.look_left) == GLFW_PRESS);
+  glm::vec3 rotate = {rota_x, rota_y, 0.f};
   // add to the current rotate matrix
   if (glm::dot(rotate, rotate) > ROTATE_THRESH) //std::numeric_limits<float>::epsilon())
-    transform_m.rotation_m += LOOK_SPEED * dt * glm::normalize(rotate);
+    transform_.rotation += LOOK_SPEED * dt * glm::normalize(rotate);
 
   // limit pitch values between about +/- 58ish degrees
-  transform_m.rotation_m.x = glm::clamp(transform_m.rotation_m.x, -1.5f, 1.5f);
-  transform_m.rotation_m.y = glm::mod(transform_m.rotation_m.y, glm::two_pi<float>());
+  transform_.rotation.x = glm::clamp(transform_.rotation.x, -1.5f, 1.5f);
+  transform_.rotation.y = glm::mod(transform_.rotation.y, glm::two_pi<float>());
 }
 
-void KeyboardMovementComponent::processMoveInput(GLFWgamepadstate& state, float dt)
+void keyboard_movement_component::process_move_input(GLFWgamepadstate& state, float dt)
 {
   // camera translation
   // store user input
-  float moveX = state.axes[pads.moveX] - rightError_;
-  float moveY = -(state.axes[pads.moveY] - upError_);
-  float moveZ = state.buttons[pads.dpUp] - state.buttons[pads.dpDown];
+  float move_x = state.axes[pads.move_x] - right_error_;
+  float move_y = -(state.axes[pads.move_y] - up_error_);
+  float moveZ = state.buttons[pads.dp_up] - state.buttons[pads.dp_down];
 
-  float yaw = transform_m.rotation_m.y;
+  float yaw = transform_.rotation.y;
   const glm::vec3 forwardDir{sin(yaw), 0.f, cos(yaw)};
   const glm::vec3 rightDir{forwardDir.z, 0.f, -forwardDir.x};
   const glm::vec3 upDir{0.f, -1.f, 0.f};
 
   glm::vec3 moveDir{0.f};
-  float forward = moveY * (state.buttons[pads.leftBumper] == GLFW_PRESS)
-    + (glfwGetKey(window_m, keys.moveForward) == GLFW_PRESS)
-    - (glfwGetKey(window_m, keys.moveBackward) == GLFW_PRESS);
-  float right = moveX * (state.buttons[pads.leftBumper] == GLFW_PRESS)
-    + (glfwGetKey(window_m, keys.moveRight) == GLFW_PRESS)
-    - (glfwGetKey(window_m, keys.moveLeft) == GLFW_PRESS);
-  float up = (glfwGetKey(window_m, keys.moveUp) == GLFW_PRESS) - (glfwGetKey(window_m, keys.moveDown) == GLFW_PRESS)
+  float forward = move_y * (state.buttons[pads.left_bumper] == GLFW_PRESS)
+    + (glfwGetKey(window_, keys.move_forward) == GLFW_PRESS)
+    - (glfwGetKey(window_, keys.move_backward) == GLFW_PRESS);
+  float right = move_x * (state.buttons[pads.left_bumper] == GLFW_PRESS)
+    + (glfwGetKey(window_, keys.move_right) == GLFW_PRESS)
+    - (glfwGetKey(window_, keys.move_left) == GLFW_PRESS);
+  float up = (glfwGetKey(window_, keys.move_up) == GLFW_PRESS) - (glfwGetKey(window_, keys.move_down) == GLFW_PRESS)
     + moveZ;
   
   moveDir += sclXvec(forward, forwardDir) + sclXvec(right, rightDir) + sclXvec(up, upDir);
 
   if (glm::dot(moveDir, moveDir) > std::numeric_limits<float>::epsilon())
-    transform_m.translation_m += MOVE_SPEED * dt * glm::normalize(moveDir);
+    transform_.translation += MOVE_SPEED * dt * glm::normalize(moveDir);
 
   // cursor move
   double xpos, ypos;
-  glfwGetCursorPos(window_m, &xpos, &ypos);
-  xpos += moveX * CURSOR_SPEED * (state.buttons[pads.leftBumper] == GLFW_RELEASE);
-  ypos -= moveY * CURSOR_SPEED * (state.buttons[pads.leftBumper] == GLFW_RELEASE);
-  glfwSetCursorPos(window_m, xpos, ypos);
+  glfwGetCursorPos(window_, &xpos, &ypos);
+  xpos += move_x * CURSOR_SPEED * (state.buttons[pads.left_bumper] == GLFW_RELEASE);
+  ypos -= move_y * CURSOR_SPEED * (state.buttons[pads.left_bumper] == GLFW_RELEASE);
+  glfwSetCursorPos(window_, xpos, ypos);
 }
 
-void KeyboardMovementComponent::processButtonInput(GLFWgamepadstate& state, float dt)
+void keyboard_movement_component::process_button_input(GLFWgamepadstate& state, float dt)
 {
   // TODO : impl as lambda
   static bool isPressing = false;
   // Display* display;
   // click
-  if (!isPressing && state.buttons[pads.buttonA] == GLFW_PRESS) {
+  if (!isPressing && state.buttons[pads.button_a] == GLFW_PRESS) {
     // display = XOpenDisplay(NULL);
     // XTestFakeButtonEvent(display, 1, True, CurrentTime);
     // XFlush(display);
@@ -114,7 +114,7 @@ void KeyboardMovementComponent::processButtonInput(GLFWgamepadstate& state, floa
     isPressing = true;
   }
   // drag -> nothing to do
-  else if (isPressing && state.buttons[pads.buttonA] == GLFW_RELEASE) {
+  else if (isPressing && state.buttons[pads.button_a] == GLFW_RELEASE) {
     // display = XOpenDisplay(NULL);
     // XTestFakeButtonEvent(display, 1, False, CurrentTime);
     // XFlush(display);
@@ -123,16 +123,16 @@ void KeyboardMovementComponent::processButtonInput(GLFWgamepadstate& state, floa
   }
 }
 
-void KeyboardMovementComponent::adjustAxisErrors()
+void keyboard_movement_component::adjust_axis_errors()
 {
   GLFWgamepadstate state;
-  glfwGetGamepadState(padId, &state);
-  rightError_ = state.axes[pads.moveX];
-  upError_ = state.axes[pads.moveY];
+  glfwGetGamepadState(pad_number_, &state);
+  right_error_ = state.axes[pads.move_x];
+  up_error_ = state.axes[pads.move_y];
 }
 
 
-void KeyboardMovementComponent::setDefaultMapping()
+void keyboard_movement_component::set_default_mapping()
 {
   // axis
   auto leftXfunc = [](float val){return glm::vec3(0.f, 0.f, 0.f); };

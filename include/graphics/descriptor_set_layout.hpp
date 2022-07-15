@@ -15,18 +15,18 @@ class HveDescriptorSetLayout {
  public:
    class Builder {
    public:
-    Builder(HveDevice &hveDevice) : hveDevice_m{hveDevice} {}
+    Builder(device &get_device) : hveDevice_m{get_device} {}
 
     Builder &addBinding(uint32_t binding, VkDescriptorType descriptorType, VkShaderStageFlags stageFlags, uint32_t count = 1);
     std::unique_ptr<HveDescriptorSetLayout> build() const;
 
    private:
-    HveDevice &hveDevice_m;
+    device &hveDevice_m;
     std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings_m{};
   };
 
   // ctor dtor
-  HveDescriptorSetLayout(HveDevice &HveDevice, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings);
+  HveDescriptorSetLayout(device &device, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings);
   ~HveDescriptorSetLayout();
   HveDescriptorSetLayout(const HveDescriptorSetLayout &) = delete;
   HveDescriptorSetLayout &operator=(const HveDescriptorSetLayout &) = delete;
@@ -34,7 +34,7 @@ class HveDescriptorSetLayout {
   VkDescriptorSetLayout getDescriptorSetLayout() const { return descriptorSetLayout_m; }
 
  private:
-  HveDevice &hveDevice_m;
+  device &hveDevice_m;
   VkDescriptorSetLayout descriptorSetLayout_m;
   std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings_m;
 
@@ -45,7 +45,7 @@ class HveDescriptorPool {
  public:
   class Builder {
    public:
-    Builder(HveDevice &hveDevice) : hveDevice_m{hveDevice} {}
+    Builder(device &get_device) : hveDevice_m{get_device} {}
 
     Builder &addPoolSize(VkDescriptorType descriptorType, uint32_t count);
     Builder &setPoolFlags(VkDescriptorPoolCreateFlags flags);
@@ -53,14 +53,14 @@ class HveDescriptorPool {
     std::unique_ptr<HveDescriptorPool> build() const;
 
    private:
-    HveDevice &hveDevice_m;
+    device &hveDevice_m;
     std::vector<VkDescriptorPoolSize> poolSizes_m{};
     uint32_t maxSets_m = 1000;
     VkDescriptorPoolCreateFlags poolFlags_m = 0;
   };
 
   HveDescriptorPool(
-      HveDevice &hveDevice,
+      device &get_device,
       uint32_t maxSets,
       VkDescriptorPoolCreateFlags poolFlags,
       const std::vector<VkDescriptorPoolSize> &poolSizes);
@@ -75,7 +75,7 @@ class HveDescriptorPool {
   void resetPool();
 
  private:
-  HveDevice &hveDevice_m;
+  device &hveDevice_m;
   VkDescriptorPool descriptorPool_m;
 
   friend class HveDescriptorWriter;
@@ -97,4 +97,4 @@ class HveDescriptorWriter {
   std::vector<VkWriteDescriptorSet> writes_m;
 };
 
-}  // namespace Hve
+}  // namespace engine

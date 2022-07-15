@@ -32,7 +32,7 @@ VkDeviceSize HveBuffer::getAlignment(VkDeviceSize instanceSize, VkDeviceSize min
 }
  
 HveBuffer::HveBuffer(
-    HveDevice &device,
+    device &device,
     VkDeviceSize instanceSize,
     uint32_t instanceCount,
     VkBufferUsageFlags usageFlags,
@@ -200,4 +200,4 @@ VkDescriptorBufferInfo HveBuffer::descriptorInfoForIndex(int index)
 VkResult HveBuffer::invalidateIndex(int index)
 { return invalidate(alignmentSize_m, index * alignmentSize_m); }
  
-}  // namespace Hve
+}  // namespace engine

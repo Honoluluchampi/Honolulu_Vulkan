@@ -15,16 +15,16 @@
 
 namespace hnll {
 
-Hve::Hve(const char* windowName) : hveWindow_m{WIDTH, HEIGHT, windowName}
+engine::engine(const char* windowName) : hveWindow_m{WIDTH, HEIGHT, windowName}
 {
   init();
 }
 
-Hve::~Hve()
+engine::~engine()
 { }
 
 // todo : separate into some functions
-void Hve::init()
+void engine::init()
 {
   // // 2 uniform buffer descriptor
   globalPool_m = HveDescriptorPool::Builder(hveDevice_m)
@@ -36,7 +36,7 @@ void Hve::init()
   for (int i = 0; i < uboBuffers_m.size(); i++) {
     uboBuffers_m[i] = std::make_unique<HveBuffer>(
       hveDevice_m,
-      sizeof(GlobalUbo),
+      sizeof(global_ubo),
       1,
       VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
@@ -61,36 +61,36 @@ void Hve::init()
   // create renderer system as local variable
   auto meshRenderingSystem = std::make_unique<MeshRenderingSystem>(
     hveDevice_m, 
-    hveRenderer_m.getSwapChainRenderPass(HVE_RENDER_PASS_ID),
+    renderer_.getSwapChainRenderPass(HVE_RENDER_PASS_ID),
     globalSetLayout_m->getDescriptorSetLayout()
   );
 
   auto pointLightSystem = std::make_unique<PointLightSystem>(
     hveDevice_m, 
-    hveRenderer_m.getSwapChainRenderPass(HVE_RENDER_PASS_ID),
+    renderer_.getSwapChainRenderPass(HVE_RENDER_PASS_ID),
     globalSetLayout_m->getDescriptorSetLayout()
   );
 
   auto lineRenderingSystem = std::make_unique<LineRenderingSystem>(
     hveDevice_m,
-    hveRenderer_m.getSwapChainRenderPass(HVE_RENDER_PASS_ID),
+    renderer_.getSwapChainRenderPass(HVE_RENDER_PASS_ID),
     globalSetLayout_m->getDescriptorSetLayout()
   );
 
   renderingSystems_m.emplace
-    (meshRenderingSystem->getRenderType(), std::move(meshRenderingSystem));
+    (meshRenderingSystem->get_render_type(), std::move(meshRenderingSystem));
   renderingSystems_m.emplace
-    (pointLightSystem->getRenderType(), std::move(pointLightSystem));
+    (pointLightSystem->get_render_type(), std::move(pointLightSystem));
   renderingSystems_m.emplace
-    (lineRenderingSystem->getRenderType(), std::move(lineRenderingSystem));
+    (lineRenderingSystem->get_render_type(), std::move(lineRenderingSystem));
 }
 
 // each render systems automatically detect render target components
-void Hve::render(ViewerComponent& viewerComp)
+void engine::render(viewer_component& viewerComp)
 {
   // returns nullptr if the swap chain is need to be recreated
-  if (auto commandBuffer = hveRenderer_m.beginFrame()) {
-    int frameIndex = hveRenderer_m.getFrameIndex();
+  if (auto commandBuffer = renderer_.beginFrame()) {
+    int frameIndex = renderer_.getFrameIndex();
 
     FrameInfo frameInfo{
         frameIndex, 
@@ -99,26 +99,26 @@ void Hve::render(ViewerComponent& viewerComp)
     };
 
     // update 
-    ubo_.projection_m = viewerComp.getProjection();
-    ubo_.view_m = viewerComp.getView();
+    ubo_.projection_m = viewerComp.get_projection();
+    ubo_.view_m = viewerComp.get_view();
     uboBuffers_m[frameIndex]->writeToBuffer(&ubo_);
     uboBuffers_m[frameIndex]->flush();
 
     // rendering
     // TODO : configure hve_render_pass_id as the 
     // member and detect it in beginSwapChainRenderPass func
-    hveRenderer_m.beginSwapChainRenderPass(commandBuffer, HVE_RENDER_PASS_ID);
+    renderer_.beginSwapChainRenderPass(commandBuffer, HVE_RENDER_PASS_ID);
     // programmable stage of rendering
     // system can now access gameobjects via frameInfo
     for (auto& system : renderingSystems_m)
       system.second->render(frameInfo);
 
-    hveRenderer_m.endSwapChainRenderPass(commandBuffer);
-    hveRenderer_m.endFrame();
+    renderer_.endSwapChainRenderPass(commandBuffer);
+    renderer_.endFrame();
   }
 }
 
-void Hve::removeRenderableComponentWithoutOwner(RenderType type, HgeComponent::compId id)
+void engine::remove_renderable_component_without_owner(render_type type, component::id id)
 {
   renderingSystems_m[type]->removeRenderTarget(id);
 }

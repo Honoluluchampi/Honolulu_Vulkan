@@ -13,7 +13,7 @@
 #include <cassert>
 
 namespace hnll {
-
+namespace graphics {
 // TODO : s_ptr<HveSwapChain> doesnt work correctly
 
 // define ~_RENDER_PASS_ID in renderer class
@@ -23,15 +23,15 @@ namespace hnll {
 template <class S> using s_ptr = std::shared_ptr<S>;
 template <class U> using u_ptr = std::unique_ptr<U>;
 
-class HveRenderer
+class renderer
 {
   public:
 
-    HveRenderer(HveWindow& window, HveDevice& device, bool recreateFromScratch = true);
-    virtual ~HveRenderer();
+    renderer(HveWindow& window, device& device, bool recreateFromScratch = true);
+    virtual ~renderer();
 
-    HveRenderer(const HveRenderer &) = delete;
-    HveRenderer &operator= (const HveRenderer &) = delete;
+    renderer(const renderer &) = delete;
+    renderer &operator= (const renderer &) = delete;
 
     // getter
 #ifdef __IMGUI_DISABLED
@@ -64,7 +64,7 @@ class HveRenderer
 
     virtual void recreateSwapChain();
 
-    inline void setNextRenderer(HveRenderer* renderer)
+    inline void setNextRenderer(renderer* renderer)
     { nextRenderer_ = renderer; }
 
     const bool isLastRenderer() const 
@@ -85,7 +85,7 @@ class HveRenderer
 
   protected:    
     HveWindow& hveWindow_m;
-    HveDevice& hveDevice_m;
+    device& hveDevice_m;
     std::vector<VkCommandBuffer> commandBuffers_m;
 
     static uint32_t currentImageIndex_m;
@@ -98,8 +98,10 @@ class HveRenderer
 #endif
 
     // TODO : use smart pointer
-    HveRenderer* nextRenderer_ = nullptr;
+    renderer* nextRenderer_ = nullptr;
 
     static u_ptr<HveSwapChain> hveSwapChain_m;
 };
+
+} // namespace graphics
 } // namespace hve

@@ -4,32 +4,34 @@
 #include <game/components/renderable_component.hpp>
 
 namespace hnll {
+namespace game {
 
 // pointLight can be treated as gameObject
-struct PointLightInfo
-{
-  float lightIntensity_m = 1.0f;
-};
+struct point_light_info { float light_intensity = 1.0f; };
 
-class PointLightComponent : public HgeRenderableComponent
+class point_light_component : public renderable_component
 {
   public:
-    PointLightComponent(actorId id);
-    ~PointLightComponent(){}
+    point_light_component() : renderable_component(render_type::POINT_LIGHT) {}
+    ~point_light_component(){}
+    static s_ptr<point_light_component> create_point_light
+      (float intensity = 10.f, float radius = 0.1f, glm::vec3 color = glm::vec3(1.f));
+
+    // getter
+    point_light_info get_light_info() { return light_info_; }
+    glm::vec3 get_color() { return color_; }
 
     // setter
-    void setRadius(float radius) 
-    { this->setScale(glm::vec3(radius, radius, radius)); }
-    // getter
-    PointLightInfo& getLightInfo() { return lightInfo_m; }
-    glm::vec3& getColor() { return color_m; }
-    static s_ptr<PointLightComponent> createPointLight
-      (id_t id, float intensity = 10.f, float radius = 0.1f, glm::vec3 color = glm::vec3(1.f));
+    void set_color(const glm::vec3& color) { color_ = color; }
+    void set_light_info(const point_light_info& info) { light_info_ = info; }
+    void set_radius(float radius) { this->set_scale(glm::vec3(radius, radius, radius)); }
+  
   private:
-    PointLightComponent(const PointLightComponent&) = delete;
-    PointLightComponent& operator=(const PointLightComponent&) = delete;
-    PointLightInfo lightInfo_m{};
-    glm::vec3 color_m{};
+    point_light_component(const point_light_component&) = delete;
+    point_light_component& operator=(const point_light_component&) = delete;
+    point_light_info light_info_{};
+    glm::vec3 color_{};
 };
 
-}
+} // namespace game
+} // namespace hnll

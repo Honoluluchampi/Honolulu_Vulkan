@@ -50,7 +50,7 @@ class HvePipeline
 {
   public:
     HvePipeline(
-        HveDevice &device,
+        device &device,
         const std::string &vertFilepath,
         const std::string &fragFilepath,
         const PipelineConfigInfo &configInfo);
@@ -79,7 +79,7 @@ class HvePipeline
     VkPipelineShaderStageCreateInfo createFragShaderStageInfo();
     VkPipelineVertexInputStateCreateInfo createVertexInputInfo();
     // 
-    HveDevice& hveDevice_m;
+    device& hveDevice_m;
     VkPipeline graphicsPipeline_m;
     VkShaderModule vertShaderModule_m;
     VkShaderModule fragShaderModule_m;

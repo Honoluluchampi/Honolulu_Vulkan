@@ -8,7 +8,7 @@
 
 int main() 
 {
-  hnll::HgeGame app{"hello"};
+  hnll::game app{"hello"};
 
   try {
     app.run();

@@ -19,6 +19,7 @@
 #include <functional>
 
 namespace hnll {
+namespace graphics {
 
 // https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x/57595105#57595105
 template <typename T, typename... Rest>
@@ -28,10 +29,10 @@ void hashCombine(std::size_t& seed, const T& v, const Rest&... rest)
   (hashCombine(seed, rest), ...);
 }
 
-class HveModel
+class mesh_model
 {
   public:
-    using map = std::unordered_map<std::string, std::shared_ptr<HveModel>>;
+    using map = std::unordered_map<std::string, std::shared_ptr<mesh_model>>;
     // compatible with wavefront obj. file
     struct Vertex
     {
@@ -57,13 +58,13 @@ class HveModel
       void loadModel(const std::string& filename);
     };
 
-    HveModel(HveDevice& device, const HveModel::Builder &builder);
-    ~HveModel();
+    mesh_model(device& device, const mesh_model::Builder &builder);
+    ~mesh_model();
 
-    HveModel(const HveModel &) = delete;
-    HveModel& operator=(const HveModel &) = delete;
+    mesh_model(const mesh_model &) = delete;
+    mesh_model& operator=(const mesh_model &) = delete;
 
-    static std::shared_ptr<HveModel> createModelFromFile(HveDevice &device, const std::string &filename);
+    static std::shared_ptr<mesh_model> createModelFromFile(device &device, const std::string &filename);
 
     void bind(VkCommandBuffer commandBuffer);
     void draw(VkCommandBuffer commandBuffer);
@@ -72,7 +73,7 @@ class HveModel
     void createVertexBuffers(const std::vector<Vertex> &vertices);
     void createIndexBuffers(const std::vector<uint32_t> &indices);
 
-    HveDevice& hveDevice_m;
+    device& hveDevice_m;
     // contains buffer itself and buffer memory
     std::unique_ptr<HveBuffer> vertexBuffer_m;
     std::unique_ptr<HveBuffer> indexBuffer_m;
@@ -82,4 +83,5 @@ class HveModel
     bool hasIndexBuffer_m = false;
 };
 
-} // namespace hve
+} // namespace graphics
+} // namespace hnll

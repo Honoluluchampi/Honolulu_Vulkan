@@ -1,7 +1,7 @@
 COMPILER=${VULKAN_DIR}/bin/glslc
 
-SHADERDIR=${HNLL_ENGN}/modules/vulkan/shader
-OUTPUTDIR=${HNLL_ENGN}/modules/vulkan/shader/spv
+SHADERDIR=${HNLL_ENGN}/modules/graphics/shader
+OUTPUTDIR=${HNLL_ENGN}/modules/graphics/shader/spv
 mkdir -p ${OUTPUTDIR}
 $COMPILER ${SHADERDIR}/simple_shader.vert -o ${OUTPUTDIR}/simple_shader.vert.spv
 $COMPILER ${SHADERDIR}/simple_shader.frag -o ${OUTPUTDIR}/simple_shader.frag.spv

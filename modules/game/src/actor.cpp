@@ -3,40 +3,40 @@
 
 namespace hnll {
 
-HgeActor::HgeActor()
+actor::actor()
 { 
-  static actorId id = 0;
+  static id id = 0;
   // add automatically
-  id_m = id++;
+  id_ = id++;
 }
 
-void HgeActor::update(float dt)
+void actor::update(float dt)
 {
-  updateActor(dt);
-  updateComponents(dt);
+  update_actor(dt);
+  update_components(dt);
 }
 
-void HgeActor::updateComponents(float dt)
+void actor::update_components(float dt)
 {
-for (const auto& comp : uniqueComponents_)
+for (const auto& comp : unique_components_)
   comp->update(dt);
-for (const auto& comp : sharedComponents_)
+for (const auto& comp : shared_components_)
   comp->update(dt);
 }
 
 #ifndef __IMGUI_DISABLED
- void HgeActor::updateImgui()
+ void actor::update_gui()
  {
-   updateActorImgui();
-   updateComponentsImgui();
+   update_actor_imgui();
+   update_component_imgui();
  }
 
- void HgeActor::updateComponentsImgui()
+ void actor::update_component_imgui()
  {
-  for (const auto& comp : uniqueComponents_)
-    comp->updateImgui();
-  for (const auto& comp : sharedComponents_)
-    comp->updateImgui();
+  for (const auto& comp : unique_components_)
+    comp->update_gui();
+  for (const auto& comp : shared_components_)
+    comp->update_gui();
  }
 #endif
 
