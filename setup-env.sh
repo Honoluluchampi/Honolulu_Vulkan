@@ -13,8 +13,8 @@ fi
 export IMGUI_DIR=$PWD/submodules/imgui
 
 # download imgui font
-if [ ! -e include/imgui/roboto_regular.embed ]; then
-  curl -o include/imgui/roboto_regular.embed https://raw.githubusercontent.com/TheCherno/Walnut/master/Walnut/src/Walnut/ImGui/Roboto-Regular.embed
+if [ ! -e include/gui/roboto_regular.embed ]; then
+  curl -o include/gui/roboto_regular.embed https://raw.githubusercontent.com/TheCherno/Walnut/master/Walnut/src/Walnut/ImGui/Roboto-Regular.embed
 fi
 
 # download tiny_obj_loader

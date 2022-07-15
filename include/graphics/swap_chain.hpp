@@ -17,7 +17,7 @@ namespace graphics {
 // TODO : configure renderer count in a systematic way
 #define RENDERER_COUNT 2
 #define HVE_RENDER_PASS_ID 0
-#define HIE_RENDER_PASS_ID 1
+#define GUI_RENDER_PASS_ID 1
 
 class swap_chain {
  public:

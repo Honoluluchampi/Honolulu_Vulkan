@@ -6,7 +6,7 @@
 namespace hnll {
 namespace gui {
 
-#define HIE_RENDER_PASS_ID 1
+#define GUI_RENDER_PASS_ID 1
 
 class renderer : public hnll::graphics::renderer
 {
@@ -17,7 +17,7 @@ class renderer : public hnll::graphics::renderer
     renderer& operator= (const renderer&) = delete;
 
     inline VkRenderPass get_render_pass()
-    { return swap_chain_->get_render_pass(HIE_RENDER_PASS_ID); }
+    { return swap_chain_->get_render_pass(GUI_RENDER_PASS_ID); }
 
     void recreate_swap_chain() override;
 

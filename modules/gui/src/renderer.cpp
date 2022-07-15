@@ -1,19 +1,17 @@
 // hnll
-#include <imgui/renderer.hpp>
+#include <gui/renderer.hpp>
 
 namespace hnll {
+namespace gui {
 
-renderer::renderer(window& window, device& hveDevice, bool recreateFromScratch) : 
-  renderer(window, hveDevice, recreateFromScratch)
-{
-  recreate_swap_chain();
-}
+renderer::renderer(hnll::graphics::window& window, hnll::graphics::device& device, bool recreate_from_scratch) : 
+  renderer(window, device, recreate_from_scratch)
+{ recreate_swap_chain(); }
 
 void renderer::recreate_swap_chain()
 {
-
-  swap_chain_->set_render_pass(create_render_pass(), HIE_RENDER_PASS_ID);
-  swap_chain_->set_frame_buffers(create_frame_buffers(), HIE_RENDER_PASS_ID);
+  swap_chain_->set_render_pass(create_render_pass(), GUI_RENDER_PASS_ID);
+  swap_chain_->set_frame_buffers(create_frame_buffers(), GUI_RENDER_PASS_ID);
 
   if (next_renderer_) next_renderer_->recreate_swap_chain();
 }
@@ -57,12 +55,12 @@ VkRenderPass renderer::create_render_pass()
   info.dependencyCount = 1;
   info.pDependencies = &dependency;
 
-  VkRenderPass renderPass;
+  VkRenderPass render_pass;
   
-  if (vkCreateRenderPass(device_.device(), &info, nullptr, &renderPass) != VK_SUCCESS)
+  if (vkCreateRenderPass(device_.get_device(), &info, nullptr, &render_pass) != VK_SUCCESS)
     throw std::runtime_error("failed to create render pass.");
 
-  return renderPass;
+  return render_pass;
 }
 
 std::vector<VkFramebuffer> renderer::create_frame_buffers()
@@ -73,7 +71,7 @@ std::vector<VkFramebuffer> renderer::create_frame_buffers()
   VkFramebufferCreateInfo info{};
   info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
   // make sure to create renderpass before frame buffers
-  info.renderPass = swap_chain_->get_render_pass(HIE_RENDER_PASS_ID);
+  info.renderPass = swap_chain_->get_render_pass(GUI_RENDER_PASS_ID);
   info.attachmentCount = 1;
   info.pAttachments = &attachment;
   auto extent = swap_chain_->get_swap_chain_extent();
@@ -86,11 +84,12 @@ std::vector<VkFramebuffer> renderer::create_frame_buffers()
   std::vector<VkFramebuffer> framebuffers(get_image_count);
   for (size_t i = 0; i < get_image_count; i++) {
     attachment = swap_chain_->get_image_view(i);
-    if (vkCreateFramebuffer(device_.device(), &info, nullptr, &framebuffers[i]) != VK_SUCCESS)
+    if (vkCreateFramebuffer(device_.get_device(), &info, nullptr, &framebuffers[i]) != VK_SUCCESS)
       throw std::runtime_error("failed to create frame buffer.");
   }
 
   return framebuffers;
 }
 
+} // namespace gui
 } // namespace hnll
