@@ -21,10 +21,9 @@ class point_light_manager : public actor
     ~point_light_manager(){}
 
     // complete transport
-    template <class SP> void add_light_comp(SP&& spLightComp)
-    { component::id id = spLightComp->get_id(); light_comp_map_.emplace(id, std::forward<SP>(spLightComp)); }
-    void remove_light_comp(component::id id)
-    { light_comp_map_.erase(id); }
+    template <class SP> void add_light_comp(SP&& light_comp_sp)
+    { component::id id = light_comp_sp->get_id(); light_comp_map_.emplace(id, std::forward<SP>(light_comp_sp)); }
+    void remove_light_comp(component::id id) { light_comp_map_.erase(id); }
 
     void update_actor(float dt) override;
 

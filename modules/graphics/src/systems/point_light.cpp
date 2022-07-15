@@ -22,18 +22,18 @@ struct PointLightPushConstants
   float radius_m;
 };
 
-PointLightSystem::PointLightSystem
+point_light_rendering_system::point_light_rendering_system
   (device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
-  : HveRenderingSystem(device, render_type::POINT_LIGHT)
+  : rendering_system(device, render_type::POINT_LIGHT)
 {
-  createPipelineLayout(globalSetLayout);
-  createPipeline(renderPass);
+  create_pipeline_layout(globalSetLayout);
+  create_pipeline(renderPass);
 }
 
-PointLightSystem::~PointLightSystem()
+point_light_rendering_system::~point_light_rendering_system()
 { }
 
-void PointLightSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout)
+void point_light_rendering_system::create_pipeline_layout(VkDescriptorSetLayout globalSetLayout)
 {
   // config push constant range
   VkPushConstantRange pushConstantRange{};
@@ -50,44 +50,44 @@ void PointLightSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayou
   pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
   pipelineLayoutInfo.pushConstantRangeCount = 1;
   pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-  if (vkCreatePipelineLayout(hveDevice_m.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout_m) != VK_SUCCESS)
+  if (vkCreatePipelineLayout(device_.device(), &pipelineLayoutInfo, nullptr, &pipeline_layout_) != VK_SUCCESS)
       throw std::runtime_error("failed to create pipeline layout!");
 }
 
-void PointLightSystem::createPipeline(VkRenderPass renderPass)
+void point_light_rendering_system::create_pipeline(VkRenderPass renderPass)
 {
-  assert(pipelineLayout_m != nullptr && "cannot create pipeline before pipeline layout");
+  assert(pipeline_layout_ != nullptr && "cannot create pipeline before pipeline layout");
 
-  PipelineConfigInfo pipelineConfig{};
-  HvePipeline::defaultPipelineConfigInfo(pipelineConfig);
+  pipeline_config_info pipelineConfig{};
+  pipeline::default_pipeline_config_info(pipelineConfig);
   // for special config 
-  pipelineConfig.attributeDescriptions.clear();
-  pipelineConfig.bindingDescriptions.clear();
+  pipelineConfig.attribute_descriptions.clear();
+  pipelineConfig.binding_descriptions.clear();
 
   pipelineConfig.renderPass_m = renderPass;
-  pipelineConfig.pipelineLayout_m = pipelineLayout_m;
-  hvePipeline_m = std::make_unique<HvePipeline>(
-      hveDevice_m,
+  pipelineConfig.pipeline_layout_ = pipeline_layout_;
+  pipeline_ = std::make_unique<pipeline>(
+      device_,
       std::string(std::getenv("HVE_DIR")) + std::string("/shader/spv/point_light.vert.spv"), 
       std::string(std::getenv("HVE_DIR")) + std::string("/shader/spv/point_light.frag.spv"),
       pipelineConfig);
 }
 
-void PointLightSystem::render(FrameInfo frameInfo)
+void point_light_rendering_system::render(frame_info frameInfo)
 {
-  hvePipeline_m->bind(frameInfo.commandBuffer_m);
+  pipeline_->bind(frameInfo.commandBuffer_m);
 
   vkCmdBindDescriptorSets(
     frameInfo.commandBuffer_m,
     VK_PIPELINE_BIND_POINT_GRAPHICS,
-    pipelineLayout_m,
+    pipeline_layout_,
     0, 1,
-    &frameInfo.globalDiscriptorSet_m,
+    &frameInfo.global_discriptor_set,
     0, nullptr
   );
 
   // copy the push constants
-  for (auto& kv : renderTargetMap_m) {
+  for (auto& kv : render_target_map_) {
     auto lightComp = dynamic_cast<point_light_component*>(kv.second.get());
 
     PointLightPushConstants push{};
@@ -97,7 +97,7 @@ void PointLightSystem::render(FrameInfo frameInfo)
 
     vkCmdPushConstants(
       frameInfo.commandBuffer_m,
-      pipelineLayout_m,
+      pipeline_layout_,
       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
       0, 
       sizeof(PointLightPushConstants),

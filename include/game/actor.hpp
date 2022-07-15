@@ -40,7 +40,7 @@ class actor
     void update_components(float dt);
     virtual void update_actor(float dt) {}
 
-#ifndef __IMGUI_DISABLED
+#ifndef IMGUI_DISABLED
     void update_gui();
     void update_component_imgui();
     virtual void update_actor_imgui(){}

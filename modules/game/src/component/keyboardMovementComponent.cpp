@@ -25,7 +25,7 @@ constexpr float LOOK_SPEED = 1.5f;
 constexpr float CURSOR_SPEED = 15.f;
 
 keyboard_movement_component::key_mappings keyboard_movement_component::keys{};
-keyboard_movement_component::PadMappings keyboard_movement_component::pads{};
+keyboard_movement_component::pad_mappings keyboard_movement_component::pads{};
 
 keyboard_movement_component::keyboard_movement_component(GLFWwindow* window, transform& transform)
   : component(), window_(window), transform_(transform)

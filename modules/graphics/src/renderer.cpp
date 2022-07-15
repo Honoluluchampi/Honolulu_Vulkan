@@ -8,112 +8,112 @@
 namespace hnll {
 
 // static members
-uint32_t renderer::currentImageIndex_m = 0;
-int renderer::currentFrameIndex_m = 0;
-bool renderer::swapChainRecreated_m = false;
-std::vector<VkCommandBuffer> renderer::submittingCommandBuffers_m = {};
-u_ptr<HveSwapChain> renderer::hveSwapChain_m = nullptr;
+uint32_t renderer::current_image_index_ = 0;
+int renderer::current_frame_index_ = 0;
+bool renderer::swap_chain_recreated_ = false;
+std::vector<VkCommandBuffer> renderer::submitting_command_buffers_ = {};
+u_ptr<swap_chain> renderer::swap_chain_ = nullptr;
 
-renderer::renderer(HveWindow& window, device& device, bool recreateFromScratch)
- : hveWindow_m{window}, hveDevice_m{device}
+renderer::renderer(window& window, device& device, bool recreateFromScratch)
+ : window_{window}, device_{device}
 {
   // recreate swap chain dependent objects
-  if (recreateFromScratch) recreateSwapChain();
-  createCommandBuffers();
+  if (recreateFromScratch) recreate_swap_chain();
+  create_command_buffers();
 }
 
 renderer::~renderer()
 {
-  freeCommandBuffers();
+  free_command_buffers();
 }
 
-void renderer::recreateSwapChain()
+void renderer::recreate_swap_chain()
 {
   // stop calculation until the window is minimized
-  auto extent = hveWindow_m.getExtent();
+  auto extent = window_.get_extent();
   while (extent.width == 0 || extent.height == 0) {
-    extent = hveWindow_m.getExtent();
+    extent = window_.get_extent();
     glfwWaitEvents();
   }
   // wait for finishing the current task
-  vkDeviceWaitIdle(hveDevice_m.device());
+  vkDeviceWaitIdle(device_.device());
 
   // for first creation
-  if (hveSwapChain_m == nullptr)
-    hveSwapChain_m = std::make_unique<HveSwapChain>(hveDevice_m, extent);
+  if (swap_chain_ == nullptr)
+    swap_chain_ = std::make_unique<swap_chain>(device_, extent);
   // recreate
   else {
     // move the ownership of the current swap chain to old one.
-    std::unique_ptr<HveSwapChain> oldSwapChain = std::move(hveSwapChain_m);
-    hveSwapChain_m = std::make_unique<HveSwapChain>(hveDevice_m, extent, std::move(oldSwapChain));
+    std::unique_ptr<swap_chain> oldSwapChain = std::move(swap_chain_);
+    swap_chain_ = std::make_unique<swap_chain>(device_, extent, std::move(oldSwapChain));
 
   // TODO : enabled this segmetn
-    // if (!oldSwapChain->compareSwapChainFormats(*hveSwapChain_m.get()))
+    // if (!oldSwapChain->compare_swap_chain_formats(*swap_chain_.get()))
     //   throw std::runtime_error("swap chian image( or depth) format has chainged");
 
     // command buffers no longer depend on the swap chain image count
   }
   // if render pass compatible, do nothing else 
 
-  // execute this function at the last of derived function's recreateSwapChain();
-  if (nextRenderer_) nextRenderer_->recreateSwapChain();
+  // execute this function at the last of derived function's recreate_swap_chain();
+  if (next_renderer_) next_renderer_->recreate_swap_chain();
 
-  swapChainRecreated_m = true;
+  swap_chain_recreated_ = true;
 }
 
-void renderer::resetFrame()
+void renderer::reset_frame()
 {
-  swapChainRecreated_m = false;
-  submittingCommandBuffers_m.clear();
-  // increment currentFrameIndex_m
-  if (++currentFrameIndex_m == HveSwapChain::MAX_FRAMES_IN_FLIGHT)
-    currentFrameIndex_m = 0;
+  swap_chain_recreated_ = false;
+  submitting_command_buffers_.clear();
+  // increment current_frame_index_
+  if (++current_frame_index_ == swap_chain::MAX_FRAMES_IN_FLIGHT)
+    current_frame_index_ = 0;
 }
 
-void renderer::createCommandBuffers() 
+void renderer::create_command_buffers() 
 {
   // 2 or 3
-  commandBuffers_m.resize(HveSwapChain::MAX_FRAMES_IN_FLIGHT);
+  command_buffers_.resize(swap_chain::MAX_FRAMES_IN_FLIGHT);
 
   // specify command pool and number of buffers to allocate
   VkCommandBufferAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   // if the allocated command buffers are primary or secondary command buffers
   allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocInfo.commandPool = hveDevice_m.getCommandPool();
-  allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers_m.size());
+  allocInfo.commandPool = device_.get_command_pool();
+  allocInfo.commandBufferCount = static_cast<uint32_t>(command_buffers_.size());
   
-  if (vkAllocateCommandBuffers(hveDevice_m.device(), &allocInfo, commandBuffers_m.data()) != VK_SUCCESS)
+  if (vkAllocateCommandBuffers(device_.device(), &allocInfo, command_buffers_.data()) != VK_SUCCESS)
     throw std::runtime_error("failed to allocate command buffers!");
 }
 
-void renderer::freeCommandBuffers()
+void renderer::free_command_buffers()
 {
   vkFreeCommandBuffers(
-      hveDevice_m.device(), 
-      hveDevice_m.getCommandPool(), 
-      static_cast<float>(commandBuffers_m.size()), 
-      commandBuffers_m.data());
-  commandBuffers_m.clear();
+      device_.device(), 
+      device_.get_command_pool(), 
+      static_cast<float>(command_buffers_.size()), 
+      command_buffers_.data());
+  command_buffers_.clear();
 }
 
-void renderer::cleanupSwapChain()
+void renderer::cleanup_swap_chain()
 {
-  hveSwapChain_m.reset();
+  swap_chain_.reset();
 }
 
-VkCommandBuffer renderer::beginFrame()
+VkCommandBuffer renderer::begin_frame()
 {
-  assert(!isFrameStarted_m && "Can't call beginFrame() while already in progress");
+  assert(!is_frame_started_ && "Can't call begin_frame() while already in progress");
   // get finished image from swap chain
   // TODO : get isFirstRenderer()
-  if (!isLastRenderer()) {
-    resetFrame();
-    auto result = hveSwapChain_m->acquireNextImage(&currentImageIndex_m);
+  if (!is_last_renderer()) {
+    reset_frame();
+    auto result = swap_chain_->acquire_next_image(&current_image_index_);
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || hveWindow_m.wasWindowResized()) {
-      hveWindow_m.resetWindowResizedFlag();
-      recreateSwapChain();
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || window_.is_resized()) {
+      window_.reset_window_resized_flag();
+      recreate_swap_chain();
       // the frame has not successfully started
       return nullptr;
     }
@@ -122,9 +122,9 @@ VkCommandBuffer renderer::beginFrame()
       throw std::runtime_error("failed to acquire swap chain image!");
   }
 
-  isFrameStarted_m = true;
+  is_frame_started_ = true;
 
-  auto commandBuffer = getCurrentCommandBuffer();
+  auto commandBuffer = get_current_command_buffer();
   // assert(commandBuffer != VK_NULL_HANDLE && "");
     // start reconding command buffers
   VkCommandBufferBeginInfo beginInfo{};
@@ -140,58 +140,58 @@ VkCommandBuffer renderer::beginFrame()
   return commandBuffer;
 }
 
-void renderer::endFrame()
+void renderer::end_frame()
 {
-  assert(isFrameStarted_m && "Can't call endFrame() while the frame is not in progress");
-  auto commandBuffer = getCurrentCommandBuffer();
+  assert(is_frame_started_ && "Can't call end_frame() while the frame is not in progress");
+  auto commandBuffer = get_current_command_buffer();
   // end recording command buffer
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) 
     throw std::runtime_error("failed to record command buffer!");
 
-#ifdef __IMGUI_DISABLED
-  auto result = hveSwapChain_m->submitCommandBuffers(&commandBuffer, &currentImageIndex_m);
-  if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || hveWindow_m.wasWindowResized()) {
-    hveWindow_m.resetWindowResizedFlag();
-    recreateSwapChain();
+#ifdef IMGUI_DISABLED
+  auto result = swap_chain_->submit_command_buffers(&commandBuffer, &current_image_index_);
+  if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || window_.is_resized()) {
+    window_.reset_window_resized_flag();
+    recreate_swap_chain();
   }
   else if (result != VK_SUCCESS)
     throw std::runtime_error("failed to present swap chain image!");
 
-  isFrameStarted_m = false;
-  // increment currentFrameIndex_m
-  if (++currentFrameIndex_m == HveSwapChain::MAX_FRAMES_IN_FLIGHT)
-    currentFrameIndex_m = 0;
+  is_frame_started_ = false;
+  // increment current_frame_index_
+  if (++current_frame_index_ == swap_chain::MAX_FRAMES_IN_FLIGHT)
+    current_frame_index_ = 0;
 #else
-  submittingCommandBuffers_m.push_back(commandBuffer);
+  submitting_command_buffers_.push_back(commandBuffer);
 #endif
 
-  isFrameStarted_m = false;
+  is_frame_started_ = false;
   
-  if (isLastRenderer()) {
-    submitCommandBuffers();
+  if (is_last_renderer()) {
+    submit_command_buffers();
   }
 }
 
-void renderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer, int renderPassId)
+void renderer::begin_swap_chain_render_pass(VkCommandBuffer commandBuffer, int renderPassId)
 {
-  assert(isFrameStarted_m && "Can't call beginSwapChainRenderPass() while the frame is not in progress.");
-  assert(commandBuffer == getCurrentCommandBuffer() && "Can't beginig render pass on command buffer from a different frame.");
+  assert(is_frame_started_ && "Can't call begin_swap_chain_render_pass() while the frame is not in progress.");
+  assert(commandBuffer == get_current_command_buffer() && "Can't beginig render pass on command buffer from a different frame.");
 
   // starting a render pass
   VkRenderPassBeginInfo renderPassInfo{};
   renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 
-#ifdef __IMGUI_DISABLED
-  renderPassInfo.renderPass = hveSwapChain_m->getRenderPass();
-  renderPassInfo.framebuffer = hveSwapChain_m->getFrameBuffer(currentImageIndex_m);
+#ifdef IMGUI_DISABLED
+  renderPassInfo.renderPass = swap_chain_->get_render_pass();
+  renderPassInfo.framebuffer = swap_chain_->getFrameBuffer(current_image_index_);
 #else
-  renderPassInfo.renderPass = hveSwapChain_m->getRenderPass(renderPassId);
-  renderPassInfo.framebuffer = hveSwapChain_m->getFramebuffer(renderPassId, currentImageIndex_m);
+  renderPassInfo.renderPass = swap_chain_->get_render_pass(renderPassId);
+  renderPassInfo.framebuffer = swap_chain_->get_frame_buffer(renderPassId, current_image_index_);
 #endif  
 
   // the pixels outside this region will have undefined values
   renderPassInfo.renderArea.offset = {0, 0};
-  renderPassInfo.renderArea.extent = hveSwapChain_m->getSwapChainExtent();
+  renderPassInfo.renderArea.extent = swap_chain_->get_swap_chain_extent();
 
   // default value for color and depth
   std::array<VkClearValue, 2> clearValues;
@@ -210,31 +210,31 @@ void renderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer, int rende
   VkViewport viewport{};
   viewport.x = 0.0f;
   viewport.y = 0.0f;
-  viewport.width = static_cast<float>(hveSwapChain_m->getSwapChainExtent().width);
-  viewport.height = static_cast<float>(hveSwapChain_m->getSwapChainExtent().height);
+  viewport.width = static_cast<float>(swap_chain_->get_swap_chain_extent().width);
+  viewport.height = static_cast<float>(swap_chain_->get_swap_chain_extent().height);
   viewport.minDepth = 0.0f;
   viewport.maxDepth = 1.0f;
   // cut the region of the framebuffer(swap chain)
   VkRect2D scissor{};
   scissor.offset = {0, 0};
-  scissor.extent = hveSwapChain_m->getSwapChainExtent();
+  scissor.extent = swap_chain_->get_swap_chain_extent();
   vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }
 
-void renderer::endSwapChainRenderPass(VkCommandBuffer commandBuffer)
+void renderer::end_swap_chain_render_pass(VkCommandBuffer commandBuffer)
 {
-  assert(isFrameStarted_m && "Can't call endSwapChainRenderPass() while the frame is not in progress.");
-  assert(commandBuffer == getCurrentCommandBuffer() && "Can't ending render pass on command buffer from a different frame.");
+  assert(is_frame_started_ && "Can't call end_swap_chain_render_pass() while the frame is not in progress.");
+  assert(commandBuffer == get_current_command_buffer() && "Can't ending render pass on command buffer from a different frame.");
 
   // finish render pass and recording the comand buffer
   vkCmdEndRenderPass(commandBuffer);
 }
 
-#ifndef __IMGUI_DISABLED
-void renderer::submitCommandBuffers()
+#ifndef IMGUI_DISABLED
+void renderer::submit_command_buffers()
 {
-  auto result = hveSwapChain_m->submitCommandBuffers(submittingCommandBuffers_m.data(), &currentImageIndex_m);
+  auto result = swap_chain_->submit_command_buffers(submitting_command_buffers_.data(), &current_image_index_);
   if (result != VK_ERROR_OUT_OF_DATE_KHR && result != VK_SUBOPTIMAL_KHR && result != VK_SUCCESS) 
     throw std::runtime_error("failed to present swap chain image!");  
 }

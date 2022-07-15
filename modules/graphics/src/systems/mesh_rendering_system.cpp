@@ -23,18 +23,18 @@ struct MeshPushConstant
   glm::mat4 normalMatrix_m{1.0f};
 };
 
-MeshRenderingSystem::MeshRenderingSystem
+mesh_rendering_system::mesh_rendering_system
   (device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
-  : HveRenderingSystem(device, render_type::SIMPLE)
+  : rendering_system(device, render_type::SIMPLE)
 { 
-  createPipelineLayout(globalSetLayout);
-  createPipeline(renderPass);
+  create_pipeline_layout(globalSetLayout);
+  create_pipeline(renderPass);
 }
 
-MeshRenderingSystem::~MeshRenderingSystem()
+mesh_rendering_system::~mesh_rendering_system()
 {}
 
-void MeshRenderingSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout)
+void mesh_rendering_system::create_pipeline_layout(VkDescriptorSetLayout globalSetLayout)
 {
   // config push constant range
   VkPushConstantRange pushConstantRange{};
@@ -51,40 +51,40 @@ void MeshRenderingSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLa
   pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
   pipelineLayoutInfo.pushConstantRangeCount = 1;
   pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-  if (vkCreatePipelineLayout(hveDevice_m.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout_m) != VK_SUCCESS)
+  if (vkCreatePipelineLayout(device_.device(), &pipelineLayoutInfo, nullptr, &pipeline_layout_) != VK_SUCCESS)
       throw std::runtime_error("failed to create pipeline layout!");
 }
 
-void MeshRenderingSystem::createPipeline(VkRenderPass renderPass)
+void mesh_rendering_system::create_pipeline(VkRenderPass renderPass)
 {
-  assert(pipelineLayout_m != nullptr && "cannot create pipeline before pipeline layout");
+  assert(pipeline_layout_ != nullptr && "cannot create pipeline before pipeline layout");
 
-  PipelineConfigInfo pipelineConfig{};
-  HvePipeline::defaultPipelineConfigInfo(pipelineConfig);
+  pipeline_config_info pipelineConfig{};
+  pipeline::default_pipeline_config_info(pipelineConfig);
   pipelineConfig.renderPass_m = renderPass;
-  pipelineConfig.pipelineLayout_m = pipelineLayout_m;
-  hvePipeline_m = std::make_unique<HvePipeline>(
-      hveDevice_m,
+  pipelineConfig.pipeline_layout_ = pipeline_layout_;
+  pipeline_ = std::make_unique<pipeline>(
+      device_,
       std::string(std::getenv("HVE_DIR")) + std::string("/shader/spv/simple_shader.vert.spv"), 
       std::string(std::getenv("HVE_DIR")) + std::string("/shader/spv/simple_shader.frag.spv"),
       pipelineConfig);
 }
 
 
-void MeshRenderingSystem::render(FrameInfo frameInfo)
+void mesh_rendering_system::render(frame_info frameInfo)
 {
-  hvePipeline_m->bind(frameInfo.commandBuffer_m);
+  pipeline_->bind(frameInfo.commandBuffer_m);
 
   vkCmdBindDescriptorSets(
     frameInfo.commandBuffer_m,
     VK_PIPELINE_BIND_POINT_GRAPHICS,
-    pipelineLayout_m,
+    pipeline_layout_,
     0, 1,
-    &frameInfo.globalDiscriptorSet_m,
+    &frameInfo.global_discriptor_set,
     0, nullptr
   );
 
-  for (auto& target : renderTargetMap_m) {
+  for (auto& target : render_target_map_) {
     
     auto obj = dynamic_cast<mesh_component*>(target.second.get());
     if (obj->get_model_sp() == nullptr) continue;
@@ -96,7 +96,7 @@ void MeshRenderingSystem::render(FrameInfo frameInfo)
 
     vkCmdPushConstants(
         frameInfo.commandBuffer_m,
-        pipelineLayout_m, 
+        pipeline_layout_, 
         VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 
         0, 
         sizeof(MeshPushConstant), 

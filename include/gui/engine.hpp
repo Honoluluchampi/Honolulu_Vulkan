@@ -23,70 +23,53 @@
 #define IMGUI_VULKAN_DEBUG_REPORT
 #endif
 
-// shared objects
-// Vulkan Instance
-// Vulkan Physical Device
-// Vulkan Logical Device
-// Renderer Queue
-// Present Queue
-
-// imgui-specific objects
-// window (config window)
-// surface
-// swap chain
-// depth image
-// render pass
-// frame buffer
-// descriptor pool
-// semaphores
-// command pool
-// command buffer
-
 namespace hnll {
 namespace gui {
 
 class engine
 {
 public:
-  engine(HveWindow& hveWindow, device& get_device);
+  engine(hnll::graphics::window& window, hnll::graphics::device& device);
   ~engine();
   engine(const engine&) = delete;
   engine& operator=(const engine&) = delete;
   engine(engine&&) = default;
   engine& operator=(engine&&) = default;
 
-  void beginImGui();
+  void begin_imgui();
   void render();
-  void frameRender();
+  void frame_render();
   void update(glm::vec3& translation);
 
-  const u_ptr<HieRenderer>& upHieRenderer() const { return upHieRenderer_; }
-  renderer* pHieRenderer() const { return upHieRenderer_.get(); }
+  const u_ptr<renderer>& renderer_up() const { return renderer_up_; }
+  gui::renderer* renderer_p() const { return renderer_up_.get(); }
   
 private:
   // set up ImGui context
-  void setupImGui(device& get_device, GLFWwindow* window);
+  void setup_imgui(hnll::graphics::device& device, GLFWwindow* window);
   // share the basic graphics object with hve, so there is nothing to do for now
-  void setupSpecificVulkanObjects();
-  void uploadFonts();
-  void cleanupVulkan();
-  void createDescriptorPool();
+  void setup_specific_vulkan_objects();
+  void upload_font();
+  void cleanup_vulkan();
+  void create_descriptor_pool();
 
   static void glfw_error_callback(int error, const char* description)
   { fprintf(stderr, "Glfw Error %d: %s\n", error, description); }
 
   VkDevice device_;
-  VkDescriptorPool descriptorPool_;
-  VkQueue graphicsQueue_;
+  VkDescriptorPool descriptor_pool_;
+  VkQueue graphics_queue_;
 
-  u_ptr<HieRenderer> upHieRenderer_;
+  ImGui_ImplVulkanH_Window main_window_data_;
 
-  ImGui_ImplVulkanH_Window mainWindowData_;
+  u_ptr<renderer> renderer_up_;
+
   // TODO : make it consistent with hve
-  int minImageCount_ = 2;
-  bool swapChainRebuild_ = false;
-  bool isHieRunning_ = false;
+  int min_image_count_ = 2;
+  bool swap_chain_rebuild_ = false;
+  bool is_gui_engine_running_ = false;
 
+  // temp
   float vec_[3] = {0, 0, 0};
 };
 

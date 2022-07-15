@@ -12,7 +12,7 @@ namespace graphics {
 // TODO : decrese this
 #define MAX_LIGHTS 20
 
-struct PointLight
+struct point_light
 {
   glm::vec4 position{}; // ignore w
   glm::vec4 color{}; // w is intensity
@@ -22,20 +22,20 @@ struct PointLight
 struct global_ubo
 {
   // check alignment rules
-  glm::mat4 projection_m{1.f};
-  glm::mat4 view_m{1.f};
+  glm::mat4 projection{1.f};
+  glm::mat4 view{1.f};
   // point light
-  glm::vec4 ambientLightColor_m{1.f, 1.f, 1.f, .02f}; // w is light intensity
-  PointLight pointLights[MAX_LIGHTS];
-  int numLights;
+  glm::vec4 ambient_light_color{1.f, 1.f, 1.f, .02f}; // w is light intensity
+  point_light point_lights[MAX_LIGHTS];
+  int lights_count;
 };
 
-struct FrameInfo
+struct frame_info
 {
-  int frameIndex_m;
-  VkCommandBuffer commandBuffer_m;
-  VkDescriptorSet globalDiscriptorSet_m;
+  int frame_index;
+  VkCommandBuffer command_buffer;
+  VkDescriptorSet global_discriptor_set;
 };
 
 } // namespace graphics
-} // namesapce hve
+} // namesapce hnll

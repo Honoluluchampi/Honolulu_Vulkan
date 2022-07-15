@@ -1,7 +1,7 @@
 #pragma once
 
 // hnll
-#include <graphics/model.hpp>
+#include <graphics/mesh_model.hpp>
 #include <game/component.hpp>
 #include <game/components/renderable_component.hpp>
 
@@ -19,8 +19,8 @@ class mesh_component : public renderable_component
   public:
     using map = std::unordered_map<component::id, s_ptr<mesh_component>>;
     // copy a passed shared_ptr
-    mesh_component(const s_ptr<hnll::graphics::mesh_model>& spModel) : renderable_component(render_type::SIMPLE), model_sp_(spModel) {}
-    mesh_component(s_ptr<hnll::graphics::mesh_model>&& spModel) : renderable_component(render_type::SIMPLE), model_sp_(std::move(spModel)) {}
+    mesh_component(const s_ptr<hnll::graphics::mesh_model>& mesh_model_sp) : renderable_component(render_type::SIMPLE), model_sp_(mesh_model_sp) {}
+    mesh_component(s_ptr<hnll::graphics::mesh_model>&& mesh_model_sp) : renderable_component(render_type::SIMPLE), model_sp_(std::move(mesh_model_sp)) {}
     ~mesh_component(){}
 
     s_ptr<hnll::graphics::mesh_model>& get_model_sp() { return model_sp_; }

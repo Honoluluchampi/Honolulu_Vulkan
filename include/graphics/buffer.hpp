@@ -3,60 +3,62 @@
 #include <graphics/device.hpp>
  
 namespace hnll {
+namespace graphics {
  
-class HveBuffer {
+class buffer {
   public:
-    HveBuffer(
+    buffer(
         device& device,
-        VkDeviceSize instanceSize,
-        uint32_t instanceCount,
-        VkBufferUsageFlags usageFlags,
-        VkMemoryPropertyFlags memoryPropertyFlags,
-        VkDeviceSize minOffsetAlignment = 1);
-    ~HveBuffer();
+        VkDeviceSize instance_size,
+        uint32_t instance_count,
+        VkBufferUsageFlags usage_flags,
+        VkMemoryPropertyFlags memory_property_flags,
+        VkDeviceSize min_offset_alignment = 1);
+    ~buffer();
   
-    HveBuffer(const HveBuffer&) = delete;
-    HveBuffer& operator=(const HveBuffer&) = delete;
+    buffer(const buffer&) = delete;
+    buffer& operator=(const buffer&) = delete;
   
     VkResult map(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
     void unmap();
   
-    void writeToBuffer(void* data, VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+    void write_to_buffer(void* data, VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
     VkResult flush(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
-    VkDescriptorBufferInfo descriptorInfo(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+    VkDescriptorBufferInfo descriptor_info(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
     VkResult invalidate(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
   
     // for multiple instances per buffer
-    void writeToIndex(void* data, int index);
-    VkResult flushIndex(int index);
-    VkDescriptorBufferInfo descriptorInfoForIndex(int index);
-    VkResult invalidateIndex(int index);
+    void write_to_index(void* data, int index);
+    VkResult flush_index(int index);
+    VkDescriptorBufferInfo descriptor_info_for_index(int index);
+    VkResult invalidate_index(int index);
   
-    VkBuffer getBuffer() const { return buffer_m; }
-    void* getMappedMemory() const { return mapped_m; }
-    uint32_t getInstanceCount() const { return instanceCount_m; }
-    VkDeviceSize getInstanceSize() const { return instanceSize_m; }
-    VkDeviceSize getAlignmentSize() const { return instanceSize_m; }
-    VkBufferUsageFlags getUsageFlags() const { return usageFlags_m; }
-    VkMemoryPropertyFlags getMemoryPropertyFlags() const { return memoryPropertyFlags_m; }
-    VkDeviceSize getBufferSize() const { return bufferSize_m; }
+    VkBuffer get_buffer() const { return buffer_; }
+    void* get_mapped_memory() const { return mapped_; }
+    uint32_t get_instance_count() const { return instance_count_; }
+    VkDeviceSize get_instance_size() const { return instance_size_; }
+    VkDeviceSize get_alignment_size() const { return instance_size_; }
+    VkBufferUsageFlags get_usage_flags() const { return usage_flags_; }
+    VkMemoryPropertyFlags get_memory_property_flags() const { return memory_property_flags_; }
+    VkDeviceSize get_buffer_size() const { return buffer_size_; }
   
   private:
-    static VkDeviceSize getAlignment(VkDeviceSize instanceSize, VkDeviceSize minOffsetAlignment);
+    static VkDeviceSize get_alignment(VkDeviceSize instance_size, VkDeviceSize min_offset_alignment);
   
-    device& hveDevice_m;
-    void* mapped_m = nullptr;
+    device& device_;
+    void* mapped_ = nullptr;
     
     // separating buffer and its assigned memory enables programmer to manage memory manually
-    VkBuffer buffer_m = VK_NULL_HANDLE;
-    VkDeviceMemory memory_m = VK_NULL_HANDLE;
+    VkBuffer buffer_ = VK_NULL_HANDLE;
+    VkDeviceMemory memory_ = VK_NULL_HANDLE;
   
-    VkDeviceSize bufferSize_m;
-    uint32_t instanceCount_m;
-    VkDeviceSize instanceSize_m;
-    VkDeviceSize alignmentSize_m;
-    VkBufferUsageFlags usageFlags_m;
-    VkMemoryPropertyFlags memoryPropertyFlags_m;
+    VkDeviceSize buffer_size_;
+    uint32_t instance_count_;
+    VkDeviceSize instance_size_;
+    VkDeviceSize alignment_size_;
+    VkBufferUsageFlags usage_flags_;
+    VkMemoryPropertyFlags memory_property_flags_;
 };
  
-}  // namespace engine
+} // namespace graphics
+} // namespace hnll

@@ -10,22 +10,24 @@
 #include <vector>
 
 namespace hnll{
+namespace graphics {
 
-class LineRenderingSystem : public HveRenderingSystem
+class line_rendering_system : public rendering_system
 {
   public:
-    LineRenderingSystem(device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
-    ~LineRenderingSystem();
+    line_rendering_system(device& device, VkRenderPass render_pass, VkDescriptorSetLayout global_set_layout);
+    ~line_rendering_system();
 
-    void render(FrameInfo frameInfo) override;
+    void render(frame_info frameInfo) override;
     
-    static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
+    static std::vector<VkVertexInputAttributeDescription> get_attribute_descriptions();
     
     // TODO : delete
-    static int interpolatingPointsCount;
+    static int inter_polating_points_count;
   private:
-    void createPipelineLayout(VkDescriptorSetLayout globalSetLayout) override;
-    void createPipeline(VkRenderPass renderPass) override;
+    void create_pipeline_layout(VkDescriptorSetLayout global_set_layout) override;
+    void create_pipeline(VkRenderPass render_pass) override;
 };
 
+} // namespace graphics
 } // namespace hnll

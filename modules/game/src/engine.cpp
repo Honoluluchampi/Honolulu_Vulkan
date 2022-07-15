@@ -28,11 +28,11 @@ game::game(const char* windowName) : graphics_engine_up_(std::make_unique<engine
 {
   set_glfw_window(); // ?
 
-#ifndef __IMGUI_DISABLED
+#ifndef IMGUI_DISABLED
   gui_engine_up_ = std::make_unique<Hie>
-    (graphics_engine_up_->hveWindow(), graphics_engine_up_->get_graphics_device());
+    (graphics_engine_up_->get_window(), graphics_engine_up_->get_graphics_device());
   // configure dependency between renderers
-  graphics_engine_up_->hveRenderer().setNextRenderer(gui_engine_up_->pHieRenderer());  
+  graphics_engine_up_->get_renderer().set_next_renderer(gui_engine_up_->renderer_p_());  
 #endif
 
   init_actors();
@@ -45,7 +45,7 @@ game::game(const char* windowName) : graphics_engine_up_(std::make_unique<engine
 game::~game()
 {
   // cleanup in game::cleanup();
-  // renderer::cleanupSwapChain();
+  // renderer::cleanup_swap_chain();
 }
 
 void game::run()
@@ -58,7 +58,7 @@ void game::run()
     update();
     render();
   }
-  graphics_engine_up_->waitIdle();
+  graphics_engine_up_->wait_idle();
   cleanup();
 }
 
@@ -126,16 +126,16 @@ void game::render()
 {
 
   graphics_engine_up_->render(*(camera_up_->viewer_component()));
-#ifndef __IMGUI_DISABLED
-  if (!renderer::swapChainRecreated_m){
-    gui_engine_up_->beginImGui();
+#ifndef IMGUI_DISABLED
+  if (!renderer::swap_chain_recreated_){
+    gui_engine_up_->begin_imgui();
     update_gui();
     gui_engine_up_->render();
   }
 #endif
 }
 
-#ifndef __IMGUI_DISABLED
+#ifndef IMGUI_DISABLED
 void game::update_gui()
 {
   // some general imgui upgrade
@@ -154,7 +154,7 @@ void game::init_actors()
   camera_up_ = std::make_shared<default_camera>(*graphics_engine_up_);
   
   // TODO : configure priorities of actors, then update light manager after all light comp
-  upLightManager_ = std::make_shared<point_light_manager>(graphics_engine_up_->globalUbo());
+  upLightManager_ = std::make_shared<point_light_manager>(graphics_engine_up_->get_global_ubo());
 
 }
 
@@ -176,7 +176,7 @@ void game::load_mesh_models(const std::string& modelDir)
     auto filename = std::string(file.path());
     auto length = filename.size() - path.size() - 5;
     auto key = filename.substr(path.size() + 1, length);
-    auto hveModel = mesh_model::createModelFromFile(graphics_engine_up_->get_graphics_device(), filename);
+    auto hveModel = mesh_model::create_model_from_file(graphics_engine_up_->get_graphics_device(), filename);
     mesh_model_map_.emplace(key, std::move(hveModel));
   }
 }
@@ -270,7 +270,7 @@ void game::cleanup()
   pending_actor_map_.clear();
   dead_actor_map_.clear();
   mesh_model_map_.clear();
-  renderer::cleanupSwapChain();
+  renderer::cleanup_swap_chain();
 }
 
 // glfw
@@ -290,7 +290,7 @@ void game::glfw_mouse_button_callback(GLFWwindow* window, int button, int action
   for (const auto& func : glfwMouseButtonCallbacks_)
     func->operator()(window, button, action, mods);
   
-#ifndef __IMGUI_DISABLED
+#ifndef IMGUI_DISABLED
   ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
 #endif
 }

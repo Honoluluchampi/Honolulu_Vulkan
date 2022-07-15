@@ -3,25 +3,25 @@
 
 namespace hnll {
 
-HieRenderer::HieRenderer(HveWindow& window, device& hveDevice, bool recreateFromScratch) : 
+renderer::renderer(window& window, device& hveDevice, bool recreateFromScratch) : 
   renderer(window, hveDevice, recreateFromScratch)
 {
-  recreateSwapChain();
+  recreate_swap_chain();
 }
 
-void HieRenderer::recreateSwapChain()
+void renderer::recreate_swap_chain()
 {
 
-  hveSwapChain_m->setRenderPass(createRenderPass(), HIE_RENDER_PASS_ID);
-  hveSwapChain_m->setFramebuffers(createFramebuffers(), HIE_RENDER_PASS_ID);
+  swap_chain_->set_render_pass(create_render_pass(), HIE_RENDER_PASS_ID);
+  swap_chain_->set_frame_buffers(create_frame_buffers(), HIE_RENDER_PASS_ID);
 
-  if (nextRenderer_) nextRenderer_->recreateSwapChain();
+  if (next_renderer_) next_renderer_->recreate_swap_chain();
 }
 
-VkRenderPass HieRenderer::createRenderPass()
+VkRenderPass renderer::create_render_pass()
 {
   VkAttachmentDescription attachment = {};
-  attachment.format = hveSwapChain_m->getSwapChainImageFormat();
+  attachment.format = swap_chain_->get_swap_chain_images_format();
   attachment.samples = VK_SAMPLE_COUNT_1_BIT;
   attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
   attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -59,13 +59,13 @@ VkRenderPass HieRenderer::createRenderPass()
 
   VkRenderPass renderPass;
   
-  if (vkCreateRenderPass(hveDevice_m.device(), &info, nullptr, &renderPass) != VK_SUCCESS)
+  if (vkCreateRenderPass(device_.device(), &info, nullptr, &renderPass) != VK_SUCCESS)
     throw std::runtime_error("failed to create render pass.");
 
   return renderPass;
 }
 
-std::vector<VkFramebuffer> HieRenderer::createFramebuffers()
+std::vector<VkFramebuffer> renderer::create_frame_buffers()
 {
   // imgui frame buffer only takes image view attachment 
   VkImageView attachment;
@@ -73,20 +73,20 @@ std::vector<VkFramebuffer> HieRenderer::createFramebuffers()
   VkFramebufferCreateInfo info{};
   info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
   // make sure to create renderpass before frame buffers
-  info.renderPass = hveSwapChain_m->getRenderPass(HIE_RENDER_PASS_ID);
+  info.renderPass = swap_chain_->get_render_pass(HIE_RENDER_PASS_ID);
   info.attachmentCount = 1;
   info.pAttachments = &attachment;
-  auto extent = hveSwapChain_m->getSwapChainExtent();
+  auto extent = swap_chain_->get_swap_chain_extent();
   info.width = extent.width;
   info.height = extent.height;
   info.layers = 1;
 
   // as many as image view count
-  auto imageCount = hveSwapChain_m->imageCount();
-  std::vector<VkFramebuffer> framebuffers(imageCount);
-  for (size_t i = 0; i < imageCount; i++) {
-    attachment = hveSwapChain_m->getImageView(i);
-    if (vkCreateFramebuffer(hveDevice_m.device(), &info, nullptr, &framebuffers[i]) != VK_SUCCESS)
+  auto get_image_count = swap_chain_->get_image_count();
+  std::vector<VkFramebuffer> framebuffers(get_image_count);
+  for (size_t i = 0; i < get_image_count; i++) {
+    attachment = swap_chain_->get_image_view(i);
+    if (vkCreateFramebuffer(device_.device(), &info, nullptr, &framebuffers[i]) != VK_SUCCESS)
       throw std::runtime_error("failed to create frame buffer.");
   }
 

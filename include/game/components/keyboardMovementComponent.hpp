@@ -38,7 +38,7 @@ class keyboard_movement_component : public component
       key_id look_down = GLFW_KEY_DOWN;
     };
 
-    struct PadMappings
+    struct pad_mappings
     {
       pad_id button_a = GLFW_GAMEPAD_BUTTON_A;
       pad_id button_b = GLFW_GAMEPAD_BUTTON_B;
@@ -61,14 +61,14 @@ class keyboard_movement_component : public component
 
     // dont use lambda's capture
     // TODO : check whether using checkingButtonList fasten the checking sequence
-    void set_button_func(key_id keyId, std::function<void()> func)
-    { button_map_.emplace(keyId, std::make_unique<std::function<void()>>(func)); }
+    void set_button_func(key_id key_id, std::function<void()> func)
+    { button_map_.emplace(key_id, std::make_unique<std::function<void()>>(func)); }
     // dont use lambda's capture
-    void set_axis_func(pad_id axisId, std::function<glm::vec3(float, float)> func)
-    { pad_map_.emplace(axisId, std::make_unique<std::function<glm::vec3(float, float)>>(func)); }
+    void set_axis_func(pad_id axis_id, std::function<glm::vec3(float, float)> func)
+    { pad_map_.emplace(axis_id, std::make_unique<std::function<glm::vec3(float, float)>>(func)); }
 
-    void remove_button_func(key_id keyId) { button_map_.erase(keyId); }
-    void remove_axis_func(pad_id axisId) { pad_map_.erase(axisId); }
+    void remove_button_func(key_id key_id) { button_map_.erase(key_id); }
+    void remove_axis_func(pad_id axis_id) { pad_map_.erase(axis_id); }
 
   private:
     void adjust_axis_errors();
@@ -79,7 +79,7 @@ class keyboard_movement_component : public component
 
     // mapping
     static key_mappings keys;
-    static PadMappings pads;
+    static pad_mappings pads;
     
     GLFWwindow* window_;
     // this component should be deleted before the owner

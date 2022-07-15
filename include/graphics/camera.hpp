@@ -7,8 +7,9 @@
 
 
 namespace hnll {
+namespace graphics {
 
-class HveCamera 
+class camera 
 {
   public:
     void set_orthographics_projection(float left, float right, float top, float bottom, float near, float far);
@@ -29,4 +30,6 @@ class HveCamera
     glm::mat4 projection_matrix_{1.f};
     glm::mat4 veiw_matrix_{1.f};
 };
-} // namespace hve
+
+} // namespace graphics
+} // namespace hnll

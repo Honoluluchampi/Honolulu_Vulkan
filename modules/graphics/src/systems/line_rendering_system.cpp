@@ -6,7 +6,7 @@
 
 namespace hnll {
 
-int LineRenderingSystem::interpolatingPointsCount = 4;
+int line_rendering_system::inter_polating_points_count = 4;
 
 // should be compatible with a shader
 // TODO use head and tail
@@ -17,19 +17,19 @@ struct LinePushConstant
   float radius_;
 };
 
-LineRenderingSystem::LineRenderingSystem
+line_rendering_system::line_rendering_system
   (device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
-  : HveRenderingSystem(device, render_type::LINE)
+  : rendering_system(device, render_type::LINE)
 {
-  createPipelineLayout(globalSetLayout);
-  createPipeline(renderPass);
+  create_pipeline_layout(globalSetLayout);
+  create_pipeline(renderPass);
 }
 
-LineRenderingSystem::~LineRenderingSystem()
+line_rendering_system::~line_rendering_system()
 {}
 
 // TODO : take pushConstanctRange.size and virtualize this function
-void LineRenderingSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout)
+void line_rendering_system::create_pipeline_layout(VkDescriptorSetLayout globalSetLayout)
 {
   VkPushConstantRange pushConstantRange{};
   pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -44,61 +44,61 @@ void LineRenderingSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLa
   pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
   pipelineLayoutInfo.pushConstantRangeCount = 1;
   pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-  if (vkCreatePipelineLayout(hveDevice_m.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout_m) != VK_SUCCESS)
+  if (vkCreatePipelineLayout(device_.device(), &pipelineLayoutInfo, nullptr, &pipeline_layout_) != VK_SUCCESS)
     throw std::runtime_error("failed to create pipeline layout!");
 }
 
-void LineRenderingSystem::createPipeline(VkRenderPass renderPass)
+void line_rendering_system::create_pipeline(VkRenderPass renderPass)
 {
-  assert(pipelineLayout_m != nullptr && "cannot create pipeline before pipeline layout!");
+  assert(pipeline_layout_ != nullptr && "cannot create pipeline before pipeline layout!");
 
-  PipelineConfigInfo pipelineConfig{};
-  HvePipeline::defaultPipelineConfigInfo(pipelineConfig);
+  pipeline_config_info pipelineConfig{};
+  pipeline::default_pipeline_config_info(pipelineConfig);
   // for original configuration (dont use any vertex input attribute)
-  pipelineConfig.attributeDescriptions.clear();
-  pipelineConfig.bindingDescriptions.clear();
+  pipelineConfig.attribute_descriptions.clear();
+  pipelineConfig.binding_descriptions.clear();
 
   pipelineConfig.renderPass_m = renderPass;
-  pipelineConfig.pipelineLayout_m = pipelineLayout_m;
-  hvePipeline_m = std::make_unique<HvePipeline>(
-    hveDevice_m,
+  pipelineConfig.pipeline_layout_ = pipeline_layout_;
+  pipeline_ = std::make_unique<pipeline>(
+    device_,
     std::string(std::getenv("HVE_DIR")) + std::string("/shader/spv/point_light.vert.spv"),
     std::string(std::getenv("HVE_DIR")) + std::string("/shader/spv/point_light.frag.spv"),
     pipelineConfig
   );
 }
 
-void LineRenderingSystem::render(FrameInfo frameInfo)
+void line_rendering_system::render(frame_info frameInfo)
 {
-  hvePipeline_m->bind(frameInfo.commandBuffer_m);
+  pipeline_->bind(frameInfo.commandBuffer_m);
 
   vkCmdBindDescriptorSets(
     frameInfo.commandBuffer_m,
     VK_PIPELINE_BIND_POINT_GRAPHICS,
-    pipelineLayout_m,
+    pipeline_layout_,
     0, 1,
-    &frameInfo.globalDiscriptorSet_m,
+    &frameInfo.global_discriptor_set,
     0, nullptr
   );
 
-  for (auto& target : renderTargetMap_m) {
+  for (auto& target : render_target_map_) {
     
     auto obj = dynamic_cast<line_component*>(target.second.get());
 
     auto head2tail = obj->get_tail() - obj->get_head();
     // TODO : draw line
-    for (int i = 1; i < interpolatingPointsCount + 1; i++) {
+    for (int i = 1; i < inter_polating_points_count + 1; i++) {
       // fill push constant
       LinePushConstant push{};
       push.position_ = glm::vec4(head2tail, 0.f);
-      push.position_ *= (float)i / (interpolatingPointsCount + 1);
+      push.position_ *= (float)i / (inter_polating_points_count + 1);
       push.position_ += glm::vec4(obj->get_head(), 0.f);
       push.color_ = glm::vec4(obj->get_color(), 0.f);
       push.radius_ = obj->get_radius();
 
       vkCmdPushConstants(
           frameInfo.commandBuffer_m,
-          pipelineLayout_m, 
+          pipeline_layout_, 
           VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 
           0, 
           sizeof(LinePushConstant), 

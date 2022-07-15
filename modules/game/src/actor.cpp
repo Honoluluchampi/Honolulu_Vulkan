@@ -24,7 +24,7 @@ for (const auto& comp : shared_components_)
   comp->update(dt);
 }
 
-#ifndef __IMGUI_DISABLED
+#ifndef IMGUI_DISABLED
  void actor::update_gui()
  {
    update_actor_imgui();

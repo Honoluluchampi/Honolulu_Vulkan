@@ -8,36 +8,38 @@
 #include <string>
 
 namespace hnll {
+namespace graphics {
 
-class HveWindow
+class window
 {
   public:
-    HveWindow(const int w, const int h, const std::string name);
-    ~HveWindow();
+    window(const int w, const int h, const std::string name);
+    ~window();
+    // delete copy ctor, assignment (to prevent GLFWwindow* from double deleted)
+    window(const window &) = delete;
+    window& operator= (const window &) = delete;
 
-    // delete copy ctor, assignment (for preventing GLFWwindow* from double deleted)
-    HveWindow(const HveWindow &) = delete;
-    HveWindow& operator= (const HveWindow &) = delete;
+    void create_window_surface(VkInstance instance, VkSurfaceKHR* surface);
 
-    inline bool shouldClose() { return glfwWindowShouldClose(window_); }
-    VkExtent2D getExtent() { return { static_cast<uint32_t>(width_m), static_cast<uint32_t>(height_m)}; }
-    bool wasWindowResized() { return framebufferResized_m; }
-    void resetWindowResizedFlag() { framebufferResized_m = false; }
-    GLFWwindow* getGLFWwindow() const { return window_; }
-      
-    void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
-    GLFWwindow* window() { return window_; }
+    // getter
+    inline bool should_be_closed() { return glfwWindowShouldClose(window_); }
+    bool is_resized() { return frame_buffer_resized_; }
+    VkExtent2D get_extent() { return { static_cast<uint32_t>(width_), static_cast<uint32_t>(height_)}; }
+    GLFWwindow* get_glfw_window() const { return window_; }
+    // setter
+    void reset_window_resized_flag() { frame_buffer_resized_ = false; }
       
   private:
-    static void framebufferResizeCallBack(GLFWwindow *window, int width, int height);
-    void initWindow();
+    static void frame_buffer_resize_callback(GLFWwindow *window, int width, int height);
+    void init_window();
 
-    int width_m;
-    int height_m;
-    bool framebufferResized_m = false;
+    int width_;
+    int height_;
+    bool frame_buffer_resized_ = false;
 
-    std::string windowName_m;
+    std::string window_name_;
     GLFWwindow *window_;
 };
-    
-} // namespace hv
+
+} // namespace graphics
+} // namespace hnll

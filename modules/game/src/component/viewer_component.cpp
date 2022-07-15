@@ -134,7 +134,7 @@ glm::mat4 viewer_component::get_inverse_view_yxz() const
 void viewer_component::update_component(float dt)
 { 
   set_veiw_yxz();
-  auto aspect = renderer_.getAspectRatio();
+  auto aspect = renderer_.get_aspect_ratio();
   set_perspective_projection(fovy_, aspect, near_distance_, 50.f); 
 }
 

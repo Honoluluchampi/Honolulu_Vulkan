@@ -18,11 +18,11 @@ void point_light_manager::update_actor(float dt)
     // update light position
     // lightComp->get_transform().translation = glm::vec3(lightRotation * glm::vec4(lightComp->get_transform().translation, 1.f));
     // copy light data to ubo 
-    ubo_.pointLights[lightIndex].position = glm::vec4(lightComp->get_transform().translation, 1.f);
-    ubo_.pointLights[lightIndex].color = glm::vec4(lightComp->get_color(), lightComp->get_light_info().light_intensity);
+    ubo_.point_lights[lightIndex].position = glm::vec4(lightComp->get_transform().translation, 1.f);
+    ubo_.point_lights[lightIndex].color = glm::vec4(lightComp->get_color(), lightComp->get_light_info().light_intensity);
     lightIndex++;
   }
-  ubo_.numLights = lightIndex;
+  ubo_.lights_count = lightIndex;
 }
 
 } // namespace hnll

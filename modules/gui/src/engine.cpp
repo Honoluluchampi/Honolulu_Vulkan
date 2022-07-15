@@ -8,14 +8,14 @@
 
 namespace hnll {
 
-// take s_ptr<HveSwapChain> from hveRenderer
-Hie::Hie(HveWindow& hveWindow, device& hveDevice)
+// take s_ptr<swap_chain> from get_renderer
+Hie::Hie(window& hveWindow, device& hveDevice)
   : device_(hveDevice.device())
 {  
-  setupSpecificVulkanObjects();
-  upHieRenderer_ = std::make_unique<HieRenderer>(hveWindow, hveDevice, false);
-  setupImGui(hveDevice, hveWindow.getGLFWwindow());
-  uploadFonts();
+  setup_specific_vulkan_objects();
+  renderer_up_ = std::make_unique<renderer>(hveWindow, hveDevice, false);
+  setup_imgui(hveDevice, hveWindow.get_glfw_window());
+  upload_font();
 }
 
 Hie::~Hie()
@@ -23,15 +23,15 @@ Hie::~Hie()
   ImGui_ImplVulkan_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
-  cleanupVulkan();
+  cleanup_vulkan();
 }
 
-void Hie::setupSpecificVulkanObjects()
+void Hie::setup_specific_vulkan_objects()
 {
-  createDescriptorPool();
+  create_descriptor_pool();
 }
 
-void Hie::setupImGui(device& hveDevice, GLFWwindow* window)
+void Hie::setup_imgui(device& hveDevice, GLFWwindow* window)
 {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -45,32 +45,32 @@ void Hie::setupImGui(device& hveDevice, GLFWwindow* window)
   ImGui_ImplGlfw_InitForVulkan(window, true);
   ImGui_ImplVulkan_InitInfo info = {};
   info.Instance = hveDevice.instance();
-  info.PhysicalDevice = hveDevice.physicalDevice();
+  info.PhysicalDevice = hveDevice.get_physical_device();
   device_ = hveDevice.device();
   info.Device = device_;
-  // graphicsFamily's indice is needed (see device::createCommandPool)
+  // graphicsFamily's indice is needed (see device::create_command_pool)
   // but these are never used...
-  info.QueueFamily = hveDevice.queueFamilyIndices().graphicsFamily_m.value();
-  graphicsQueue_ = hveDevice.graphicsQueue();
-  info.Queue = graphicsQueue_;
+  info.QueueFamily = hveDevice.get_queue_family_indices().graphics_family_.value();
+  graphics_queue_ = hveDevice.get_graphics_queue();
+  info.Queue = graphics_queue_;
   info.PipelineCache = VK_NULL_HANDLE;
-  info.DescriptorPool = descriptorPool_;
+  info.DescriptorPool = descriptor_pool_;
   info.Allocator = nullptr;
   // TODO : make minImageCount consistent with hve
   info.MinImageCount = 2;
-  info.ImageCount = upHieRenderer_->hveSwapChain().imageCount();
+  info.ImageCount = renderer_up_->get_swap_chain().get_image_count();
   info.CheckVkResultFn = nullptr;
 
   // make sure to create render pass before this function
-  ImGui_ImplVulkan_Init(&info, upHieRenderer_->getRenderPass());
+  ImGui_ImplVulkan_Init(&info, renderer_up_->get_render_pass());
 }
 
-void Hie::cleanupVulkan()
+void Hie::cleanup_vulkan()
 {
-  vkDestroyDescriptorPool(device_, descriptorPool_, nullptr);
+  vkDestroyDescriptorPool(device_, descriptor_pool_, nullptr);
 }
 
-void Hie::beginImGui()
+void Hie::begin_imgui()
 {
   // start the imgui frame
   ImGui_ImplVulkan_NewFrame();
@@ -99,24 +99,24 @@ void Hie::render()
   // render window
   ImGui::Render();
 
-  frameRender();
+  frame_render();
 }
 
-void Hie::frameRender()
+void Hie::frame_render()
 {
   // wheather swap chain had been recreated
-  if (auto commandBuffer = upHieRenderer_->beginFrame()) {
-    upHieRenderer_->beginSwapChainRenderPass(commandBuffer, HIE_RENDER_PASS_ID);
+  if (auto commandBuffer = renderer_up_->begin_frame()) {
+    renderer_up_->begin_swap_chain_render_pass(commandBuffer, HIE_RENDER_PASS_ID);
     
     // record the draw data to the command buffer
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 
-    upHieRenderer_->endSwapChainRenderPass(commandBuffer);
-    upHieRenderer_->endFrame();
+    renderer_up_->end_swap_chain_render_pass(commandBuffer);
+    renderer_up_->end_frame();
   }
 }
 
-void Hie::createDescriptorPool()
+void Hie::create_descriptor_pool()
 {
   // Create Descriptor Pool
   // TODO : understand these parameters
@@ -140,11 +140,11 @@ void Hie::createDescriptorPool()
 	pool_info.maxSets = 1000 * IM_ARRAYSIZE(pool_sizes);
 	pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
 	pool_info.pPoolSizes = pool_sizes;
-	if (vkCreateDescriptorPool(device_, &pool_info, nullptr, &descriptorPool_) != VK_SUCCESS)
+	if (vkCreateDescriptorPool(device_, &pool_info, nullptr, &descriptor_pool_) != VK_SUCCESS)
     throw std::runtime_error("failed to create descriptor pool.");
 }
 
-void Hie::uploadFonts()
+void Hie::upload_font()
 {
   // load default font 
   ImFontConfig fontConfig;
@@ -155,8 +155,8 @@ void Hie::uploadFonts()
 
   // upload fonts
   // Use any command queue
-  VkCommandPool commandPool = upHieRenderer_->getCommandPool();
-  VkCommandBuffer commandBuffer = upHieRenderer_->getCurrentCommandBuffer();
+  VkCommandPool commandPool = renderer_up_->get_command_pool();
+  VkCommandBuffer commandBuffer = renderer_up_->get_current_command_buffer();
   if (vkResetCommandPool(device_, commandPool, 0) != VK_SUCCESS)
     throw std::runtime_error("failed to reset command pool");
   
@@ -175,7 +175,7 @@ void Hie::uploadFonts()
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
     throw std::runtime_error("failed to end command buffer.");
   
-  if (vkQueueSubmit(graphicsQueue_, 1, &endInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+  if (vkQueueSubmit(graphics_queue_, 1, &endInfo, VK_NULL_HANDLE) != VK_SUCCESS)
     throw std::runtime_error("failed to submit font upload queue.");
 
   vkDeviceWaitIdle(device_);

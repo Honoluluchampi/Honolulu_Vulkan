@@ -23,7 +23,7 @@ namespace hnll {
  *
  * @return VkResult of the buffer mapping call
  */
-VkDeviceSize HveBuffer::getAlignment(VkDeviceSize instanceSize, VkDeviceSize minOffsetAlignment) 
+VkDeviceSize buffer::get_alignment(VkDeviceSize instanceSize, VkDeviceSize minOffsetAlignment) 
 {
   if (minOffsetAlignment > 0) {
     return (instanceSize + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1);
@@ -31,29 +31,29 @@ VkDeviceSize HveBuffer::getAlignment(VkDeviceSize instanceSize, VkDeviceSize min
   return instanceSize;
 }
  
-HveBuffer::HveBuffer(
+buffer::buffer(
     device &device,
     VkDeviceSize instanceSize,
     uint32_t instanceCount,
     VkBufferUsageFlags usageFlags,
     VkMemoryPropertyFlags memoryPropertyFlags,
     VkDeviceSize minOffsetAlignment)
-    : hveDevice_m{device},
-      instanceSize_m{instanceSize},
-      instanceCount_m{instanceCount},
-      usageFlags_m{usageFlags},
-      memoryPropertyFlags_m{memoryPropertyFlags} 
+    : device_{device},
+      instance_size_{instanceSize},
+      instance_count_{instanceCount},
+      usage_flags_{usageFlags},
+      memory_property_flags_{memoryPropertyFlags} 
 {
-  alignmentSize_m = getAlignment(instanceSize, minOffsetAlignment);
-  bufferSize_m = alignmentSize_m * instanceCount;
-  hveDevice_m.createBuffer(bufferSize_m, usageFlags, memoryPropertyFlags, buffer_m, memory_m);
+  alignment_size_ = get_alignment(instanceSize, minOffsetAlignment);
+  buffer_size_ = alignment_size_ * instanceCount;
+  device_.create_buffer(buffer_size_, usageFlags, memoryPropertyFlags, buffer_, memory_);
 }
  
-HveBuffer::~HveBuffer() 
+buffer::~buffer() 
 {
   unmap();
-  vkDestroyBuffer(hveDevice_m.device(), buffer_m, nullptr);
-  vkFreeMemory(hveDevice_m.device(), memory_m, nullptr);
+  vkDestroyBuffer(device_.device(), buffer_, nullptr);
+  vkFreeMemory(device_.device(), memory_, nullptr);
 }
  
 /**
@@ -65,10 +65,10 @@ HveBuffer::~HveBuffer()
  *
  * @return VkResult of the buffer mapping call
  */
-VkResult HveBuffer::map(VkDeviceSize size, VkDeviceSize offset) 
+VkResult buffer::map(VkDeviceSize size, VkDeviceSize offset) 
 {
-  assert(buffer_m && memory_m && "Called map on buffer before create");
-  return vkMapMemory(hveDevice_m.device(), memory_m, offset, size, 0, &mapped_m);
+  assert(buffer_ && memory_ && "Called map on buffer before create");
+  return vkMapMemory(device_.device(), memory_, offset, size, 0, &mapped_);
 }
  
 /**
@@ -76,11 +76,11 @@ VkResult HveBuffer::map(VkDeviceSize size, VkDeviceSize offset)
  *
  * @note Does not return a result as vkUnmapMemory can't fail
  */
-void HveBuffer::unmap() 
+void buffer::unmap() 
 {
-  if (mapped_m) {
-    vkUnmapMemory(hveDevice_m.device(), memory_m);
-    mapped_m = nullptr;
+  if (mapped_) {
+    vkUnmapMemory(device_.device(), memory_);
+    mapped_ = nullptr;
   }
 }
  
@@ -93,14 +93,14 @@ void HveBuffer::unmap()
  * @param offset (Optional) Byte offset from beginning of mapped region
  *
  */
-void HveBuffer::writeToBuffer(void *data, VkDeviceSize size, VkDeviceSize offset) 
+void buffer::write_to_buffer(void *data, VkDeviceSize size, VkDeviceSize offset) 
 {
-  assert(mapped_m && "Cannot copy to unmapped buffer");
+  assert(mapped_ && "Cannot copy to unmapped buffer");
  
   if (size == VK_WHOLE_SIZE) {
-    memcpy(mapped_m, data, bufferSize_m);
+    memcpy(mapped_, data, buffer_size_);
   } else {
-    char *memOffset = (char *)mapped_m;
+    char *memOffset = (char *)mapped_;
     memOffset += offset;
     memcpy(memOffset, data, size);
   }
@@ -117,14 +117,14 @@ void HveBuffer::writeToBuffer(void *data, VkDeviceSize size, VkDeviceSize offset
  *
  * @return VkResult of the flush call
  */
-VkResult HveBuffer::flush(VkDeviceSize size, VkDeviceSize offset) 
+VkResult buffer::flush(VkDeviceSize size, VkDeviceSize offset) 
 {
   VkMappedMemoryRange mappedRange = {};
   mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-  mappedRange.memory = memory_m;
+  mappedRange.memory = memory_;
   mappedRange.offset = offset;
   mappedRange.size = size;
-  return vkFlushMappedMemoryRanges(hveDevice_m.device(), 1, &mappedRange);
+  return vkFlushMappedMemoryRanges(device_.device(), 1, &mappedRange);
 }
  
 /**
@@ -138,14 +138,14 @@ VkResult HveBuffer::flush(VkDeviceSize size, VkDeviceSize offset)
  *
  * @return VkResult of the invalidate call
  */
-VkResult HveBuffer::invalidate(VkDeviceSize size, VkDeviceSize offset) 
+VkResult buffer::invalidate(VkDeviceSize size, VkDeviceSize offset) 
 {
   VkMappedMemoryRange mappedRange = {};
   mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-  mappedRange.memory = memory_m;
+  mappedRange.memory = memory_;
   mappedRange.offset = offset;
   mappedRange.size = size;
-  return vkInvalidateMappedMemoryRanges(hveDevice_m.device(), 1, &mappedRange);
+  return vkInvalidateMappedMemoryRanges(device_.device(), 1, &mappedRange);
 }
  
 /**
@@ -156,8 +156,8 @@ VkResult HveBuffer::invalidate(VkDeviceSize size, VkDeviceSize offset)
  *
  * @return VkDescriptorBufferInfo of specified offset and range
  */
-VkDescriptorBufferInfo HveBuffer::descriptorInfo(VkDeviceSize size, VkDeviceSize offset) 
-{ return VkDescriptorBufferInfo{buffer_m, offset, size,}; }
+VkDescriptorBufferInfo buffer::descriptor_info(VkDeviceSize size, VkDeviceSize offset) 
+{ return VkDescriptorBufferInfo{buffer_, offset, size,}; }
  
 /**
  * Copies "instanceSize" bytes of data to the mapped buffer at an offset of index * alignmentSize
@@ -166,8 +166,8 @@ VkDescriptorBufferInfo HveBuffer::descriptorInfo(VkDeviceSize size, VkDeviceSize
  * @param index Used in offset calculation
  *
  */
-void HveBuffer::writeToIndex(void *data, int index) 
-{ writeToBuffer(data, instanceSize_m, index * alignmentSize_m); }
+void buffer::write_to_index(void *data, int index) 
+{ write_to_buffer(data, instance_size_, index * alignment_size_); }
  
 /**
  *  Flush the memory range at index * alignmentSize of the buffer to make it visible to the device
@@ -175,8 +175,8 @@ void HveBuffer::writeToIndex(void *data, int index)
  * @param index Used in offset calculation
  *
  */
-VkResult HveBuffer::flushIndex(int index) 
-{ return flush(alignmentSize_m, index * alignmentSize_m); }
+VkResult buffer::flush_index(int index) 
+{ return flush(alignment_size_, index * alignment_size_); }
  
 /**
  * Create a buffer info descriptor
@@ -185,8 +185,8 @@ VkResult HveBuffer::flushIndex(int index)
  *
  * @return VkDescriptorBufferInfo for instance at index
  */
-VkDescriptorBufferInfo HveBuffer::descriptorInfoForIndex(int index) 
-{ return descriptorInfo(alignmentSize_m, index * alignmentSize_m); }
+VkDescriptorBufferInfo buffer::descriptor_info_for_index(int index) 
+{ return descriptor_info(alignment_size_, index * alignment_size_); }
  
 /**
  * Invalidate a memory range of the buffer to make it visible to the host
@@ -197,7 +197,7 @@ VkDescriptorBufferInfo HveBuffer::descriptorInfoForIndex(int index)
  *
  * @return VkResult of the invalidate call
  */
-VkResult HveBuffer::invalidateIndex(int index)
-{ return invalidate(alignmentSize_m, index * alignmentSize_m); }
+VkResult buffer::invalidate_index(int index)
+{ return invalidate(alignment_size_, index * alignment_size_); }
  
 }  // namespace engine

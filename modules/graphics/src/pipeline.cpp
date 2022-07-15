@@ -11,138 +11,138 @@ namespace hnll {
 
 // what kind of geometry will be drawn from the vertices (topoloby) and
 // if primitive restart should be enabled
-void PipelineConfigInfo::createInputAssemblyInfo()
+void pipeline_config_info::create_input_assembly_info()
 {
-  inputAssemblyInfo_m.sType = 
+  input_assembly_info.sType = 
       VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-  inputAssemblyInfo_m.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-  inputAssemblyInfo_m.primitiveRestartEnable = VK_FALSE;
+  input_assembly_info.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+  input_assembly_info.primitiveRestartEnable = VK_FALSE;
 }
 
-void PipelineConfigInfo::createViewportInfo()
+void pipeline_config_info::create_viewport_info()
 {
 
-  viewportInfo_m.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+  viewport_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
   // by enabling a GPU feature in logical device creation,
   // its possible to use multiple viewports
-  viewportInfo_m.viewportCount = 1;
-  viewportInfo_m.pViewports = nullptr;
-  viewportInfo_m.scissorCount = 1;
-  viewportInfo_m.pScissors = nullptr;
+  viewport_info.viewportCount = 1;
+  viewport_info.pViewports = nullptr;
+  viewport_info.scissorCount = 1;
+  viewport_info.pScissors = nullptr;
 }
 
-void PipelineConfigInfo::createRasterizationInfo()
+void pipeline_config_info::create_rasterization_info()
 {
-  rasterizationInfo_m.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+  rasterization_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
   // using this requires enabling a GPU feature
-  rasterizationInfo_m.depthClampEnable = VK_FALSE;
+  rasterization_info.depthClampEnable = VK_FALSE;
   // if rasterizationInfo_mDiscardEnable is set to VK_TRUE, then geometry never passes
-  // through the rasterizationInfo_m stage, basically disables any output to the frame_buffer
-  rasterizationInfo_m.rasterizerDiscardEnable = VK_FALSE;
+  // through the rasterization_info stage, basically disables any output to the frame_buffer
+  rasterization_info.rasterizerDiscardEnable = VK_FALSE;
   // how fragments are generated for geometry
   // using any mode other than fill requires GPU feature
-  rasterizationInfo_m.polygonMode = VK_POLYGON_MODE_FILL;
-  rasterizationInfo_m.lineWidth = 1.0f;
-  // rasterizationInfo_m.cullMode = VK_CULL_MODE_BACK_BIT;
-  rasterizationInfo_m.cullMode = VK_CULL_MODE_NONE;
-  rasterizationInfo_m.frontFace = VK_FRONT_FACE_CLOCKWISE;
+  rasterization_info.polygonMode = VK_POLYGON_MODE_FILL;
+  rasterization_info.lineWidth = 1.0f;
+  // rasterization_info.cullMode = VK_CULL_MODE_BACK_BIT;
+  rasterization_info.cullMode = VK_CULL_MODE_NONE;
+  rasterization_info.frontFace = VK_FRONT_FACE_CLOCKWISE;
   // consider this when shadow mapping is necessary
-  rasterizationInfo_m.depthBiasEnable = VK_FALSE;
-  rasterizationInfo_m.depthBiasConstantFactor = 0.0f;
-  rasterizationInfo_m.depthBiasClamp = 0.0f;
-  rasterizationInfo_m.depthBiasSlopeFactor = 0.0f;
+  rasterization_info.depthBiasEnable = VK_FALSE;
+  rasterization_info.depthBiasConstantFactor = 0.0f;
+  rasterization_info.depthBiasClamp = 0.0f;
+  rasterization_info.depthBiasSlopeFactor = 0.0f;
 }
 
 // used for anti-aliasing
-void PipelineConfigInfo::createMultisampleState()
+void pipeline_config_info::create_multi_sample_state()
 {
-  multisampleInfo_m.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-  multisampleInfo_m.sampleShadingEnable = VK_FALSE;
-  multisampleInfo_m.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-  multisampleInfo_m.minSampleShading = 1.0f;
-  multisampleInfo_m.pSampleMask = nullptr;
-  multisampleInfo_m.alphaToCoverageEnable = VK_FALSE;
-  multisampleInfo_m.alphaToOneEnable = VK_FALSE;
+  multi_sample_info.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+  multi_sample_info.sampleShadingEnable = VK_FALSE;
+  multi_sample_info.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+  multi_sample_info.minSampleShading = 1.0f;
+  multi_sample_info.pSampleMask = nullptr;
+  multi_sample_info.alphaToCoverageEnable = VK_FALSE;
+  multi_sample_info.alphaToOneEnable = VK_FALSE;
 }
 
 // color blending for alpha blending
-void PipelineConfigInfo::createColorBlendAttachment()
+void pipeline_config_info::create_color_blend_attachment()
 {
   // per framebuffer struct
   // in contrast, VkPipelineColcorBlendStateCreateInfo is global color blending settings
-  colorBlendAttachment_m.colorWriteMask = VK_COLOR_COMPONENT_R_BIT |
+  color_blend_attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT |
             VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT; 
-  colorBlendAttachment_m.blendEnable = VK_FALSE;
-  colorBlendAttachment_m.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
-  colorBlendAttachment_m.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
-  colorBlendAttachment_m.colorBlendOp = VK_BLEND_OP_ADD; // Optional 
-  colorBlendAttachment_m.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; //Optional
-  colorBlendAttachment_m.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; //Optional
-  colorBlendAttachment_m.alphaBlendOp = VK_BLEND_OP_ADD; 
-  colorBlendAttachment_m.blendEnable = VK_TRUE;
-  colorBlendAttachment_m.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA; 
-  colorBlendAttachment_m.dstColorBlendFactor =VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA; 
-  colorBlendAttachment_m.colorBlendOp = VK_BLEND_OP_ADD; 
-  colorBlendAttachment_m.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; 
-  colorBlendAttachment_m.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-  colorBlendAttachment_m.alphaBlendOp = VK_BLEND_OP_ADD;
+  color_blend_attachment.blendEnable = VK_FALSE;
+  color_blend_attachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+  color_blend_attachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
+  color_blend_attachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional 
+  color_blend_attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; //Optional
+  color_blend_attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; //Optional
+  color_blend_attachment.alphaBlendOp = VK_BLEND_OP_ADD; 
+  color_blend_attachment.blendEnable = VK_TRUE;
+  color_blend_attachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA; 
+  color_blend_attachment.dstColorBlendFactor =VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA; 
+  color_blend_attachment.colorBlendOp = VK_BLEND_OP_ADD; 
+  color_blend_attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; 
+  color_blend_attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+  color_blend_attachment.alphaBlendOp = VK_BLEND_OP_ADD;
 }
 
-void PipelineConfigInfo::createColorBlendState()
+void pipeline_config_info::create_color_blend_state()
 {
-  colorBlendInfo_m.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-  colorBlendInfo_m.logicOpEnable = VK_FALSE; 
-  colorBlendInfo_m.logicOp = VK_LOGIC_OP_COPY; // Optional 
-  colorBlendInfo_m.attachmentCount = 1; 
-  colorBlendInfo_m.pAttachments = &colorBlendAttachment_m; 
-  colorBlendInfo_m.blendConstants[0] = 0.0f; // Optional 
-  colorBlendInfo_m.blendConstants[1] = 0.0f; // Optional
-  colorBlendInfo_m.blendConstants[2] = 0.0f; // Optional 
-  colorBlendInfo_m.blendConstants[3] = 0.0f; // Optional
+  color_blend_info.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+  color_blend_info.logicOpEnable = VK_FALSE; 
+  color_blend_info.logicOp = VK_LOGIC_OP_COPY; // Optional 
+  color_blend_info.attachmentCount = 1; 
+  color_blend_info.pAttachments = &color_blend_attachment; 
+  color_blend_info.blendConstants[0] = 0.0f; // Optional 
+  color_blend_info.blendConstants[1] = 0.0f; // Optional
+  color_blend_info.blendConstants[2] = 0.0f; // Optional 
+  color_blend_info.blendConstants[3] = 0.0f; // Optional
 }
 
-void PipelineConfigInfo::createDepthStencilState()
+void pipeline_config_info::create_depth_stencil_state()
 {
-  depthStencilInfo_m.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-  depthStencilInfo_m.depthTestEnable = VK_TRUE;
-  depthStencilInfo_m.depthWriteEnable = VK_TRUE;
-  depthStencilInfo_m.depthCompareOp = VK_COMPARE_OP_LESS;
-  depthStencilInfo_m.depthBoundsTestEnable = VK_FALSE;
-  depthStencilInfo_m.minDepthBounds = 0.0f;  // Optional
-  depthStencilInfo_m.maxDepthBounds = 1.0f;  // Optional
-  depthStencilInfo_m.stencilTestEnable = VK_FALSE;
-  depthStencilInfo_m.front = {};  // Optional
-  depthStencilInfo_m.back = {};   // Optional
+  depth_stencil_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+  depth_stencil_info.depthTestEnable = VK_TRUE;
+  depth_stencil_info.depthWriteEnable = VK_TRUE;
+  depth_stencil_info.depthCompareOp = VK_COMPARE_OP_LESS;
+  depth_stencil_info.depthBoundsTestEnable = VK_FALSE;
+  depth_stencil_info.minDepthBounds = 0.0f;  // Optional
+  depth_stencil_info.maxDepthBounds = 1.0f;  // Optional
+  depth_stencil_info.stencilTestEnable = VK_FALSE;
+  depth_stencil_info.front = {};  // Optional
+  depth_stencil_info.back = {};   // Optional
 }
 
 // a limited amount of the state can be actually be changed without recreating the pipeline
-void PipelineConfigInfo::createDynamicState()
+void pipeline_config_info::create_dynamic_state()
 {
-  dynamicStateEnables_m = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
-  dynamicStateInfo_m.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-  dynamicStateInfo_m.dynamicStateCount = static_cast<uint32_t>(dynamicStateEnables_m.size()); 
-  dynamicStateInfo_m.pDynamicStates = dynamicStateEnables_m.data();
-  dynamicStateInfo_m.flags = 0;
+  dynamic_state_enables = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+  dynamic_state_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+  dynamic_state_info.dynamicStateCount = static_cast<uint32_t>(dynamic_state_enables.size()); 
+  dynamic_state_info.pDynamicStates = dynamic_state_enables.data();
+  dynamic_state_info.flags = 0;
 }
 
 
-HvePipeline::HvePipeline(
+pipeline::pipeline(
   device &device,
   const std::string &vertFilepath,
   const std::string &fragFilepath,
-  const PipelineConfigInfo &configInfo) : hveDevice_m(device)
+  const pipeline_config_info &configInfo) : device_(device)
 {
-  createGraphicsPipeline(vertFilepath, fragFilepath, configInfo);
+  create_graphics_pipeline(vertFilepath, fragFilepath, configInfo);
 }
 
-HvePipeline::~HvePipeline()
+pipeline::~pipeline()
 {
-  vkDestroyShaderModule(hveDevice_m.device(), vertShaderModule_m, nullptr);
-  vkDestroyShaderModule(hveDevice_m.device(), fragShaderModule_m, nullptr);
-  vkDestroyPipeline(hveDevice_m.device(), graphicsPipeline_m, nullptr);
+  vkDestroyShaderModule(device_.device(), vertex_shader_module_, nullptr);
+  vkDestroyShaderModule(device_.device(), fragment_shader_module_, nullptr);
+  vkDestroyPipeline(device_.device(), graphics_pipeline_, nullptr);
 }
 
-std::vector<char> HvePipeline::readFile(const std::string& filepath)
+std::vector<char> pipeline::read_file(const std::string& filepath)
 {
   // construct and open
   // immidiately read as binary
@@ -161,29 +161,29 @@ std::vector<char> HvePipeline::readFile(const std::string& filepath)
   return buffer;
 }
 
-void HvePipeline::createGraphicsPipeline(
+void pipeline::create_graphics_pipeline(
     const std::string &vertFilepath, 
     const std::string &fragFilepath, 
-    const PipelineConfigInfo &configInfo)
+    const pipeline_config_info &configInfo)
 {
-  auto vertCode = readFile(vertFilepath);
-  auto fragCode = readFile(fragFilepath);
+  auto vertCode = read_file(vertFilepath);
+  auto fragCode = read_file(fragFilepath);
 
-  createShaderModule(vertCode, &vertShaderModule_m);
-  createShaderModule(fragCode, &fragShaderModule_m);
+  create_shader_module(vertCode, &vertex_shader_module_);
+  create_shader_module(fragCode, &fragment_shader_module_);
 
   VkPipelineShaderStageCreateInfo shaderStages[2] =
-    { createVertShaderStageInfo(), createFragShaderStageInfo() };
+    { create_vertex_shader_stage_info(), create_fragment_shader_stage_info() };
 
-  auto vertexInputInfo = createVertexInputInfo();
+  auto vertexInputInfo = create_vertex_input_info();
 
   // accept vertex data
-  auto& bindingDescriptions = configInfo.bindingDescriptions;
-  auto& attributeDescriptions = configInfo.attributeDescriptions; 
-  vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
-  vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data(); //optional
-  vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-  vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data(); //optional
+  auto& binding_descriptions = configInfo.binding_descriptions;
+  auto& attribute_descriptions = configInfo.attribute_descriptions; 
+  vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(binding_descriptions.size());
+  vertexInputInfo.pVertexBindingDescriptions = binding_descriptions.data(); //optional
+  vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_descriptions.size());
+  vertexInputInfo.pVertexAttributeDescriptions = attribute_descriptions.data(); //optional
 
   VkGraphicsPipelineCreateInfo pipelineInfo{};
   pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -191,31 +191,31 @@ void HvePipeline::createGraphicsPipeline(
   pipelineInfo.stageCount = 2;
   pipelineInfo.pStages = shaderStages;
   pipelineInfo.pVertexInputState = &vertexInputInfo;
-  pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo_m;
-  pipelineInfo.pViewportState = &configInfo.viewportInfo_m;
-  pipelineInfo.pRasterizationState = &configInfo.rasterizationInfo_m;
-  pipelineInfo.pMultisampleState = &configInfo.multisampleInfo_m;
-  pipelineInfo.pColorBlendState = &configInfo.colorBlendInfo_m;
-  pipelineInfo.pDepthStencilState = &configInfo.depthStencilInfo_m;
-  pipelineInfo.pDynamicState = &configInfo.dynamicStateInfo_m;
+  pipelineInfo.pInputAssemblyState = &configInfo.input_assembly_info;
+  pipelineInfo.pViewportState = &configInfo.viewport_info;
+  pipelineInfo.pRasterizationState = &configInfo.rasterization_info;
+  pipelineInfo.pMultisampleState = &configInfo.multi_sample_info;
+  pipelineInfo.pColorBlendState = &configInfo.color_blend_info;
+  pipelineInfo.pDepthStencilState = &configInfo.depth_stencil_info;
+  pipelineInfo.pDynamicState = &configInfo.dynamic_state_info;
 
-  pipelineInfo.layout = configInfo.pipelineLayout_m;
-  pipelineInfo.renderPass = configInfo.renderPass_m;
-  pipelineInfo.subpass = configInfo.subpass_m;
+  pipelineInfo.layout = configInfo.pipeline_layout;
+  pipelineInfo.renderPass = configInfo.render_pass;
+  pipelineInfo.subpass = configInfo.subpass;
 
   pipelineInfo.basePipelineIndex = -1;
   pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
   // its possible to create multiple VkPipeline objects in a single call
   // second parameter means cache objects enables significantly faster creation
-  if (vkCreateGraphicsPipelines(hveDevice_m.device(), VK_NULL_HANDLE, 1,
-    &pipelineInfo, nullptr, &graphicsPipeline_m) != VK_SUCCESS)
+  if (vkCreateGraphicsPipelines(device_.device(), VK_NULL_HANDLE, 1,
+    &pipelineInfo, nullptr, &graphics_pipeline_) != VK_SUCCESS)
     throw std::runtime_error("failed to create graphics pipeline!");
 
 
 }
 
-void HvePipeline::createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule)
+void pipeline::create_shader_module(const std::vector<char>& code, VkShaderModule* shaderModule)
 {
   VkShaderModuleCreateInfo createInfo{};
   createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -223,38 +223,38 @@ void HvePipeline::createShaderModule(const std::vector<char>& code, VkShaderModu
   // char to uint32_t
   createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
-  if (vkCreateShaderModule(hveDevice_m.device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS)
+  if (vkCreateShaderModule(device_.device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS)
     throw std::runtime_error("failed to create shader module!");
 } 
 
 
-VkPipelineShaderStageCreateInfo HvePipeline::createVertShaderStageInfo()
+VkPipelineShaderStageCreateInfo pipeline::create_vertex_shader_stage_info()
 {
   VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
   vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-  vertShaderStageInfo.module = vertShaderModule_m;
+  vertShaderStageInfo.module = vertex_shader_module_;
   // the function to invoke
   vertShaderStageInfo.pName = "main";
   return vertShaderStageInfo;
 }
 
-VkPipelineShaderStageCreateInfo HvePipeline::createFragShaderStageInfo()
+VkPipelineShaderStageCreateInfo pipeline::create_fragment_shader_stage_info()
 {
   VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
   fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-  fragShaderStageInfo.module = fragShaderModule_m;
+  fragShaderStageInfo.module = fragment_shader_module_;
   // the function to invoke
   fragShaderStageInfo.pName = "main";
   return fragShaderStageInfo;
 }
 
-VkPipelineVertexInputStateCreateInfo HvePipeline::createVertexInputInfo()
+VkPipelineVertexInputStateCreateInfo pipeline::create_vertex_input_info()
 {
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    // configrate in createGraphicsPipeline()
+    // configrate in create_graphics_pipeline()
     // vertexInputInfo.vertexAttributeDescriptionCount = 0;
     // vertexInputInfo.vertexBindingDescriptionCount = 0;
     // vertexInputInfo.pVertexAttributeDescriptions = nullptr;
@@ -263,26 +263,26 @@ VkPipelineVertexInputStateCreateInfo HvePipeline::createVertexInputInfo()
     return vertexInputInfo;
 }
 
-void HvePipeline::bind(VkCommandBuffer commandBuffer)
+void pipeline::bind(VkCommandBuffer commandBuffer)
 {
   // basic drawing commands
   // bind the graphics pipeline
   // the second parameter specifies if the pipeline object is a graphics or compute pipeline or ray tracer
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline_m);
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphics_pipeline_);
 }
 
-void HvePipeline::defaultPipelineConfigInfo(PipelineConfigInfo &configInfo)
+void pipeline::default_pipeline_config_info(pipeline_config_info &configInfo)
 {
-  configInfo.createInputAssemblyInfo();
-  configInfo.createViewportInfo();
-  configInfo.createRasterizationInfo();
-  configInfo.createMultisampleState();
-  configInfo.createColorBlendAttachment();
-  configInfo.createColorBlendState();
-  configInfo.createDepthStencilState();
-  configInfo.createDynamicState();
+  configInfo.create_input_assembly_info();
+  configInfo.create_viewport_info();
+  configInfo.create_rasterization_info();
+  configInfo.create_multi_sample_state();
+  configInfo.create_color_blend_attachment();
+  configInfo.create_color_blend_state();
+  configInfo.create_depth_stencil_state();
+  configInfo.create_dynamic_state();
 
-  configInfo.bindingDescriptions = mesh_model::Vertex::getBindingDescriptions();
-  configInfo.attributeDescriptions = mesh_model::Vertex::getAttributeDescriptions();
+  configInfo.binding_descriptions = mesh_model::vertex::get_binding_descriptions();
+  configInfo.attribute_descriptions = mesh_model::vertex::get_attribute_descriptions();
 }
 } // namespace hve

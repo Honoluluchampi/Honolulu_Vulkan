@@ -8,19 +8,21 @@
 #include <vector>
 
 namespace hnll {
+namespace graphics {
 
-class MeshRenderingSystem : public HveRenderingSystem
+class mesh_rendering_system : public rendering_system
 {
   public:
-    MeshRenderingSystem(device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
-    ~MeshRenderingSystem();
+    mesh_rendering_system(device& device, VkRenderPass render_pass, VkDescriptorSetLayout global_set_layout);
+    ~mesh_rendering_system();
 
-    // dont make HveCamera object as a member variable so as to share the camera between multiple render system
-    void render(FrameInfo frameInfo) override;
+    // dont make camera object as a member variable so as to share the camera between multiple render system
+    void render(frame_info frame_info) override;
     
   private:
-    void createPipelineLayout(VkDescriptorSetLayout globalSetLayout) override;
-    void createPipeline(VkRenderPass renderPass) override;
+    void create_pipeline_layout(VkDescriptorSetLayout global_set_layout) override;
+    void create_pipeline(VkRenderPass render_pass) override;
 };
 
-} // namespace hv
+} // namespac graphics
+} // namespace hnll

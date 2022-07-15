@@ -12,138 +12,140 @@
 #include <memory>
 
 namespace hnll {
+namespace graphics {
 
 // TODO : configure renderer count in a systematic way
 #define RENDERER_COUNT 2
 #define HVE_RENDER_PASS_ID 0
 #define HIE_RENDER_PASS_ID 1
 
-class HveSwapChain {
+class swap_chain {
  public:
   static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
-  HveSwapChain(device &deviceRef, VkExtent2D windowExtent);
-  HveSwapChain(device &deviceRef, VkExtent2D windowExtent, std::unique_ptr<HveSwapChain> previous);
-  ~HveSwapChain();
+  swap_chain(device &device, VkExtent2D window_extent);
+  swap_chain(device &device, VkExtent2D window_extent, std::unique_ptr<swap_chain> previous);
+  ~swap_chain();
 
-  HveSwapChain(const HveSwapChain &) = delete;
-  HveSwapChain& operator=(const HveSwapChain &) = delete;
+  swap_chain(const swap_chain &) = delete;
+  swap_chain& operator=(const swap_chain &) = delete;
 
-#ifdef __IMGUI_DISABLED
-  VkFramebuffer getFrameBuffer(int index) { return swapChainFramebuffers_m[index]; }
-  VkRenderPass getRenderPass() { return renderPass_m; }
+#ifdef IMGUI_DISABLED
+  VkFramebuffer get_frame_buffer(int index) { return swap_chain_frame_buffers_[index]; }
+  VkRenderPass get_render_pass() { return render_pass_; }
 #else
-  VkFramebuffer getFramebuffer(int renderPassId, int index)
-  { return multipleFramebuffers_m[renderPassId][index]; }
-  VkRenderPass getRenderPass(int renderPassId)
-  { return multipleRenderPass_m[renderPassId]; }
+  VkFramebuffer get_frame_buffer(int render_pass_id, int index)
+  { return multiple_frame_buffers_[render_pass_id][index]; }
+  VkRenderPass get_render_pass(int render_pass_id)
+  { return multiple_render_pass_[render_pass_id]; }
 #endif
 
-  VkImageView getImageView(int index) { return swapChainImageViews_m[index]; }
-  size_t imageCount() { return swapChainImages_m.size(); }
-  VkFormat getSwapChainImageFormat() { return swapChainImageFormat_m; }
-  VkExtent2D getSwapChainExtent() { return swapChainExtent_m; }
-  uint32_t width() { return swapChainExtent_m.width; }
-  uint32_t height() { return swapChainExtent_m.height; }
-  const VkSemaphore& getCurrentImageAvailableSemaphore() const
-  { return imageAvailableSemaphores_m[currentFrame_m]; }
-  const VkSemaphore& getCurrentRenderFinishedSemaphore() const
-  { return renderFinishedSemaphores_m[currentFrame_m]; }
-  const VkFence& getCurrentInFlightFence() const 
-  { return inFlightFences_m[currentFrame_m]; }
-  const VkFence& getCurrentImagesInFlightFence() const
-  { return imagesInFlight_m[currentFrame_m]; }
+  VkImageView get_image_view(int index) { return swap_chain_image_views_[index]; }
+  size_t get_image_count() { return swap_chain_images_.size(); }
+  VkFormat get_swap_chain_images_format() { return swap_chain_image_format_; }
+  VkExtent2D get_swap_chain_extent() { return swap_chain_extent_; }
+  uint32_t get_width() { return swap_chain_extent_.width; }
+  uint32_t get_height() { return swap_chain_extent_.height; }
+  const VkSemaphore& get_current_image_available_semaphore() const
+  { return image_available_semaphores_[current_frame_]; }
+  const VkSemaphore& get_current_render_finished_semaphore() const
+  { return render_finished_semaphores_[current_frame_]; }
+  const VkFence& get_current_in_flight_fence() const 
+  { return in_flight_fences_[current_frame_]; }
+  const VkFence& get_current_images_in_flight_fence() const
+  { return images_in_flight_[current_frame_]; }
 
-  float extentAspectRatio() 
-  { return static_cast<float>(swapChainExtent_m.width) / static_cast<float>(swapChainExtent_m.height); }
-  VkFormat findDepthFormat();
+  float extent_aspect_ratio() 
+  { return static_cast<float>(swap_chain_extent_.width) / static_cast<float>(swap_chain_extent_.height); }
+  VkFormat find_depth_format();
 
-  VkResult acquireNextImage(uint32_t *imageIndex);
-  VkResult submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex);
+  VkResult acquire_next_image(uint32_t *image_index);
+  VkResult submit_command_buffers(const VkCommandBuffer *buffers, uint32_t *image_index);
 
-  // swap chain validation whether its compatible with the renderPass
-  bool compareSwapChainFormats(const HveSwapChain& swapChain) const 
-  { return (swapChain.swapChainDepthFormat_m == swapChainDepthFormat_m) && (swapChain.swapChainImageFormat_m == swapChainImageFormat_m); }
+  // swap chain validation whether its compatible with the render_pass
+  bool compare_swap_chain_formats(const swap_chain& swap_chain) const 
+  { return (swap_chain.swap_chain_depth_format_ == this->swap_chain_depth_format_) && (swap_chain.swap_chain_image_format_ == this->swap_chain_image_format_); }
 
-#ifndef __IMGUI_DISABLED
-  void setRenderPass(VkRenderPass renderPass, int renderPassId)
+#ifndef IMGUI_DISABLED
+  void set_render_pass(VkRenderPass render_pass, int render_pass_id)
   { 
-    resetRenderPass(renderPassId);
-    multipleRenderPass_m[renderPassId] = renderPass; 
+    reset_render_pass(render_pass_id);
+    multiple_render_pass_[render_pass_id] = render_pass; 
   }
 
   // VFB : std::vector<VkFramebuffer>
   template <class VFB>
-  void setFramebuffers(VFB&& framebuffers, int renderPassId)
+  void set_frame_buffers(VFB&& frame_buffers, int render_pass_id)
   { 
-    resetFramebuffers(renderPassId);
-    multipleFramebuffers_m[renderPassId] = std::forward<VFB>(framebuffers); 
+    reset_frame_buffers(render_pass_id);
+    multiple_frame_buffers_[render_pass_id] = std::forward<VFB>(frame_buffers); 
   }
 #endif
 
  private:
   void init();
-  void createSwapChain();
-  void createImageViews();
-  void createDepthResources();
-  void createSyncObjects();
+  void create_swap_chain();
+  void create_image_views();
+  void create_depth_resources();
+  void create_sync_objects();
 
-  VkRenderPass createRenderPass();
-  std::vector<VkFramebuffer> createFramebuffers(VkRenderPass renderPass);
+  VkRenderPass create_render_pass();
+  std::vector<VkFramebuffer> create_frame_buffers(VkRenderPass render_pass);
 
-#ifndef __IMGUI_DISABLED
-  void createMultipleFramebuffers();
-  void createMultipleRenderPass();
-  void resetFramebuffers(int renderPassId);
-  void resetRenderPass(int renderPassId);
+#ifndef IMGUI_DISABLED
+  void create_multiple_frame_buffers();
+  void create_multiple_render_pass();
+  void reset_frame_buffers(int render_pass_id);
+  void reset_render_pass(int render_pass_id);
 #endif
 
   // Helper functions
-  VkSurfaceFormatKHR chooseSwapSurfaceFormat(
-    const std::vector<VkSurfaceFormatKHR> &availableFormats);
+  VkSurfaceFormatKHR choose_swap_surface_format(
+    const std::vector<VkSurfaceFormatKHR> &available_formats);
   // most important settings for swap chain
-  VkPresentModeKHR chooseSwapPresentMode(
-    const std::vector<VkPresentModeKHR> &availablePresentModes);
+  VkPresentModeKHR choose_swap_present_mode(
+    const std::vector<VkPresentModeKHR> &available_present_modes);
   // choose resolution of output
-  VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
+  VkExtent2D choose_swap_extent(const VkSurfaceCapabilitiesKHR &capabilities);
 
-  VkFormat swapChainImageFormat_m;
-  VkFormat swapChainDepthFormat_m;
-  VkExtent2D swapChainExtent_m;
+  VkFormat swap_chain_image_format_;
+  VkFormat swap_chain_depth_format_;
+  VkExtent2D swap_chain_extent_;
 
   // tell Vulkan about the framebuffer attachments that will be used while rendering
   // how many color and depth buffers there will be
   // how many samples to use for each of them
-#ifdef __IMGUI_DISABLED
-  std::vector<VkFramebuffer> swapChainFramebuffers_m;
-  VkRenderPass renderPass_m;
+#ifdef IMGUI_DISABLED
+  std::vector<VkFramebuffer> swap_chain_frame_buffers_;
+  VkRenderPass render_pass_;
 #else
-  std::vector<std::vector<VkFramebuffer>> multipleFramebuffers_m;
-  std::vector<VkRenderPass> multipleRenderPass_m;
+  std::vector<std::vector<VkFramebuffer>> multiple_frame_buffers_;
+  std::vector<VkRenderPass> multiple_render_pass_;
 #endif
 
-  std::vector<VkImage> depthImages_m;
-  std::vector<VkDeviceMemory> depthImageMemorys_m;
-  std::vector<VkImageView> depthImageViews_m;
-  std::vector<VkImage> swapChainImages_m;
-  std::vector<VkImageView> swapChainImageViews_m;
+  std::vector<VkImage> depth_images_;
+  std::vector<VkDeviceMemory> depth_image_memories_;
+  std::vector<VkImageView> depth_image_views_;
+  std::vector<VkImage> swap_chain_images_;
+  std::vector<VkImageView> swap_chain_image_views_;
 
-  device &device_m;
-  VkExtent2D windowExtent_m;
+  device &device_;
+  VkExtent2D window_extent_;
 
-  VkSwapchainKHR swapChain_m;
-  std::unique_ptr<HveSwapChain> oldSwapChain_m;
+  VkSwapchainKHR swap_chain_;
+  std::unique_ptr<swap_chain> old_swap_chain_;
 
   // an image has been acquired and is ready for rendering
-  std::vector<VkSemaphore> imageAvailableSemaphores_m;
+  std::vector<VkSemaphore> image_available_semaphores_;
   // rendering has finished and presentation can happen
-  std::vector<VkSemaphore> renderFinishedSemaphores_m;
+  std::vector<VkSemaphore> render_finished_semaphores_;
   // to use the right pair of semaphores every time
-  size_t currentFrame_m = 0;
+  size_t current_frame_ = 0;
   // for CPU-GPU synchronization
-  std::vector<VkFence> inFlightFences_m;
+  std::vector<VkFence> in_flight_fences_;
   // wait on before a new frame can use that image
-  std::vector<VkFence> imagesInFlight_m;
+  std::vector<VkFence> images_in_flight_;
 };
 
-}  // namespace lve
+} // namespace graphics
+} // namespace hnll

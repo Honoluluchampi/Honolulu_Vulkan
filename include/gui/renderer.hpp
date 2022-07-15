@@ -4,26 +4,28 @@
 #include <graphics/renderer.hpp>
 
 namespace hnll {
+namespace gui {
 
 #define HIE_RENDER_PASS_ID 1
 
-class HieRenderer : public renderer
+class renderer : public hnll::graphics::renderer
 {
   public:
-    HieRenderer(HveWindow& window, device& hveDevice, bool recreateFromScratch);
+    renderer(hnll::graphics::window& window, hnll::graphics::device& device, bool recreate_from_scratch);
 
-    HieRenderer(const HieRenderer&) = delete;
-    HieRenderer& operator= (const HieRenderer&) = delete;
+    renderer(const renderer&) = delete;
+    renderer& operator= (const renderer&) = delete;
 
-    inline VkRenderPass getRenderPass()
-    { return hveSwapChain_m->getRenderPass(HIE_RENDER_PASS_ID); }
+    inline VkRenderPass get_render_pass()
+    { return swap_chain_->get_render_pass(HIE_RENDER_PASS_ID); }
 
-    void recreateSwapChain() override;
+    void recreate_swap_chain() override;
 
   private:
     // specific for hie
-    VkRenderPass createRenderPass();
-    std::vector<VkFramebuffer> createFramebuffers();
+    VkRenderPass create_render_pass();
+    std::vector<VkFramebuffer> create_frame_buffers();
 };
 
+} // namespace gui
 } // namespace hnll

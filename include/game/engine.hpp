@@ -58,9 +58,9 @@ public:
   void replace_renderable_component(S&& comp) { graphics_engine_up_->replace_renderable_component(std::forward<S>(comp)); }
   void remove_renderable_component(render_type type, component::id id) { graphics_engine_up_->remove_renderable_component_without_owner(type, id); }
 
-  void add_point_light(s_ptr<actor>& owner, s_ptr<point_light_component>& lightComp);
+  void add_point_light(s_ptr<actor>& owner, s_ptr<point_light_component>& light_comp);
   // TODO : delete this func
-  void add_point_light_without_owner(s_ptr<point_light_component>& lightComp);
+  void add_point_light_without_owner(s_ptr<point_light_component>& light_comp);
   void remove_point_light_without_owner(component::id id);
 
   void set_camera_transform(const hnll::utils::transform& transform){ camera_up_->get_transform() = transform; }
@@ -68,9 +68,9 @@ public:
   // getter
   hnll::graphics::engine& get_graphics_engine() { return *graphics_engine_up_; }
   hnll::graphics::device& get_graphics_device() { return graphics_engine_up_->get_device(); }
-  s_ptr<hnll::graphics::mesh_model> get_mesh_model_sp(std::string modelName) { return mesh_model_map_[modelName]; }
+  s_ptr<hnll::graphics::mesh_model> get_mesh_model_sp(std::string model_name) { return mesh_model_map_[model_name]; }
 
-#ifndef __IMGUI_DISABLED
+#ifndef IMGUI_DISABLED
   u_ptr<hnll::gui::engine>& get_gui_engine_up() { return gui_engine_up_; }
 #endif
   // move u_ptr<func> before add
@@ -86,7 +86,7 @@ protected:
   s_ptr<point_light_manager> upLightManager_;
 
 private:
-  inline void set_glfw_window() { glfwWindow_m = graphics_engine_up_->passGLFWwindow() ; }
+  inline void set_glfw_window() { glfwWindow_m = graphics_engine_up_->get_glfw_window() ; }
   void cleanup();
   void process_input();
   void update();
@@ -94,7 +94,7 @@ private:
   virtual void update_game(float dt){}
   void render();
 
-#ifndef __IMGUI_DISABLED
+#ifndef IMGUI_DISABLED
   void update_gui();
   virtual void update_game_gui(){}
 #endif
@@ -119,7 +119,7 @@ private:
 
   u_ptr<hnll::graphics::engine> graphics_engine_up_;
 
-#ifndef __IMGUI_DISABLED
+#ifndef IMGUI_DISABLED
   u_ptr<hnll::gui::engine> gui_engine_up_;
 #endif
 
