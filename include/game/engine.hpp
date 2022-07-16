@@ -45,7 +45,7 @@ public:
   {
     auto actor = std::make_shared<ActorClass>(args...);
     // create s_ptr of actor perform as actor
-    std::shared_ptr<actor> prt_for_actor_map = actor;
+    std::shared_ptr<hnll::game::actor> prt_for_actor_map = actor;
     // register it to the actor map
     pending_actor_map_.emplace(prt_for_actor_map->get_id(), prt_for_actor_map);
     return actor;

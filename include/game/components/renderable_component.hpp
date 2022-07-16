@@ -4,9 +4,6 @@
 #include <game/component.hpp>
 #include <utils/utils.hpp>
 
-// std
-#include <memory>
-
 namespace hnll {
 namespace game {
 
@@ -33,7 +30,7 @@ class renderable_component : public hnll::game::component
     const render_type get_render_type() const { return render_type_; }
 
     // setter
-    template<class V> void set_transform(V&& vec) { transform_up = std::make_unique<hnll::utils::transform>(vec); }
+    template<class V> void set_transform(V&& vec) { transform_up_ = std::make_unique<hnll::utils::transform>(vec); }
     template<class V> void set_translation(V&& vec) { transform_up_->translation = std::forward<V>(vec); }    
     template<class V> void set_scale(V&& vec) { transform_up_->scale = std::forward<V>(vec); }
     template<class V> void set_rotation(V&& vec) { transform_up_->rotation = std::forward<V>(vec); }    

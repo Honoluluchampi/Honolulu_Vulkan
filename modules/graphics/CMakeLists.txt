@@ -7,12 +7,12 @@ if (APPLE)
         $ENV{GLFW_DIR}/include
         $ENV{GLM_DIR}/include
         $ENV{VULKAN_DIR}/include/
-        $ENV{TINY_OBJ_LOADER_DIR}
+        ${PROJECT_SOURCE_DIR}/submodules/tiny_obj_loader
     )
 elseif (UNIX)
     target_include_directories(hnll_graphics PUBLIC
         ${PROJECT_SOURCE_DIR}/include
         $ENV{VULKAN_DIR}/include
-        $ENV{TINY_OBJ_LOADER_DIR}
+        ${PROJECT_SOURCE_DIR}/submodules/tiny_obj_loader
     )
 endif (APPLE)

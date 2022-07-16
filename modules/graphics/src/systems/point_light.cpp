@@ -28,7 +28,7 @@ point_light_rendering_system::point_light_rendering_system
   : rendering_system(device, hnll::game::render_type::POINT_LIGHT)
 {
   create_pipeline_layout(global_set_layout);
-  create_pipeline(render_pass);
+  create_pipeline(render_pass, "simple_shader.vert.spv", "simple_shader.frag.spv");
 }
 
 point_light_rendering_system::~point_light_rendering_system()
@@ -55,7 +55,11 @@ void point_light_rendering_system::create_pipeline_layout(VkDescriptorSetLayout 
       throw std::runtime_error("failed to create pipeline layout!");
 }
 
-void point_light_rendering_system::create_pipeline(VkRenderPass render_pass)
+void point_light_rendering_system::create_pipeline(
+  VkRenderPass render_pass,
+  std::string vertex_shader,
+  std::string fragment_shader,
+  std::string shaders_directory)
 {
   assert(pipeline_layout_ != nullptr && "cannot create pipeline before pipeline layout");
 
@@ -69,8 +73,8 @@ void point_light_rendering_system::create_pipeline(VkRenderPass render_pass)
   pipeline_config.pipeline_layout = pipeline_layout_;
   pipeline_ = std::make_unique<pipeline>(
       device_,
-      std::string(std::getenv("HVE_DIR")) + std::string("/shader/spv/point_light.vert.spv"), 
-      std::string(std::getenv("HVE_DIR")) + std::string("/shader/spv/point_light.frag.spv"),
+      shaders_directory + vertex_shader,
+      shaders_directory + fragment_shader,
       pipeline_config);
 }
 

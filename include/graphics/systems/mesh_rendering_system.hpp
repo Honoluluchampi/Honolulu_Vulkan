@@ -21,7 +21,11 @@ class mesh_rendering_system : public rendering_system
     
   private:
     void create_pipeline_layout(VkDescriptorSetLayout global_set_layout) override;
-    void create_pipeline(VkRenderPass render_pass) override;
+    void create_pipeline(
+      VkRenderPass render_pass,
+      std::string vertex_shader,
+      std::string fragment_shader,
+      std::string shaders_directory = std::string(std::getenv("HNLL_ENGN")) + std::string("/modules/graphics/shader/spv/")) override;
 };
 
 } // namespac graphics

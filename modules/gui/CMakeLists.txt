@@ -8,13 +8,13 @@ if (APPLE)
         ${PROJECT_SOURCE_DIR}/include
         $ENV{GLFW_DIR}/include
         $ENV{GLM_DIR}/include
-        $ENV{IMGUI_DIR}/
+        ${PROJECT_SOURCE_DIR}/submodules/imgui
         $ENV{VULKAN_DIR}/include
     )
 elseif (UNIX)
     target_include_directories(hnll_gui PUBLIC
         ${PROJECT_SOURCE_DIR}/include
-        $ENV{IMGUI_DIR}/
+        ${PROJECT_SOURCE_DIR}/submodules/imgui
         $ENV{VULKAN_DIR}/include
     )
 endif (APPLE)

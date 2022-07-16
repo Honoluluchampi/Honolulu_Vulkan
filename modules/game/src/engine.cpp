@@ -200,7 +200,7 @@ void engine::load_actor()
 {
   auto smooth_vase = create_actor();
   auto& smooth_vase_mesh_model = mesh_model_map_["smooth_vase"];
-  auto smooth_vase_model_comp = std::make_shared<mesh_component>(smooth_vase->get_id(), smooth_vase_mesh_model);
+  auto smooth_vase_model_comp = std::make_shared<mesh_component>(smooth_vase_mesh_model);
   smooth_vase->set_renderable_component(smooth_vase_model_comp);
   smooth_vase_model_comp->set_translation(glm::vec3{-0.5f, 0.5f, 0.f});
   smooth_vase_model_comp->set_scale(glm::vec3{3.f, 1.5f, 3.f});
@@ -210,14 +210,14 @@ void engine::load_actor()
 
   auto flat_vase = create_actor();
   auto& flat_vase_mesh_model = mesh_model_map_["flat_vase"];
-  auto flat_vase_model_comp = std::make_shared<mesh_component>(flat_vase->get_id(), flat_vase_mesh_model);
+  auto flat_vase_model_comp = std::make_shared<mesh_component>(flat_vase_mesh_model);
   flat_vase->set_renderable_component(flat_vase_model_comp);
   flat_vase_model_comp->set_translation(glm::vec3{0.5f, 0.5f, 0.f});
   flat_vase_model_comp->set_scale(glm::vec3{3.f, 1.5f, 3.f});
   
   auto floor = create_actor();
   auto& floor_mesh_comp = mesh_model_map_["quad"];
-  auto floor_model_comp = std::make_shared<mesh_component>(floor->get_id(), floor_mesh_comp);
+  auto floor_model_comp = std::make_shared<mesh_component>(floor_mesh_comp);
   floor->set_renderable_component(floor_model_comp);
   floor_model_comp->set_translation(glm::vec3{0.f, 0.5f, 0.f});
   floor_model_comp->set_scale(glm::vec3{3.f, 1.5f, 3.f});
@@ -233,7 +233,7 @@ void engine::load_actor()
 
   for (int i = 0; i < light_colors.size(); i++) {
     auto light_actor = create_actor();
-    auto light_comp = point_light_component::create_point_light(light_actor->get_id(), 1.0f, light_colors[i]);
+    auto light_comp = point_light_component::create_point_light(1.0f, 0.f, light_colors[i]);
     auto light_rotation = glm::rotate(
         glm::mat4(1),
         (i * glm::two_pi<float>()) / light_colors.size(),

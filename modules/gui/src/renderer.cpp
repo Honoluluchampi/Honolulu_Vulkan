@@ -5,7 +5,7 @@ namespace hnll {
 namespace gui {
 
 renderer::renderer(hnll::graphics::window& window, hnll::graphics::device& device, bool recreate_from_scratch) : 
-  renderer(window, device, recreate_from_scratch)
+  hnll::graphics::renderer(window, device, recreate_from_scratch)
 { recreate_swap_chain(); }
 
 void renderer::recreate_swap_chain()

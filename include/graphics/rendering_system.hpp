@@ -51,7 +51,11 @@ public:
 
 private:
   virtual void create_pipeline_layout(VkDescriptorSetLayout global_set_layout) {}
-  virtual void create_pipeline(VkRenderPass render_pass) {}
+  virtual void create_pipeline(
+    VkRenderPass render_pass,
+    std::string vertex_shader,
+    std::string fragment_shader,
+    std::string shaders_directory) {}
 
 protected:
   device& device_;
