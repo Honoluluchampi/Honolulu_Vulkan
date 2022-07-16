@@ -28,7 +28,7 @@ point_light_rendering_system::point_light_rendering_system
   : rendering_system(device, hnll::game::render_type::POINT_LIGHT)
 {
   create_pipeline_layout(global_set_layout);
-  create_pipeline(render_pass, "simple_shader.vert.spv", "simple_shader.frag.spv");
+  create_pipeline(render_pass, "point_light.vert.spv", "point_light.frag.spv");
 }
 
 point_light_rendering_system::~point_light_rendering_system()

@@ -17,7 +17,7 @@ enum class render_type
 class renderable_component : public hnll::game::component
 {
   public:
-    renderable_component(render_type type) : component(), render_type_(type) {}
+    renderable_component(render_type type) : component(), render_type_(type) { transform_up_ = std::make_unique<hnll::utils::transform>(); }
     ~renderable_component() {}
 
     renderable_component(const renderable_component &) = delete;

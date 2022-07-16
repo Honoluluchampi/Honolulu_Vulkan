@@ -29,7 +29,7 @@ mesh_rendering_system::mesh_rendering_system
   : rendering_system(device, hnll::game::render_type::SIMPLE)
 { 
   create_pipeline_layout(global_set_layout);
-  create_pipeline(render_pass, "point_light.vert.spv", "point_light.frag.spv");
+  create_pipeline(render_pass, "simple_shader.vert.spv", "simple_shader.frag.spv");
 }
 
 mesh_rendering_system::~mesh_rendering_system()

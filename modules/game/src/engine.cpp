@@ -165,6 +165,33 @@ void engine::load_data()
   load_mesh_models();
   // temporary
   // load_actor();
+    auto smooth_vase = create_actor();
+    auto& smooth_vase_mesh_model = mesh_model_map_["bone"];
+    auto smooth_vase_model_comp = std::make_shared<mesh_component>(smooth_vase_mesh_model);
+    smooth_vase_model_comp->set_translation(glm::vec3{-0.5f, 0.5f, 0.f});
+    smooth_vase_model_comp->set_scale(glm::vec3{3.f, 1.5f, 3.f});
+    smooth_vase->set_renderable_component(smooth_vase_model_comp);
+
+      std::vector<glm::vec3> light_colors{
+          {1.f, .1f, .1f},
+          {.1f, .1f, 1.f},
+          {.1f, 1.f, .1f},
+          {1.f, 1.f, .1f},
+          {.1f, 1.f, 1.f},
+          {1.f, 1.f, 1.f}
+      };
+
+      for (int i = 0; i < light_colors.size(); i++) {
+        auto light_actor = create_actor();
+        auto light_comp = point_light_component::create_point_light(1.0f, 0.f, light_colors[i]);
+        auto light_rotation = glm::rotate(
+            glm::mat4(1),
+            (i * glm::two_pi<float>()) / light_colors.size(),
+            {0.f, -1.0f, 0.f}); // axiz
+        light_comp->set_translation(glm::vec3(light_rotation * glm::vec4(-1.f, -1.f, -1.f, 1.f)));
+        add_point_light(light_actor, light_comp);
+      }
+
 }
 
 // use filenames as the key of the map
@@ -222,25 +249,7 @@ void engine::load_actor()
   floor_model_comp->set_translation(glm::vec3{0.f, 0.5f, 0.f});
   floor_model_comp->set_scale(glm::vec3{3.f, 1.5f, 3.f});
 
-  std::vector<glm::vec3> light_colors{
-      {1.f, .1f, .1f},
-      {.1f, .1f, 1.f},
-      {.1f, 1.f, .1f},
-      {1.f, 1.f, .1f},
-      {.1f, 1.f, 1.f},
-      {1.f, 1.f, 1.f} 
-  };
 
-  for (int i = 0; i < light_colors.size(); i++) {
-    auto light_actor = create_actor();
-    auto light_comp = point_light_component::create_point_light(1.0f, 0.f, light_colors[i]);
-    auto light_rotation = glm::rotate(
-        glm::mat4(1),
-        (i * glm::two_pi<float>()) / light_colors.size(),
-        {0.f, -1.0f, 0.f}); // axiz
-    light_comp->set_translation(glm::vec3(light_rotation * glm::vec4(-1.f, -1.f, -1.f, 1.f)));
-    add_point_light(light_actor, light_comp);
-  }
 }
 
 void engine::add_point_light(s_ptr<actor>& owner, s_ptr<point_light_component>& light_comp)
