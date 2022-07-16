@@ -1,4 +1,5 @@
-#include <hge_game.hpp>
+// hnll
+#include <game/engine.hpp>
 
 // std
 #include <cstdlib>
@@ -7,7 +8,7 @@
 
 int main() 
 {
-  hnll::HgeGame app{"hello"};
+  hnll::game::engine app{"hello"};
 
   try {
     app.run();
