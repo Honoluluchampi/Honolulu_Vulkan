@@ -17,6 +17,7 @@ add_subdirectory(modules/game)
 add_subdirectory(modules/gui)
 add_subdirectory(modules/graphics)
 add_subdirectory(modules/utils)
+add_subdirectory(modules/physics)
 
 # add the executable
 add_executable(app main.cpp)
@@ -36,6 +37,7 @@ target_link_libraries(app PUBLIC
     hnll_gui
     hnll_graphics
     hnll_utils
+    hnll_physics
     vulkan
     glfw
 #    X11

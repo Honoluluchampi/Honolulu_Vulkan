@@ -3,6 +3,7 @@
 // hnll
 #include <game/component.hpp>
 #include <game/components/renderable_component.hpp>
+#include <utils/utils.hpp>
 
 // std
 #include <vector>
@@ -57,8 +58,8 @@ class actor
     void add_component(s_ptr<component>&& comp) { shared_components_.emplace_back(std::move(comp)); }
     void add_component(const s_ptr<component>& comp) { shared_components_.emplace_back(comp); }
     // takes std::shared_ptr<RenderableComponent>
-    void set_renderable_component(s_ptr<renderable_component>&& comp) { renderable_component_ = std::move(comp); }
-    void set_renderable_component(const s_ptr<renderable_component>& comp) { renderable_component_ = comp; }
+    void set_renderable_component(s_ptr<renderable_component>&& comp);
+    void set_renderable_component(const s_ptr<renderable_component>& comp);
     inline void set_actor_state(state st) { state_ = st; }
 
 
@@ -70,6 +71,7 @@ class actor
     std::vector<s_ptr<component>> shared_components_;
     // TODO : multiple renderableComponent for one actor 
     s_ptr<renderable_component> renderable_component_ = nullptr;
+    s_ptr<hnll::utils::transform> transform_sp_;
 };
 
 } // namespace game

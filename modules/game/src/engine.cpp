@@ -168,9 +168,9 @@ void engine::load_data()
     auto smooth_vase = create_actor();
     auto& smooth_vase_mesh_model = mesh_model_map_["bone"];
     auto smooth_vase_model_comp = std::make_shared<mesh_component>(smooth_vase_mesh_model);
+    smooth_vase->set_renderable_component(smooth_vase_model_comp);
     smooth_vase_model_comp->set_translation(glm::vec3{-0.5f, 0.5f, 0.f});
     smooth_vase_model_comp->set_scale(glm::vec3{3.f, 1.5f, 3.f});
-    smooth_vase->set_renderable_component(smooth_vase_model_comp);
 
       std::vector<glm::vec3> light_colors{
           {1.f, .1f, .1f},
