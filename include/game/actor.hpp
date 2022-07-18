@@ -1,6 +1,7 @@
 #pragma once
 
 // hnll
+#include <game/engine.hpp>
 #include <game/component.hpp>
 #include <game/components/renderable_component.hpp>
 #include <utils/utils.hpp>
@@ -18,14 +19,11 @@ namespace hnll {
 namespace game {
 
 // forward declaration
-class engine;
+//class engine;
 
 class actor
 {
   public:
-    using id = unsigned int;
-    using map = std::unordered_map<id, s_ptr<actor>>;
-
     enum class state { ACTIVE, PAUSED, DEAD };
 
     // hgeActor can be created only by this fuction
@@ -36,6 +34,16 @@ class actor
     actor(actor &&) = default;
     actor& operator=(actor &&) = default;
     virtual ~actor(){}
+    template <class actor_class = actor, class... args>
+    static s_ptr<actor_class> create(args... ags)
+    {
+      auto actor = std::make_shared<actor_class>(ags...);
+      // create s_ptr of actor perform as actor
+      std::shared_ptr<hnll::game::actor> prt_for_actor_map = actor;
+      // register it to the actor map
+      hnll::game::engine::add_actor(actor);
+      return actor;
+    }
 
     void update(float dt);
     void update_components(float dt);
@@ -52,7 +60,7 @@ class actor
     inline const state get_actor_state() const { return state_; }
     inline s_ptr<renderable_component> get_renderable_component() { return renderable_component_; }
     inline bool is_renderable() const { return renderable_component_ != nullptr; }
-
+    s_ptr<hnll::utils::transform> get_transform_sp();
     // setter
     void add_component(u_ptr<component>&& comp) { unique_components_.emplace_back(std::move(comp)); }
     void add_component(s_ptr<component>&& comp) { shared_components_.emplace_back(std::move(comp)); }
@@ -64,7 +72,7 @@ class actor
 
 
   private:
-    id id_;
+    actor_id id_;
     state state_ = state::ACTIVE;
 
     std::vector<u_ptr<component>> unique_components_;

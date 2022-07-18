@@ -10,11 +10,11 @@
 // lib
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace hnll {
-namespace utils {
-
 template<class U> using u_ptr = std::unique_ptr<U>;
 template<class S> using s_ptr = std::shared_ptr<S>;
+
+namespace hnll {
+namespace utils {
 
 // 3d transformation
 struct transform

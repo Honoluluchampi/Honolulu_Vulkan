@@ -1,10 +1,7 @@
 #pragma once
 
 //hnll
-#include <game/actor.hpp>
 #include <game/components/mesh_component.hpp>
-#include <game/actors/default_camera.hpp>
-#include <game/actors/point_light_manager.hpp>
 #include <gui/engine.hpp>
 #include <graphics/engine.hpp>
 
@@ -20,7 +17,17 @@
 #include <string>
 
 namespace hnll {
+
 namespace game {
+
+// forward declaration
+class actor;
+class default_camera;
+class point_light_manager;
+class point_light_component;
+
+using actor_id = unsigned int;
+using actor_map = std::unordered_map<actor_id, s_ptr<actor>>;
 
 class engine
 {
@@ -34,22 +41,9 @@ public:
   bool initialize();
   void run();
 
-  void add_actor(const s_ptr<actor>& actor);
+  static void add_actor(const s_ptr<actor>& actor);
   // void add_actor(s_ptr<actor>&& actor);
-  void remove_actor(actor::id id);
-
-  // factory funcs
-  // takes hgeActor derived class as template argument
-  template<class ActorClass = actor, class... Args>
-  static s_ptr<ActorClass> create_actor(Args... args)
-  {
-    auto actor = std::make_shared<ActorClass>(args...);
-    // create s_ptr of actor perform as actor
-    std::shared_ptr<hnll::game::actor> prt_for_actor_map = actor;
-    // register it to the actor map
-    pending_actor_map_.emplace(prt_for_actor_map->get_id(), prt_for_actor_map);
-    return actor;
-  }
+  void remove_actor(actor_id id);
 
   // takes s_ptr<renderable_component>
   template <class S>
@@ -62,8 +56,6 @@ public:
   // TODO : delete this func
   void add_point_light_without_owner(s_ptr<point_light_component>& light_comp);
   void remove_point_light_without_owner(component::id id);
-
-  void set_camera_transform(const hnll::utils::transform& transform){ camera_up_->get_transform() = transform; }
 
   // getter
   hnll::graphics::engine& get_graphics_engine() { return *graphics_engine_up_; }
@@ -113,9 +105,10 @@ private:
   static void set_glfw_mouse_button_callbacks();
   static void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
-  actor::map active_actor_map_;
-  static actor::map pending_actor_map_;
-  actor::map dead_actor_map_;
+  actor_map active_actor_map_;
+  actor_map dead_actor_map_;
+  static actor_map pending_actor_map_;
+
 
   u_ptr<hnll::graphics::engine> graphics_engine_up_;
 
@@ -134,7 +127,7 @@ private:
   std::chrono::system_clock::time_point current_time_;
 
   // temp
-  actor::id hieModelID_;
+  actor_id hieModelID_;
 
   // glfw
   static std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> 

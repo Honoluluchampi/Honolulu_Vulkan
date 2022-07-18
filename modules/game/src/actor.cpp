@@ -62,5 +62,12 @@ void actor::set_renderable_component(const s_ptr<renderable_component> &comp)
   }
   renderable_component_ = comp;
 }
+
+s_ptr<hnll::utils::transform> actor::get_transform_sp()
+{
+  if (transform_sp_ == nullptr) transform_sp_ = std::make_shared<hnll::utils::transform>();
+  return transform_sp_;
+}
+
 } // namespace game
 } // namespace hnll
