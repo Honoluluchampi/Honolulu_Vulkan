@@ -6,7 +6,7 @@ namespace game {
 
 actor::actor()
 { 
-  static id id = 0;
+  static actor_id id = 0;
   // add automatically
   id_ = id++;
 }

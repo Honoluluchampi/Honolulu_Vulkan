@@ -56,7 +56,7 @@ class actor
 #endif
 
     // getter
-    inline id get_id() const { return id_; }
+    inline actor_id get_id() const { return id_; }
     inline const state get_actor_state() const { return state_; }
     inline s_ptr<renderable_component> get_renderable_component() { return renderable_component_; }
     inline bool is_renderable() const { return renderable_component_ != nullptr; }

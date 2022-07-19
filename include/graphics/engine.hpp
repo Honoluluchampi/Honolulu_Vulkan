@@ -22,11 +22,10 @@ namespace graphics {
 
 template<class U> using u_ptr = std::unique_ptr<U>;
 template<class S> using s_ptr = std::shared_ptr<S>;
+using rendering_system_map = std::unordered_map<hnll::game::render_type, std::unique_ptr<rendering_system>>;
 
 class engine
 {
-  using map = std::unordered_map<hnll::game::render_type, std::unique_ptr<rendering_system>>;
-
   public:
     static constexpr int WIDTH = 800;
     static constexpr int HEIGHT = 600;
@@ -49,7 +48,7 @@ class engine
     void replace_renderable_component(RC&& target)
     { rendering_systems_[target->get_render_type()]->replace_render_target(target->get_id(), std::forward<RC>(target)); }
 
-    void remove_renderable_component_without_owner(hnll::game::render_type type, hnll::game::component::id id);
+    void remove_renderable_component_without_owner(hnll::game::render_type type, hnll::game::component_id id);
 
     inline void wait_idle() { vkDeviceWaitIdle(device_.get_device()); }
 
@@ -78,7 +77,7 @@ class engine
     std::vector<VkDescriptorSet> global_descriptor_sets_ {swap_chain::MAX_FRAMES_IN_FLIGHT};
     // ptrlize to make it later init 
 
-    map rendering_systems_;
+    rendering_system_map rendering_systems_;
     global_ubo ubo_{};
 };
 

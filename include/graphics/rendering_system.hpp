@@ -22,7 +22,7 @@ namespace graphics {
 
 class rendering_system
 {
-  using map = std::unordered_map<hnll::game::component::id, std::shared_ptr<hnll::game::renderable_component>>;
+  using map = std::unordered_map<hnll::game::component_id, std::shared_ptr<hnll::game::renderable_component>>;
 
 public:
   rendering_system(device& device, hnll::game::render_type type) : device_(device), render_type_(type) {}
@@ -37,14 +37,14 @@ public:
 
   // takes s_ptr<RenderableComponent>
   template<class S>
-  void add_render_target(hnll::game::component::id id, S&& target)
+  void add_render_target(hnll::game::component_id id, S&& target)
   { render_target_map_.emplace(id, std::forward<S>(target)); }
 
   template<class S>
-  void replace_render_target(hnll::game::component::id id, S&& target)
+  void replace_render_target(hnll::game::component_id id, S&& target)
   { render_target_map_[id] = std::forward<S>(target); }
 
-  void remove_render_target(hnll::game::component::id id)
+  void remove_render_target(hnll::game::component_id id)
   { render_target_map_.erase(id); }
 
   hnll::game::render_type get_render_type() const { return render_type_; }

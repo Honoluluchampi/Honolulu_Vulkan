@@ -50,12 +50,12 @@ public:
   void set_renderable_component(S&& comp) { graphics_engine_up_->set_renderable_component(std::forward<S>(comp)); }
   template <class S> 
   void replace_renderable_component(S&& comp) { graphics_engine_up_->replace_renderable_component(std::forward<S>(comp)); }
-  void remove_renderable_component(render_type type, component::id id) { graphics_engine_up_->remove_renderable_component_without_owner(type, id); }
+  void remove_renderable_component(render_type type, component_id id) { graphics_engine_up_->remove_renderable_component_without_owner(type, id); }
 
   void add_point_light(s_ptr<actor>& owner, s_ptr<point_light_component>& light_comp);
   // TODO : delete this func
   void add_point_light_without_owner(s_ptr<point_light_component>& light_comp);
-  void remove_point_light_without_owner(component::id id);
+  void remove_point_light_without_owner(component_id id);
 
   // getter
   hnll::graphics::engine& get_graphics_engine() { return *graphics_engine_up_; }

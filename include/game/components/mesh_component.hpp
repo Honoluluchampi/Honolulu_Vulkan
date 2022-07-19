@@ -17,7 +17,6 @@ template<class S> using s_ptr = std::shared_ptr<S>;
 class mesh_component : public renderable_component
 {
   public:
-    using map = std::unordered_map<component::id, s_ptr<mesh_component>>;
     // copy a passed shared_ptr
     mesh_component(const s_ptr<hnll::graphics::mesh_model>& mesh_model_sp) : renderable_component(render_type::SIMPLE), model_sp_(mesh_model_sp) {}
     mesh_component(s_ptr<hnll::graphics::mesh_model>&& mesh_model_sp) : renderable_component(render_type::SIMPLE), model_sp_(std::move(mesh_model_sp)) {}
@@ -31,6 +30,8 @@ class mesh_component : public renderable_component
     // hnll::graphics::mesh_model can be shared all over a game
     s_ptr<hnll::graphics::mesh_model> model_sp_ = nullptr;
 };
+
+using mesh_component_map = std::unordered_map<game::component_id, s_ptr<game::mesh_component>>;
 
 } // namespace game
 } // namespace hnll

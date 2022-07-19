@@ -117,7 +117,7 @@ void engine::render(hnll::game::viewer_component& viewer_comp)
   }
 }
 
-void engine::remove_renderable_component_without_owner(hnll::game::render_type type, hnll::game::component::id id)
+void engine::remove_renderable_component_without_owner(hnll::game::render_type type, hnll::game::component_id id)
 {
   rendering_systems_[type]->remove_render_target(id);
 }
