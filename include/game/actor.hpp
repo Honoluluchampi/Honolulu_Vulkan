@@ -69,7 +69,8 @@ class actor
     void set_renderable_component(s_ptr<renderable_component>&& comp);
     void set_renderable_component(const s_ptr<renderable_component>& comp);
     inline void set_actor_state(state st) { state_ = st; }
-
+    void set_translation(const glm::vec3& translation) { transform_sp_->translation = translation; }
+    void set_rotation(const glm::vec3& rotation) { transform_sp_->rotation = rotation; }
 
   private:
     actor_id id_;
