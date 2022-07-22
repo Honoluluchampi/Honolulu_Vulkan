@@ -103,8 +103,8 @@ void drag_manager::calc_cursor_projection_intersect()
     projection_vector *= camera_originated_comp_z_ / hnll::game::viewer_component::get_near_distance();
     auto new_position = camera_.get_transform().translation + projection_vector;
 
-    if (new_position != drag_comp_map_[bound_comp_id_]->get_transform().translation) {
-      drag_comp_map_[bound_comp_id_]->get_transform().translation = camera_.get_transform().translation + projection_vector;
+    if (new_position != drag_comp_map_[bound_comp_id_]->get_translation()) {
+      drag_comp_map_[bound_comp_id_]->set_translation(camera_.get_transform().translation + projection_vector);
       is_changed_ = true;
     }
   }

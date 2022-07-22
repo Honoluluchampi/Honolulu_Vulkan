@@ -33,9 +33,12 @@ class draggable_component : public hnll::game::component
 
     // getter
     hnll::utils::transform get_transform() { return *transform_sp_; }
+    glm::vec3 get_translation() const { return transform_sp_->translation; }
     float get_radius() { return radius_; }
     // setter
     void set_transform(hnll::utils::transform& transform) { *transform_sp_ = transform; }
+    void set_translation(glm::vec3&& vec) { transform_sp_->translation = vec; }
+    void set_translation(const glm::vec3& vec) { transform_sp_->translation = vec; }
 
   private:
     s_ptr<hnll::utils::transform> transform_sp_;

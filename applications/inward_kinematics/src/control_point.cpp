@@ -7,6 +7,7 @@ control_point::control_point(const glm::vec3 &position, const glm::vec3 &color, 
   : hnll::game::actor()
 {
   light_comp_sp_ = hnll::game::point_light_component::create(0.0f, radius, color);
+  set_renderable_component(light_comp_sp_);
   drag_comp_sp_ = draggable_component::create(get_transform_sp(), radius);
   set_translation(position);
 }

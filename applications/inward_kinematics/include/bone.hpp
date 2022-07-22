@@ -37,7 +37,8 @@ inline glm::vec3 rotateDifference(const glm::vec3& a, const glm::vec3& b)
 class bone : public hnll::game::actor
 {
   public:
-    static s_ptr<bone> create(const s_ptr<bone>& parent = nullptr) { return std::make_shared<bone>(parent); }
+    static s_ptr<bone> create(const s_ptr<bone>& parent = nullptr)
+    { auto bn = std::make_shared<bone>(parent); hnll::game::engine::add_actor(bn); return bn; }
     explicit bone(const s_ptr<bone>& parent = nullptr) : hnll::game::actor(), parent_(parent) {}
 
     void update_inward_kinematics(const glm::vec3& control_point, const glm::vec3& whole_head_point)

@@ -162,32 +162,32 @@ void engine::load_data()
   load_mesh_models();
   // temporary
   // load_actor();
-    auto smooth_vase = actor::create();
-    auto& smooth_vase_mesh_model = mesh_model_map_["bone"];
-    auto smooth_vase_model_comp = std::make_shared<mesh_component>(smooth_vase_mesh_model);
-    smooth_vase->set_renderable_component(smooth_vase_model_comp);
-    smooth_vase_model_comp->set_translation(glm::vec3{-0.5f, 0.5f, 0.f});
-    smooth_vase_model_comp->set_scale(glm::vec3{3.f, 1.5f, 3.f});
-
-      std::vector<glm::vec3> light_colors{
-          {1.f, .1f, .1f},
-          {.1f, .1f, 1.f},
-          {.1f, 1.f, .1f},
-          {1.f, 1.f, .1f},
-          {.1f, 1.f, 1.f},
-          {1.f, 1.f, 1.f}
-      };
-
-      for (int i = 0; i < light_colors.size(); i++) {
-        auto light_actor = actor::create();
-        auto light_comp = point_light_component::create(1.0f, 0.f, light_colors[i]);
-        auto light_rotation = glm::rotate(
-            glm::mat4(1),
-            (i * glm::two_pi<float>()) / light_colors.size(),
-            {0.f, -1.0f, 0.f}); // axiz
-        light_comp->set_translation(glm::vec3(light_rotation * glm::vec4(-1.f, -1.f, -1.f, 1.f)));
-        add_point_light(light_actor, light_comp);
-      }
+//    auto smooth_vase = actor::create();
+//    auto& smooth_vase_mesh_model = mesh_model_map_["bone"];
+//    auto smooth_vase_model_comp = std::make_shared<mesh_component>(smooth_vase_mesh_model);
+//    smooth_vase->set_renderable_component(smooth_vase_model_comp);
+//    smooth_vase_model_comp->set_translation(glm::vec3{-0.5f, 0.5f, 0.f});
+//    smooth_vase_model_comp->set_scale(glm::vec3{3.f, 1.5f, 3.f});
+//
+//      std::vector<glm::vec3> light_colors{
+//          {1.f, .1f, .1f},
+//          {.1f, .1f, 1.f},
+//          {.1f, 1.f, .1f},
+//          {1.f, 1.f, .1f},
+//          {.1f, 1.f, 1.f},
+//          {1.f, 1.f, 1.f}
+//      };
+//
+//      for (int i = 0; i < light_colors.size(); i++) {
+//        auto light_actor = actor::create();
+//        auto light_comp = point_light_component::create(1.0f, 0.f, light_colors[i]);
+//        auto light_rotation = glm::rotate(
+//            glm::mat4(1),
+//            (i * glm::two_pi<float>()) / light_colors.size(),
+//            {0.f, -1.0f, 0.f}); // axiz
+//        light_comp->set_translation(glm::vec3(light_rotation * glm::vec4(-1.f, -1.f, -1.f, 1.f)));
+//        add_point_light(light_actor, light_comp);
+//      }
 
 }
 

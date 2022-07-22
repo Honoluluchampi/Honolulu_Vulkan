@@ -17,7 +17,8 @@ class control_point : public hnll::game::actor
     // const glm::vec3& position, const glm::vec3& color, float radius
     // const std::vector<s_ptr<control_point>>& base_points, const glm::vec3& color, float radius
     template <class... Args>
-    static s_ptr<control_point> create(Args... args) { return std::make_shared<control_point>(args...); }
+    static s_ptr<control_point> create(Args... args)
+    { auto sp = std::make_shared<control_point>(args...); hnll::game::engine::add_actor(sp); return sp; }
     explicit control_point(const glm::vec3 &position = {0.f, 0.f, 0.f}, const glm::vec3 &color = {.1f, 1.f, 1.f}, float radius = 0.05);
 
     // for creating centroid (create base points first)
