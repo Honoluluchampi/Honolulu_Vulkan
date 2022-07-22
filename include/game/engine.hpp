@@ -33,7 +33,7 @@ class engine
 {
 public:
   engine(const char* windowName = "honolulu engine");
-  ~engine();
+  virtual ~engine() = default;
   // delete copy ctor
   engine(const engine &) = delete;
   engine& operator=(const engine &) = delete;
@@ -54,7 +54,7 @@ public:
 
   void add_point_light(s_ptr<actor>& owner, s_ptr<point_light_component>& light_comp);
   // TODO : delete this func
-  void add_point_light_without_owner(s_ptr<point_light_component>& light_comp);
+  void add_point_light_without_owner(const s_ptr<point_light_component>& light_comp);
   void remove_point_light_without_owner(component_id id);
 
   // getter

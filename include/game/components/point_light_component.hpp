@@ -14,7 +14,7 @@ class point_light_component : public renderable_component
   public:
     point_light_component() : renderable_component(render_type::POINT_LIGHT) {}
     ~point_light_component(){}
-    static s_ptr<point_light_component> create_point_light
+    static s_ptr<point_light_component> create
       (float intensity = 10.f, float radius = 0.1f, glm::vec3 color = glm::vec3(1.f));
 
     // getter

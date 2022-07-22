@@ -17,6 +17,8 @@ template<class S> using s_ptr = std::shared_ptr<S>;
 class mesh_component : public renderable_component
 {
   public:
+    template <typename M>
+    static s_ptr<mesh_component> create(M&& model) { return std::make_shared<mesh_component>(std::forward<M>(model));}
     // copy a passed shared_ptr
     mesh_component(const s_ptr<hnll::graphics::mesh_model>& mesh_model_sp) : renderable_component(render_type::SIMPLE), model_sp_(mesh_model_sp) {}
     mesh_component(s_ptr<hnll::graphics::mesh_model>&& mesh_model_sp) : renderable_component(render_type::SIMPLE), model_sp_(std::move(mesh_model_sp)) {}

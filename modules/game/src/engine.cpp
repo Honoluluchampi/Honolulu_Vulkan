@@ -46,12 +46,6 @@ engine::engine(const char* window_name) : graphics_engine_up_(std::make_unique<h
   set_glfw_mouse_button_callbacks();
 }
 
-engine::~engine()
-{
-  // cleanup in engine::cleanup();
-  // renderer::cleanup_swap_chain();
-}
-
 void engine::run()
 {
   current_time_ = std::chrono::system_clock::now();
@@ -186,7 +180,7 @@ void engine::load_data()
 
       for (int i = 0; i < light_colors.size(); i++) {
         auto light_actor = actor::create();
-        auto light_comp = point_light_component::create_point_light(1.0f, 0.f, light_colors[i]);
+        auto light_comp = point_light_component::create(1.0f, 0.f, light_colors[i]);
         auto light_rotation = glm::rotate(
             glm::mat4(1),
             (i * glm::two_pi<float>()) / light_colors.size(),
@@ -262,7 +256,7 @@ void engine::add_point_light(s_ptr<actor>& owner, s_ptr<point_light_component>& 
   light_manager_up_->add_light_comp(light_comp);
 } 
 
-void engine::add_point_light_without_owner(s_ptr<point_light_component>& light_comp)
+void engine::add_point_light_without_owner(const s_ptr<point_light_component>& light_comp)
 {
   // path to the renderer
   graphics_engine_up_->set_renderable_component(light_comp);

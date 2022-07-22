@@ -37,28 +37,28 @@ inline glm::vec3 rotateDifference(const glm::vec3& a, const glm::vec3& b)
 class bone : public hnll::game::actor
 {
   public:
-    bone(const s_ptr<bone>& parent = nullptr) : hnll::game::actor(), parent_(parent) {}
-    bool is_root() const { return parent_ == nullptr; }
+    static s_ptr<bone> create(const s_ptr<bone>& parent = nullptr) { return std::make_shared<bone>(parent); }
+    explicit bone(const s_ptr<bone>& parent = nullptr) : hnll::game::actor(), parent_(parent) {}
 
     void update_inward_kinematics(const glm::vec3& control_point, const glm::vec3& whole_head_point)
     {
-      auto diff_to_control_point = control_point - this->get_tail_translation();
-      auto diff_to_head_point = whole_head_point - this->get_tail_translation();
-
-      hnll::utils::transform rotate_transform{};
-      rotate_transform.rotation += rotateDifference(diffToCp, diffToHp);
-      // float dot = diffToCp.x * diffToHp.x + diffToCp.y * diffToHp.y + diffToCp.z * diffToHp.z;
-      // float degree = dot / (abs(diffToHp) * abs(diffToCp));
-      // glm::mat4 rotation = glm::rotate(glm::mat4{}, degree, glm::cross(diffToHp, diffToCp));
-
-      // rotate myself
-      rotateAroundPoint(this->transform(), rotateTransform, this->tail());
-      // rotate childlen
-      auto& child = this->child_;
-      while (child != nullptr) {
-        child->rotate_around_point(child->transform(), rotateTransform, this->tail());
-        child = child->child_;
-      }
+//      auto diff_to_control_point = control_point - this->get_tail_translation();
+//      auto diff_to_head_point = whole_head_point - this->get_tail_translation();
+//
+//      hnll::utils::transform rotate_transform{};
+//      rotate_transform.rotation += rotateDifference(diffToCp, diffToHp);
+//      // float dot = diffToCp.x * diffToHp.x + diffToCp.y * diffToHp.y + diffToCp.z * diffToHp.z;
+//      // float degree = dot / (abs(diffToHp) * abs(diffToCp));
+//      // glm::mat4 rotation = glm::rotate(glm::mat4{}, degree, glm::cross(diffToHp, diffToCp));
+//
+//      // rotate myself
+//      rotateAroundPoint(this->transform(), rotateTransform, this->tail());
+//      // rotate childlen
+//      auto& child = this->child_;
+//      while (child != nullptr) {
+//        child->rotate_around_point(child->transform(), rotateTransform, this->tail());
+//        child = child->child_;
+//      }
     }
 
     // Transform which will be modified, rotating transform, base point position
@@ -80,6 +80,7 @@ class bone : public hnll::game::actor
       return tf.translation + diff;
     }
     glm::vec3 get_tail_translation() { return get_transform_sp()->translation; }
+    bool is_root() const { return parent_ == nullptr; }
 
     void align_to_parent()
     {

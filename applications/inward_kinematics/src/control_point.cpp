@@ -6,23 +6,24 @@ namespace iscg {
 control_point::control_point(const glm::vec3 &position, const glm::vec3 &color, float radius)
   : hnll::game::actor()
 {
-  light_comp_sp_ = hnll::game::point_light_component::create_point_light(0.0f, radius, color);
-  light_comp_sp_->get_transform().translation = position;
-  drag_comp_sp_ = std::make_shared<DraggableComponent>(lightComp_->getTransform(), radius);
+  light_comp_sp_ = hnll::game::point_light_component::create(0.0f, radius, color);
+  drag_comp_sp_ = draggable_component::create(get_transform_sp(), radius);
+  set_translation(position);
 }
 
-control_point::control_point(const std::vector <s_ptr<ControllPoint>> &basePoints, const glm::vec3 &color, float radius)
+control_point::control_point(const std::vector<s_ptr<control_point>> &base_points, const glm::vec3 &color, float radius)
   : hnll::game::actor()
 {
-  isCentroid_ = true;
-  lightComp_ = hnll::PointLightComponent::createPointLight(this->getId(), 0.0f, radius, color);
+  is_centroid_ = true;
+  light_comp_sp_ = hnll::game::point_light_component::create(0.0f, radius, color);
+  drag_comp_sp_ = draggable_component::create(get_transform_sp(), radius);
+
   // calc centroid position
   glm::vec3 pos;
-  for (const auto &point: basePoints)
-    pos += point->lightComp()->getTransform().translation_m;
-  pos /= basePoints.size();
-  lightComp_->getTransform().translation_m = pos;
-  dragComp_ = std::make_shared<DraggableComponent>(lightComp_->getTransform(), radius);
+  for (const auto &point: base_points)
+    pos += point->get_transform_sp()->translation;
+  pos /= base_points.size();
+  set_translation(pos);
 }
 
 } // namespace iscg

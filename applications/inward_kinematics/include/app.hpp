@@ -10,11 +10,11 @@
 
 namespace iscg {
 
-  class app : public hnll::game::engine
+class app : public hnll::game::engine
 {
   public:
     app();
-    ~app();
+    ~app() override = default;
   private:
     s_ptr<bone> create_bone(s_ptr<bone> parent = nullptr);
     void update_game(float dt) override;
@@ -29,7 +29,7 @@ namespace iscg {
     s_ptr<bone> whole_head_;
     s_ptr<bone> whole_tail_;
 
-    u_ptr<drag_manager> drag_manager_sp_;
+    u_ptr<drag_manager> drag_manager_up_;
     s_ptr<control_point> control_point_sp_;
     glm::vec3 control_point_color_ = {.1f, .9f, .1f};
     float control_point_radius_ = 0.15f;
