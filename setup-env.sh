@@ -1,7 +1,7 @@
 # execute this script in ~/.bashrc and so on
 
 # configure this part depending on your environment
-export HNLL_ENGN=~/programs/honolulu_engine
+export HNLL_ENGN=$(cd $(dirname ${BASH_SOURCE:-$0}); pwd)
 VULKAN_DIR=~/programs/external_libraries/vulkanSDK
 
 source $VULKAN_DIR/setup-env.sh
