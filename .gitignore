@@ -5,7 +5,6 @@ lib/
 tiny_obj_loader.h
 models
 build/
-test/
 roboto_regular.embed
 imgui.ini
 .idea
