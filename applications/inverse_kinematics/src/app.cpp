@@ -2,7 +2,7 @@
 
 namespace iscg {
 
-app::app() : hnll::game::engine("inward kinematics")
+app::app() : hnll::game::engine("inverse kinematics")
 {
   // init camera transform
   camera_up_->set_translation(glm::vec3(0.f, 0.f, -10.f));
