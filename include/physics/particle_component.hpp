@@ -18,8 +18,8 @@ class particle_component :public hnll::game::component
 {
   public:
     static s_ptr<particle_component> create(game::actor& actor);
-    particle_component(s_ptr<hnll::utils::transform>&& transform_sp);
-    ~particle_component() {}
+    explicit particle_component(s_ptr<hnll::utils::transform>&& transform_sp);
+    ~particle_component() = default;
 
     // disable copy-assignment
     particle_component(const particle_component&) = delete;
@@ -29,7 +29,7 @@ class particle_component :public hnll::game::component
     bool is_gravity_enabled() const { return is_gravity_enabled_; }
 
     // setter
-    bool set_gravity_state(bool state, double value = 9.8f)
+    void set_gravity_state(bool state, double value = 9.8f)
     { if (state) gravity_value_ = value; is_gravity_enabled_ = state; }
 
   private:

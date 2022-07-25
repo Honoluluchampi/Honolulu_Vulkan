@@ -13,8 +13,7 @@
 template<class U> using u_ptr = std::unique_ptr<U>;
 template<class S> using s_ptr = std::shared_ptr<S>;
 
-namespace hnll {
-namespace utils {
+namespace hnll::utils {
 
 // 3d transformation
 struct transform
@@ -46,5 +45,9 @@ inline bool is_same_handed_system(const glm_vec auto& a1, const glm_vec auto& a2
   return true;
 }
 
-} // namespace utils
-} // namespace hnll
+struct viewer_info
+{
+  glm::mat4 projection{1.f};
+  glm::mat4 view{1.f};
+};
+} // namespace hnll::utils

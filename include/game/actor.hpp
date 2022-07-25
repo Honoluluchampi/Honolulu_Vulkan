@@ -1,9 +1,7 @@
 #pragma once
 
 // hnll
-#include <game/engine.hpp>
 #include <game/component.hpp>
-#include <game/components/renderable_component.hpp>
 #include <utils/utils.hpp>
 
 // std
@@ -15,35 +13,25 @@
 template <class T> using s_ptr = std::shared_ptr<T>;
 template <class T> using u_ptr = std::unique_ptr<T>;
 
-namespace hnll {
-namespace game {
+namespace hnll::game{
 
+using actor_id = unsigned int;
 // forward declaration
-//class engine;
+class renderable_component;
 
 class actor
 {
   public:
     enum class state { ACTIVE, PAUSED, DEAD };
 
-    // hgeActor can be created only by this fuction
+    static s_ptr<actor> create();
     actor();
     // uncopyable, movable
     actor(const actor &) = delete;
     actor& operator=(const actor &) = delete;
     actor(actor &&) = default;
     actor& operator=(actor &&) = default;
-    virtual ~actor(){}
-    template <class actor_class = actor, class... args>
-    static s_ptr<actor_class> create(args... ags)
-    {
-      auto actor = std::make_shared<actor_class>(ags...);
-      // create s_ptr of actor perform as actor
-      std::shared_ptr<hnll::game::actor> prt_for_actor_map = actor;
-      // register it to the actor map
-      hnll::game::engine::add_actor(actor);
-      return actor;
-    }
+    virtual ~actor() = default;
 
     void update(float dt);
     void update_components(float dt);
@@ -71,7 +59,7 @@ class actor
     inline void set_actor_state(state st) { state_ = st; }
     void set_translation(const glm::vec3& translation) { transform_sp_->translation = translation; }
     void set_rotation(const glm::vec3& rotation) { transform_sp_->rotation = rotation; }
-
+    void set_scale(const glm::vec3& scale) { transform_sp_->scale = scale; }
   private:
     actor_id id_;
     state state_ = state::ACTIVE;
@@ -83,5 +71,4 @@ class actor
     s_ptr<hnll::utils::transform> transform_sp_;
 };
 
-} // namespace game
-} // namespace hnll
+} // namespace hnll::game

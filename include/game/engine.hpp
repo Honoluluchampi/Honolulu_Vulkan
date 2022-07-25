@@ -1,9 +1,9 @@
 #pragma once
 
 //hnll
-#include <game/components/mesh_component.hpp>
 #include <gui/engine.hpp>
 #include <graphics/engine.hpp>
+#include <graphics/mesh_model.hpp>
 
 // lib
 #include <GLFW/glfw3.h>
@@ -28,6 +28,7 @@ class point_light_component;
 
 using actor_id = unsigned int;
 using actor_map = std::unordered_map<actor_id, s_ptr<actor>>;
+using mesh_model_map = std::unordered_map<std::string, s_ptr<hnll::graphics::mesh_model>>;
 
 class engine
 {
@@ -60,7 +61,7 @@ public:
   // getter
   hnll::graphics::engine& get_graphics_engine() { return *graphics_engine_up_; }
   hnll::graphics::device& get_graphics_device() { return graphics_engine_up_->get_device(); }
-  s_ptr<hnll::graphics::mesh_model> get_mesh_model_sp(std::string model_name) { return mesh_model_map_[model_name]; }
+  static s_ptr<hnll::graphics::mesh_model> get_mesh_model_sp(std::string model_name) { return mesh_model_map_[model_name]; }
 
 #ifndef IMGUI_DISABLED
   u_ptr<hnll::gui::engine>& get_gui_engine_up() { return gui_engine_up_; }
@@ -119,7 +120,7 @@ private:
   // map of mesh_model
   // shared by engine and some modelComponents
   // pool all models which could be necessary
-  hnll::graphics::mesh_model::map mesh_model_map_;
+  static mesh_model_map mesh_model_map_;
 
   bool is_updating_ = false; // for update
   bool is_running_ = false; // for run loop

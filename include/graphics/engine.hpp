@@ -8,7 +8,6 @@
 #include <graphics/camera.hpp>
 #include <graphics/buffer.hpp>
 #include <graphics/rendering_system.hpp>
-#include <game/components/viewer_component.hpp>
 
 // std
 #include <memory>
@@ -17,8 +16,7 @@
 #include <stdexcept>
 #include <unordered_map>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 template<class U> using u_ptr = std::unique_ptr<U>;
 template<class S> using s_ptr = std::shared_ptr<S>;
@@ -37,7 +35,7 @@ class engine
     engine(const engine &) = delete;
     engine &operator= (const engine &) = delete;
 
-    void render(hnll::game::viewer_component& viewer_comp);
+    void render(utils::viewer_info&& viewer_comp);
 
     // takes s_ptr<RenderableComponent>
     template<class RC>
@@ -81,5 +79,4 @@ class engine
     global_ubo ubo_{};
 };
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics

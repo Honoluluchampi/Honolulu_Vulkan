@@ -127,7 +127,7 @@ VkCommandBuffer renderer::begin_frame()
 
   auto command_buffer = get_current_command_buffer();
   // assert(command_buffer != VK_NULL_HANDLE && "");
-    // start reconding command buffers
+    // start recording command buffers
   VkCommandBufferBeginInfo begin_info{};
   begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
   // // how to use the command buffer

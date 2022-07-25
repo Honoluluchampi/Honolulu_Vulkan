@@ -26,7 +26,7 @@ struct mesh_push_constant
 
 mesh_rendering_system::mesh_rendering_system
   (device& device, VkRenderPass render_pass, VkDescriptorSetLayout global_set_layout)
-  : rendering_system(device, hnll::game::render_type::SIMPLE)
+  : rendering_system(device, hnll::game::render_type::MESH)
 { 
   create_pipeline_layout(global_set_layout);
   create_pipeline(render_pass, "simple_shader.vert.spv", "simple_shader.frag.spv");

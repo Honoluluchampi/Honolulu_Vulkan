@@ -4,6 +4,7 @@
 #include <graphics/mesh_model.hpp>
 #include <game/component.hpp>
 #include <game/components/renderable_component.hpp>
+#include <game/actor.hpp>
 
 // std
 #include <unordered_map>
@@ -17,16 +18,20 @@ template<class S> using s_ptr = std::shared_ptr<S>;
 class mesh_component : public renderable_component
 {
   public:
-    template <typename M>
-    static s_ptr<mesh_component> create(M&& model) { return std::make_shared<mesh_component>(std::forward<M>(model));}
-    // copy a passed shared_ptr
-    mesh_component(const s_ptr<hnll::graphics::mesh_model>& mesh_model_sp) : renderable_component(render_type::SIMPLE), model_sp_(mesh_model_sp) {}
-    mesh_component(s_ptr<hnll::graphics::mesh_model>&& mesh_model_sp) : renderable_component(render_type::SIMPLE), model_sp_(std::move(mesh_model_sp)) {}
-    ~mesh_component(){}
+    template <Actor A>
+    static s_ptr<mesh_component> create(s_ptr<A>& owner_sp, s_ptr<hnll::graphics::mesh_model>&& model_sp)
+    {
+      auto mesh = std::make_shared<mesh_component>(owner_sp);
+      mesh->set_mesh_model(std::move(model_sp));
+      owner_sp->set_renderable_component(mesh);
+      return mesh;
+    }
+    template <Actor A>
+    mesh_component(s_ptr<A>& owner_sp) : renderable_component(owner_sp, render_type::MESH) {}
+    ~mesh_component() override = default;
 
     s_ptr<hnll::graphics::mesh_model>& get_model_sp() { return model_sp_; }
-    template<class S>
-    void set_mesh_model(S&& model) { model_sp_ = std::forward<S>(model); }
+    void set_mesh_model(s_ptr<hnll::graphics::mesh_model>&& model) { model_sp_ = std::move(model); }
         
   private:
     // hnll::graphics::mesh_model can be shared all over a game

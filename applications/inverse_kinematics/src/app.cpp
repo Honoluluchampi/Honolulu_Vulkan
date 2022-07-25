@@ -15,28 +15,23 @@ app::app() : hnll::game::engine("inverse kinematics")
   add_point_light_without_owner(control_point_sp_->get_light_comp_sp());
   drag_manager_up_->add_drag_comp(control_point_sp_->get_drag_comp_sp());
 
+  // for illumination
   auto light_actor = hnll::game::actor::create();
-  auto light_comp = hnll::game::point_light_component::create(10.f, 0.f, {1.f, 1.f, 1.f});
+  auto light_comp = hnll::game::point_light_component::create(light_actor, 10.f, 0.f, {1.f, 1.f, 1.f});
   light_comp->set_translation(glm::vec3(0.f, -10.f, 0.f));
   add_point_light(light_actor, light_comp);
-  // root
-  bones_.emplace_back(create_bone());
+
+  // tail
+  bones_.emplace_back(bone::create());
   whole_tail_ = bones_[0];
-  // first
-  bones_.emplace_back(create_bone(bones_[0]));
+  // head
+  bones_.emplace_back(bone::create(bones_[0]));
   whole_head_ = bones_[1];
 }
 
 s_ptr<bone> app::create_bone(s_ptr<bone> parent)
 {
-  auto bone = bone::create(parent);
-  auto bone_model = get_mesh_model_sp("bone");
-  auto bone_model_comp = hnll::game::mesh_component::create(bone_model);
-  bone->set_renderable_component(bone_model_comp);
 
-  if (parent != nullptr) bone->align_to_parent();
-
-  return bone;
 }
 
 void app::update_game(float dt)
@@ -46,15 +41,30 @@ void app::update_game(float dt)
   static bool changed_cache = false;
   if (drag_manager_up_->is_changed()) changed_cache = true;
   if (bind_to_control_point_ && changed_cache) {
-    compute_inward_kinematics();
+     // compute_inward_kinematics();
     changed_cache = false;
   }
 }
 
 void app::compute_inward_kinematics()
 {
-  for(auto i = bones_.rbegin(), e = bones_.rend(); i != e; ++i) {
-    (*i)->update_inward_kinematics(control_point_sp_->get_translation(), whole_head_->get_head_translation());
+  // update the bone sequence from the head to the tail
+  for(auto bone = bones_.rbegin(), end = bones_.rend(); bone != end; ++bone) {
+    // pointing vector from the current bone to the control point
+    auto to_control_point = control_point_sp_->get_translation() - (*bone)->get_tail_translation();
+    // pointing vector from the current bone to the head
+    auto to_head = whole_head_->get_head_translation() - (*bone)->get_tail_translation();
+    // base point of rotation
+    auto rotation_base = (*bone)->get_tail_translation();
+    // axis and angle of rotation from the head to the control point
+    auto rotate_axis = glm::normalize(glm::cross(to_head, to_control_point));
+    auto rotate_angle = std::acos(glm::dot(to_head, to_control_point));
+    auto rotate_matrix = glm::rotate(glm::mat4{1.f}, rotate_angle, rotate_axis);
+    // rotate bones
+    auto current_bone = (*bone);
+    do {
+      current_bone->rotate_around_point(rotate_matrix, rotation_base);
+    } while (current_bone->has_child());
   }
 }
 
@@ -75,8 +85,9 @@ void app::update_game_gui()
 
 void app::add_bone()
 {
-  bones_.emplace_back(create_bone(*(--bones_.end())));
-  whole_head_ = *(--bones_.end());
+  auto new_bone = bone::create(whole_head_);
+  bones_.emplace_back(new_bone);
+  whole_head_ = std::move(new_bone);
 }
 
 void app::delete_bone()
