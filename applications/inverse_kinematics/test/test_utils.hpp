@@ -71,3 +71,20 @@ bool roughly_equal(eigen_mat auto& a, eigen_mat auto& b, double epsilon = 0.0001
     }
     return true;
 }
+
+bool test_update_transform(const glm::vec3& angle)
+{
+  auto bn = iscg::bone::create();
+  glm::vec3 bone_direction = {0.f, 1.f, 0.f};
+  bn->set_tail_translation({0.f, 0.f, 0.f});
+  hnll::utils::transform tf{};
+  double r2 = std::sqrt(2);
+
+  tf.rotation = angle;
+  auto destination = tf.rotate_mat3() * bone_direction;
+  bn->set_head_translation(destination);
+
+  auto apparent_destination = bn->get_transform_sp()->rotate_mat3() * bone_direction;
+
+  return roughly_equal(destination, glm::normalize(apparent_destination));
+}

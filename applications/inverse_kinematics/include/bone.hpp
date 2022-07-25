@@ -32,10 +32,12 @@ class bone : public hnll::game::actor
     // getter
     glm::vec3 get_head_translation() const { return head_; }
     glm::vec3 get_tail_translation() const { return tail_; }
+    s_ptr<bone> get_parent_sp() const { return parent_; }
     s_ptr<bone> get_child_sp() const { return child_; }
     bool has_parent() const { return parent_ != nullptr; }
     bool has_child() const { return child_ != nullptr; }
     // setter
+    void set_child(const s_ptr<bone>& child) { child_ = child; }
     void set_whole_translation(const glm::vec3 &translation) { head_ = translation + (head_ - tail_); tail_ = translation; }
     void set_head_translation(const glm::vec3& translation) { head_ = translation; update_transform(); }
     void set_tail_translation(const glm::vec3& translation) { tail_ = translation; update_transform(); }

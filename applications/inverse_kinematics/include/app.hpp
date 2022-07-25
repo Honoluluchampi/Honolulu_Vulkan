@@ -16,14 +16,13 @@ class app : public hnll::game::engine
     app();
     ~app() override = default;
   private:
-    s_ptr<bone> create_bone(s_ptr<bone> parent = nullptr);
     void update_game(float dt) override;
     void update_game_gui() override;
 
     void add_bone();
     void delete_bone();
 
-    void compute_inward_kinematics();
+    void compute_inverse_kinematics();
 
     std::vector<s_ptr<bone>> bones_;
     s_ptr<bone> whole_head_;
