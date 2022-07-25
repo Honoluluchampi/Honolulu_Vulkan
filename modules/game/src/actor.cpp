@@ -1,14 +1,24 @@
 // hnll
 #include <game/actor.hpp>
+#include <game/engine.hpp>
 
 namespace hnll {
 namespace game {
 
+s_ptr<actor> actor::create()
+{
+  auto _actor = std::make_shared<actor>();
+  // register it to the actor map
+  hnll::game::engine::add_actor(_actor);
+  return _actor;
+}
+
 actor::actor()
 { 
-  static id id = 0;
+  static actor_id id = 0;
   // add automatically
   id_ = id++;
+  transform_sp_ = std::make_shared<hnll::utils::transform>();
 }
 
 void actor::update(float dt)
@@ -40,6 +50,39 @@ for (const auto& comp : shared_components_)
     comp->update_gui();
  }
 #endif
+
+void actor::set_renderable_component(s_ptr<renderable_component> &&comp)
+{
+//  // replace own transform with comp's
+//  if (comp->get_transform_sp() != nullptr && transform_sp_ == nullptr) {
+//    transform_sp_ = std::make_shared<hnll::utils::transform>();
+//    *transform_sp_ = *(comp->get_transform_sp());
+//  }
+//  else if (comp->get_transform_sp() != nullptr) {
+//
+//  }
+//  else if (transform_sp_ == nullptr) {
+//    transform_sp_ = std::make_shared<hnll::utils::transform>();
+//  }
+//  comp->set_transform_sp(transform_sp_);
+  renderable_component_ = std::move(comp);
+}
+
+void actor::set_renderable_component(const s_ptr<renderable_component> &comp)
+{
+  if (comp->get_transform_sp() != nullptr) transform_sp_ = comp->get_transform_sp();
+  else if (transform_sp_ == nullptr) {
+    transform_sp_ = std::make_shared<hnll::utils::transform>();
+    comp->set_transform_sp(transform_sp_);
+  }
+  renderable_component_ = comp;
+}
+
+s_ptr<hnll::utils::transform> actor::get_transform_sp()
+{
+  if (transform_sp_ == nullptr) transform_sp_ = std::make_shared<hnll::utils::transform>();
+  return transform_sp_;
+}
 
 } // namespace game
 } // namespace hnll

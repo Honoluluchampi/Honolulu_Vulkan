@@ -12,8 +12,7 @@
 
 // implementation based on this tutorial https://www.youtube.com/watch?v=U0_ONQQ5ZNM&list=PL8327DO66nu9qYVKLDmdLW_84-yE4auCR&index=15
 
-namespace hnll {
-namespace game {
+namespace hnll::game {
 
 class viewer_component : public component
 {
@@ -27,7 +26,7 @@ class viewer_component : public component
     static float get_near_distance() { return near_distance_; }
     static float get_fovy() { return fovy_; }
     const glm::mat4& get_projection() const { return projection_matrix_; }
-    const glm::mat4& get_view() const { return veiw_matrix_; }
+    const glm::mat4& get_view() const { return view_matrix_; }
     glm::mat4 get_inverse_perspective_projection() const;
     glm::mat4 get_inverse_view_yxz() const;
 
@@ -44,7 +43,7 @@ class viewer_component : public component
     // ref of owner transform
     hnll::utils::transform& transform_;
     glm::mat4 projection_matrix_{1.f};
-    glm::mat4 veiw_matrix_{1.f};
+    glm::mat4 view_matrix_{1.f};
     hnll::graphics::renderer& renderer_;
 
     // distance to the screen
@@ -52,5 +51,4 @@ class viewer_component : public component
     static float fovy_;
 };
 
-} // namespace game
-} // namespace hnll
+} // namespace hnll::game

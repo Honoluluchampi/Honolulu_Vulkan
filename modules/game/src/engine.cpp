@@ -1,5 +1,9 @@
 // hnll
 #include <game/engine.hpp>
+#include <game/actor.hpp>
+#include <game/actors/point_light_manager.hpp>
+#include <game/actors/default_camera.hpp>
+#include <game/components/mesh_component.hpp>
 
 // lib
 #include <imgui.h>
@@ -16,8 +20,8 @@ constexpr float MAX_FPS = 30.0f;
 constexpr float MAX_DT = 0.05f;
 
 // static members
-actor::map engine::pending_actor_map_;
-
+actor_map engine::pending_actor_map_;
+mesh_model_map engine::mesh_model_map_;
 // glfw
 GLFWwindow* engine::glfw_window_;
 std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> engine::glfw_mouse_button_callbacks_{};
@@ -41,12 +45,6 @@ engine::engine(const char* window_name) : graphics_engine_up_(std::make_unique<h
 
   // glfw
   set_glfw_mouse_button_callbacks();
-}
-
-engine::~engine()
-{
-  // cleanup in engine::cleanup();
-  // renderer::cleanup_swap_chain();
 }
 
 void engine::run()
@@ -83,13 +81,13 @@ void engine::update()
   dt = std::min(dt, MAX_DT);
 
   for (auto& kv : active_actor_map_) {
-    const id_t& id = kv.first;
+    const auto id = kv.first;
     auto& actor = kv.second;
-    actor->update(dt);
+    if(actor->get_actor_state() == actor::state::ACTIVE)
+      actor->update(dt);
     // check if the actor is dead
     if (actor->get_actor_state() == actor::state::DEAD) {
-      dead_actor_map_.emplace(id, std::move(actor));
-      active_actor_map_.erase(id);
+      dead_actor_ids_.emplace_back(id);
       // erase relevant model comp.
       // TODO dont use hgeActor::id_t but component::id_t
       // if(actor->is_renderable())
@@ -110,23 +108,23 @@ void engine::update()
   // activate pending actor
   for (auto& pend : pending_actor_map_) {
     if(pend.second->is_renderable())
-      graphics_engine_up_->set_renderable_component(pend.second->get_renderable_component());
+      graphics_engine_up_->set_renderable_component(pend.second->get_renderable_component_sp());
     active_actor_map_.emplace(pend.first, std::move(pend.second));
   }
   pending_actor_map_.clear();
   // clear all the dead actors
-  dead_actor_map_.clear();
-
-  // TODO : delete gui demo
-  // if (renderableComponentID_m != -1)
-  //   HgeRenderableComponent& comp = dynamic_cast<HgeRenderableComponent&>(active_actor_map_[hieModelID_]->get_renderable_component());
-  // gui_engine_up_->update(comp.get_transform().translation);
+  for (const auto& id : dead_actor_ids_) {
+    if (active_actor_map_[id]->is_renderable())
+      graphics_engine_up_->remove_renderable_component_without_owner(
+        active_actor_map_[id]->get_renderable_component_sp()->get_render_type(), id);
+    active_actor_map_.erase(id);
+  }
+  dead_actor_ids_.clear();
 }
 
 void engine::render()
 {
-
-  graphics_engine_up_->render(*(camera_up_->get_viewer_component_sp()));
+  graphics_engine_up_->render(camera_up_->get_viewer_info());
 #ifndef IMGUI_DISABLED
   if (!hnll::graphics::renderer::swap_chain_recreated_){
     gui_engine_up_->begin_imgui();
@@ -161,37 +159,9 @@ void engine::init_actors()
 
 void engine::load_data()
 {
-  // load raw data
+  // load raw mesh data
   load_mesh_models();
-  // temporary
-  // load_actor();
-    auto smooth_vase = create_actor();
-    auto& smooth_vase_mesh_model = mesh_model_map_["bone"];
-    auto smooth_vase_model_comp = std::make_shared<mesh_component>(smooth_vase_mesh_model);
-    smooth_vase_model_comp->set_translation(glm::vec3{-0.5f, 0.5f, 0.f});
-    smooth_vase_model_comp->set_scale(glm::vec3{3.f, 1.5f, 3.f});
-    smooth_vase->set_renderable_component(smooth_vase_model_comp);
-
-      std::vector<glm::vec3> light_colors{
-          {1.f, .1f, .1f},
-          {.1f, .1f, 1.f},
-          {.1f, 1.f, .1f},
-          {1.f, 1.f, .1f},
-          {.1f, 1.f, 1.f},
-          {1.f, 1.f, 1.f}
-      };
-
-      for (int i = 0; i < light_colors.size(); i++) {
-        auto light_actor = create_actor();
-        auto light_comp = point_light_component::create_point_light(1.0f, 0.f, light_colors[i]);
-        auto light_rotation = glm::rotate(
-            glm::mat4(1),
-            (i * glm::two_pi<float>()) / light_colors.size(),
-            {0.f, -1.0f, 0.f}); // axiz
-        light_comp->set_translation(glm::vec3(light_rotation * glm::vec4(-1.f, -1.f, -1.f, 1.f)));
-        add_point_light(light_actor, light_comp);
-      }
-
+  load_actor();
 }
 
 // use filenames as the key of the map
@@ -225,31 +195,26 @@ void engine::remove_actor(id_t id)
 
 void engine::load_actor()
 {
-  auto smooth_vase = create_actor();
-  auto& smooth_vase_mesh_model = mesh_model_map_["smooth_vase"];
-  auto smooth_vase_model_comp = std::make_shared<mesh_component>(smooth_vase_mesh_model);
-  smooth_vase->set_renderable_component(smooth_vase_model_comp);
-  smooth_vase_model_comp->set_translation(glm::vec3{-0.5f, 0.5f, 0.f});
-  smooth_vase_model_comp->set_scale(glm::vec3{3.f, 1.5f, 3.f});
+  auto smooth_vase = actor::create();
+  auto smooth_vase_mesh_model = mesh_model_map_["smooth_vase"];
+  auto smooth_vase_model_comp = mesh_component::create(smooth_vase, std::move(smooth_vase_mesh_model));
+  smooth_vase->set_translation(glm::vec3{-0.5f, 0.5f, 0.f});
+  smooth_vase->set_scale(glm::vec3{3.f, 1.5f, 3.f});
   
   // temporary
   hieModelID_ = smooth_vase->get_id();
 
-  auto flat_vase = create_actor();
-  auto& flat_vase_mesh_model = mesh_model_map_["flat_vase"];
-  auto flat_vase_model_comp = std::make_shared<mesh_component>(flat_vase_mesh_model);
-  flat_vase->set_renderable_component(flat_vase_model_comp);
-  flat_vase_model_comp->set_translation(glm::vec3{0.5f, 0.5f, 0.f});
-  flat_vase_model_comp->set_scale(glm::vec3{3.f, 1.5f, 3.f});
+  auto flat_vase = actor::create();
+  auto flat_vase_mesh_model = mesh_model_map_["flat_vase"];
+  auto flat_vase_model_comp = mesh_component::create(flat_vase, std::move(flat_vase_mesh_model));
+  flat_vase->set_translation(glm::vec3{0.5f, 0.5f, 0.f});
+  flat_vase->set_scale(glm::vec3{3.f, 1.5f, 3.f});
   
-  auto floor = create_actor();
-  auto& floor_mesh_comp = mesh_model_map_["quad"];
-  auto floor_model_comp = std::make_shared<mesh_component>(floor_mesh_comp);
-  floor->set_renderable_component(floor_model_comp);
-  floor_model_comp->set_translation(glm::vec3{0.f, 0.5f, 0.f});
-  floor_model_comp->set_scale(glm::vec3{3.f, 1.5f, 3.f});
-
-
+  auto floor = actor::create();
+  auto floor_mesh_comp = mesh_model_map_["quad"];
+  auto floor_model_comp = mesh_component::create(floor, std::move(floor_mesh_comp));
+  floor->set_translation(glm::vec3{0.f, 0.5f, 0.f});
+  floor->set_scale(glm::vec3{3.f, 1.5f, 3.f});
 }
 
 void engine::add_point_light(s_ptr<actor>& owner, s_ptr<point_light_component>& light_comp)
@@ -259,7 +224,7 @@ void engine::add_point_light(s_ptr<actor>& owner, s_ptr<point_light_component>& 
   light_manager_up_->add_light_comp(light_comp);
 } 
 
-void engine::add_point_light_without_owner(s_ptr<point_light_component>& light_comp)
+void engine::add_point_light_without_owner(const s_ptr<point_light_component>& light_comp)
 {
   // path to the renderer
   graphics_engine_up_->set_renderable_component(light_comp);
@@ -267,7 +232,7 @@ void engine::add_point_light_without_owner(s_ptr<point_light_component>& light_c
   light_manager_up_->add_light_comp(light_comp);
 }
 
-void engine::remove_point_light_without_owner(component::id id)
+void engine::remove_point_light_without_owner(component_id id)
 {
   graphics_engine_up_->remove_renderable_component_without_owner(render_type::POINT_LIGHT, id);
   light_manager_up_->remove_light_comp(id);
@@ -278,7 +243,7 @@ void engine::cleanup()
 {
   active_actor_map_.clear();
   pending_actor_map_.clear();
-  dead_actor_map_.clear();
+  dead_actor_ids_.clear();
   mesh_model_map_.clear();
   hnll::graphics::renderer::cleanup_swap_chain();
 }

@@ -12,10 +12,22 @@ struct point_light_info { float light_intensity = 1.0f; };
 class point_light_component : public renderable_component
 {
   public:
-    point_light_component() : renderable_component(render_type::POINT_LIGHT) {}
-    ~point_light_component(){}
-    static s_ptr<point_light_component> create_point_light
-      (float intensity = 10.f, float radius = 0.1f, glm::vec3 color = glm::vec3(1.f));
+    template <Actor A>
+    static s_ptr<point_light_component> create(s_ptr<A>& owner, float intensity = 10.f, float radius = 0.1f, glm::vec3 color = glm::vec3(1.f))
+    {
+      auto light = std::make_shared<point_light_component>(owner);
+      light->color_ = color;
+      light->set_scale(glm::vec3(radius, radius, radius));
+      light->light_info_.light_intensity = intensity;
+      owner->set_renderable_component(light);
+      return light;
+    }
+
+    template <Actor A>
+    point_light_component(s_ptr<A>& owner) : renderable_component(owner, render_type::POINT_LIGHT) {}
+    ~point_light_component() override = default;
+    point_light_component(const point_light_component&) = delete;
+    point_light_component& operator=(const point_light_component&) = delete;
 
     // getter
     point_light_info get_light_info() { return light_info_; }
@@ -27,8 +39,6 @@ class point_light_component : public renderable_component
     void set_radius(float radius) { this->set_scale(glm::vec3(radius, radius, radius)); }
   
   private:
-    point_light_component(const point_light_component&) = delete;
-    point_light_component& operator=(const point_light_component&) = delete;
     point_light_info light_info_{};
     glm::vec3 color_{};
 };

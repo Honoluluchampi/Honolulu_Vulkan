@@ -127,7 +127,7 @@ VkCommandBuffer renderer::begin_frame()
 
   auto command_buffer = get_current_command_buffer();
   // assert(command_buffer != VK_NULL_HANDLE && "");
-    // start reconding command buffers
+    // start recording command buffers
   VkCommandBufferBeginInfo begin_info{};
   begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
   // // how to use the command buffer
@@ -196,7 +196,7 @@ void renderer::begin_swap_chain_render_pass(VkCommandBuffer command_buffer, int 
 
   // default value for color and depth
   std::array<VkClearValue, 2> clear_values;
-  clear_values[0].color = {0.01f, 0.01f, 0.01f, 1.0f};
+  clear_values[0].color = {0.5f, 0.5f, 0.5f, 0.5f};
   clear_values[1].depthStencil = {1.0f, 0};
   render_pass_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
   render_pass_info.pClearValues = clear_values.data();

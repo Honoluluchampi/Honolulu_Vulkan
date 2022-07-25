@@ -85,7 +85,7 @@ void engine::init()
 }
 
 // each render systems automatically detect render target components
-void engine::render(hnll::game::viewer_component& viewer_comp)
+void engine::render(utils::viewer_info&& viewer_info)
 {
   // returns nullptr if the swap chain is need to be recreated
   if (auto command_buffer = renderer_.begin_frame()) {
@@ -98,8 +98,8 @@ void engine::render(hnll::game::viewer_component& viewer_comp)
     };
 
     // update 
-    ubo_.projection = viewer_comp.get_projection();
-    ubo_.view = viewer_comp.get_view();
+    ubo_.projection = viewer_info.projection;
+    ubo_.view = viewer_info.view;
     ubo_buffers_[frame_index]->write_to_buffer(&ubo_);
     ubo_buffers_[frame_index]->flush();
 
@@ -117,7 +117,7 @@ void engine::render(hnll::game::viewer_component& viewer_comp)
   }
 }
 
-void engine::remove_renderable_component_without_owner(hnll::game::render_type type, hnll::game::component::id id)
+void engine::remove_renderable_component_without_owner(hnll::game::render_type type, hnll::game::component_id id)
 {
   rendering_systems_[type]->remove_render_target(id);
 }

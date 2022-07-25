@@ -32,14 +32,13 @@ void hash_combine(std::size_t& seed, const T& v, const Rest&... rest)
 class mesh_model
 {
   public:
-    using map = std::unordered_map<std::string, std::shared_ptr<mesh_model>>;
     // compatible with wavefront obj. file
     struct vertex
     {
       glm::vec3 position{};
       glm::vec3 color{};
       glm::vec3 normal{};
-      // texture cordinates
+      // texture coordinates
       glm::vec2 uv{};
       // return a description compatible with the shader
       static std::vector<VkVertexInputBindingDescription> get_binding_descriptions();
@@ -68,6 +67,9 @@ class mesh_model
 
     void bind(VkCommandBuffer command_buffer);
     void draw(VkCommandBuffer command_buffer);
+
+    // setter
+    bool has_index_buffer() const { return had_index_buffer_; }
 
   private:
     void create_vertex_buffers(const std::vector<vertex> &vertices);

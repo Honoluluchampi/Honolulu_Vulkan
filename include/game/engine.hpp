@@ -1,12 +1,9 @@
 #pragma once
 
 //hnll
-#include <game/actor.hpp>
-#include <game/components/mesh_component.hpp>
-#include <game/actors/default_camera.hpp>
-#include <game/actors/point_light_manager.hpp>
 #include <gui/engine.hpp>
 #include <graphics/engine.hpp>
+#include <graphics/mesh_model.hpp>
 
 // lib
 #include <GLFW/glfw3.h>
@@ -20,13 +17,24 @@
 #include <string>
 
 namespace hnll {
+
 namespace game {
+
+// forward declaration
+class actor;
+class default_camera;
+class point_light_manager;
+class point_light_component;
+
+using actor_id = unsigned int;
+using actor_map = std::unordered_map<actor_id, s_ptr<actor>>;
+using mesh_model_map = std::unordered_map<std::string, s_ptr<hnll::graphics::mesh_model>>;
 
 class engine
 {
 public:
   engine(const char* windowName = "honolulu engine");
-  ~engine();
+  virtual ~engine() = default;
   // delete copy ctor
   engine(const engine &) = delete;
   engine& operator=(const engine &) = delete;
@@ -34,41 +42,26 @@ public:
   bool initialize();
   void run();
 
-  void add_actor(const s_ptr<actor>& actor);
+  static void add_actor(const s_ptr<actor>& actor);
   // void add_actor(s_ptr<actor>&& actor);
-  void remove_actor(actor::id id);
-
-  // factory funcs
-  // takes hgeActor derived class as template argument
-  template<class ActorClass = actor, class... Args>
-  static s_ptr<ActorClass> create_actor(Args... args)
-  {
-    auto actor = std::make_shared<ActorClass>(args...);
-    // create s_ptr of actor perform as actor
-    std::shared_ptr<hnll::game::actor> prt_for_actor_map = actor;
-    // register it to the actor map
-    pending_actor_map_.emplace(prt_for_actor_map->get_id(), prt_for_actor_map);
-    return actor;
-  }
+  void remove_actor(actor_id id);
 
   // takes s_ptr<renderable_component>
   template <class S>
   void set_renderable_component(S&& comp) { graphics_engine_up_->set_renderable_component(std::forward<S>(comp)); }
   template <class S> 
   void replace_renderable_component(S&& comp) { graphics_engine_up_->replace_renderable_component(std::forward<S>(comp)); }
-  void remove_renderable_component(render_type type, component::id id) { graphics_engine_up_->remove_renderable_component_without_owner(type, id); }
+  void remove_renderable_component(render_type type, component_id id) { graphics_engine_up_->remove_renderable_component_without_owner(type, id); }
 
   void add_point_light(s_ptr<actor>& owner, s_ptr<point_light_component>& light_comp);
   // TODO : delete this func
-  void add_point_light_without_owner(s_ptr<point_light_component>& light_comp);
-  void remove_point_light_without_owner(component::id id);
-
-  void set_camera_transform(const hnll::utils::transform& transform){ camera_up_->get_transform() = transform; }
+  void add_point_light_without_owner(const s_ptr<point_light_component>& light_comp);
+  void remove_point_light_without_owner(component_id id);
 
   // getter
   hnll::graphics::engine& get_graphics_engine() { return *graphics_engine_up_; }
   hnll::graphics::device& get_graphics_device() { return graphics_engine_up_->get_device(); }
-  s_ptr<hnll::graphics::mesh_model> get_mesh_model_sp(std::string model_name) { return mesh_model_map_[model_name]; }
+  static s_ptr<hnll::graphics::mesh_model> get_mesh_model_sp(std::string model_name) { return mesh_model_map_[model_name]; }
 
 #ifndef IMGUI_DISABLED
   u_ptr<hnll::gui::engine>& get_gui_engine_up() { return gui_engine_up_; }
@@ -113,9 +106,9 @@ private:
   static void set_glfw_mouse_button_callbacks();
   static void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
-  actor::map active_actor_map_;
-  static actor::map pending_actor_map_;
-  actor::map dead_actor_map_;
+  actor_map active_actor_map_;
+  static actor_map pending_actor_map_;
+  std::vector<actor_id> dead_actor_ids_;
 
   u_ptr<hnll::graphics::engine> graphics_engine_up_;
 
@@ -126,7 +119,7 @@ private:
   // map of mesh_model
   // shared by engine and some modelComponents
   // pool all models which could be necessary
-  hnll::graphics::mesh_model::map mesh_model_map_;
+  static mesh_model_map mesh_model_map_;
 
   bool is_updating_ = false; // for update
   bool is_running_ = false; // for run loop
@@ -134,7 +127,7 @@ private:
   std::chrono::system_clock::time_point current_time_;
 
   // temp
-  actor::id hieModelID_;
+  actor_id hieModelID_;
 
   // glfw
   static std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> 

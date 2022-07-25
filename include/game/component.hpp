@@ -9,11 +9,11 @@ template <class T> using u_ptr = std::unique_ptr<T>;
 namespace hnll {
 namespace game {
 
+using component_id = unsigned int;
+
 class component
 {
 public:
-  using id = unsigned;
-
   component();
   virtual ~component(){}
 
@@ -24,10 +24,10 @@ public:
 #endif
 
   // getter
-  id get_id() const { return id_; }
+  component_id get_id() const { return id_; }
 private:
   virtual void update_component(float dt) {}
-  id id_;
+  component_id id_;
 };
 
 } // namespace game
