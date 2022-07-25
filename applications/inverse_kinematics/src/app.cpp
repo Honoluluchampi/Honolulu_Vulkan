@@ -41,7 +41,7 @@ void app::update_game(float dt)
   static bool changed_cache = false;
   if (drag_manager_up_->is_changed()) changed_cache = true;
   if (bind_to_control_point_ && changed_cache) {
-     // compute_inward_kinematics();
+    compute_inward_kinematics();
     changed_cache = false;
   }
 }
@@ -49,7 +49,7 @@ void app::update_game(float dt)
 void app::compute_inward_kinematics()
 {
   // update the bone sequence from the head to the tail
-  for(auto bone = bones_.rbegin(), end = bones_.rend(); bone != end; ++bone) {
+  for(auto bone = bones_.rbegin(), end = --bones_.rend(); bone != end; ++bone) {
     // pointing vector from the current bone to the control point
     auto to_control_point = control_point_sp_->get_translation() - (*bone)->get_tail_translation();
     // pointing vector from the current bone to the head
@@ -58,13 +58,15 @@ void app::compute_inward_kinematics()
     auto rotation_base = (*bone)->get_tail_translation();
     // axis and angle of rotation from the head to the control point
     auto rotate_axis = glm::normalize(glm::cross(to_head, to_control_point));
-    auto rotate_angle = std::acos(glm::dot(to_head, to_control_point));
+    auto rotate_angle = std::acos(glm::dot(glm::normalize(to_head), glm::normalize(to_control_point)));
     auto rotate_matrix = glm::rotate(glm::mat4{1.f}, rotate_angle, rotate_axis);
     // rotate bones
     auto current_bone = (*bone);
-    do {
-      current_bone->rotate_around_point(rotate_matrix, rotation_base);
-    } while (current_bone->has_child());
+    current_bone->rotate_around_point(rotate_matrix, rotation_base);
+//    while (current_bone->has_child()) {
+//      current_bone = current_bone->get_child_sp();
+//      current_bone->rotate_around_point(rotate_matrix, rotation_base);
+//    }
   }
 }
 

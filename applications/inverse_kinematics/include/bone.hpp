@@ -23,7 +23,7 @@ class bone : public hnll::game::actor
 
     void align_to_parent()
     {
-      set_whole_translation(parent_->get_tail_translation());
+      set_whole_translation(parent_->get_head_translation());
       update_transform();
     }
 
@@ -32,6 +32,7 @@ class bone : public hnll::game::actor
     // getter
     glm::vec3 get_head_translation() const { return head_; }
     glm::vec3 get_tail_translation() const { return tail_; }
+    s_ptr<bone> get_child_sp() const { return child_; }
     bool has_parent() const { return parent_ != nullptr; }
     bool has_child() const { return child_ != nullptr; }
     // setter
