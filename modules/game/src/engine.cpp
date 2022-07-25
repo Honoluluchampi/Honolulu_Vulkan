@@ -81,13 +81,13 @@ void engine::update()
   dt = std::min(dt, MAX_DT);
 
   for (auto& kv : active_actor_map_) {
-    const id_t& id = kv.first;
+    const auto id = kv.first;
     auto& actor = kv.second;
-    actor->update(dt);
+    if(actor->get_actor_state() == actor::state::ACTIVE)
+      actor->update(dt);
     // check if the actor is dead
     if (actor->get_actor_state() == actor::state::DEAD) {
-      dead_actor_map_.emplace(id, std::move(actor));
-      active_actor_map_.erase(id);
+      dead_actor_ids_.emplace_back(id);
       // erase relevant model comp.
       // TODO dont use hgeActor::id_t but component::id_t
       // if(actor->is_renderable())
@@ -108,22 +108,22 @@ void engine::update()
   // activate pending actor
   for (auto& pend : pending_actor_map_) {
     if(pend.second->is_renderable())
-      graphics_engine_up_->set_renderable_component(pend.second->get_renderable_component());
+      graphics_engine_up_->set_renderable_component(pend.second->get_renderable_component_sp());
     active_actor_map_.emplace(pend.first, std::move(pend.second));
   }
   pending_actor_map_.clear();
   // clear all the dead actors
-  dead_actor_map_.clear();
-
-  // TODO : delete gui demo
-  // if (renderableComponentID_m != -1)
-  //   HgeRenderableComponent& comp = dynamic_cast<HgeRenderableComponent&>(active_actor_map_[hieModelID_]->get_renderable_component());
-  // gui_engine_up_->update(comp.get_transform().translation);
+  for (const auto& id : dead_actor_ids_) {
+    if (active_actor_map_[id]->is_renderable())
+      graphics_engine_up_->remove_renderable_component_without_owner(
+        active_actor_map_[id]->get_renderable_component_sp()->get_render_type(), id);
+    active_actor_map_.erase(id);
+  }
+  dead_actor_ids_.clear();
 }
 
 void engine::render()
 {
-
   graphics_engine_up_->render(camera_up_->get_viewer_info());
 #ifndef IMGUI_DISABLED
   if (!hnll::graphics::renderer::swap_chain_recreated_){
@@ -243,7 +243,7 @@ void engine::cleanup()
 {
   active_actor_map_.clear();
   pending_actor_map_.clear();
-  dead_actor_map_.clear();
+  dead_actor_ids_.clear();
   mesh_model_map_.clear();
   hnll::graphics::renderer::cleanup_swap_chain();
 }

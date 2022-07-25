@@ -15,8 +15,6 @@ app::app() : hnll::game::engine("inverse kinematics")
   add_point_light_without_owner(control_point_sp_->get_light_comp_sp());
   drag_manager_up_->add_drag_comp(control_point_sp_->get_drag_comp_sp());
 
-  control_point_sp_->set_translation({- 10.f * std::sqrt(2)/2, 10/2, -10/2});
-
   // for illumination
   auto light_actor = hnll::game::actor::create();
   auto light_comp = hnll::game::point_light_component::create(light_actor, 30.f, 0.f, {1.f, 1.f, 1.f});
@@ -94,7 +92,7 @@ void app::update_game_gui()
     add_bone();
   }
   if (ImGui::Button("delete bone")) {
-    // deleteBone();
+    delete_bone();
   }
   ImGui::Checkbox("bind to control point", &bind_to_control_point_);
 
@@ -110,12 +108,15 @@ void app::add_bone()
 
 void app::delete_bone()
 {
-  if (bones_.size() == 1)
+  if (bones_.size() == 1) {
     std::cout << "cannot delete root!" << std::endl;
-  else {
-    bones_[bones_.size() - 1]->set_actor_state(hnll::game::actor::state::DEAD);
-    bones_.erase(bones_.end() - 1);
+    return ;
   }
+
+  bones_[bones_.size() - 1]->set_actor_state(hnll::game::actor::state::DEAD);
+  bones_.erase(bones_.end() - 1);
+  whole_head_ = bones_[bones_.size() - 1];
+  whole_head_->set_child_sp(nullptr);
 }
 
 } // namespace iscg

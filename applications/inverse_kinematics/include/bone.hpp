@@ -37,7 +37,7 @@ class bone : public hnll::game::actor
     bool has_parent() const { return parent_ != nullptr; }
     bool has_child() const { return child_ != nullptr; }
     // setter
-    void set_child(const s_ptr<bone>& child) { child_ = child; }
+    void set_child_sp(const s_ptr<bone>& child) { child_ = child; }
     void set_whole_translation(const glm::vec3 &translation) { head_ = translation + (head_ - tail_); tail_ = translation; }
     void set_head_translation(const glm::vec3& translation) { head_ = translation; update_transform(); }
     void set_tail_translation(const glm::vec3& translation) { tail_ = translation; update_transform(); }

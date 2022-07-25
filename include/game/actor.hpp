@@ -46,7 +46,7 @@ class actor
     // getter
     inline actor_id get_id() const { return id_; }
     inline const state get_actor_state() const { return state_; }
-    inline s_ptr<renderable_component> get_renderable_component() { return renderable_component_; }
+    inline s_ptr<renderable_component> get_renderable_component_sp() { return renderable_component_; }
     inline bool is_renderable() const { return renderable_component_ != nullptr; }
     s_ptr<hnll::utils::transform> get_transform_sp();
     // setter

@@ -107,9 +107,8 @@ private:
   static void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
   actor_map active_actor_map_;
-  actor_map dead_actor_map_;
   static actor_map pending_actor_map_;
-
+  std::vector<actor_id> dead_actor_ids_;
 
   u_ptr<hnll::graphics::engine> graphics_engine_up_;
 
