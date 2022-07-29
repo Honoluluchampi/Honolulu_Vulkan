@@ -10,8 +10,7 @@
 #include <set>
 #include <stdexcept>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 swap_chain::swap_chain(device &device, VkExtent2D extent) : device_{device}, window_extent_{extent} 
 { init(); }
@@ -530,5 +529,4 @@ VkFormat swap_chain::find_depth_format()
       VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics

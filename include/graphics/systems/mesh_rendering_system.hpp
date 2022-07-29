@@ -7,8 +7,7 @@
 // std
 #include <vector>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 class mesh_rendering_system : public rendering_system
 {
@@ -28,5 +27,4 @@ class mesh_rendering_system : public rendering_system
       std::string shaders_directory = std::string(std::getenv("HNLL_ENGN")) + std::string("/modules/graphics/shader/spv/")) override;
 };
 
-} // namespac graphics
-} // namespace hnll
+} // namespace hnll::graphics

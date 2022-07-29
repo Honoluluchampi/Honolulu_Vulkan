@@ -6,8 +6,7 @@
 // lib
 #include <glm/glm.hpp>
 
-namespace hnll {
-namespace game {
+namespace hnll::game {
 
 class line_component : public renderable_component
 {
@@ -34,5 +33,4 @@ class line_component : public renderable_component
     float radius_ = 1.f;
 };
 
-} // namespace game
-} // namespace hnll
+} // namespace hnll::game

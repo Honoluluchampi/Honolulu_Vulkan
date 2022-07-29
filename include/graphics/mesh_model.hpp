@@ -18,8 +18,7 @@
 
 #include <functional>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 // https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x/57595105#57595105
 template <typename T, typename... Rest>
@@ -85,5 +84,4 @@ class mesh_model
     bool had_index_buffer_ = false;
 };
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics

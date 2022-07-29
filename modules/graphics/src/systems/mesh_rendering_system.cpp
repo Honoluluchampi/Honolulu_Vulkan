@@ -13,8 +13,7 @@
 #include <array>
 #include <string>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 // should be compatible with a shader
 struct mesh_push_constant
@@ -111,5 +110,4 @@ void mesh_rendering_system::render(frame_info frame_info)
   }
 }
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics

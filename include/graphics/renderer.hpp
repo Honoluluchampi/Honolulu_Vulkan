@@ -12,8 +12,7 @@
 #include <vector>
 #include <cassert>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 // define ~_RENDER_PASS_ID in renderer class
 // to specify indices of multiple render pass and frame buffer
 #define HVE_RENDER_PASS_ID 0
@@ -101,5 +100,4 @@ class renderer
     static u_ptr<swap_chain> swap_chain_;
 };
 
-} // namespace graphics
-} // namespace hve
+} // namespace hnll::graphics

@@ -9,8 +9,7 @@ using hnll::utils::transform;
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
 
-namespace hnll {
-namespace physics {
+namespace hnll::physics {
 
 particle_component::particle_component(s_ptr<hnll::utils::transform>&& transform_sp)
  : transform_sp_(std::move(transform_sp)), position_(transform_sp->translation)
@@ -32,5 +31,4 @@ void particle_component::update_component(float dt)
   dx_dt_(dt);
 }
 
-} // namespace physics
-} // namespace hnll
+} // namespace hnll::physics
