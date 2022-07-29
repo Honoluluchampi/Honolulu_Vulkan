@@ -6,8 +6,7 @@
 template <class T> using s_ptr = std::shared_ptr<T>;
 template <class T> using u_ptr = std::unique_ptr<T>;
 
-namespace hnll {
-namespace game {
+namespace hnll::game {
 
 using component_id = unsigned int;
 
@@ -30,5 +29,4 @@ private:
   component_id id_;
 };
 
-} // namespace game
-} // namespace hnll
+} // namespace hnll::game

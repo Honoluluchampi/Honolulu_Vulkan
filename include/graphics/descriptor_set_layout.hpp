@@ -8,8 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 class descriptor_set_layout {
  
@@ -96,5 +95,4 @@ class descriptor_writer {
   std::vector<VkWriteDescriptorSet> writes_;
 };
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics

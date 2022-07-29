@@ -2,8 +2,7 @@
 #include <game/actor.hpp>
 #include <game/engine.hpp>
 
-namespace hnll {
-namespace game {
+namespace hnll::game {
 
 s_ptr<actor> actor::create()
 {
@@ -84,5 +83,4 @@ s_ptr<hnll::utils::transform> actor::get_transform_sp()
   return transform_sp_;
 }
 
-} // namespace game
-} // namespace hnll
+} // namespace hnll::game

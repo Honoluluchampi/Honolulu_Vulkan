@@ -4,8 +4,7 @@
 // hge
 #include <game/components/line_component.hpp>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 int line_rendering_system::inter_polating_points_count = 4;
 
@@ -114,5 +113,4 @@ void line_rendering_system::render(frame_info frame_info)
   }
 }
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics

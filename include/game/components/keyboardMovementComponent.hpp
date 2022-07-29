@@ -11,8 +11,7 @@
 // lib
 #include <GLFW/glfw3.h>
 
-namespace hnll {
-namespace game {
+namespace hnll::game {
 
 class keyboard_movement_component : public component
 {
@@ -93,5 +92,4 @@ class keyboard_movement_component : public component
     float right_error_ = 0.f, up_error_ = 0.f;
 };
 
-} // namespace game
-} // namespace hnll
+} // namespace hnll::game

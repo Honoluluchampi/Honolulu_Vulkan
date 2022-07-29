@@ -2,9 +2,8 @@
  
 #include <graphics/device.hpp>
  
-namespace hnll {
-namespace graphics {
- 
+namespace hnll::graphics {
+
 class buffer {
   public:
     buffer(
@@ -60,5 +59,4 @@ class buffer {
     VkMemoryPropertyFlags memory_property_flags_;
 };
  
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics

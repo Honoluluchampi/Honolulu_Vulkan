@@ -1,8 +1,7 @@
 // hnll
 #include <utils/utils.hpp>
 
-namespace hnll {
-namespace utils {
+namespace hnll::utils {
 
 glm::mat4 transform::mat4()
 {
@@ -104,5 +103,4 @@ glm::mat3 transform::normal_matrix()
   };
 }
 
-} // namespace utils
-} // namespace hnll
+} // namespace hnll::utils

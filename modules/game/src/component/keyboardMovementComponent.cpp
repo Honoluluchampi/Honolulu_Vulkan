@@ -15,8 +15,7 @@ void joystickCallback(int jid, int event)
   else std::cout << "disconnected" << std::endl;
 }
 
-namespace hnll {
-namespace game {
+namespace hnll::game {
 
 constexpr float MOVE_THRESH = 0.1f; 
 constexpr float ROTATE_THRESH = 0.1f;
@@ -139,5 +138,4 @@ void keyboard_movement_component::set_default_mapping()
   auto leftXfunc = [](float val){return glm::vec3(0.f, 0.f, 0.f); };
 }
 
-} // namespace game
-} // namespace hnll
+} // namespace hnll::game

@@ -13,8 +13,7 @@
 #include <stdexcept>
 #include <array>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 struct point_light_push_constant
 {
@@ -112,5 +111,4 @@ void point_light_rendering_system::render(frame_info frame_info)
   }
 }
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics

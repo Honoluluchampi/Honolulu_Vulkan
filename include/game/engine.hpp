@@ -16,9 +16,7 @@
 #include <unordered_map>
 #include <string>
 
-namespace hnll {
-
-namespace game {
+namespace hnll::game {
 
 // forward declaration
 class actor;
@@ -137,5 +135,4 @@ private:
   // static Display* display_;
 };
 
-} // namespace game
-} // namespace hnll
+} // namespace hnll::game

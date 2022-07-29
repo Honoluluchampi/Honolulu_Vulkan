@@ -4,8 +4,7 @@
 // std
 #include <stdexcept>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 window::window(const int w, const int h, const std::string name) : width_(w), height_(h), window_name_(name) 
 {
@@ -47,5 +46,4 @@ void window::frame_buffer_resize_callback(GLFWwindow *window, int width, int hei
   graphics_window->height_ = height;
 }
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics

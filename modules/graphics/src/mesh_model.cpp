@@ -27,8 +27,7 @@ struct hash<hnll::graphics::mesh_model::vertex>
 };
 }
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 mesh_model::mesh_model(device& device, const mesh_model::builder &builder) : device_{device}
 {
@@ -219,5 +218,4 @@ void mesh_model::builder::load_model(const std::string& filename)
   }
 }
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics

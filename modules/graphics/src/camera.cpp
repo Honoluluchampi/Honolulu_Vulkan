@@ -5,8 +5,7 @@
 #include <cassert>
 #include <limits>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 void camera::set_orthographics_projection(
     float left, float right, float top, float bottom, float near, float far) {
@@ -79,5 +78,4 @@ void camera::set_veiw_yxz(glm::vec3 position, glm::vec3 rotation) {
   veiw_matrix_[3][2] = -glm::dot(w, position);
 }
 
-} // namespace graphics
-} // namesapce hnll
+} // namespace hnll::graphics

@@ -7,8 +7,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 // what kind of geometry will be drawn from the vertices (topoloby) and
 // if primitive restart should be enabled
@@ -285,5 +284,4 @@ void pipeline::default_pipeline_config_info(pipeline_config_info &config_info)
   config_info.attribute_descriptions = mesh_model::vertex::get_attribute_descriptions();
 }
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics

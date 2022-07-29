@@ -11,8 +11,7 @@
 #include <vector>
 #include <memory>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 // TODO : configure renderer count in a systematic way
 #define RENDERER_COUNT 2
@@ -147,5 +146,4 @@ class swap_chain {
   std::vector<VkFence> images_in_flight_;
 };
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics
