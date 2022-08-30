@@ -1,7 +1,6 @@
 #pragma once
 
-namespace hnll {
-namespace physics {
+namespace hnll::physics {
 
 class engine
 {
@@ -13,5 +12,4 @@ class engine
 
 };
 
-} // namespace physics
-} // namespace hnll
+} // namespace hnll::physics
