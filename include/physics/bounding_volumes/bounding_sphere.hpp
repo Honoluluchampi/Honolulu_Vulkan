@@ -12,10 +12,10 @@ class bounding_sphere
     :center_point_(center_point), radius_(radius){}
 
     // intersection test with other kinds of bounding volumes
-    bool intersection_test(const bounding_sphere& other);
+    bool intersect_with(const bounding_sphere& other);
 
     // getter
-    inline Eigen::Vector3d get_center_point() const { return center_point_; }
+    const Eigen::Vector3d& get_center_point() const { return center_point_; }
     inline double          get_radius() const{ return radius_; }
     // setter
     void set_center_point(const Eigen::Vector3d& center_point) { center_point_ = center_point; }
