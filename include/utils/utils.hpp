@@ -9,6 +9,7 @@
 
 // lib
 #include <glm/gtc/matrix_transform.hpp>
+#include <eigen3/Eigen/Dense>
 
 template<class U> using u_ptr = std::unique_ptr<U>;
 template<class S> using s_ptr = std::shared_ptr<S>;
@@ -26,11 +27,11 @@ struct transform
   // Matrix corrsponds to Translate * Ry * Rz * Rx * Scale
   // Rotations correspond to Tait-bryan angles of Y(1), Z(2), X(3)
   // https://en.wikipedia.org/wiki/Euler_angles#Rotation_matrix
-  glm::mat4 mat4(); 
-  glm::mat4 rotate_mat4();
-  glm::mat3 rotate_mat3();
+  Eigen::Matrix4d mat4();
+  Eigen::Matrix4d rotate_mat4();
+  Eigen::Matrix3d rotate_mat3();
   // normal = R * S(-1)
-  glm::mat3 normal_matrix();
+  Eigen::Matrix4d normal_matrix();
 };
 
 static inline glm::vec3 sclXvec(const float scalar, const glm::vec3& vec)

@@ -7,6 +7,7 @@
 // lib
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
+#include <eigen3/Eigen/Dense>
 
 namespace iscg {
 
@@ -110,6 +111,28 @@ void drag_manager::calc_cursor_projection_intersect()
   }
 }
 
+glm::mat4 eigen_to_glm(const Eigen::Matrix4d& eigen_mat)
+{
+  glm::mat4 glm_mat;
+  glm_mat[0][0] = eigen_mat(0,0);
+  glm_mat[0][1] = eigen_mat(1,0);
+  glm_mat[0][2] = eigen_mat(2,0);
+  glm_mat[0][3] = eigen_mat(3,0);
+  glm_mat[1][0] = eigen_mat(0,1);
+  glm_mat[1][1] = eigen_mat(1,1);
+  glm_mat[1][2] = eigen_mat(2,1);
+  glm_mat[1][3] = eigen_mat(3,1);
+  glm_mat[2][0] = eigen_mat(0,2);
+  glm_mat[2][1] = eigen_mat(1,2);
+  glm_mat[2][2] = eigen_mat(2,2);
+  glm_mat[2][3] = eigen_mat(3,2);
+  glm_mat[3][0] = eigen_mat(0,3);
+  glm_mat[3][1] = eigen_mat(1,3);
+  glm_mat[3][2] = eigen_mat(2,3);
+  glm_mat[3][3] = eigen_mat(3,3);
+  return glm_mat;
+}
+
 glm::vec3 drag_manager::calc_world_click_point(const glm::vec2 &click_point)
 {
   auto near = hnll::game::viewer_component::get_near_distance();
@@ -117,7 +140,7 @@ glm::vec3 drag_manager::calc_world_click_point(const glm::vec2 &click_point)
   int w, h; glfwGetWindowSize(window_, &w, &h);
   auto world_height = world_width * ((float)h / (float)w);
 
-  return camera_.get_transform().mat4() * glm::vec4(click_point.x * world_width, click_point.y * world_height, near, 1);
+  return eigen_to_glm(camera_.get_transform().mat4()) * glm::vec4(click_point.x * world_width, click_point.y * world_height, near, 1);
 }
 
 } // namespace iscg

@@ -7,21 +7,46 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <eigen3/Eigen/Dense>
 
 //std
 #include <stdexcept>
 #include <array>
 #include <string>
 
+using Eigen::Matrix4f;
+
 namespace hnll::graphics {
 
 // should be compatible with a shader
 struct mesh_push_constant
 {
-  glm::mat4 model_matrix{1.0f};
+  Matrix4f model_matrix = Matrix4f::Identity();
   // to align data offsets with shader
-  glm::mat4 normal_matrix{1.0f};
+  Matrix4f normal_matrix = Matrix4f::Identity();
 };
+
+Matrix4f glm_to_eigen(const glm::mat4& glm_mat)
+{
+  Matrix4f eigen_mat;
+  eigen_mat(0,0) = glm_mat[0][0];
+  eigen_mat(0,1) = glm_mat[1][0];
+  eigen_mat(0,2) = glm_mat[2][0];
+  eigen_mat(0,3) = glm_mat[3][0];
+  eigen_mat(1,0) = glm_mat[0][1];
+  eigen_mat(1,1) = glm_mat[1][1];
+  eigen_mat(1,2) = glm_mat[2][1];
+  eigen_mat(1,3) = glm_mat[3][1];
+  eigen_mat(2,0) = glm_mat[0][2];
+  eigen_mat(2,1) = glm_mat[1][2];
+  eigen_mat(2,2) = glm_mat[2][2];
+  eigen_mat(2,3) = glm_mat[3][2];
+  eigen_mat(3,0) = glm_mat[0][3];
+  eigen_mat(3,1) = glm_mat[1][3];
+  eigen_mat(3,2) = glm_mat[2][3];
+  eigen_mat(3,3) = glm_mat[3][3];
+  return eigen_mat;
+}
 
 mesh_rendering_system::mesh_rendering_system
   (device& device, VkRenderPass render_pass, VkDescriptorSetLayout global_set_layout)
@@ -94,9 +119,9 @@ void mesh_rendering_system::render(frame_info frame_info)
     if (obj->get_model_sp() == nullptr) continue;
     mesh_push_constant push{};
     // camera projection
-    push.model_matrix = obj->get_transform().mat4();
+    push.model_matrix = obj->get_transform().mat4().cast<float>();
     // automatically converse mat3(normal_matrix) to mat4 for shader data alignment
-    push.normal_matrix = obj->get_transform().normal_matrix();
+    push.normal_matrix = obj->get_transform().normal_matrix().cast<float>();
 
     vkCmdPushConstants(
         frame_info.command_buffer,

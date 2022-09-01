@@ -3,104 +3,57 @@
 
 namespace hnll::utils {
 
-glm::mat4 transform::mat4()
+Eigen::Matrix4d transform::mat4()
 {
-  const float c3 = glm::cos(rotation.z), s3 = glm::sin(rotation.z), c2 = glm::cos(rotation.x),
-    s2 = glm::sin(rotation.x), c1 = glm::cos(rotation.y), s1 = glm::sin(rotation.y);
-  return glm::mat4{
-      {
-          scale.x * (c1 * c3 + s1 * s2 * s3),
-          scale.x * (c2 * s3),
-          scale.x * (c1 * s2 * s3 - c3 * s1),
-          0.0f,
-      },
-      {
-          scale.y * (c3 * s1 * s2 - c1 * s3),
-          scale.y * (c2 * c3),
-          scale.y * (c1 * c3 * s2 + s1 * s3),
-          0.0f,
-      },
-      {
-          scale.z * (c2 * s1),
-          scale.z * (-s2),
-          scale.z * (c1 * c2),
-          0.0f,
-      },
-      {translation.x, translation.y, translation.z, 1.0f}};
+  const float c3 = std::cos(rotation.z), s3 = std::sin(rotation.z), c2 = std::cos(rotation.x),
+    s2 = std::sin(rotation.x), c1 = std::cos(rotation.y), s1 = std::sin(rotation.y);
+
+  Eigen::Matrix4d ret;
+  ret << scale.x * (c1 * c3 + s1 * s2 * s3), scale.y * (c3 * s1 * s2 - c1 * s3), scale.z * (c2 * s1), translation.x,
+         scale.x * (c2 * s3),                scale.y * (c2 * c3),                scale.z * (-s2),     translation.y,
+         scale.x * (c1 * s2 * s3 - c3 * s1), scale.y * (c1 * c3 * s2 + s1 * s3), scale.z * (c1 * c2), translation.z,
+         0.f,                                0.f,                                0.f,                 1.f;
+  return ret;
 }
 
-glm::mat4 transform::rotate_mat4()
+Eigen::Matrix4d transform::rotate_mat4()
 {
-  const float c3 = glm::cos(rotation.z), s3 = glm::sin(rotation.z), c2 = glm::cos(rotation.x),
-  s2 = glm::sin(rotation.x), c1 = glm::cos(rotation.y), s1 = glm::sin(rotation.y);
-  return glm::mat4{
-      {
-          scale.x * (c1 * c3 + s1 * s2 * s3),
-          scale.x * (c2 * s3),
-          scale.x * (c1 * s2 * s3 - c3 * s1),
-          0.0f,
-      },
-      {
-          scale.y * (c3 * s1 * s2 - c1 * s3),
-          scale.y * (c2 * c3),
-          scale.y * (c1 * c3 * s2 + s1 * s3),
-          0.0f,
-      },
-      {
-          scale.z * (c2 * s1),
-          scale.z * (-s2),
-          scale.z * (c1 * c2),
-          0.0f,
-      },
-      {0.f, 0.f, 0.f, 1.0f}};
+  const float c3 = std::cos(rotation.z), s3 = std::sin(rotation.z), c2 = std::cos(rotation.x),
+  s2 = std::sin(rotation.x), c1 = std::cos(rotation.y), s1 = std::sin(rotation.y);
+
+  Eigen::Matrix4d ret;
+  ret << scale.x * (c1 * c3 + s1 * s2 * s3), scale.y * (c3 * s1 * s2 - c1 * s3), scale.z * (c2 * s1), 0.f,
+         scale.x * (c2 * s3),                scale.y * (c2 * c3),                scale.z * (-s2),     0.f,
+         scale.x * (c1 * s2 * s3 - c3 * s1), scale.y * (c1 * c3 * s2 + s1 * s3), scale.z * (c1 * c2), 0.f,
+         0.f,                                0.f,                                0.f,                 1.f;
+  return ret;
 }
 
-glm::mat3 transform::rotate_mat3()
+Eigen::Matrix3d transform::rotate_mat3()
 {
-  const float c3 = glm::cos(rotation.z), s3 = glm::sin(rotation.z), c2 = glm::cos(rotation.x),
-  s2 = glm::sin(rotation.x), c1 = glm::cos(rotation.y), s1 = glm::sin(rotation.y);
-  return glm::mat3{
-    {
-      scale.x * (c1 * c3 + s1 * s2 * s3),
-      scale.x * (c2 * s3),
-      scale.x * (c1 * s2 * s3 - c3 * s1)
-      },
-      {
-      scale.y * (c3 * s1 * s2 - c1 * s3),
-      scale.y * (c2 * c3),
-      scale.y * (c1 * c3 * s2 + s1 * s3)
-      },
-      {
-      scale.z * (c2 * s1),
-      scale.z * (-s2),
-      scale.z * (c1 * c2)
-      }};
+  const float c3 = std::cos(rotation.z), s3 = std::sin(rotation.z), c2 = std::cos(rotation.x),
+  s2 = std::sin(rotation.x), c1 = std::cos(rotation.y), s1 = std::sin(rotation.y);
+
+  Eigen::Matrix3d ret;
+  ret << scale.x * (c1 * c3 + s1 * s2 * s3), scale.y * (c3 * s1 * s2 - c1 * s3), scale.z * (c2 * s1),
+         scale.x * (c2 * s3),                scale.y * (c2 * c3),                scale.z * (-s2),
+         scale.x * (c1 * s2 * s3 - c3 * s1), scale.y * (c1 * c3 * s2 + s1 * s3), scale.z * (c1 * c2);
+  return ret;
 }
 
 // normal = R * S(-1)
-glm::mat3 transform::normal_matrix()
+Eigen::Matrix4d transform::normal_matrix()
 {
-  const float c3 = glm::cos(rotation.z), s3 = glm::sin(rotation.z), c2 = glm::cos(rotation.x),
-    s2 = glm::sin(rotation.x), c1 = glm::cos(rotation.y), s1 = glm::sin(rotation.y);
+  const float c3 = std::cos(rotation.z), s3 = std::sin(rotation.z), c2 = std::cos(rotation.x),
+    s2 = std::sin(rotation.x), c1 = std::cos(rotation.y), s1 = std::sin(rotation.y);
+  const Eigen::Vector3d inv_scale = {1.f / scale.x, 1.f / scale.y, 1.f / scale.z};
 
-  const glm::vec3 inv_scale = 1.0f / scale;
-  return glm::mat3{
-      {
-          inv_scale.x * (c1 * c3 + s1 * s2 * s3),
-          inv_scale.x * (c2 * s3),
-          inv_scale.x * (c1 * s2 * s3 - c3 * s1)
-      },
-      {
-          inv_scale.y * (c3 * s1 * s2 - c1 * s3),
-          inv_scale.y * (c2 * c3),
-          inv_scale.y * (c1 * c3 * s2 + s1 * s3)
-      },
-      {
-          inv_scale.z * (c2 * s1),
-          inv_scale.z * (-s2),
-          inv_scale.z * (c1 * c2)
-      }
-  };
+  Eigen::Matrix4d ret;
+  ret << inv_scale.x() * (c1 * c3 + s1 * s2 * s3), inv_scale.y() * (c3 * s1 * s2 - c1 * s3), inv_scale.z() * (c2 * s1), 0.f,
+         inv_scale.x() * (c2 * s3),                inv_scale.y() * (c2 * c3),                inv_scale.z() * (-s2),     0.f,
+         inv_scale.x() * (c1 * s2 * s3 - c3 * s1), inv_scale.y() * (c1 * c3 * s2 + s1 * s3), inv_scale.z() * (c1 * c2), 0.f,
+         0.f,                                      0.f,                                      0.f,                       1.f;
+  return ret;
 }
 
 } // namespace hnll::utils
