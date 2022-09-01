@@ -7,8 +7,7 @@
 #include <vector>
 #include <string>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 struct pipeline_config_info 
 {
@@ -86,5 +85,4 @@ class pipeline
     VkShaderModule fragment_shader_module_;
 };
 
-} // namespace graphics 
-} // namespace hve
+} // namespace hnll::graphics

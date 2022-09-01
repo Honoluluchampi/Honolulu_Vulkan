@@ -3,8 +3,7 @@
 // hnll
 #include <game/components/renderable_component.hpp>
 
-namespace hnll {
-namespace game {
+namespace hnll::game {
 
 // pointLight can be treated as gameObject
 struct point_light_info { float light_intensity = 1.0f; };
@@ -43,5 +42,4 @@ class point_light_component : public renderable_component
     glm::vec3 color_{};
 };
 
-} // namespace game
-} // namespace hnll
+} // namespace hnll::game

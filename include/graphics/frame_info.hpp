@@ -6,8 +6,7 @@
 // libs
 #include <vulkan/vulkan.h>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 // TODO : decrese this
 #define MAX_LIGHTS 20
@@ -37,5 +36,4 @@ struct frame_info
   VkDescriptorSet global_discriptor_set;
 };
 
-} // namespace graphics
-} // namesapce hnll
+} // namespace hnll::graphics

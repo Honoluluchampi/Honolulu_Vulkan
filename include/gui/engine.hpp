@@ -23,8 +23,7 @@
 #define IMGUI_VULKAN_DEBUG_REPORT
 #endif
 
-namespace hnll {
-namespace gui {
+namespace hnll::gui {
 
 class engine
 {
@@ -73,5 +72,4 @@ private:
   float vec_[3] = {0, 0, 0};
 };
 
-} // namespace gui
-} // namespace hnll 
+} // namespace hnll::gui

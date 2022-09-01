@@ -7,8 +7,7 @@
 // std
 #include <string>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 class window
 {
@@ -41,5 +40,4 @@ class window
     GLFWwindow *window_;
 };
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics

@@ -12,8 +12,7 @@
 #include <cassert>
 #include <cstring>
  
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 VkDeviceSize buffer::get_alignment(VkDeviceSize instance_size, VkDeviceSize min_offset_alignment) 
 {
@@ -169,5 +168,4 @@ VkDescriptorBufferInfo buffer::descriptor_info_for_index(int index)
 VkResult buffer::invalidate_index(int index)
 { return invalidate(alignment_size_, index * alignment_size_); }
  
-} // namespace graphics 
-} // namespace hnll
+} // namespace hnll::graphics

@@ -8,8 +8,7 @@
 // lib
 #include <glm/glm.hpp>
 
-namespace hnll {
-namespace game {
+namespace hnll::game {
 
 float viewer_component::near_distance_ = 0.1f;
 float viewer_component::fovy_ = glm::radians(50.f);
@@ -139,5 +138,4 @@ void viewer_component::update_component(float dt)
   set_perspective_projection(fovy_, aspect, near_distance_, 50.f); 
 }
 
-} // namespace game
-} // namesapce hnll
+} // namespace hnll::game

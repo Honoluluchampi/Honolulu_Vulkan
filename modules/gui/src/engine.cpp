@@ -6,8 +6,8 @@
 #include <gui/roboto_regular.embed>
 #include <utils/utils.hpp>
 
-namespace hnll {
-namespace gui {
+namespace hnll::gui {
+
 // take s_ptr<swap_chain> from get_renderer
 engine::engine(hnll::graphics::window& window, hnll::graphics::device& device)
   : device_(device.get_device())
@@ -182,5 +182,4 @@ void engine::upload_font()
   ImGui_ImplVulkan_DestroyFontUploadObjects();
 }
 
-} // namespace gui
-} // namespace hnll
+} // namespace hnll::gui

@@ -2,8 +2,7 @@
 #include <game/actors/default_camera.hpp>
 #include <graphics/engine.hpp>
 
-namespace hnll {
-namespace game {
+namespace hnll::game {
 
 default_camera::default_camera(hnll::graphics::engine& hve) : actor()
 {
@@ -19,5 +18,4 @@ default_camera::default_camera(hnll::graphics::engine& hve) : actor()
   add_component(viewer_comp_sp_);
 }
 
-} // namespace game
-} // namesapce hnll
+} // namespace hnll::game

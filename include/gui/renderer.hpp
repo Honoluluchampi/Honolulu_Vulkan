@@ -3,8 +3,7 @@
 // hnll
 #include <graphics/renderer.hpp>
 
-namespace hnll {
-namespace gui {
+namespace hnll::gui {
 
 #define GUI_RENDER_PASS_ID 1
 
@@ -27,5 +26,4 @@ class renderer : public hnll::graphics::renderer
     std::vector<VkFramebuffer> create_frame_buffers();
 };
 
-} // namespace gui
-} // namespace hnll
+} // namespace hnll::gui

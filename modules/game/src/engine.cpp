@@ -13,10 +13,9 @@
 #include <iostream>
 #include <typeinfo>
 
-namespace hnll {
-namespace game {
+namespace hnll::game {
 
-constexpr float MAX_FPS = 30.0f;
+constexpr float MAX_FPS = 60.0f;
 constexpr float MAX_DT = 0.05f;
 
 // static members
@@ -270,5 +269,4 @@ void engine::glfw_mouse_button_callback(GLFWwindow* window, int button, int acti
 #endif
 }
 
-} // namespace game
-} // namespace hnll
+} // namespace hnll::game

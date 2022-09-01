@@ -7,8 +7,7 @@
 #include <set>
 #include <unordered_set>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 // local callback functions
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -602,5 +601,4 @@ void device::create_image_with_info(
   }
 }
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics

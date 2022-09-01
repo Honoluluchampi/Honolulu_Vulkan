@@ -1,10 +1,7 @@
 // hnll
 #include <physics/particle_component.hpp>
 
-namespace hnll {
-namespace physics {
+namespace hnll::physics {
 
 
-
-} // namespace physics
-} // namespace hnll
+} // namespace hnll::physics
