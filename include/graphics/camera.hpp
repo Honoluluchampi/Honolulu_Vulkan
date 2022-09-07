@@ -6,8 +6,7 @@
 #include <glm/glm.hpp>
 
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 class camera 
 {
@@ -31,5 +30,4 @@ class camera
     glm::mat4 veiw_matrix_{1.f};
 };
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics

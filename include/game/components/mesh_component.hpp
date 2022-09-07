@@ -9,8 +9,7 @@
 // std
 #include <unordered_map>
 
-namespace hnll {
-namespace game {
+namespace hnll::game {
 
 template<class U> using u_ptr = std::unique_ptr<U>;
 template<class S> using s_ptr = std::shared_ptr<S>;
@@ -40,5 +39,4 @@ class mesh_component : public renderable_component
 
 using mesh_component_map = std::unordered_map<game::component_id, s_ptr<game::mesh_component>>;
 
-} // namespace game
-} // namespace hnll
+} // namespace hnll::game

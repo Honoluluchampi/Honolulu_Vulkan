@@ -1,8 +1,7 @@
 // hnll
 #include <gui/renderer.hpp>
 
-namespace hnll {
-namespace gui {
+namespace hnll::gui {
 
 renderer::renderer(hnll::graphics::window& window, hnll::graphics::device& device, bool recreate_from_scratch) : 
   hnll::graphics::renderer(window, device, recreate_from_scratch)
@@ -91,5 +90,4 @@ std::vector<VkFramebuffer> renderer::create_frame_buffers()
   return framebuffers;
 }
 
-} // namespace gui
-} // namespace hnll
+} // namespace hnll::gui

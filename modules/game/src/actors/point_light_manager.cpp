@@ -2,8 +2,7 @@
 #include <game/actors/point_light_manager.hpp>
 #include <graphics/frame_info.hpp>
 
-namespace hnll {
-namespace game {
+namespace hnll::game {
 
 point_light_manager::point_light_manager(hnll::graphics::global_ubo& ubo) : 
   actor(), ubo_(ubo)
@@ -26,5 +25,4 @@ void point_light_manager::update_actor(float dt)
   ubo_.lights_count = light_index;
 }
 
-} // namespace game
-} // namespace hnll
+} // namespace hnll::game

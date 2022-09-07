@@ -1,8 +1,7 @@
 // hnll
 #include <utils/utils.hpp>
 
-namespace hnll {
-namespace utils {
+namespace hnll::utils {
 
 Eigen::Matrix4d transform::mat4()
 {
@@ -57,5 +56,4 @@ Eigen::Matrix4d transform::normal_matrix()
   return ret;
 }
 
-} // namespace utils
-} // namespace hnll
+} // namespace hnll::utils

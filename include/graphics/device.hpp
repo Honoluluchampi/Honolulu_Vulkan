@@ -11,8 +11,7 @@
 #include <vector>
 #include <optional>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 // non-member function
 struct swap_chain_support_details
@@ -119,5 +118,4 @@ class device
     const std::vector<const char *> device_extensions_ = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 };
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics

@@ -5,8 +5,7 @@
 #include <stdexcept>
 #include <array>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 // static members
 uint32_t renderer::current_image_index_ = 0;
@@ -241,5 +240,4 @@ void renderer::submit_command_buffers()
 }
 #endif
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics

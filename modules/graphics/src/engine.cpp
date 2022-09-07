@@ -13,8 +13,7 @@
 // lib
 #include <glm/gtc/constants.hpp>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 
 engine::engine(const char* window_name) : window_{WIDTH, HEIGHT, window_name}
 { init(); }
@@ -122,5 +121,4 @@ void engine::remove_renderable_component_without_owner(hnll::game::render_type t
   rendering_systems_[type]->remove_render_target(id);
 }
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics

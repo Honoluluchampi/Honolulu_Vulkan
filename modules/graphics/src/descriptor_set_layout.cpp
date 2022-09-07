@@ -5,8 +5,7 @@
 #include <cassert>
 #include <stdexcept>
 
-namespace hnll {
-namespace graphics {
+namespace hnll::graphics {
 // *************** Descriptor Set Layout builder *********************
 
 descriptor_set_layout::builder &descriptor_set_layout::builder::add_binding(
@@ -188,5 +187,4 @@ void descriptor_writer::overwrite(VkDescriptorSet &set)
   vkUpdateDescriptorSets(pool_.device_.get_device(), writes_.size(), writes_.data(), 0, nullptr);
 }
 
-} // namespace graphics
-} // namespace hnll
+} // namespace hnll::graphics
