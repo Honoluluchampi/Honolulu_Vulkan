@@ -159,7 +159,7 @@ void engine::init_actors()
 void engine::load_data()
 {
   // load raw mesh data
-  load_mesh_models();
+  load_mesh_models("/home/honolulu/models/primitives");
   load_actor();
 }
 
@@ -168,7 +168,7 @@ void engine::load_data()
 void engine::load_mesh_models(const std::string& model_directory)
 {
   // auto path = std::string(std::getenv("HNLL_ENGN")) + model_directory;
-  auto path = std::string("/home/honolulu/models/primitives");
+  auto path = model_directory;
   for (const auto & file : std::filesystem::directory_iterator(path)) {
     auto filename = std::string(file.path());
     auto length = filename.size() - path.size() - 5;
