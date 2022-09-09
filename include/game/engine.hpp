@@ -114,10 +114,11 @@ private:
   u_ptr<hnll::gui::engine> gui_engine_up_;
 #endif
 
-  // map of mesh_model
+  // map of mesh_model contains raw vulkan buffer of its model
   // shared by engine and some modelComponents
   // pool all models which could be necessary
   static mesh_model_map mesh_model_map_;
+  // map of mesh_model_info contains
 
   bool is_updating_ = false; // for update
   bool is_running_ = false; // for run loop

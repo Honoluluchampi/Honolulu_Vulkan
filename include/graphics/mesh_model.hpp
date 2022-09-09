@@ -8,6 +8,7 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
+#include <eigen3/Eigen/Dense>
 
 // std
 #include <unordered_map>
@@ -34,11 +35,11 @@ class mesh_model
     // compatible with wavefront obj. file
     struct vertex
     {
-      glm::vec3 position{};
-      glm::vec3 color{};
-      glm::vec3 normal{};
+      Eigen::Vector3f position{};
+      Eigen::Vector3f color{};
+      Eigen::Vector3f normal{};
       // texture coordinates
-      glm::vec2 uv{};
+      Eigen::Vector2f uv{};
       // return a description compatible with the shader
       static std::vector<VkVertexInputBindingDescription> get_binding_descriptions();
       static std::vector<VkVertexInputAttributeDescription> get_attribute_descriptions();
@@ -69,6 +70,8 @@ class mesh_model
 
     // setter
     bool has_index_buffer() const { return had_index_buffer_; }
+    // getter
+    const std::vector<vertex>& get_vertices_list() const { return vertices_list_; }
 
   private:
     void create_vertex_buffers(const std::vector<vertex> &vertices);
@@ -82,6 +85,9 @@ class mesh_model
     uint32_t index_count_;
 
     bool had_index_buffer_ = false;
+
+    // for geometric process
+    std::vector<vertex> vertices_list_{};
 };
 
 } // namespace hnll::graphics
