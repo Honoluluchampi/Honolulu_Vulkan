@@ -71,7 +71,8 @@ class mesh_model
     // setter
     bool has_index_buffer() const { return had_index_buffer_; }
     // getter
-    const std::vector<vertex>& get_vertices_list() const { return vertices_list_; }
+    const std::vector<vertex>& get_vertex_list() const { return vertex_list_; }
+    std::vector<Eigen::Vector3d> get_vertex_position_list() const;
 
   private:
     void create_vertex_buffers(const std::vector<vertex> &vertices);
@@ -87,7 +88,7 @@ class mesh_model
     bool had_index_buffer_ = false;
 
     // for geometric process
-    std::vector<vertex> vertices_list_{};
+    std::vector<vertex> vertex_list_{};
 };
 
 } // namespace hnll::graphics

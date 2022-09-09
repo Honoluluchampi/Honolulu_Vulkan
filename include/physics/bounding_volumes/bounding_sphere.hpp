@@ -13,7 +13,7 @@ enum class ctor_type
 class bounding_sphere
 {
   public:
-    bounding_sphere(const Eigen::Vector3d& center_point, const double radius)
+    bounding_sphere(const Eigen::Vector3d& center_point = {0.f, 0.f, 0.f}, const double radius = 1.f)
     :center_point_(center_point), radius_(radius){}
 
     // ctor selector

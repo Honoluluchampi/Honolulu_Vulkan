@@ -48,7 +48,7 @@ mesh_model::mesh_model(device& device, const mesh_model::builder &builder) : dev
   create_vertex_buffers(builder.vertices);
   create_index_buffers(builder.indices);
 
-  vertices_list_ = std::move(builder.vertices);
+  vertex_list_ = std::move(builder.vertices);
 }
 
 mesh_model::~mesh_model()
@@ -232,6 +232,16 @@ void mesh_model::builder::load_model(const std::string& filename)
       indices.push_back(unique_vertices[vertex]);
     }
   }
+}
+
+std::vector<Eigen::Vector3d> mesh_model::get_vertex_position_list() const
+{
+  // extract position data from vertex_list_
+  std::vector<Eigen::Vector3d> vertex_position_list;
+  for (const auto &vertex : vertex_list_) {
+    vertex_position_list.push_back(vertex.position.cast<double>());
+  }
+  return vertex_position_list;
 }
 
 } // namespace hnll::graphics
