@@ -35,4 +35,9 @@ class bounding_sphere
     double radius_;
 };
 
+// support functions
+std::pair<int,int> most_separated_points_on_aabb(const std::vector<Eigen::Vector3d> &vertices);
+bounding_sphere sphere_from_distant_points(const std::vector<Eigen::Vector3d> &vertices);
+void extend_sphere_to_point(bounding_sphere& sphere, const Eigen::Vector3d& point);
+
 } // namespace hnll::physics

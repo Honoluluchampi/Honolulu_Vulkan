@@ -69,6 +69,7 @@ bounding_sphere bounding_sphere::ritter_ctor(std::vector<Eigen::Vector3d> &verti
   auto sphere = sphere_from_distant_points(vertices);
   for (const auto& vertex : vertices)
     extend_sphere_to_point(sphere, vertex);
+  return sphere;
 }
 
 bool bounding_sphere::intersect_with(const bounding_sphere &other)

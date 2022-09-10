@@ -24,7 +24,7 @@ class rigid_ball : public hnll::game::actor
       hnll::game::engine::add_actor(ball);
       return ball;
     };
-  private:
+
     hnll::physics::bounding_sphere bounding_sphere_;
 };
 
