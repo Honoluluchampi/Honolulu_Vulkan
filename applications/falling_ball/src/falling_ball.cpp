@@ -2,6 +2,7 @@
 #include <game/engine.hpp>
 #include <game/components/mesh_component.hpp>
 #include <physics/bounding_volumes/bounding_sphere.hpp>
+#include <game/actors/default_camera.hpp>
 
 class rigid_ball : public hnll::game::actor
 {
@@ -20,12 +21,31 @@ class rigid_ball : public hnll::game::actor
       ball->bounding_sphere_ = hnll::physics::bounding_sphere::create_bounding_sphere
           (hnll::physics::ctor_type::RITTER, ball_mesh_vertex_position_list);
 
+      ball->set_translation(glm::vec3{center_point.x(), center_point.y(), center_point.z()});
+      ball->velocity_ = {0.f, 0.f, 0.f};
       // register the ball to the engine
       hnll::game::engine::add_actor(ball);
       return ball;
     };
 
+    void update_actor(float dt) override
+    {
+      position_ += velocity_ * dt;
+      velocity_.y += gravity_ * dt;
+      // bound
+      if (position_.y > 0.f) {
+        position_.y = -position_.y;
+        velocity_.y = -velocity_.y * restitution_;
+      }
+      this->set_translation(position_);
+    }
+
+  private:
     hnll::physics::bounding_sphere bounding_sphere_;
+    glm::vec3 position_;
+    glm::vec3 velocity_;
+    double gravity_ = 20.f;
+    double restitution_ = 1;
 };
 
 class falling_ball_app : public hnll::game::engine
@@ -33,7 +53,8 @@ class falling_ball_app : public hnll::game::engine
   public:
     falling_ball_app() : hnll::game::engine("falling ball")
     {
-      auto ball = rigid_ball::create({0.f, 0.f, 0.f}, 1.f);
+      camera_up_->set_translation(glm::vec3{0.f, 0.f, -20.f});
+      auto ball = rigid_ball::create({0.f, -20.f, 0.f}, 1.f);
     }
 };
 
