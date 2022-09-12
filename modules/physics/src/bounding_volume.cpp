@@ -3,7 +3,32 @@
 
 namespace hnll::physics {
 
-bounding_volume bounding_volume::create_bounding_sphere(bv_ctor_type type, std::vector<Eigen::Vector3d> &vertices)
+
+bounding_volume bounding_volume::create_aabb(std::vector<Eigen::Vector3d>& vertices)
+{
+  // TODO : compute convex-hull
+  auto convex_hull = vertices;
+  double minx = convex_hull[0].x(),
+         maxx = convex_hull[0].x(),
+         miny = convex_hull[0].y(),
+         maxy = convex_hull[0].y(),
+         minz = convex_hull[0].z(),
+         maxz = convex_hull[0].z();
+  for (int i = 1; i < convex_hull.size(); i++) {
+    const auto& vertex = convex_hull[i];
+    if (minx > vertex.x()) minx = vertex.x();
+    if (maxx < vertex.x()) maxx = vertex.x();
+    if (miny > vertex.y()) miny = vertex.y();
+    if (maxy < vertex.y()) maxy = vertex.y();
+    if (minz > vertex.z()) minz = vertex.z();
+    if (maxz < vertex.z()) maxz = vertex.z();
+  }
+  Eigen::Vector3d center_point = {(maxx + minx) / 2, (maxy + miny) / 2, (maxz + minz) / 2};
+  Eigen::Vector3d radius = {(maxx - minx) / 2, (maxy - miny) / 2, (maxz - minz) / 2};
+  return {center_point, radius};
+}
+
+bounding_volume bounding_volume::create_bounding_sphere(bv_ctor_type type, std::vector<Eigen::Vector3d>& vertices)
 {
   switch (type) {
     case bv_ctor_type::RITTER:
