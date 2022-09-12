@@ -25,7 +25,21 @@ struct hash<hnll::graphics::mesh_model::vertex>
     return seed;
   }
 };
-}
+
+template <typename Scalar, int Rows, int Cols>
+struct hash<Eigen::Matrix<Scalar, Rows, Cols>> {
+  // https://wjngkoh.wordpress.com/2015/03/04/c-hash-function-for-eigen-matrix-and-vector/
+  size_t operator()(const Eigen::Matrix<Scalar, Rows, Cols>& matrix) const {
+    size_t seed = 0;
+    for (size_t i = 0; i < static_cast<size_t>(matrix.size()); ++i) {
+      Scalar elem = *(matrix.data() + i);
+      seed ^=
+          std::hash<Scalar>()(elem) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+    return seed;
+  }
+};
+} // namespace std
 
 namespace hnll::graphics {
 
@@ -33,11 +47,13 @@ mesh_model::mesh_model(device& device, const mesh_model::builder &builder) : dev
 {
   create_vertex_buffers(builder.vertices);
   create_index_buffers(builder.indices);
+
+  vertex_list_ = std::move(builder.vertices);
 }
 
 mesh_model::~mesh_model()
 {
-  // buffers wille be freed in dtor of Hvebuffer
+  // buffers will be freed in dtor of Hvebuffer
 }
 
 std::shared_ptr<mesh_model> mesh_model::create_model_from_file(device &device, const std::string &filename)
@@ -216,6 +232,16 @@ void mesh_model::builder::load_model(const std::string& filename)
       indices.push_back(unique_vertices[vertex]);
     }
   }
+}
+
+std::vector<Eigen::Vector3d> mesh_model::get_vertex_position_list() const
+{
+  // extract position data from vertex_list_
+  std::vector<Eigen::Vector3d> vertex_position_list;
+  for (const auto &vertex : vertex_list_) {
+    vertex_position_list.push_back(vertex.position.cast<double>());
+  }
+  return vertex_position_list;
 }
 
 } // namespace hnll::graphics

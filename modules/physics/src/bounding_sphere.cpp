@@ -1,12 +1,12 @@
 // hnll
-#include <physics/bounding_volumes/bounding_sphere.hpp>
+#include <physics/bounding_volume.hpp>
 
 namespace hnll::physics {
 
-bounding_sphere bounding_sphere::create_bounding_sphere(ctor_type type, std::vector<Eigen::Vector3d> &vertices)
+bounding_volume bounding_volume::create_bounding_sphere(bv_ctor_type type, std::vector<Eigen::Vector3d> &vertices)
 {
   switch (type) {
-    case ctor_type::RITTER:
+    case bv_ctor_type::RITTER:
       return ritter_ctor(vertices);
     default:
       std::runtime_error("invalid bounding-sphere-ctor type");
@@ -42,29 +42,29 @@ std::pair<int,int> most_separated_points_on_aabb(const std::vector<Eigen::Vector
   return {min, max};
 }
 
-bounding_sphere sphere_from_distant_points(const std::vector<Eigen::Vector3d> &vertices)
+bounding_volume sphere_from_distant_points(const std::vector<Eigen::Vector3d> &vertices)
 {
   auto separated_idx = most_separated_points_on_aabb(vertices);
   auto center_point = (vertices[separated_idx.first] + vertices[separated_idx.second]) * 0.5f;
   auto radius = (vertices[separated_idx.first] - center_point).dot(vertices[separated_idx.first] - center_point);
   radius = std::sqrt(radius);
-  return bounding_sphere{center_point, radius};
+  return bounding_volume{center_point, radius};
 }
 
-void extend_sphere_to_point(bounding_sphere& sphere, const Eigen::Vector3d& point)
+void extend_sphere_to_point(bounding_volume& sphere, const Eigen::Vector3d& point)
 {
   auto diff = point - sphere.get_center_point();
   auto dist2 = diff.dot(diff);
-  if (dist2 > sphere.get_radius() * sphere.get_radius()) {
+  if (dist2 > sphere.get_sphere_radius() * sphere.get_sphere_radius()) {
     auto dist = std::sqrt(dist2);
-    auto new_radius = (sphere.get_radius() + dist) * 0.5f;
-    auto k = (new_radius - sphere.get_radius()) / dist;
-    sphere.set_radius(new_radius);
+    auto new_radius = (sphere.get_sphere_radius() + dist) * 0.5f;
+    auto k = (new_radius - sphere.get_sphere_radius()) / dist;
+    sphere.set_sphere_radius(new_radius);
     sphere.set_center_point(sphere.get_center_point() + diff * k);
   }
 }
 
-bounding_sphere bounding_sphere::ritter_ctor(std::vector<Eigen::Vector3d> &vertices)
+bounding_volume bounding_volume::ritter_ctor(const std::vector<Eigen::Vector3d> &vertices)
 {
   auto sphere = sphere_from_distant_points(vertices);
   for (const auto& vertex : vertices)
@@ -72,12 +72,13 @@ bounding_sphere bounding_sphere::ritter_ctor(std::vector<Eigen::Vector3d> &verti
   return sphere;
 }
 
-bool bounding_sphere::intersect_with(const bounding_sphere &other)
+bool bounding_volume::intersection_test(const bounding_volume &other)
 {
+  // TODO : implement test for each pair
   Eigen::Vector3d difference = this->center_point_ - other.get_center_point();
   double distance2 = difference.dot(difference);
-  float radius_sum = this->radius_ + other.get_radius();
+  float radius_sum = this->get_sphere_radius() + other.get_sphere_radius();
   return distance2 <= radius_sum * radius_sum;
 }
 
-} // namespcae hnll::physics
+} // namespace hnll::physics

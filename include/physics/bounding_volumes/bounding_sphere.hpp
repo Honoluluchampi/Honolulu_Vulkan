@@ -13,7 +13,7 @@ enum class ctor_type
 class bounding_sphere
 {
   public:
-    bounding_sphere(const Eigen::Vector3d& center_point, const double radius)
+    bounding_sphere(const Eigen::Vector3d& center_point = {0.f, 0.f, 0.f}, const double radius = 1.f)
     :center_point_(center_point), radius_(radius){}
 
     // ctor selector
@@ -34,5 +34,10 @@ class bounding_sphere
     Eigen::Vector3d center_point_;
     double radius_;
 };
+
+// support functions
+std::pair<int,int> most_separated_points_on_aabb(const std::vector<Eigen::Vector3d> &vertices);
+bounding_sphere sphere_from_distant_points(const std::vector<Eigen::Vector3d> &vertices);
+void extend_sphere_to_point(bounding_sphere& sphere, const Eigen::Vector3d& point);
 
 } // namespace hnll::physics
