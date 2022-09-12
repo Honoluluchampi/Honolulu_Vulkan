@@ -97,13 +97,4 @@ bounding_volume bounding_volume::ritter_ctor(const std::vector<Eigen::Vector3d> 
   return sphere;
 }
 
-bool bounding_volume::intersection_test(const bounding_volume &other)
-{
-  // TODO : implement test for each pair
-  Eigen::Vector3d difference = this->center_point_ - other.get_center_point();
-  double distance2 = difference.dot(difference);
-  float radius_sum = this->get_sphere_radius() + other.get_sphere_radius();
-  return distance2 <= radius_sum * radius_sum;
-}
-
 } // namespace hnll::physics

@@ -35,12 +35,13 @@ class bounding_volume
     inline Eigen::Vector3d get_center_point() const { return center_point_; }
     inline Eigen::Vector3d get_aabb_radius() const{ return radius_; }
     inline double          get_sphere_radius() const { return radius_.x(); }
+    inline bool            is_sphere() const { return bv_type_ == bv_type::SPHERE; }
+    inline bool            is_aabb() const { return bv_type_ == bv_type::AABB; }
     // setter
     void set_center_point(const Eigen::Vector3d& center_point) { center_point_ = center_point; }
     void set_aabb_radius(const Eigen::Vector3d radius) { radius_ = radius; }
     void set_sphere_radius(const double radius) { radius_.x() = radius; }
 
-    bool intersection_test(const bounding_volume& other);
   private:
     bv_type bv_type_;
     Eigen::Vector3d center_point_;
