@@ -55,11 +55,11 @@ void extend_sphere_to_point(bounding_volume& sphere, const Eigen::Vector3d& poin
 {
   auto diff = point - sphere.get_center_point();
   auto dist2 = diff.dot(diff);
-  if (dist2 > sphere.get_radius() * sphere.get_radius()) {
+  if (dist2 > sphere.get_sphere_radius() * sphere.get_sphere_radius()) {
     auto dist = std::sqrt(dist2);
-    auto new_radius = (sphere.get_radius() + dist) * 0.5f;
-    auto k = (new_radius - sphere.get_radius()) / dist;
-    sphere.set_radius(new_radius);
+    auto new_radius = (sphere.get_sphere_radius() + dist) * 0.5f;
+    auto k = (new_radius - sphere.get_sphere_radius()) / dist;
+    sphere.set_sphere_radius(new_radius);
     sphere.set_center_point(sphere.get_center_point() + diff * k);
   }
 }
@@ -72,11 +72,12 @@ bounding_volume bounding_volume::ritter_ctor(const std::vector<Eigen::Vector3d> 
   return sphere;
 }
 
-bool bounding_volume::intersect_with(const bounding_volume &other)
+bool bounding_volume::intersection_test(const bounding_volume &other)
 {
+  // TODO : implement test for each pair
   Eigen::Vector3d difference = this->center_point_ - other.get_center_point();
   double distance2 = difference.dot(difference);
-  float radius_sum = this->radius_.x() + other.get_radius();
+  float radius_sum = this->get_sphere_radius() + other.get_sphere_radius();
   return distance2 <= radius_sum * radius_sum;
 }
 

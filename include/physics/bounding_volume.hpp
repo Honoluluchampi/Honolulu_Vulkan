@@ -12,7 +12,7 @@ enum class bv_type {
 };
 
 enum class bv_ctor_type {
-    RITTOR,
+    RITTER,
 };
 
 class bounding_volume
@@ -33,12 +33,14 @@ class bounding_volume
     // getter
     inline bv_type         get_bv_type() const { return bv_type_; }
     inline Eigen::Vector3d get_center_point() const { return center_point_; }
-    inline Eigen::Vector3d get_radius() const{ return radius_; }
+    inline Eigen::Vector3d get_aabb_radius() const{ return radius_; }
+    inline double          get_sphere_radius() const { return radius_.x(); }
     // setter
     void set_center_point(const Eigen::Vector3d& center_point) { center_point_ = center_point; }
-    void set_radius(const Eigen::Vector3d radius) { radius_ = radius; }
+    void set_aabb_radius(const Eigen::Vector3d radius) { radius_ = radius; }
+    void set_sphere_radius(const double radius) { radius_.x() = radius; }
 
-    bool intersect_with(const bounding_volume& other);
+    bool intersection_test(const bounding_volume& other);
   private:
     bv_type bv_type_;
     Eigen::Vector3d center_point_;
