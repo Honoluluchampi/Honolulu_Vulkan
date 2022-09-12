@@ -3,8 +3,7 @@
 
 namespace hnll::physics {
 
-
-bounding_volume bounding_volume::create_aabb(std::vector<Eigen::Vector3d>& vertices)
+s_ptr<bounding_volume> bounding_volume::create_aabb(std::vector<Eigen::Vector3d>& vertices)
 {
   // TODO : compute convex-hull
   auto convex_hull = vertices;
@@ -25,10 +24,10 @@ bounding_volume bounding_volume::create_aabb(std::vector<Eigen::Vector3d>& verti
   }
   Eigen::Vector3d center_point = {(maxx + minx) / 2, (maxy + miny) / 2, (maxz + minz) / 2};
   Eigen::Vector3d radius = {(maxx - minx) / 2, (maxy - miny) / 2, (maxz - minz) / 2};
-  return {center_point, radius};
+  return std::make_shared<bounding_volume>(center_point, radius);
 }
 
-bounding_volume bounding_volume::create_bounding_sphere(bv_ctor_type type, std::vector<Eigen::Vector3d>& vertices)
+s_ptr<bounding_volume> bounding_volume::create_bounding_sphere(bv_ctor_type type, std::vector<Eigen::Vector3d>& vertices)
 {
   switch (type) {
     case bv_ctor_type::RITTER:
@@ -67,13 +66,13 @@ std::pair<int,int> most_separated_points_on_aabb(const std::vector<Eigen::Vector
   return {min, max};
 }
 
-bounding_volume sphere_from_distant_points(const std::vector<Eigen::Vector3d> &vertices)
+s_ptr<bounding_volume> sphere_from_distant_points(const std::vector<Eigen::Vector3d> &vertices)
 {
   auto separated_idx = most_separated_points_on_aabb(vertices);
   auto center_point = (vertices[separated_idx.first] + vertices[separated_idx.second]) * 0.5f;
   auto radius = (vertices[separated_idx.first] - center_point).dot(vertices[separated_idx.first] - center_point);
   radius = std::sqrt(radius);
-  return bounding_volume{center_point, radius};
+  return std::make_shared<bounding_volume>(center_point, radius);
 }
 
 void extend_sphere_to_point(bounding_volume& sphere, const Eigen::Vector3d& point)
@@ -89,11 +88,11 @@ void extend_sphere_to_point(bounding_volume& sphere, const Eigen::Vector3d& poin
   }
 }
 
-bounding_volume bounding_volume::ritter_ctor(const std::vector<Eigen::Vector3d> &vertices)
+s_ptr<bounding_volume> bounding_volume::ritter_ctor(const std::vector<Eigen::Vector3d> &vertices)
 {
   auto sphere = sphere_from_distant_points(vertices);
   for (const auto& vertex : vertices)
-    extend_sphere_to_point(sphere, vertex);
+    extend_sphere_to_point(*sphere, vertex);
   return sphere;
 }
 

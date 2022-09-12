@@ -15,6 +15,7 @@ bool collision_detector::intersection_test(const bounding_volume &a, const bound
   if (a.is_sphere() && b.is_sphere()) return intersection_sphere_sphere(a, b);
 
   std::runtime_error("invalid bounding_volume pair");
+  return false;
 }
 
 bool collision_detector::intersection_aabb_aabb(const bounding_volume &aabb_a, const bounding_volume &aabb_b)
