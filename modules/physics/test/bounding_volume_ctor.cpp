@@ -19,15 +19,6 @@ TEST(bounding_sphere, ctor){
   EXPECT_EQ(sp1.get_sphere_radius(), 3.f);
 }
 
-TEST(bounding_sphere, intersection){
-  // intersection
-  EXPECT_TRUE(cd.intersection_test(sp1, sp2));
-  sp2.set_center_point({1.f, 7.f, 0.f});
-  EXPECT_TRUE(cd.intersection_test(sp1, sp2));
-  sp2.set_center_point({1.f, 8.f, 0.f});
-  EXPECT_FALSE(cd.intersection_test(sp1, sp2));
-}
-
 std::vector<Eigen::Vector3d> sample_vertices{
   {1.f, 1.f, 0.f},
   {-1.f, 1.f, 0.f},
