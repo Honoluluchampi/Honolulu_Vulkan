@@ -16,7 +16,7 @@ class collision_detector
   private:
     bool intersection_aabb_aabb(const bounding_volume& aabb_a, const bounding_volume& aabb_b);
     // TODO : impl
-    bool intersection_aabb_sphere(const bounding_volume& aabb, const bounding_volume& sphere){ return true; }
+    bool intersection_aabb_sphere(const bounding_volume& aabb, const bounding_volume& sphere);
     bool intersection_sphere_sphere(const bounding_volume& sphere_a, const bounding_volume& sphere_b);
 
     std::vector<bounding_volume> bounding_volumes_{};

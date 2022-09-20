@@ -26,6 +26,11 @@ bool collision_detector::intersection_aabb_aabb(const bounding_volume &aabb_a, c
   return true;
 }
 
+bool collision_detector::intersection_aabb_sphere(const bounding_volume &aabb, const bounding_volume &sphere)
+{
+  return true;
+}
+
 bool collision_detector::intersection_sphere_sphere(const bounding_volume &sphere_a, const bounding_volume &sphere_b)
 {
   Eigen::Vector3d difference = sphere_a.get_center_point() - sphere_b.get_center_point();

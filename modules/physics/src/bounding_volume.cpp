@@ -34,6 +34,7 @@ s_ptr<bounding_volume> bounding_volume::create_bounding_sphere(bv_ctor_type type
       return ritter_ctor(vertices);
     default:
       std::runtime_error("invalid bounding-sphere-ctor type");
+      return nullptr;
   }
 }
 

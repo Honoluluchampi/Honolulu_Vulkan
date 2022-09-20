@@ -49,6 +49,24 @@ class rigid_ball : public hnll::game::actor
     double restitution_ = 1;
 };
 
+// plate is bounding box of which thickness is 0.
+class rigid_plate : public hnll::game::actor
+{
+  public:
+    rigid_plate() : actor(){}
+    static s_ptr<rigid_plate> create()
+    {
+      auto plate = std::make_shared<rigid_plate>();
+      auto plate_mesh = hnll::game::engine::get_mesh_model_sp("plate");
+      auto plate_mesh_vertices = plate_mesh->get_vertex_position_list();
+      plate->bounding_box = hnll::physics::bounding_volume::create_aabb(plate_mesh_vertices);
+      return plate;
+    }
+  private:
+    s_ptr<hnll::physics::bounding_volume> bounding_box = nullptr;
+    glm::vec3 position_;
+};
+
 class falling_ball_app : public hnll::game::engine
 {
   public:
