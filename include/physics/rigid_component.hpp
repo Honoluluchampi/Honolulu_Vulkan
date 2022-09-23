@@ -5,11 +5,16 @@
 #include <utils/utils.hpp>
 #include <physics/bounding_volume.hpp>
 
+// forward declaration
+namespace hnll::game { class mesh_component; }
+
 namespace hnll::physics {
 
 class rigid_component : public hnll::game::component
 {
   public:
+    static s_ptr<rigid_component> create_with_aabb(const s_ptr<hnll::game::mesh_component>& mesh_component_sp);
+
     rigid_component(bounding_volume& bv) : bounding_volume_(bv){}
 
     void specific_add_process(hnll::game::actor& owner) override;

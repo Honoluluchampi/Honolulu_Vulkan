@@ -1,12 +1,17 @@
 // hnll
 #include <physics/collision_detector.hpp>
+#include <physics/rigid_component.hpp>
 #include <physics/bounding_volume.hpp>
+
 // lib
 #include <eigen3/Eigen/Dense>
 
 namespace hnll::physics {
 
-bool collision_detector::intersection_test(const bounding_volume &a, const bounding_volume &b)
+// static members' declaration
+std::vector<s_ptr<rigid_component>> rigid_components_{};
+
+bool collision_detector::intersection_bounding_volume(const bounding_volume &a, const bounding_volume &b)
 {
   // call intersection test depending on the types of bv
   if (a.is_aabb() && b.is_aabb())     return intersection_aabb_aabb(a, b);
