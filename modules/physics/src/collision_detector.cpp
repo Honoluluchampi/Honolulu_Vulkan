@@ -8,6 +8,15 @@
 
 namespace hnll::physics {
 
+struct point { Eigen::Vector3d point; };
+struct plane
+{
+  Eigen::Vector3d point;
+  Eigen::Vector3d normal;
+  // plane's normal is guaranteed to be normalized
+  plane(const Eigen::Vector3d& point_, const Eigen::Vector3d& normal_) : point(point_), normal(normal_) { normal.normalize(); }
+};
+
 // static members' declaration
 std::vector<s_ptr<rigid_component>> rigid_components_{};
 
@@ -43,5 +52,20 @@ bool collision_detector::intersection_sphere_sphere(const bounding_volume &spher
   float radius_sum = sphere_a.get_sphere_radius() + sphere_b.get_sphere_radius();
   return distance2 <= radius_sum * radius_sum;
 }
+
+// support functions for intersection_aabb_sphere
+// prefix 'cp' abbreviation of 'closest point'
+point cp_point_to_plane(point q, plane p)
+{
+  // plane's normal must be normalized before this test
+  float t = p.normal.dot(q.point - p.point);
+  return { q.point - t * p.normal };
+}
+
+double distance_point_to_plane(point q, plane p)
+{
+  return p.normal.dot(q.point - p.point);
+}
+
 
 } // namespace hnll::physics
