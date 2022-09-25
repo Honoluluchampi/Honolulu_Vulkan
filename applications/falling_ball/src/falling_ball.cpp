@@ -1,8 +1,10 @@
 // hnll
 #include <game/engine.hpp>
 #include <game/components/mesh_component.hpp>
-#include <physics/bounding_volume.hpp>
 #include <game/actors/default_camera.hpp>
+
+#include <physics/bounding_volume.hpp>
+#include <physics/engine.hpp>
 
 class rigid_ball : public hnll::game::actor
 {
@@ -75,6 +77,9 @@ class falling_ball_app : public hnll::game::engine
       camera_up_->set_translation(glm::vec3{0.f, 0.f, -20.f});
       auto ball = rigid_ball::create({0.f, -5.f, 0.f}, 1.f);
     }
+
+  private:
+    hnll::physics::engine physics_engine_{};
 };
 
 int main()
