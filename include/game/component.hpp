@@ -8,6 +8,9 @@ template <class T> using u_ptr = std::unique_ptr<T>;
 
 namespace hnll::game {
 
+// forward declaration
+class actor;
+
 using component_id = unsigned int;
 
 class component
@@ -17,6 +20,7 @@ public:
   virtual ~component(){}
 
   inline void update(float dt) { update_component(dt); }
+  virtual void specific_add_process(actor& _actor) {}
 
 #ifndef IMGUI_DISABLED
   virtual void update_gui(){}
