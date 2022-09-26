@@ -55,16 +55,42 @@ bool collision_detector::intersection_sphere_sphere(const bounding_volume &spher
 
 // support functions for intersection_aabb_sphere
 // prefix 'cp' abbreviation of 'closest point'
-point cp_point_to_plane(point q, plane p)
+point cp_point_to_plane(const point& q, const plane& p)
 {
   // plane's normal must be normalized before this test
   float t = p.normal.dot(q.point - p.point);
   return { q.point - t * p.normal };
 }
 
-double distance_point_to_plane(point q, plane p)
+double distance_point_to_plane(const point& q, const plane& p)
 {
   return p.normal.dot(q.point - p.point);
+}
+
+// caller of this function is responsible for insuring that the bounding_volume is aabb
+point cp_point_to_aabb(const point& p, const bounding_volume& aabb)
+{
+  point q;
+  // TODO : simdlize
+  for (int i = 0; i < 3; i++){
+    float v = p.point[i];
+    if (v < aabb.get_center_point()[i] - aabb.get_aabb_radius()[i]) v = aabb.get_center_point()[i] - aabb.get_aabb_radius()[i];
+    else if (v > aabb.get_center_point()[i] + aabb.get_aabb_radius()[i]) v = aabb.get_center_point()[i] + aabb.get_aabb_radius()[i];
+    q.point[i] = v;
+  }
+  return q;
+}
+
+// sq_dist is abbreviation of 'squared distance'
+double sq_dist_point_to_aabb(const point& p, const bounding_volume& aabb)
+{
+  double result = 0.0f;
+  for (int i = 0; i < 3; i++) {
+    float v = p.point[i];
+    if (v < aabb.get_center_point()[i] - aabb.get_aabb_radius()[i]) result += std::pow(aabb.get_center_point()[i] - aabb.get_aabb_radius()[i] - v, 2);
+    else if (v > aabb.get_center_point()[i] + aabb.get_aabb_radius()[i]) result += std::pow(v - aabb.get_center_point()[i] - aabb.get_aabb_radius()[i], 2);
+  }
+  return result;
 }
 
 
