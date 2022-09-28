@@ -21,20 +21,20 @@ auto aabb2 = bounding_volume(point4, {1.f, 0.5f, 4.f});
 TEST(bounding_volume_intersection, sphere_sphere)
 {
   // intersection
-  EXPECT_TRUE(cdd.intersection_test(sp3, sp4));
+  EXPECT_TRUE(cdd.intersection_bounding_volume(sp3, sp4));
   sp4.set_center_point({1.f, 7.f, 0.f});
-  EXPECT_TRUE(cdd.intersection_test(sp3, sp4));
+  EXPECT_TRUE(cdd.intersection_bounding_volume(sp3, sp4));
   sp4.set_center_point({1.f, 8.f, 0.f});
-  EXPECT_FALSE(cdd.intersection_test(sp3, sp4));
+  EXPECT_FALSE(cdd.intersection_bounding_volume(sp3, sp4));
 }
 
 TEST(bounding_volume_intersection, aabb_aabb)
 {
-  EXPECT_FALSE(cdd.intersection_test(aabb1, aabb2));
+  EXPECT_FALSE(cdd.intersection_bounding_volume(aabb1, aabb2));
   aabb2.set_aabb_radius({1.f, 1.f, 4.f});
-  EXPECT_TRUE(cdd.intersection_test(aabb1, aabb2));
+  EXPECT_TRUE(cdd.intersection_bounding_volume(aabb1, aabb2));
   aabb2.set_aabb_radius({1.f, 1.1f, 4.f});
-  EXPECT_TRUE(cdd.intersection_test(aabb1, aabb2));
+  EXPECT_TRUE(cdd.intersection_bounding_volume(aabb1, aabb2));
 }
 
 TEST(bounding_volume_intersection, aabb_sphere)

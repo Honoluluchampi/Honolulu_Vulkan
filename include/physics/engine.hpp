@@ -13,8 +13,8 @@ class collision_detector;
 class engine
 {
   public:
-    engine();
-    ~engine();
+    engine(){}
+    ~engine(){}
 
   private:
     static u_ptr<collision_detector> collision_detector_up_;
