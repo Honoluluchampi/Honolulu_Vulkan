@@ -49,21 +49,24 @@ class rigid_ball : public hnll::game::actor
     glm::vec3 position_;
     glm::vec3 velocity_;
     double gravity_ = 20.f;
-    double restitution_ = 1;
+    double restitution_ = 0.5;
 };
 
 // plate is bounding box of which thickness is 0.
-class rigid_plate : public hnll::game::actor
+class rigid_plane : public hnll::game::actor
 {
   public:
-    rigid_plate() : actor(){}
-    static s_ptr<rigid_plate> create()
+    rigid_plane() : actor(){}
+    static s_ptr<rigid_plane> create()
     {
-      auto plate = std::make_shared<rigid_plate>();
-      auto plate_mesh = hnll::game::engine::get_mesh_model_sp("plate");
-      auto plate_mesh_vertices = plate_mesh->get_vertex_position_list();
-      plate->bounding_box = hnll::physics::bounding_volume::create_aabb(plate_mesh_vertices);
-      return plate;
+      auto plane = std::make_shared<rigid_plane>();
+      auto plane_mesh = hnll::game::engine::get_mesh_model_sp("plane");
+      auto plane_mesh_vertices = plane_mesh->get_vertex_position_list();
+      auto plane_mesh_comp = hnll::game::mesh_component::create(plane, std::move(plane_mesh));
+      plane->bounding_box = hnll::physics::bounding_volume::create_aabb(plane_mesh_vertices);
+      plane->set_translation({0.f, 1.f, 0.f});
+      hnll::game::engine::add_actor(plane);
+      return plane;
     }
   private:
     s_ptr<hnll::physics::bounding_volume> bounding_box = nullptr;
@@ -75,12 +78,17 @@ class falling_ball_app : public hnll::game::engine
   public:
     falling_ball_app() : hnll::game::engine("falling ball")
     {
+      // set camera position
       camera_up_->set_translation(glm::vec3{0.f, 0.f, -20.f});
+      // add light
       auto light = hnll::game::actor::create();
       auto light_component = hnll::game::point_light_component::create(light, 100.f);
       add_point_light(light, light_component);
       light->set_translation({0.f, -20.f, 0.f});
+      // add rigid ball
       auto ball = rigid_ball::create({0.f, -5.f, 0.f}, 1.f);
+      // add plane
+      auto rigid_plane = rigid_plane::create();
     }
 
   private:
