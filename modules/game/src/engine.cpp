@@ -182,9 +182,6 @@ void engine::load_mesh_models(const std::string& model_directory)
 void engine::add_actor(const s_ptr<actor>& actor)
 { pending_actor_map_.emplace(actor->get_id(), actor); }
 
-// void engine::add_actor(s_ptr<actor>&& actor)
-// { pending_actor_map_.emplace(actor->get_id(), std::move(actor)); }
-
 void engine::remove_actor(id_t id)
 {
   pending_actor_map_.erase(id);

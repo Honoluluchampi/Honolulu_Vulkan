@@ -26,28 +26,6 @@ struct mesh_push_constant
   Matrix4f normal_matrix = Matrix4f::Identity();
 };
 
-Matrix4f glm_to_eigen(const glm::mat4& glm_mat)
-{
-  Matrix4f eigen_mat;
-  eigen_mat(0,0) = glm_mat[0][0];
-  eigen_mat(0,1) = glm_mat[1][0];
-  eigen_mat(0,2) = glm_mat[2][0];
-  eigen_mat(0,3) = glm_mat[3][0];
-  eigen_mat(1,0) = glm_mat[0][1];
-  eigen_mat(1,1) = glm_mat[1][1];
-  eigen_mat(1,2) = glm_mat[2][1];
-  eigen_mat(1,3) = glm_mat[3][1];
-  eigen_mat(2,0) = glm_mat[0][2];
-  eigen_mat(2,1) = glm_mat[1][2];
-  eigen_mat(2,2) = glm_mat[2][2];
-  eigen_mat(2,3) = glm_mat[3][2];
-  eigen_mat(3,0) = glm_mat[0][3];
-  eigen_mat(3,1) = glm_mat[1][3];
-  eigen_mat(3,2) = glm_mat[2][3];
-  eigen_mat(3,3) = glm_mat[3][3];
-  return eigen_mat;
-}
-
 mesh_rendering_system::mesh_rendering_system
   (device& device, VkRenderPass render_pass, VkDescriptorSetLayout global_set_layout)
   : rendering_system(device, hnll::game::render_type::MESH)
