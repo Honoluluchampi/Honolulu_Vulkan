@@ -18,7 +18,6 @@ class point_light_component : public renderable_component
       light->color_ = color;
       light->set_scale(glm::vec3(radius, radius, radius));
       light->light_info_.light_intensity = intensity;
-      owner->set_renderable_component(light);
       return light;
     }
 

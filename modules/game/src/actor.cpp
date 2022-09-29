@@ -52,18 +52,6 @@ for (const auto& comp : shared_components_)
 
 void actor::set_renderable_component(s_ptr<renderable_component> &&comp)
 {
-//  // replace own transform with comp's
-//  if (comp->get_transform_sp() != nullptr && transform_sp_ == nullptr) {
-//    transform_sp_ = std::make_shared<hnll::utils::transform>();
-//    *transform_sp_ = *(comp->get_transform_sp());
-//  }
-//  else if (comp->get_transform_sp() != nullptr) {
-//
-//  }
-//  else if (transform_sp_ == nullptr) {
-//    transform_sp_ = std::make_shared<hnll::utils::transform>();
-//  }
-//  comp->set_transform_sp(transform_sp_);
   renderable_component_ = std::move(comp);
 }
 

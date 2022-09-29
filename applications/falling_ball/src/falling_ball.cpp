@@ -1,6 +1,7 @@
 // hnll
 #include <game/engine.hpp>
 #include <game/components/mesh_component.hpp>
+#include <game/components/point_light_component.hpp>
 #include <game/actors/default_camera.hpp>
 
 #include <physics/bounding_volume.hpp>
@@ -75,6 +76,10 @@ class falling_ball_app : public hnll::game::engine
     falling_ball_app() : hnll::game::engine("falling ball")
     {
       camera_up_->set_translation(glm::vec3{0.f, 0.f, -20.f});
+      auto light = hnll::game::actor::create();
+      auto light_component = hnll::game::point_light_component::create(light, 100.f);
+      add_point_light(light, light_component);
+      light->set_translation({0.f, -20.f, 0.f});
       auto ball = rigid_ball::create({0.f, -5.f, 0.f}, 1.f);
     }
 
