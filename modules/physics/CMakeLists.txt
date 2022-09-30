@@ -25,18 +25,11 @@ if (APPLE)
             OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     execute_process(
-            COMMAND ls ${BREW_PREFIX}/Cellar/openal-soft
-            RESULT_VARIABLE OPEN_AL
-            OUTPUT_VARIABLE OPEN_AL_VERSION
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    execute_process(
             COMMAND ls ${BREW_PREFIX}/Cellar/googletest
             RESULT_VARIABLE GOOGLE_TEST
             OUTPUT_VARIABLE GOOGLE_TEST_VERSION
             OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-    set(OPEN_AL_DIRECTORY ${BREW_PREFIX}/Cellar/openal-soft/${OPEN_AL_VERSION})
     set(GOOGLE_TEST_DIRECTORY ${BREW_PREFIX}/Cellar/googletest/${GOOGLE_TEST_VERSION})
 endif (APPLE)
 
