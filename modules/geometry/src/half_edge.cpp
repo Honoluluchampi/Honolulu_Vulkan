@@ -17,6 +17,14 @@ half_edge_key calc_half_edge_key(const s_ptr<vertex>& v0, const s_ptr<vertex>& v
   return (id0 | (id1 << 32));
 }
 
+s_ptr<half_edge> mesh_model::get_half_edge(const s_ptr<vertex> &v0, const s_ptr<vertex> &v1)
+{
+  auto hash_key = calc_half_edge_key(v0, v1);
+  if (half_edge_map_.find(hash_key) != half_edge_map_.end())
+    return half_edge_map_[hash_key];
+  return nullptr;
+}
+
 void mesh_model::associate_half_edge_pair(const s_ptr<half_edge> &he)
 {
   auto hash_key = calc_half_edge_key(he->get_vertex(), he->get_next()->get_vertex());
