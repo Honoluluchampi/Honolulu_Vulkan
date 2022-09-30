@@ -2,6 +2,14 @@
 
 namespace hnll::geometry {
 
+// vertex
+void vertex::update_normal(const vec3& new_face_normal)
+{
+  auto tmp = normal_ * face_count_ + new_face_normal;
+  face_count_++;
+  normal_ = (tmp / face_count_).normalized();
+}
+
 half_edge_key calc_half_edge_key(const s_ptr<vertex>& v0, const s_ptr<vertex>& v1)
 {
   half_edge_key id0 = v0->id_, id1 = v1->id_;
@@ -40,11 +48,17 @@ void mesh_model::add_face(s_ptr<vertex> &v0, s_ptr<vertex> &v1, s_ptr<vertex> &v
   }
   // new face
   auto fc = face::create(hes[0]);
+  // calc face normal
+  fc->normal_ = ((v1->position_ - v0->position_).cross(v2->position_ - v0->position_)).normalized();
   // register to each owner
   faces_.push_back(fc);
   hes[0]->set_face(fc);
   hes[1]->set_face(fc);
   hes[2]->set_face(fc);
+  // vertex normal
+  v0->update_normal(fc->normal_);
+  v1->update_normal(fc->normal_);
+  v2->update_normal(fc->normal_);
 }
 
 } // namespace hnll::geometry

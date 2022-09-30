@@ -14,6 +14,7 @@ namespace hnll::geometry {
 
 // forward declaration
 class half_edge;
+class face;
 
 using vec3 = Eigen::Vector3d;
 using vertex_id = uint32_t;
@@ -28,12 +29,18 @@ class vertex
       auto vertex_sp = std::make_shared<vertex>();
       vertex_sp->position_ = position; vertex_sp->half_edge_ = he;
       // identical id for each vertex object
-      static vertex_id id = 0; vertex_sp->id_ = id++;
+      static vertex_id id = 0;
+      vertex_sp->id_ = id++;
       return vertex_sp;
     }
+
+    void update_normal(const vec3& new_face_normal);
+
     vertex_id id_;
-    vec3 position_;
-    vec3 color_;
+    vec3 position_{0.f, 0.f, 0.f};
+    vec3 color_{1.f, 1.f, 1.f};
+    vec3 normal_{0.f, 0.f, 0.f};
+    unsigned face_count_ = 0;
     s_ptr<half_edge> half_edge_ = nullptr;
 };
 
@@ -47,6 +54,7 @@ class face
       return face_sp;
     }
     s_ptr<half_edge> half_edge_ = nullptr;
+    vec3 normal_;
 };
 
 class half_edge
