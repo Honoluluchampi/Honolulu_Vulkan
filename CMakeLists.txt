@@ -28,20 +28,3 @@ target_link_libraries(hnll_engine PUBLIC vulkan glfw)
 # build the example
 add_executable(app main.cpp)
 target_link_libraries(app PUBLIC hnll_engine)
-
-
-# for separated build
-# add modules as libraries
-#add_subdirectory(modules/game)
-#add_subdirectory(modules/gui)
-#add_subdirectory(modules/graphics)
-#add_subdirectory(modules/utils)
-#add_subdirectory(modules/physics)
-
-# specify the include directories
-# adding "${PROJECT_BINARY_TREE" is necessary when you want to find TutofrialConfig.h
-# target_include_directories(test PUBLIC ${PROJECT_BINARY_DIR})
-
-# install destination
-# install(TARGETS app DESTINATION bin)
-# install(FILES ${PROJECT_BINARY_DIR}/testConfig.h DESTINATION include)
