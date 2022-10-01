@@ -14,9 +14,6 @@
 #include <unordered_map>
 #include <memory>
 #include <string>
-
-#pragma once
-
 #include <functional>
 
 namespace hnll::graphics {

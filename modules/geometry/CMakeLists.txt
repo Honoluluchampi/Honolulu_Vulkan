@@ -1,19 +1,18 @@
 add_definitions(-std=c++2a)
 
 file(GLOB_RECURSE TARGETS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-add_library(hnll_physics STATIC ${TARGETS})
+add_library(hnll_geometry STATIC ${TARGETS})
 
-target_include_directories(hnll_physics PUBLIC
-    $ENV{HNLL_ENGN}/include
-    $ENV{HNLL_ENGN}/submodules/imgui
-)
+target_include_directories(hnll_geometry PUBLIC
+        $ENV{HNLL_ENGN}/include)
 
+#---------------------------------------------
 # build test
 cmake_minimum_required(VERSION 3.16)
-project(physics_test)
+project(geometry_test)
 enable_testing()
 file(GLOB_RECURSE TEST_SRC ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
-add_executable(physics_test ${TEST_SRC})
+add_executable(geometry_test ${TEST_SRC})
 
 # for OS X
 if (APPLE)
@@ -34,14 +33,14 @@ if (APPLE)
 endif (APPLE)
 
 if (APPLE)
-    target_include_directories(physics_test PUBLIC
+    target_include_directories(geometry_test PUBLIC
             # googletest
             ${GOOGLE_TEST_DIRECTORY}/include)
-    target_link_directories(physics_test PUBLIC build
+    target_link_directories(geometry_test PUBLIC build
             # googletest
             ${GOOGLE_TEST_DIRECTORY}/lib)
 elseif (UNIX)
-    target_include_directories(physics_test PUBLIC $ENV{HNLL_ENGN}/include)
-    target_link_directories(physics_test PUBLIC build)
+    target_include_directories(geometry_test PUBLIC $ENV{HNLL_ENGN}/include)
+    target_link_directories(geometry_test PUBLIC build)
 endif (APPLE)
-target_link_libraries(physics_test hnll_physics gtest gtest_main pthread)
+target_link_libraries(geometry_test hnll_geometry gtest gtest_main pthread)
