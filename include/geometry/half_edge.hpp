@@ -101,11 +101,12 @@ class mesh_model
     vertex_id add_vertex(s_ptr<vertex>& v);
 
     // getter
-    size_t           get_half_edge_count() const    { return half_edge_map_.size(); }
     size_t           get_face_count() const         { return face_map_.size(); }
     size_t           get_vertex_count() const       { return vertex_map_.size(); }
-    s_ptr<vertex>    get_vertex(const vertex_id id) { return vertex_map_[id]; }
+    size_t           get_half_edge_count() const    { return half_edge_map_.size(); }
     s_ptr<face>      get_face(const face_id id)     { return face_map_[id]; }
+    s_ptr<vertex>    get_vertex(const vertex_id id) { return vertex_map_[id]; }
+    s_ptr<vertex>    get_vertex();
     s_ptr<half_edge> get_half_edge(const s_ptr<vertex>& v0, const s_ptr<vertex>& v1);
   private:
     // returns false if the pair have not been registered to the map
