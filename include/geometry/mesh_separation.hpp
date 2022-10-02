@@ -12,6 +12,18 @@ namespace hnll::geometry {
 // forward declaration
 class mesh_model;
 
-std::vector<s_ptr<mesh_model>> separate_mesh(const s_ptr<mesh_model>& model);
+namespace mesh_separation {
 
+enum class solution {
+    GREEDY,
+    K_MEANS_BASED
+};
+
+enum class criterion {
+    MINIMIZE_VARIATION
+};
+
+std::vector<s_ptr<mesh_model>> separate(const s_ptr<mesh_model>& model);
+
+} // namespace mesh_separation
 } // namespace hnll::geometry
