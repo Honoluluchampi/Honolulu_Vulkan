@@ -23,6 +23,23 @@ TEST(vertex, ctor) {
   EXPECT_EQ(v1->id_, 1);
 }
 
+TEST(common, id) {
+  auto model = mesh_model::create();
+  /*
+   *  v0 - v2
+   *   | /  |
+   *  v1 - v3
+   */
+  auto v0 = vertex::create({ 0.f, 0.f, 0.f });
+  auto v1 = vertex::create({ 0.f, 1.f, 0.f});
+  auto v2 = vertex::create({ 1.f, 0.f, 0.f });
+  auto v3 = vertex::create({ 1.f, 1.f, 0.f});
+  auto fc_id0 = model->add_face(v0, v1, v2);
+  auto v = model->get_vertex(v0->id_);
+  EXPECT_EQ(v->id_, v0->id_);
+  EXPECT_EQ(fc_id0, model->get_face(fc_id0)->id_);
+}
+
 TEST(mesh_model, add_face) {
   auto model = mesh_model::create();
   /*

@@ -106,9 +106,13 @@ class mesh_model
     size_t           get_half_edge_count() const    { return half_edge_map_.size(); }
     s_ptr<face>      get_face(const face_id id)     { return face_map_[id]; }
     s_ptr<vertex>    get_vertex(const vertex_id id) { return vertex_map_[id]; }
+    s_ptr<vertex>    get_vertex();
     s_ptr<half_edge> get_half_edge(const s_ptr<vertex>& v0, const s_ptr<vertex>& v1);
     vertex_map       get_vertex_map() const         { return vertex_map_; }
     face_map         get_face_map() const           { return face_map_; }
+
+    // setter
+    void colorize_whole_mesh(const vec3& color) { for (const auto& kv : vertex_map_) kv.second->color_ = color; }
   private:
     // returns false if the pair have not been registered to the map
     bool associate_half_edge_pair(const s_ptr<half_edge>& he);
