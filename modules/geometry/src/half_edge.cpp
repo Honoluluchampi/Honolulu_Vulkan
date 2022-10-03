@@ -10,13 +10,6 @@ void vertex::update_normal(const vec3& new_face_normal)
   normal_ = (tmp / face_count_).normalized();
 }
 
-// returns random vertex (for vertex search)
-s_ptr<vertex> mesh_model::get_vertex()
-{
-  for (const auto& v : vertex_map_) return v.second;
-  return nullptr;
-}
-
 half_edge_key calc_half_edge_key(const s_ptr<vertex>& v0, const s_ptr<vertex>& v1)
 {
   half_edge_key id0 = v0->id_, id1 = v1->id_;
