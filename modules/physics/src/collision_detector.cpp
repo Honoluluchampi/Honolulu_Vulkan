@@ -1,10 +1,12 @@
 // hnll
 #include <physics/collision_detector.hpp>
 #include <physics/rigid_component.hpp>
-#include <physics/bounding_volume.hpp>
+#include <geometry/bounding_volume.hpp>
 
 // lib
 #include <eigen3/Eigen/Dense>
+
+using hnll::geometry::bounding_volume;
 
 namespace hnll::physics {
 

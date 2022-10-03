@@ -1,11 +1,11 @@
 // hnll
-#include <physics/bounding_volume.hpp>
+#include <geometry/bounding_volume.hpp>
 #include <physics/collision_detector.hpp>
 // lib
 #include <gtest/gtest.h>
 
 using namespace hnll::physics;
-
+using namespace hnll::geometry;
 Eigen::Vector3d point1 = {1.f, 0.f, 0.f};
 Eigen::Vector3d point2 = {6.f, 0.f, 0.f};
 auto sp1 = bounding_volume(point1, 3.f);

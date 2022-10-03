@@ -10,7 +10,7 @@ namespace hnll {
 template<typename T> using u_ptr = std::unique_ptr<T>;
 template<typename T> using s_ptr = std::shared_ptr<T>;
 
-namespace physics {
+namespace geometry {
 
 // bounding volume type
 enum class bv_type
@@ -35,11 +35,10 @@ class bounding_volume
     explicit bounding_volume(const Eigen::Vector3d &center_point = {0.f, 0.f, 0.f}, const double radius = 1.f)
         : center_point_(center_point), radius_(radius, 0.f, 0.f), bv_type_(bv_type::SPHERE) {}
 
-    static s_ptr<bounding_volume> create_aabb(std::vector<Eigen::Vector3d> &vertices);
-
-    static s_ptr<bounding_volume> create_bounding_sphere(bv_ctor_type type, std::vector<Eigen::Vector3d> &vertices);
-
-    static s_ptr<bounding_volume> ritter_ctor(const std::vector<Eigen::Vector3d> &vertices);
+    // bounding_volumes are owned only by rigid_component
+    static u_ptr<bounding_volume> create_aabb(std::vector<Eigen::Vector3d> &vertices);
+    static u_ptr<bounding_volume> create_bounding_sphere(bv_ctor_type type, std::vector<Eigen::Vector3d> &vertices);
+    static u_ptr<bounding_volume> ritter_ctor(const std::vector<Eigen::Vector3d> &vertices);
 
     // getter
     inline bv_type get_bv_type() const { return bv_type_; }
@@ -71,9 +70,9 @@ class bounding_volume
 // support functions
 std::pair<int, int> most_separated_points_on_aabb(const std::vector<Eigen::Vector3d> &vertices);
 
-s_ptr<bounding_volume> sphere_from_distant_points(const std::vector<Eigen::Vector3d> &vertices);
+u_ptr<bounding_volume> sphere_from_distant_points(const std::vector<Eigen::Vector3d> &vertices);
 
 void extend_sphere_to_point(bounding_volume &sphere, const Eigen::Vector3d &point);
 
-} // namespace physics
+} // namespace geometry
 } // namespace hnll

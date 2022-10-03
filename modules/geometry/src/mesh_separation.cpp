@@ -80,6 +80,7 @@ std::vector<s_ptr<mesh_model>> mesh_separation_helper::separate(const s_ptr<mesh
     mesh_lets.emplace_back(std::move(new_mesh_let));
   }
 
+  // colorization
   for (const auto& ml : mesh_lets)
     colorize_meshlet(ml);
 

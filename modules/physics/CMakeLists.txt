@@ -12,7 +12,7 @@ target_include_directories(hnll_physics PUBLIC
 cmake_minimum_required(VERSION 3.16)
 project(physics_test)
 enable_testing()
-file(GLOB_RECURSE TEST_SRC ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
+file(GLOB_RECURSE TEST_SRC ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp /module/geometry/bounding_volume.cpp)
 add_executable(physics_test ${TEST_SRC})
 
 # for OS X

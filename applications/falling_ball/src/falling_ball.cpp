@@ -4,7 +4,7 @@
 #include <game/components/point_light_component.hpp>
 #include <game/actors/default_camera.hpp>
 
-#include <physics/bounding_volume.hpp>
+#include <geometry/bounding_volume.hpp>
 #include <physics/engine.hpp>
 
 class rigid_ball : public hnll::game::actor
@@ -21,8 +21,8 @@ class rigid_ball : public hnll::game::actor
       auto ball_mesh_comp = hnll::game::mesh_component::create(ball, std::move(ball_mesh));
 
       // create bounding_sphere
-      ball->bounding_sphere_ = hnll::physics::bounding_volume::create_bounding_sphere
-          (hnll::physics::bv_ctor_type::RITTER, ball_mesh_vertex_position_list);
+      ball->bounding_sphere_ = hnll::geometry::bounding_volume::create_bounding_sphere
+          (hnll::geometry::bv_ctor_type::RITTER, ball_mesh_vertex_position_list);
 
       ball->position_ = glm::vec3{center_point.x(), center_point.y(), center_point.z()};
       ball->set_translation(glm::vec3{center_point.x(), center_point.y(), center_point.z()});
@@ -45,7 +45,7 @@ class rigid_ball : public hnll::game::actor
     }
 
   private:
-    s_ptr<hnll::physics::bounding_volume> bounding_sphere_ = nullptr;
+    s_ptr<hnll::geometry::bounding_volume> bounding_sphere_ = nullptr;
     glm::vec3 position_;
     glm::vec3 velocity_;
     double gravity_ = 20.f;
@@ -63,13 +63,13 @@ class rigid_plane : public hnll::game::actor
       auto plane_mesh = hnll::game::engine::get_mesh_model_sp("plane");
       auto plane_mesh_vertices = plane_mesh->get_vertex_position_list();
       auto plane_mesh_comp = hnll::game::mesh_component::create(plane, std::move(plane_mesh));
-      plane->bounding_box = hnll::physics::bounding_volume::create_aabb(plane_mesh_vertices);
+      plane->bounding_box = hnll::geometry::bounding_volume::create_aabb(plane_mesh_vertices);
       plane->set_translation({0.f, 1.f, 0.f});
       hnll::game::engine::add_actor(plane);
       return plane;
     }
   private:
-    s_ptr<hnll::physics::bounding_volume> bounding_box = nullptr;
+    s_ptr<hnll::geometry::bounding_volume> bounding_box = nullptr;
     glm::vec3 position_;
 };
 
