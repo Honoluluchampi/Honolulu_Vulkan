@@ -28,18 +28,37 @@ s_ptr<meshlet> separate_greedy(const s_ptr<mesh_separation_helper>& helper, cons
 
 }
 
-std::vector<s_ptr<meshlet>> list_up_adjoining_meshlet(s_ptr<meshlet>& ml)
+void colorize_meshlet(const s_ptr<meshlet>& ml)
 {
-
-}
-
-void colorize_mesh_let(const std::vector<s_ptr<meshlet>>& mesh_lets)
-{
-  for (const auto& ml : mesh_lets) {
-    for (const auto& color : mesh_colors) {
-      ml->colorize_whole_mesh(color);
+  std::vector<bool> color_flag(mesh_colors.size(), true);
+  // search adjoining faces of all faces
+  for (const auto& face_kv : ml->get_face_map()) {
+    auto first_he = face_kv.second->half_edge_;
+    auto current_he = first_he;
+    // search all faces adjoining to this face
+    while(current_he != first_he) {
+      // check all colors
+      auto opposite_face = current_he->get_pair()->get_face();
+      for (int i = 0; i < mesh_colors.size(); i++) {
+        //
+        if (mesh_colors[i] == opposite_face->color_)
+          color_flag[i] = false;
+      }
+      current_he = current_he->get_next();
     }
   }
+
+  // extract valid color
+  vec3 color;
+  for (int i = 0; i < color_flag.size(); i++) {
+    if (color_flag[i]) { color = mesh_colors[i]; break; }
+  }
+
+  // assign color to vertices and faces
+  for (const auto& vert_kv : ml->get_vertex_map())
+    vert_kv.second->color_ = color;
+  for (const auto& face_kv : ml->get_face_map())
+    face_kv.second->color_ = color;
 }
 
 std::vector<s_ptr<mesh_model>> mesh_separation_helper::separate(const s_ptr<mesh_model>& model)
@@ -60,7 +79,10 @@ std::vector<s_ptr<mesh_model>> mesh_separation_helper::separate(const s_ptr<mesh
     auto new_mesh_let = separate_greedy(helper, current_vertex);
     mesh_lets.emplace_back(std::move(new_mesh_let));
   }
-  colorize_mesh_let(mesh_lets);
+
+  for (const auto& ml : mesh_lets)
+    colorize_meshlet(ml);
+
   return mesh_lets;
 }
 } // namespace hnll::geometry

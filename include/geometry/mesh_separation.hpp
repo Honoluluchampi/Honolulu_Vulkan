@@ -19,7 +19,7 @@ using vertex_id  = uint32_t;
 using vertex_map = std::unordered_map<vertex_id, s_ptr<vertex>>;
 using face_id    = uint32_t;
 using face_map   = std::unordered_map<face_id, s_ptr<face>>;
-using meshlet = mesh_model;
+using meshlet    = mesh_model;
 
 namespace mesh_separation {
 

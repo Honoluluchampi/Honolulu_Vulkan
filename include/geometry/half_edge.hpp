@@ -59,6 +59,7 @@ struct face
   }
   face_id id_;
   vec3 normal_;
+  vec3 color_;
   s_ptr<half_edge> half_edge_ = nullptr;
 };
 
