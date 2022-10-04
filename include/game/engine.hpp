@@ -131,9 +131,6 @@ private:
   // glfw
   static std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> 
     glfw_mouse_button_callbacks_;
-
-  // X11
-  // static Display* display_;
 };
 
 } // namespace hnll::game

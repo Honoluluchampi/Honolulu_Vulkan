@@ -1,8 +1,159 @@
 // hnll
 #include <geometry/mesh_model.hpp>
 #include <geometry/half_edge.hpp>
+#include <graphics/mesh_model.hpp>
+#include <utils/utils.hpp>
+
+// std
+#include <filesystem>
+
+// lib
+#include <tiny_obj_loader.h>
 
 namespace hnll::geometry {
+
+template <typename T, typename... Rest>
+void hash_combine(std::size_t& seed, const T& v, const Rest&... rest)
+{
+  seed ^= std::hash<T>{}(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+  (hash_combine(seed, rest), ...);
+}
+
+bool operator==(const vertex& rhs, const vertex& lhs)
+{
+  return (rhs.position_ == lhs.position_)
+      && (rhs.color_    == lhs.color_)
+      && (rhs.normal_   == lhs.normal_)
+      && (rhs.uv_       == lhs.uv_);
+}
+
+} // namespace hnll::geometry
+
+namespace std {
+
+template <typename Scalar, int Rows, int Cols>
+struct hash<Eigen::Matrix<Scalar, Rows, Cols>> {
+  // https://wjngkoh.wordpress.com/2015/03/04/c-hash-function-for-eigen-matrix-and-vector/
+  size_t operator()(const Eigen::Matrix<Scalar, Rows, Cols>& matrix) const
+  {
+    size_t seed = 0;
+    for (size_t i = 0; i < matrix.size(); ++i) {
+      Scalar elem = *(matrix.data() + i);
+      seed ^=
+          std::hash<Scalar>()(elem) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+    return seed;
+  }
+};
+
+template<>
+struct hash<hnll::geometry::vertex>
+{
+  size_t operator() (hnll::geometry::vertex const& vertex) const
+  {
+    // stores final hash value
+    size_t seed = 0;
+    hnll::geometry::hash_combine(seed, vertex.position_, vertex.color_, vertex.normal_, vertex.uv_);
+    return seed;
+  }
+};
+} // namespace std
+
+namespace hnll::geometry {
+
+s_ptr<vertex> create_vertex_from_pseudo(vertex&& pseudo)
+{
+  auto vertex_sp = vertex::create(pseudo.position_);
+  vertex_sp->color_    = std::move(pseudo.color_);
+  vertex_sp->normal_   = std::move(pseudo.normal_);
+  vertex_sp->uv_       = std::move(pseudo.uv_);
+  return vertex_sp;
+}
+
+s_ptr<mesh_model> create_from_obj_file(const std::string& filename)
+{
+  // get full path
+  std::string filepath = "";
+  for (const auto& directory : utils::loading_directories) {
+    if (std::filesystem::exists(directory + "/" + filename))
+      filepath = directory + "/" + filename;
+  }
+  if (filepath == "")
+    std::runtime_error(filename + " doesn't exist!");
+
+  tinyobj::attrib_t attrib;
+  std::vector<tinyobj::shape_t> shapes;
+  std::vector<tinyobj::material_t> materials;
+  std::string warn, err;
+
+  if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str()))
+    throw std::runtime_error(warn + err);
+
+  auto mesh_model = mesh_model::create();
+
+  std::unordered_map<geometry::vertex, vertex_id> unique_vertices{};
+  std::vector<vertex_id> indices;
+
+  for (const auto& shape : shapes) {
+    for (const auto& index : shape.mesh.indices) {
+      // does not have id_
+      vertex vertex{};
+      // copy the vertex
+      if (index.vertex_index >= 0) {
+        vertex.position_ = {
+        attrib.vertices[3 * index.vertex_index + 0],
+        attrib.vertices[3 * index.vertex_index + 1],
+        attrib.vertices[3 * index.vertex_index + 2]
+        };
+        // color support
+        vertex.color_ = {
+        attrib.colors[3 * index.vertex_index + 0],
+        attrib.colors[3 * index.vertex_index + 1],
+        attrib.colors[3 * index.vertex_index + 2]
+        };
+      }
+      // copy the normal
+      if (index.vertex_index >= 0) {
+        vertex.normal_ = {
+        attrib.normals[3 * index.normal_index + 0],
+        attrib.normals[3 * index.normal_index + 1],
+        attrib.normals[3 * index.normal_index + 2]
+        };
+      }
+      // copy the texture coordinate
+      if (index.vertex_index >= 0) {
+        vertex.uv_ = {
+        attrib.vertices[2 * index.texcoord_index + 0],
+        attrib.vertices[2 * index.texcoord_index + 1]
+        };
+      }
+      // if vertex is a new vertex
+      if (unique_vertices.count(vertex) == 0) {
+        auto new_vertex = create_vertex_from_pseudo(std::move(vertex));
+        auto new_id = mesh_model->add_vertex(new_vertex);
+        unique_vertices[*new_vertex] = new_id;
+        indices.push_back(new_id);
+      }
+      else
+        indices.push_back(unique_vertices[vertex]);
+    }
+  }
+
+  // recreate all faces
+  for (int i = 0; i < indices.size(); i += 3) {
+    auto v0 = mesh_model->get_vertex(indices[i]);
+    auto v1 = mesh_model->get_vertex(indices[i] + 1);
+    auto v2 = mesh_model->get_vertex(indices[i] + 2);
+    mesh_model->add_face(v0, v1, v2);
+  }
+
+  return mesh_model;
+}
+
+s_ptr<hnll::graphics::mesh_model> convert_to_graphics_mesh_model()
+{
+
+}
 
 void mesh_model::colorize_whole_mesh(const vec3& color)
 { for (const auto& kv : vertex_map_) kv.second->color_ = color; }
@@ -46,7 +197,7 @@ vertex_id mesh_model::add_vertex(s_ptr<vertex> &v)
   return v->id_;
 }
 
-face_id mesh_model::add_face(s_ptr<vertex> &v0, s_ptr<vertex> &v1, s_ptr<vertex> &v2)
+face_id mesh_model::add_face(s_ptr<vertex> &v0, s_ptr<vertex> &v1, s_ptr<vertex> &v2, auto_vertex_normal_calculation avnc)
 {
   // register to the vertex hash table
   add_vertex(v0);
@@ -75,10 +226,16 @@ face_id mesh_model::add_face(s_ptr<vertex> &v0, s_ptr<vertex> &v1, s_ptr<vertex>
   hes[1]->set_face(fc);
   hes[2]->set_face(fc);
   // vertex normal
-  v0->update_normal(fc->normal_);
-  v1->update_normal(fc->normal_);
-  v2->update_normal(fc->normal_);
-
+  if (avnc == auto_vertex_normal_calculation::ON) {
+    v0->update_normal(fc->normal_);
+    v1->update_normal(fc->normal_);
+    v2->update_normal(fc->normal_);
+  }
+  else {
+    v0->face_count_++;
+    v1->face_count_++;
+    v2->face_count_++;
+  }
   return fc->id_;
 }
 

@@ -11,10 +11,16 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <eigen3/Eigen/Dense>
 
+namespace hnll {
+
 template<class U> using u_ptr = std::unique_ptr<U>;
 template<class S> using s_ptr = std::shared_ptr<S>;
 
-namespace hnll::utils {
+namespace utils {
+
+std::vector<std::string> loading_directories {
+  "/home/honolulu/models/primitives"
+};
 
 // 3d transformation
 struct transform
@@ -24,7 +30,7 @@ struct transform
   // y-z-x tait-brian rotation
   glm::vec3 rotation{};
 
-  // Matrix corrsponds to Translate * Ry * Rz * Rx * Scale
+  // Matrix corresponds to Translate * Ry * Rz * Rx * Scale
   // Rotations correspond to Tait-bryan angles of Y(1), Z(2), X(3)
   // https://en.wikipedia.org/wiki/Euler_angles#Rotation_matrix
   Eigen::Matrix4d mat4();
@@ -51,4 +57,6 @@ struct viewer_info
   glm::mat4 projection{1.f};
   glm::mat4 view{1.f};
 };
-} // namespace hnll::utils
+
+} // namespace utils
+} // namespace hnll

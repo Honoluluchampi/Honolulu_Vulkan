@@ -16,6 +16,7 @@ class  half_edge;
 
 template<typename T> using u_ptr = std::unique_ptr<T>;
 template<typename T> using s_ptr = std::shared_ptr<T>;
+using vec2          = Eigen::Vector2d;
 using vec3          = Eigen::Vector3d;
 using vertex_id     = uint32_t;
 using vertex_map    = std::unordered_map<vertex_id, s_ptr<vertex>>;
@@ -45,6 +46,7 @@ struct vertex
   vec3 position_{0.f, 0.f, 0.f};
   vec3 color_{1.f, 1.f, 1.f};
   vec3 normal_{0.f, 0.f, 0.f};
+  vec2 uv_;
   unsigned face_count_ = 0;
   s_ptr<half_edge> half_edge_ = nullptr;
 };
