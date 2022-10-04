@@ -2,6 +2,7 @@
 
 // std
 #include <memory>
+#include <vector>
 // lib
 #include <eigen3/Eigen/Dense>
 
