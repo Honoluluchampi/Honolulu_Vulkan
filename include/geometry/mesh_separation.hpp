@@ -47,10 +47,11 @@ class mesh_separation_helper
     std::vector<s_ptr<mesh_model>> separate(const s_ptr<mesh_model>& model);
 
     // getter
-    vertex_map get_remaining_vertex_map() const { return remaining_vertex_map_; }
-    face_map   get_remaining_face_map() const   { return remaining_face_map_; }
-    bool       face_is_empty() const            { return remaining_face_map_.empty(); }
-    bool       vertex_is_empty() const          { return remaining_vertex_map_.empty(); }
+    vertex_map  get_remaining_vertex_map() const { return remaining_vertex_map_; }
+    face_map    get_remaining_face_map() const   { return remaining_face_map_; }
+    s_ptr<face> get_random_face();
+    bool        face_is_empty() const            { return remaining_face_map_.empty(); }
+    bool        vertex_is_empty() const          { return remaining_vertex_map_.empty(); }
   private:
     s_ptr<mesh_model>    model_;
     s_ptr<vertex>        current_vertex_;

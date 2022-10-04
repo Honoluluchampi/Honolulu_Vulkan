@@ -27,6 +27,11 @@ u_ptr<bounding_volume> bounding_volume::create_aabb(std::vector<Eigen::Vector3d>
   return std::make_unique<bounding_volume>(center_point, radius);
 }
 
+u_ptr<bounding_volume> bounding_volume::create_blank_aabb(const vec3& initial_point)
+{
+  return std::make_unique<bounding_volume>(initial_point, vec3(0.f, 0.f, 0.f));
+}
+
 u_ptr<bounding_volume> bounding_volume::create_bounding_sphere(bv_ctor_type type, std::vector<Eigen::Vector3d>& vertices)
 {
   switch (type) {
