@@ -60,7 +60,25 @@ s_ptr<face> choose_the_best_face(const face_map& adjoining_face_map, const bound
   return res;
 }
 
+void add_face_to_meshlet(const s_ptr<face>& fc, s_ptr<meshlet>& ml)
+{
 
+}
+
+void update_aabb(bounding_volume& aabb, const s_ptr<face>& fc)
+{
+
+}
+
+void update_adjoining_face_map(const s_ptr<face>& fc)
+{
+
+}
+
+s_ptr<face> choose_random_face_from_map(const face_map& fc_map)
+{
+
+}
 
 std::vector<s_ptr<meshlet>> separate_greedy(const s_ptr<mesh_separation_helper>& helper)
 {
@@ -77,12 +95,13 @@ std::vector<s_ptr<meshlet>> separate_greedy(const s_ptr<mesh_separation_helper>&
         && ml->get_face_count() < mesh_separation::PRIMITIVE_COUNT_PER_MESHLET ) {
 
       current_face = choose_the_best_face(adjoining_face_map, *aabb);
-      // add current_face to ml
-      // update aabb (current_face)
-      // update adjoining_face_map(current_face)
+      add_face_to_meshlet(current_face, ml);
+      update_aabb(*aabb, current_face);
+      update_adjoining_face_map(current_face);
+      // remove current_face from helper::remaining_face_map_
     }
     mesh_lets.emplace_back(std::move(ml));
-    // current_face = random face of adjoining_face_map
+    current_face = choose_random_face_from_map(adjoining_face_map);
   }
 
   return mesh_lets;
