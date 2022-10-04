@@ -44,24 +44,23 @@ class bounding_volume
     static u_ptr<bounding_volume> ritter_ctor(const std::vector<vec3> &vertices);
 
     // getter
-    inline bv_type get_bv_type() const { return bv_type_; }
-
-    inline vec3 get_center_point() const { return center_point_; }
-
-    inline vec3 get_aabb_radius() const { return radius_; }
-
+    inline bv_type get_bv_type() const      { return bv_type_; }
+    inline vec3 get_center_point() const    { return center_point_; }
+    inline vec3 get_aabb_radius() const     { return radius_; }
     inline double get_sphere_radius() const { return radius_.x(); }
-
-    inline bool is_sphere() const { return bv_type_ == bv_type::SPHERE; }
-
-    inline bool is_aabb() const { return bv_type_ == bv_type::AABB; }
-
+    inline bool is_sphere() const           { return bv_type_ == bv_type::SPHERE; }
+    inline bool is_aabb() const             { return bv_type_ == bv_type::AABB; }
+    // aabb getter
+    inline double get_max_x() const { return center_point_.x() + radius_.x(); }
+    inline double get_min_x() const { return center_point_.x() - radius_.x(); }
+    inline double get_max_y() const { return center_point_.y() + radius_.y(); }
+    inline double get_min_y() const { return center_point_.y() - radius_.y(); }
+    inline double get_max_z() const { return center_point_.z() + radius_.z(); }
+    inline double get_min_z() const { return center_point_.z() - radius_.z(); }
     // setter
     void set_center_point(const vec3 &center_point) { center_point_ = center_point; }
-
-    void set_aabb_radius(const vec3& radius) { radius_ = radius; }
-
-    void set_sphere_radius(const double radius) { radius_.x() = radius; }
+    void set_aabb_radius(const vec3& radius)        { radius_ = radius; }
+    void set_sphere_radius(const double radius)     { radius_.x() = radius; }
 
   private:
     bv_type bv_type_;

@@ -44,7 +44,14 @@ u_ptr<geometry::bounding_volume> create_aabb_from_single_face(const s_ptr<face>&
 
 double compute_loss_function(const bounding_volume& current_aabb, const s_ptr<face>& new_face)
 {
-
+  auto face_aabb = create_aabb_from_single_face(new_face);
+  double max_x = std::max(current_aabb.get_max_x(), face_aabb->get_max_x());
+  double min_x = std::min(current_aabb.get_min_x(), face_aabb->get_min_x());
+  double max_y = std::max(current_aabb.get_max_y(), face_aabb->get_max_y());
+  double min_y = std::min(current_aabb.get_min_y(), face_aabb->get_min_y());
+  double max_z = std::max(current_aabb.get_max_z(), face_aabb->get_max_z());
+  double min_z = std::min(current_aabb.get_min_z(), face_aabb->get_min_z());
+  return (max_x - min_x) * (max_y - min_y) * (max_z - min_z);
 }
 
 s_ptr<face> choose_the_best_face(const face_map& adjoining_face_map, const bounding_volume& aabb)
