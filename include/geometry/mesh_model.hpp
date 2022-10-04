@@ -9,8 +9,7 @@
 #include <eigen3/Eigen/Dense>
 
 // forward declaration
-namespace hnll::graphics { class mesh_model; }
-
+namespace hnll::graphics { class mesh_model; struct builder; }
 namespace hnll::geometry {
 
 // forward declaration
@@ -38,12 +37,12 @@ class mesh_model
     static s_ptr<mesh_model> create() { return std::make_shared<mesh_model>(); }
     static s_ptr<mesh_model> create_from_obj_file(const std::string& filename);
 
-    s_ptr<hnll::graphics::mesh_model> convert_to_graphics_mesh_model();
+    void align_vertex_id();
 
     // vertices are assumed to be in a counter-clockwise order
+    vertex_id add_vertex(s_ptr<vertex>& v);
     face_id   add_face(s_ptr<vertex>& v0, s_ptr<vertex>& v1, s_ptr<vertex>& v2,
                        geometry::auto_vertex_normal_calculation avnc= geometry::auto_vertex_normal_calculation::OFF);
-    vertex_id add_vertex(s_ptr<vertex>& v);
 
     // getter
     vertex_map       get_vertex_map() const         { return vertex_map_; }
