@@ -69,27 +69,54 @@ s_ptr<face> choose_the_best_face(const face_map& adjoining_face_map, const bound
 
 void add_face_to_meshlet(const s_ptr<face>& fc, s_ptr<meshlet>& ml)
 {
-
+  auto he = fc->half_edge_;
+  auto v0 = he->get_vertex();
+  he = he->get_next();
+  auto v1 = he->get_vertex();
+  he = he->get_next();
+  auto v2 = he->get_vertex();
+  ml->add_face(v0, v1, v2);
 }
 
-void update_aabb(bounding_volume& aabb, const s_ptr<face>& fc)
+void update_aabb(bounding_volume& current_aabb, const s_ptr<face>& new_face)
 {
-
+  auto face_aabb = create_aabb_from_single_face(new_face);
+  vec3 max_vec3, min_vec3;
+  max_vec3.x() = std::max(current_aabb.get_max_x(), face_aabb->get_max_x());
+  min_vec3.x() = std::min(current_aabb.get_min_x(), face_aabb->get_min_x());
+  max_vec3.y() = std::max(current_aabb.get_max_y(), face_aabb->get_max_y());
+  min_vec3.y() = std::min(current_aabb.get_min_y(), face_aabb->get_min_y());
+  max_vec3.z() = std::max(current_aabb.get_max_z(), face_aabb->get_max_z());
+  min_vec3.z() = std::min(current_aabb.get_min_z(), face_aabb->get_min_z());
+  auto center_vec3 = (max_vec3 + min_vec3) / 2.f;
+  auto radius_vec3 = max_vec3 - center_vec3;
+  current_aabb.set_center_point(center_vec3);
+  current_aabb.set_aabb_radius(radius_vec3);
 }
 
-void update_adjoining_face_map(const s_ptr<face>& fc)
+void update_adjoining_face_map(face_map& adjoining_face_map, const s_ptr<face>& fc)
 {
-
+  auto first_he = fc->half_edge_;
+  auto current_he = first_he;
+  do {
+    auto current_face = current_he->get_pair()->get_face();
+    // if current_face is new to the map
+    if (adjoining_face_map.find(current_face->id_) == adjoining_face_map.end())
+      adjoining_face_map[current_face->id_] = current_face;
+  } while (current_he != first_he);
 }
 
 s_ptr<face> choose_random_face_from_map(const face_map& fc_map)
 {
-
+  for (const auto& fc_kv : fc_map) {
+    return fc_kv.second;
+  }
+  return nullptr;
 }
 
 std::vector<s_ptr<meshlet>> separate_greedy(const s_ptr<mesh_separation_helper>& helper)
 {
-  std::vector<s_ptr<meshlet>> mesh_lets;
+  std::vector<s_ptr<meshlet>> meshlets;
   s_ptr<face> current_face = helper->get_random_face();
 
   while (!helper->face_is_empty()) {
@@ -101,17 +128,21 @@ std::vector<s_ptr<meshlet>> separate_greedy(const s_ptr<mesh_separation_helper>&
     while (ml->get_vertex_count() < mesh_separation::VERTEX_COUNT_PER_MESHLET
         && ml->get_face_count() < mesh_separation::PRIMITIVE_COUNT_PER_MESHLET ) {
 
+      // algorithm dependent part
       current_face = choose_the_best_face(adjoining_face_map, *aabb);
+      // update each object
       add_face_to_meshlet(current_face, ml);
       update_aabb(*aabb, current_face);
-      update_adjoining_face_map(current_face);
-      // remove current_face from helper::remaining_face_map_
+      update_adjoining_face_map(adjoining_face_map, current_face);
+      helper->remove_face(current_face->id_);
     }
-    mesh_lets.emplace_back(std::move(ml));
+    meshlets.emplace_back(std::move(ml));
     current_face = choose_random_face_from_map(adjoining_face_map);
+    if (current_face == nullptr)
+      current_face = helper->get_random_face();
   }
 
-  return mesh_lets;
+  return meshlets;
 }
 
 void colorize_meshlet(const s_ptr<meshlet>& ml)

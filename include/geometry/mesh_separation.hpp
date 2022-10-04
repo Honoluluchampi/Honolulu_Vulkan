@@ -52,6 +52,9 @@ class mesh_separation_helper
     s_ptr<face> get_random_face();
     bool        face_is_empty() const            { return remaining_face_map_.empty(); }
     bool        vertex_is_empty() const          { return remaining_vertex_map_.empty(); }
+
+    // setter
+    void remove_face(face_id id) { remaining_face_map_.erase(id); }
   private:
     s_ptr<mesh_model>    model_;
     s_ptr<vertex>        current_vertex_;
