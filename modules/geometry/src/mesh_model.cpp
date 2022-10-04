@@ -1,14 +1,11 @@
+// hnll
+#include <geometry/mesh_model.hpp>
 #include <geometry/half_edge.hpp>
 
 namespace hnll::geometry {
 
-// vertex
-void vertex::update_normal(const vec3& new_face_normal)
-{
-  auto tmp = normal_ * face_count_ + new_face_normal;
-  face_count_++;
-  normal_ = (tmp / face_count_).normalized();
-}
+void mesh_model::colorize_whole_mesh(const vec3& color)
+{ for (const auto& kv : vertex_map_) kv.second->color_ = color; }
 
 half_edge_key calc_half_edge_key(const s_ptr<vertex>& v0, const s_ptr<vertex>& v1)
 {

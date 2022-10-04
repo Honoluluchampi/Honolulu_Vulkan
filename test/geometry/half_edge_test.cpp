@@ -1,5 +1,6 @@
 // hnll
 #include <geometry/half_edge.hpp>
+#include <geometry/mesh_model.hpp>
 
 // lib
 #include <gtest/gtest.h>

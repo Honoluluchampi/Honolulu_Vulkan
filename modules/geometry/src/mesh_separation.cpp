@@ -1,6 +1,7 @@
 // hnll
 #include <geometry/mesh_separation.hpp>
 #include <geometry/half_edge.hpp>
+#include <geometry/mesh_model.hpp>
 #include <geometry/bounding_volume.hpp>
 
 namespace hnll::geometry {
