@@ -42,11 +42,33 @@ u_ptr<geometry::bounding_volume> create_aabb_from_single_face(const s_ptr<face>&
   return geometry::bounding_volume::create_aabb(vertices);
 }
 
+double compute_loss_function(const bounding_volume& current_aabb, const s_ptr<face>& new_face)
+{
+
+}
+
+s_ptr<face> choose_the_best_face(const face_map& adjoining_face_map, const bounding_volume& aabb)
+{
+  // TODO : get loss function from caller
+  s_ptr<face> res;
+  // minimize this loss_value
+  double loss_value = 1e9 + 7;
+  for (const auto& fc_kv : adjoining_face_map) {
+    if (compute_loss_function(aabb, fc_kv.second) < loss_value)
+      res = fc_kv.second;
+  }
+  return res;
+}
+
+
+
 std::vector<s_ptr<meshlet>> separate_greedy(const s_ptr<mesh_separation_helper>& helper)
 {
   std::vector<s_ptr<meshlet>> mesh_lets;
   s_ptr<face> current_face = helper->get_random_face();
+
   while (!helper->face_is_empty()) {
+    // compute each meshlet
     // init objects
     s_ptr<meshlet> ml;
     auto aabb = create_aabb_from_single_face(current_face);
@@ -54,7 +76,7 @@ std::vector<s_ptr<meshlet>> separate_greedy(const s_ptr<mesh_separation_helper>&
     while (ml->get_vertex_count() < mesh_separation::VERTEX_COUNT_PER_MESHLET
         && ml->get_face_count() < mesh_separation::PRIMITIVE_COUNT_PER_MESHLET ) {
 
-      // current_face = choose_best_face(adjoining_face_map, aabb);
+      current_face = choose_the_best_face(adjoining_face_map, *aabb);
       // add current_face to ml
       // update aabb (current_face)
       // update adjoining_face_map(current_face)
