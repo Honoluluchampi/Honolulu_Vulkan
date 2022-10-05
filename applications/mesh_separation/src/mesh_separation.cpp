@@ -13,8 +13,8 @@ class app : public game::engine
   public:
     app() : game::engine("mesh_separation")
     {
-      plane_geometry_ = create_plane_mesh();
-      auto plane_graphics = graphics::mesh_model::create_from_geometry_mesh_model(get_graphics_device(), plane_geometry_);
+      auto plane_geometry = create_plane_mesh();
+      auto plane_graphics = graphics::mesh_model::create_from_geometry_mesh_model(get_graphics_device(), plane_geometry);
       auto plane = game::actor::create();
       auto plane_mesh_comp = game::mesh_component::create(plane, std::move(plane_graphics));
       game::engine::add_actor(plane);
@@ -36,8 +36,6 @@ class app : public game::engine
       model->add_face(v0, v2, v3);
       return model;
     }
-
-    s_ptr<geometry::mesh_model> plane_geometry_;
 };
 
 int main() {
