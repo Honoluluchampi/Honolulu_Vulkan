@@ -261,12 +261,12 @@ s_ptr<mesh_model> mesh_model::create_from_geometry_mesh_model(device& device, co
   graphics::mesh_model::builder builder;
 
   gm->align_vertex_id();
-  std::vector<graphics::mesh_model::vertex> vertices;
+  std::vector<graphics::mesh_model::vertex> vertices(gm->get_vertex_count());
   std::vector<uint32_t> indices;
   // vertex_id is aligned to zero
-  auto v_map = gm->get_vertex_map();
-  for (uint32_t i = 0; i < v_map.size(); i++) {
-    vertices.emplace_back(convert_geometry_to_graphics_vertex(v_map[i]));
+//  auto v_map = gm->get_vertex_map();
+  for (const auto& v : gm->get_vertex_map()) {
+    vertices[v.first] = convert_geometry_to_graphics_vertex(v.second);
   }
   // search all faces
   // TODO : gpu cache friendly reconstruction

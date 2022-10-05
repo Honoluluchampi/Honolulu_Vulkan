@@ -18,7 +18,7 @@ template<class S> using s_ptr = std::shared_ptr<S>;
 
 namespace utils {
 
-std::vector<std::string> loading_directories {
+static std::vector<std::string> loading_directories {
   "/home/honolulu/models/primitives",
   "/home/honolulu/models/objects"
 };
