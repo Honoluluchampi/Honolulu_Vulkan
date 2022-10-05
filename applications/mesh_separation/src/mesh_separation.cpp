@@ -1,5 +1,7 @@
 // hnll
 #include <game/engine.hpp>
+#include <game/actors/default_camera.hpp>
+#include <game/components/point_light_component.hpp>
 #include <game/components/mesh_component.hpp>
 #include <geometry/mesh_model.hpp>
 #include <geometry/half_edge.hpp>
@@ -13,11 +15,26 @@ class app : public game::engine
   public:
     app() : game::engine("mesh_separation")
     {
+      // set camera position
+      camera_up_->set_translation(glm::vec3{0.f, -5.f, -10.f});
+      // add light
+      auto light = hnll::game::actor::create();
+      auto light_component = hnll::game::point_light_component::create(light, 100.f);
+      add_point_light(light, light_component);
+      light->set_translation({0.f, -20.f, 0.f});
+
       auto plane_geometry = create_plane_mesh();
       auto plane_graphics = graphics::mesh_model::create_from_geometry_mesh_model(get_graphics_device(), plane_geometry);
       auto plane = game::actor::create();
       auto plane_mesh_comp = game::mesh_component::create(plane, std::move(plane_graphics));
       game::engine::add_actor(plane);
+
+      auto bunny_geometry = geometry::mesh_model::create_from_obj_file("bunny.obj");
+      auto bunny_graphics = graphics::mesh_model::create_from_geometry_mesh_model(get_graphics_device(), bunny_geometry);
+      auto bunny = game::actor::create();
+      auto bunny_mesh_comp = game::mesh_component::create(bunny, std::move(bunny_graphics));
+      game::engine::add_actor(bunny);
+      bunny->set_rotation({M_PI, 0.f, 0.f});
     }
     ~app(){}
 

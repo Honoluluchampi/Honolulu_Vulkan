@@ -139,11 +139,12 @@ s_ptr<mesh_model> mesh_model::create_from_obj_file(const std::string& filename)
     }
   }
 
+  if (indices.size() % 3 != 0) throw std::runtime_error("vertex count is not multiple of 3");
   // recreate all faces
   for (int i = 0; i < indices.size(); i += 3) {
     auto v0 = mesh_model->get_vertex(indices[i]);
-    auto v1 = mesh_model->get_vertex(indices[i] + 1);
-    auto v2 = mesh_model->get_vertex(indices[i] + 2);
+    auto v1 = mesh_model->get_vertex(indices[i + 1]);
+    auto v2 = mesh_model->get_vertex(indices[i + 2]);
     mesh_model->add_face(v0, v1, v2);
   }
 
