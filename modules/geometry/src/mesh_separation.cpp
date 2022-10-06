@@ -12,10 +12,10 @@ const vec3 BLUE   = {0.f, 0.f, 1.f};
 const vec3 YELLOW = {1.f, 0.5f, 0.f};
 const std::vector<vec3> mesh_colors { RED, GREEN, BLUE, YELLOW };
 
-s_ptr<face> mesh_separation_helper::get_random_face()
+s_ptr<face> mesh_separation_helper::get_random_remaining_face()
 {
-  for (const auto& kv : remaining_face_map_) {
-    return kv.second;
+  for (const auto& id : remaining_face_id_set_) {
+    return face_map_[id];
   }
   return nullptr;
 }
@@ -27,7 +27,7 @@ s_ptr<mesh_separation_helper> mesh_separation_helper::create(const s_ptr<mesh_mo
 }
 
 mesh_separation_helper::mesh_separation_helper(const s_ptr<mesh_model> &model)
-  : model_(model), remaining_vertex_map_(model->get_vertex_map()), remaining_face_map_(model->get_face_map())
+  : model_(model), vertex_map_(model->get_vertex_map()), face_map_(model->get_face_map())
 {
 }
 
@@ -95,16 +95,19 @@ void update_aabb(bounding_volume& current_aabb, const s_ptr<face>& new_face)
   current_aabb.set_aabb_radius(radius_vec3);
 }
 
-void update_adjoining_face_map(face_map& adjoining_face_map, const s_ptr<face>& fc)
+void mesh_separation_helper::update_adjoining_face_map(face_map& adjoining_face_map, const s_ptr<face>& fc)
 {
   auto first_he = fc->half_edge_;
   auto current_he = first_he;
   do {
     auto current_face = current_he->get_pair()->get_face();
     // if current_face is new to the map
-    if (adjoining_face_map.find(current_face->id_) == adjoining_face_map.end())
+    if (remaining_face_id_set_.find(current_face->id_) != remaining_face_id_set_.end()) {
       adjoining_face_map[current_face->id_] = current_face;
+    }
+    current_he = current_he->get_next();
   } while (current_he != first_he);
+  adjoining_face_map.erase(fc->id_);
 }
 
 s_ptr<face> choose_random_face_from_map(const face_map& fc_map)
@@ -118,29 +121,31 @@ s_ptr<face> choose_random_face_from_map(const face_map& fc_map)
 std::vector<s_ptr<meshlet>> separate_greedy(const s_ptr<mesh_separation_helper>& helper)
 {
   std::vector<s_ptr<meshlet>> meshlets;
-  s_ptr<face> current_face = helper->get_random_face();
+  s_ptr<face> current_face = helper->get_random_remaining_face();
 
-  while (!helper->face_is_empty()) {
+  while (!helper->all_face_is_registered()) {
     // compute each meshlet
     // init objects
-    s_ptr<meshlet> ml;
+    s_ptr<meshlet> ml = mesh_model::create();
     auto aabb = create_aabb_from_single_face(current_face);
     face_map adjoining_face_map {{current_face->id_ ,current_face}};
+    // meshlet api limitation
     while (ml->get_vertex_count() < mesh_separation::VERTEX_COUNT_PER_MESHLET
-        && ml->get_face_count() < mesh_separation::PRIMITIVE_COUNT_PER_MESHLET ) {
+        && ml->get_face_count() < mesh_separation::PRIMITIVE_COUNT_PER_MESHLET
+        && adjoining_face_map.size() != 0) {
 
       // algorithm dependent part
       current_face = choose_the_best_face(adjoining_face_map, *aabb);
       // update each object
       add_face_to_meshlet(current_face, ml);
       update_aabb(*aabb, current_face);
-      update_adjoining_face_map(adjoining_face_map, current_face);
+      helper->update_adjoining_face_map(adjoining_face_map, current_face);
       helper->remove_face(current_face->id_);
     }
     meshlets.emplace_back(std::move(ml));
     current_face = choose_random_face_from_map(adjoining_face_map);
     if (current_face == nullptr)
-      current_face = helper->get_random_face();
+      current_face = helper->get_random_remaining_face();
   }
 
   return meshlets;
@@ -179,7 +184,7 @@ void colorize_meshlet(const s_ptr<meshlet>& ml)
     face_kv.second->color_ = color;
 }
 
-std::vector<s_ptr<mesh_model>> mesh_separation_helper::separate(const s_ptr<mesh_model>& model)
+std::vector<s_ptr<mesh_model>> mesh_separation::separate(const s_ptr<mesh_model>& model)
 {
   auto helper = mesh_separation_helper::create(model);
 

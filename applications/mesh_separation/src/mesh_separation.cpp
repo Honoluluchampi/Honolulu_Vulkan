@@ -5,6 +5,7 @@
 #include <game/components/mesh_component.hpp>
 #include <geometry/mesh_model.hpp>
 #include <geometry/half_edge.hpp>
+#include <geometry/mesh_separation.hpp>
 
 using namespace hnll;
 
@@ -23,20 +24,41 @@ class app : public game::engine
       add_point_light(light, light_component);
       light->set_translation({0.f, -20.f, 0.f});
 
+      add_separated_sphere();
+    }
+    ~app(){}
+
+    void add_bunny()
+    {
+       auto bunny_geometry = geometry::mesh_model::create_from_obj_file("bunny.obj");
+       auto bunny_graphics = graphics::mesh_model::create_from_geometry_mesh_model(get_graphics_device(), bunny_geometry);
+       auto bunny = game::actor::create();
+       auto bunny_mesh_comp = game::mesh_component::create(bunny, std::move(bunny_graphics));
+       game::engine::add_actor(bunny);
+       bunny->set_rotation({M_PI, 0.f, 0.f});
+    }
+
+    void add_separated_sphere()
+    {
+      auto sphere_geometry = geometry::mesh_model::create_from_obj_file("sphere.obj");
+      auto sphere_meshlets = geometry::mesh_separation::separate(sphere_geometry);
+      for (auto& ml : sphere_meshlets) {
+        auto ml_actor = game::actor::create();
+        auto ml_graphics = graphics::mesh_model::create_from_geometry_mesh_model(get_graphics_device(), ml);
+        auto ml_mesh_comp = game::mesh_component::create(ml_actor, std::move(ml_graphics));
+        game::engine::add_actor(ml_actor);
+        ml_actor->set_rotation({M_PI, 0.f, 0.f});
+      }
+    }
+
+    void add_plane()
+    {
       auto plane_geometry = create_plane_mesh();
       auto plane_graphics = graphics::mesh_model::create_from_geometry_mesh_model(get_graphics_device(), plane_geometry);
       auto plane = game::actor::create();
       auto plane_mesh_comp = game::mesh_component::create(plane, std::move(plane_graphics));
       game::engine::add_actor(plane);
-
-      auto bunny_geometry = geometry::mesh_model::create_from_obj_file("bunny.obj");
-      auto bunny_graphics = graphics::mesh_model::create_from_geometry_mesh_model(get_graphics_device(), bunny_geometry);
-      auto bunny = game::actor::create();
-      auto bunny_mesh_comp = game::mesh_component::create(bunny, std::move(bunny_graphics));
-      game::engine::add_actor(bunny);
-      bunny->set_rotation({M_PI, 0.f, 0.f});
     }
-    ~app(){}
 
     s_ptr<geometry::mesh_model> create_plane_mesh()
     {

@@ -5,11 +5,12 @@
 #include <vector>
 #include <unordered_map>
 #include <functional>
+#include <set>
+
+namespace hnll::geometry {
 
 template<typename T> using u_ptr = std::unique_ptr<T>;
 template<typename T> using s_ptr = std::shared_ptr<T>;
-
-namespace hnll::geometry {
 
 // forward declaration
 class mesh_model;
@@ -20,6 +21,7 @@ using vertex_map = std::unordered_map<vertex_id, s_ptr<vertex>>;
 using face_id    = uint32_t;
 using face_map   = std::unordered_map<face_id, s_ptr<face>>;
 using meshlet    = mesh_model;
+using remaining_face_id_set = std::set<face_id>;
 
 namespace mesh_separation {
 
@@ -34,6 +36,9 @@ enum class solution {
 enum class criterion {
   MINIMIZE_VARIATION
 };
+
+std::vector<s_ptr<mesh_model>> separate(const s_ptr<mesh_model>& model);
+
 } // namespace mesh_separation
 
 using criterion_map = std::unordered_map<mesh_separation::criterion, std::function<double()>>;
@@ -44,24 +49,26 @@ class mesh_separation_helper
   public:
     static s_ptr<mesh_separation_helper> create(const s_ptr<mesh_model>& model);
     explicit mesh_separation_helper(const s_ptr<mesh_model>& model);
-    std::vector<s_ptr<mesh_model>> separate(const s_ptr<mesh_model>& model);
 
     // getter
-    vertex_map  get_remaining_vertex_map() const { return remaining_vertex_map_; }
-    face_map    get_remaining_face_map() const   { return remaining_face_map_; }
-    s_ptr<face> get_random_face();
-    bool        face_is_empty() const            { return remaining_face_map_.empty(); }
-    bool        vertex_is_empty() const          { return remaining_vertex_map_.empty(); }
+    vertex_map  get_vertex_map() const         { return vertex_map_; }
+    face_map    get_face_map() const           { return face_map_; }
+    s_ptr<face> get_random_remaining_face();
+    bool        all_face_is_registered() const { return remaining_face_id_set_.empty(); }
+    bool        vertex_is_empty() const        { return vertex_map_.empty(); }
 
     // setter
-    void remove_face(face_id id) { remaining_face_map_.erase(id); }
+    void remove_face(face_id id) { remaining_face_id_set_.erase(id); }
+    void update_adjoining_face_map(face_map& adjoining_face_map, const s_ptr<face>& fc);
+
   private:
-    s_ptr<mesh_model>    model_;
-    s_ptr<vertex>        current_vertex_;
-    vertex_map           remaining_vertex_map_;
-    face_map             remaining_face_map_;
-    static criterion_map criterion_map_;
-    static solution_map  solution_map_;
+    s_ptr<mesh_model>     model_;
+    s_ptr<vertex>         current_vertex_;
+    vertex_map            vertex_map_;
+    face_map              face_map_;
+    remaining_face_id_set remaining_face_id_set_;
+    static criterion_map  criterion_map_;
+    static solution_map   solution_map_;
 };
 
 } // namespace hnll::geometry
