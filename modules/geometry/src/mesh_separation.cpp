@@ -12,7 +12,8 @@ const vec3 RED    = {1.f, 0.f, 0.f};
 const vec3 GREEN  = {0.f, 1.f, 0.f};
 const vec3 BLUE   = {0.f, 0.f, 1.f};
 const vec3 YELLOW = {1.f, 0.5f, 0.f};
-const std::vector<vec3> mesh_colors { GREEN, RED, BLUE, YELLOW };
+const vec3 LIGHT_BLUE = {0.3f, 0.7f, 0.7f};
+const std::vector<vec3> mesh_colors { GREEN, RED, BLUE, YELLOW, LIGHT_BLUE };
 
 s_ptr<face> mesh_separation_helper::get_random_remaining_face()
 {
@@ -135,6 +136,11 @@ s_ptr<face> choose_random_face_from_map(const face_map& fc_map)
     return fc_kv.second;
   }
   return nullptr;
+}
+
+s_ptr<meshlet> recreate_meshlet(const s_ptr<meshlet>& old)
+{
+
 }
 
 std::vector<s_ptr<meshlet>> separate_greedy(const s_ptr<mesh_separation_helper>& helper)

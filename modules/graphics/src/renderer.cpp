@@ -195,7 +195,7 @@ void renderer::begin_swap_chain_render_pass(VkCommandBuffer command_buffer, int 
 
   // default value for color and depth
   std::array<VkClearValue, 2> clear_values;
-  clear_values[0].color = {0.5f, 0.5f, 0.5f, 0.5f};
+  clear_values[0].color = {1.f, 1.f, 1.f, 0.5f};
   clear_values[1].depthStencil = {1.0f, 0};
   render_pass_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
   render_pass_info.pClearValues = clear_values.data();

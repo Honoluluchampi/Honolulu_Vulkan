@@ -19,12 +19,8 @@ class app : public game::engine
       // set camera position
       camera_up_->set_translation(glm::vec3{0.f, -5.f, -10.f});
       // add light
-      auto light = hnll::game::actor::create();
-      auto light_component = hnll::game::point_light_component::create(light, 100.f);
-      add_point_light(light, light_component);
-      light->set_translation({0.f, -20.f, 0.f});
-
-      add_separated_sphere();
+      setup_lights();
+      add_separated_object("bunny.obj");
     }
     ~app(){}
 
@@ -38,9 +34,9 @@ class app : public game::engine
        bunny->set_rotation({M_PI, 0.f, 0.f});
     }
 
-    void add_separated_sphere()
+    void add_separated_object(const std::string& filename)
     {
-      auto sphere_geometry = geometry::mesh_model::create_from_obj_file("bunny.obj");
+      auto sphere_geometry = geometry::mesh_model::create_from_obj_file(filename);
       auto sphere_meshlets = geometry::mesh_separation::separate(sphere_geometry);
       for (auto& ml : sphere_meshlets) {
         auto ml_actor = game::actor::create();
@@ -75,6 +71,24 @@ class app : public game::engine
       model->add_face(v0, v2, v3);
       return model;
     }
+
+    void setup_lights()
+    {
+      float light_intensity = 4.f;
+      std::vector<glm::vec3> positions;
+      for (int i = 0; i < 6; i++) {
+        positions.push_back({3.f * std::sin(M_PI/3.f * i), -2.f, 3.f * std::cos(M_PI/3.f * i)});
+      }
+      positions.push_back({0.f, 3.f, 0.f});
+      positions.push_back({0.f, -3.f, 0.f});
+
+      for (const auto& position : positions) {
+        auto light = hnll::game::actor::create();
+        auto light_component = hnll::game::point_light_component::create(light, light_intensity, 0.f);
+        add_point_light(light, light_component);
+        light->set_translation(position);
+      }
+    };
 };
 
 int main() {
