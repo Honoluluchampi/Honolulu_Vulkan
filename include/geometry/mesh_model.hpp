@@ -47,6 +47,7 @@ class mesh_model
     // getter
     vertex_map       get_vertex_map() const         { return vertex_map_; }
     face_map         get_face_map() const           { return face_map_; }
+    half_edge_map    get_half_edge_map() const      { return half_edge_map_; }
     size_t           get_face_count() const         { return face_map_.size(); }
     size_t           get_vertex_count() const       { return vertex_map_.size(); }
     size_t           get_half_edge_count() const    { return half_edge_map_.size(); }

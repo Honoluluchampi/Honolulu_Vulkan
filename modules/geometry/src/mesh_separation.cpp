@@ -4,6 +4,8 @@
 #include <geometry/mesh_model.hpp>
 #include <geometry/bounding_volume.hpp>
 
+#include <iostream>
+
 namespace hnll::geometry {
 
 const vec3 RED    = {1.f, 0.f, 0.f};
@@ -29,6 +31,16 @@ s_ptr<mesh_separation_helper> mesh_separation_helper::create(const s_ptr<mesh_mo
 mesh_separation_helper::mesh_separation_helper(const s_ptr<mesh_model> &model)
   : model_(model), vertex_map_(model->get_vertex_map()), face_map_(model->get_face_map())
 {
+  for (const auto& fc_kv : face_map_) {
+    remaining_face_id_set_.insert(fc_kv.first);
+  }
+  unsigned int absent_pair_count = 0;
+  for (const auto& he_kv : model_->get_half_edge_map()) {
+    if (he_kv.second->get_pair() == nullptr) {
+      absent_pair_count++;
+    }
+  }
+  std::cout << absent_pair_count << std::endl;
 }
 
 u_ptr<geometry::bounding_volume> create_aabb_from_single_face(const s_ptr<face>& fc)
@@ -100,10 +112,13 @@ void mesh_separation_helper::update_adjoining_face_map(face_map& adjoining_face_
   auto first_he = fc->half_edge_;
   auto current_he = first_he;
   do {
-    auto current_face = current_he->get_pair()->get_face();
-    // if current_face is new to the map
-    if (remaining_face_id_set_.find(current_face->id_) != remaining_face_id_set_.end()) {
-      adjoining_face_map[current_face->id_] = current_face;
+    auto he_pair = current_he->get_pair();
+    if (he_pair != nullptr) {
+      auto current_face = current_he->get_pair()->get_face();
+      // if current_face is new to the map
+      if (remaining_face_id_set_.find(current_face->id_) != remaining_face_id_set_.end()) {
+        adjoining_face_map[current_face->id_] = current_face;
+      }
     }
     current_he = current_he->get_next();
   } while (current_he != first_he);
@@ -177,11 +192,13 @@ void colorize_meshlet(const s_ptr<meshlet>& ml)
     if (color_flag[i]) { color = mesh_colors[i]; break; }
   }
 
+  static int i = 0;
+  auto new_color = mesh_colors[i % mesh_colors.size()];
   // assign color to vertices and faces
   for (const auto& vert_kv : ml->get_vertex_map())
-    vert_kv.second->color_ = color;
+    vert_kv.second->color_ = new_color;
   for (const auto& face_kv : ml->get_face_map())
-    face_kv.second->color_ = color;
+    face_kv.second->color_ = new_color;
 }
 
 std::vector<s_ptr<mesh_model>> mesh_separation::separate(const s_ptr<mesh_model>& model)
