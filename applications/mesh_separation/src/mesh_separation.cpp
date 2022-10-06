@@ -40,7 +40,7 @@ class app : public game::engine
 
     void add_separated_sphere()
     {
-      auto sphere_geometry = geometry::mesh_model::create_from_obj_file("sphere.obj");
+      auto sphere_geometry = geometry::mesh_model::create_from_obj_file("bunny.obj");
       auto sphere_meshlets = geometry::mesh_separation::separate(sphere_geometry);
       for (auto& ml : sphere_meshlets) {
         auto ml_actor = game::actor::create();

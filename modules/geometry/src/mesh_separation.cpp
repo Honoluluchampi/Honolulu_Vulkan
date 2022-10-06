@@ -12,7 +12,7 @@ const vec3 RED    = {1.f, 0.f, 0.f};
 const vec3 GREEN  = {0.f, 1.f, 0.f};
 const vec3 BLUE   = {0.f, 0.f, 1.f};
 const vec3 YELLOW = {1.f, 0.5f, 0.f};
-const std::vector<vec3> mesh_colors { RED, GREEN, BLUE, YELLOW };
+const std::vector<vec3> mesh_colors { GREEN, RED, BLUE, YELLOW };
 
 s_ptr<face> mesh_separation_helper::get_random_remaining_face()
 {
@@ -34,6 +34,7 @@ mesh_separation_helper::mesh_separation_helper(const s_ptr<mesh_model> &model)
   for (const auto& fc_kv : face_map_) {
     remaining_face_id_set_.insert(fc_kv.first);
   }
+
   unsigned int absent_pair_count = 0;
   for (const auto& he_kv : model_->get_half_edge_map()) {
     if (he_kv.second->get_pair() == nullptr) {
@@ -41,6 +42,9 @@ mesh_separation_helper::mesh_separation_helper(const s_ptr<mesh_model> &model)
     }
   }
   std::cout << absent_pair_count << std::endl;
+  std::cout << vertex_map_.size() << std::endl;
+  std::cout << face_map_.size() << std::endl;
+  std::cout << model_->get_half_edge_map().size() << std::endl;
 }
 
 u_ptr<geometry::bounding_volume> create_aabb_from_single_face(const s_ptr<face>& fc)
@@ -193,7 +197,7 @@ void colorize_meshlet(const s_ptr<meshlet>& ml)
   }
 
   static int i = 0;
-  auto new_color = mesh_colors[i % mesh_colors.size()];
+  auto new_color = mesh_colors[i++ % mesh_colors.size()];
   // assign color to vertices and faces
   for (const auto& vert_kv : ml->get_vertex_map())
     vert_kv.second->color_ = new_color;
@@ -211,6 +215,7 @@ std::vector<s_ptr<mesh_model>> mesh_separation::separate(const s_ptr<mesh_model>
   for (const auto& ml : mesh_lets)
     colorize_meshlet(ml);
 
+  std::cout << mesh_lets.size() << std::endl;
   return mesh_lets;
 }
 } // namespace hnll::geometry

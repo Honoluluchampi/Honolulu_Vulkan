@@ -53,7 +53,7 @@ struct hash<hnll::geometry::vertex>
   {
     // stores final hash value
     size_t seed = 0;
-    hnll::geometry::hash_combine(seed, vertex.position_, vertex.color_, vertex.normal_, vertex.uv_);
+    hnll::geometry::hash_combine(seed, vertex.position_); //, vertex.color_, vertex.normal_, vertex.uv_);
     return seed;
   }
 };
@@ -91,7 +91,7 @@ s_ptr<mesh_model> mesh_model::create_from_obj_file(const std::string& filename)
 
   auto mesh_model = mesh_model::create();
 
-  std::unordered_map<geometry::vertex, vertex_id> unique_vertices{};
+  std::unordered_map<vec3, vertex_id> unique_vertices_position{};
   std::vector<vertex_id> indices;
 
   for (const auto& shape : shapes) {
@@ -101,51 +101,57 @@ s_ptr<mesh_model> mesh_model::create_from_obj_file(const std::string& filename)
       // copy the vertex
       if (index.vertex_index >= 0) {
         vertex.position_ = {
-        attrib.vertices[3 * index.vertex_index + 0],
-        attrib.vertices[3 * index.vertex_index + 1],
-        attrib.vertices[3 * index.vertex_index + 2]
+          attrib.vertices[3 * index.vertex_index + 0],
+          attrib.vertices[3 * index.vertex_index + 1],
+          attrib.vertices[3 * index.vertex_index + 2]
         };
         // color support
         vertex.color_ = {
-        attrib.colors[3 * index.vertex_index + 0],
-        attrib.colors[3 * index.vertex_index + 1],
-        attrib.colors[3 * index.vertex_index + 2]
+          attrib.colors[3 * index.vertex_index + 0],
+          attrib.colors[3 * index.vertex_index + 1],
+          attrib.colors[3 * index.vertex_index + 2]
         };
       }
       // copy the normal
       if (index.vertex_index >= 0) {
         vertex.normal_ = {
-        attrib.normals[3 * index.normal_index + 0],
-        attrib.normals[3 * index.normal_index + 1],
-        attrib.normals[3 * index.normal_index + 2]
+          attrib.normals[3 * index.normal_index + 0],
+          attrib.normals[3 * index.normal_index + 1],
+          attrib.normals[3 * index.normal_index + 2]
         };
       }
       // copy the texture coordinate
       if (index.vertex_index >= 0) {
         vertex.uv_ = {
-        attrib.vertices[2 * index.texcoord_index + 0],
-        attrib.vertices[2 * index.texcoord_index + 1]
+          attrib.vertices[2 * index.texcoord_index + 0],
+          attrib.vertices[2 * index.texcoord_index + 1]
         };
       }
       // if vertex is a new vertex
-      if (unique_vertices.count(vertex) == 0) {
+      if (unique_vertices_position.find(vertex.position_) == unique_vertices_position.end()) {
         auto new_vertex = create_vertex_from_pseudo(std::move(vertex));
         auto new_id = mesh_model->add_vertex(new_vertex);
-        unique_vertices[*new_vertex] = new_id;
+        unique_vertices_position[new_vertex->position_] = new_id;
         indices.push_back(new_id);
       }
       else
-        indices.push_back(unique_vertices[vertex]);
+        indices.push_back(unique_vertices_position[vertex.position_]);
     }
   }
 
-  if (indices.size() % 3 != 0) throw std::runtime_error("vertex count is not multiple of 3");
+  if (indices.size() % 3 != 0)
+    throw std::runtime_error("vertex count is not multiple of 3");
   // recreate all faces
   for (int i = 0; i < indices.size(); i += 3) {
     auto v0 = mesh_model->get_vertex(indices[i]);
     auto v1 = mesh_model->get_vertex(indices[i + 1]);
     auto v2 = mesh_model->get_vertex(indices[i + 2]);
-    mesh_model->add_face(v0, v1, v2);
+    auto normal = (v0->normal_ + v1->normal_ + v2->normal_) / 3.f;
+    auto cross = (v1->position_ - v0->position_).cross(v2->position_ - v0->position_);
+    if (cross.dot(normal) >= 0)
+      mesh_model->add_face(v0, v1, v2);
+    else
+      mesh_model->add_face(v0, v2, v1);
   }
 
   return mesh_model;
@@ -168,8 +174,13 @@ void mesh_model::colorize_whole_mesh(const vec3& color)
 half_edge_key calc_half_edge_key(const s_ptr<vertex>& v0, const s_ptr<vertex>& v1)
 {
   half_edge_key id0 = v0->id_, id1 = v1->id_;
-  if (id0 > id1) std::swap(id0, id1);
   return (id0 | (id1 << 32));
+}
+
+half_edge_key calc_pair_half_edge_key(const s_ptr<vertex>& v0, const s_ptr<vertex>& v1)
+{
+  half_edge_key id0 = v0->id_, id1 = v1->id_;
+  return (id1 | (id0 << 32));
 }
 
 s_ptr<half_edge> mesh_model::get_half_edge(const s_ptr<vertex> &v0, const s_ptr<vertex> &v1)
@@ -183,17 +194,21 @@ s_ptr<half_edge> mesh_model::get_half_edge(const s_ptr<vertex> &v0, const s_ptr<
 bool mesh_model::associate_half_edge_pair(const s_ptr<half_edge> &he)
 {
   auto hash_key = calc_half_edge_key(he->get_vertex(), he->get_next()->get_vertex());
+  auto pair_hash_key = calc_pair_half_edge_key(he->get_vertex(), he->get_next()->get_vertex());
+
+  half_edge_map_[hash_key] = he;
   // check if those hash_key already have a value
-  if (auto pair = half_edge_map_.find(hash_key); pair != half_edge_map_.end()) {
+  if (half_edge_map_.find(pair_hash_key) != half_edge_map_.end()) {
     // if the pair has added to the map, associate with it
-    he->set_pair(half_edge_map_[hash_key]);
-    half_edge_map_[hash_key]->set_pair(he);
+    he->set_pair(half_edge_map_[pair_hash_key]);
+    half_edge_map_[pair_hash_key]->set_pair(he);
     return true;
-  } else {
+    }
+//  } else {
     // if the pair has not added to the map
-    half_edge_map_[hash_key] = he;
+//    half_edge_map_[hash_key] = he;
     return false;
-  }
+//  }
 }
 
 vertex_id mesh_model::add_vertex(s_ptr<vertex> &v)
