@@ -16,7 +16,13 @@
 #include <string>
 #include <functional>
 
+// forward declaration
+namespace hnll::geometry { class mesh_model; }
+
 namespace hnll::graphics {
+
+template<typename T> using u_ptr = std::unique_ptr<T>;
+template<typename T> using s_ptr = std::shared_ptr<T>;
 
 // https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x/57595105#57595105
 template <typename T, typename... Rest>
@@ -60,7 +66,8 @@ class mesh_model
     mesh_model(const mesh_model &) = delete;
     mesh_model& operator=(const mesh_model &) = delete;
 
-    static std::shared_ptr<mesh_model> create_model_from_file(device &device, const std::string &filename);
+    static s_ptr<mesh_model> create_model_from_file(device &device, const std::string &filename);
+    static s_ptr<mesh_model> create_from_geometry_mesh_model(device &device, const s_ptr<geometry::mesh_model>& gm);
 
     void bind(VkCommandBuffer command_buffer);
     void draw(VkCommandBuffer command_buffer);

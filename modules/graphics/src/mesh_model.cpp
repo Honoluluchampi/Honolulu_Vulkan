@@ -1,5 +1,7 @@
 // hnll
 #include <graphics/mesh_model.hpp>
+#include <geometry/mesh_model.hpp>
+#include <geometry/half_edge.hpp>
 
 // libs
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -53,7 +55,7 @@ mesh_model::mesh_model(device& device, const mesh_model::builder &builder) : dev
 
 mesh_model::~mesh_model()
 {
-  // buffers will be freed in dtor of Hvebuffer
+  // buffers will be freed in dtor of hnll::graphics::buffer
 }
 
 std::shared_ptr<mesh_model> mesh_model::create_model_from_file(device &device, const std::string &filename)
@@ -242,6 +244,45 @@ std::vector<Eigen::Vector3d> mesh_model::get_vertex_position_list() const
     vertex_position_list.push_back(vertex.position.cast<double>());
   }
   return vertex_position_list;
+}
+
+graphics::mesh_model::vertex convert_geometry_to_graphics_vertex(const s_ptr<geometry::vertex>& gv)
+{
+  graphics::mesh_model::vertex res;
+  res.position = gv->position_.cast<float>();
+  res.color    = gv->color_.cast<float>();
+  res.normal   = gv->normal_.cast<float>();
+  res.uv       = gv->uv_.cast<float>();
+  return res;
+}
+
+s_ptr<mesh_model> mesh_model::create_from_geometry_mesh_model(device& device, const s_ptr<geometry::mesh_model> &gm)
+{
+  graphics::mesh_model::builder builder;
+
+  gm->align_vertex_id();
+  std::vector<graphics::mesh_model::vertex> vertices(gm->get_vertex_count());
+  std::vector<uint32_t> indices;
+  // vertex_id is aligned to zero
+  for (const auto& v : gm->get_vertex_map()) {
+    vertices[v.first] = convert_geometry_to_graphics_vertex(v.second);
+  }
+  // search all faces
+  // TODO : gpu cache friendly reconstruction
+  for (const auto& kv : gm->get_face_map()) {
+    auto he = kv.second->half_edge_;
+    auto v0 = he->get_vertex();
+    auto v1 = he->get_next()->get_vertex();
+    auto v2 = he->get_next()->get_next()->get_vertex();
+    indices.emplace_back(v0->id_);
+    indices.emplace_back(v1->id_);
+    indices.emplace_back(v2->id_);
+  }
+
+  builder.vertices = std::move(vertices);
+  builder.indices  = std::move(indices);
+
+  return std::make_shared<mesh_model>(device, builder);
 }
 
 } // namespace hnll::graphics

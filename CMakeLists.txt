@@ -28,3 +28,5 @@ target_link_libraries(hnll_engine PUBLIC vulkan glfw)
 # build the example
 add_executable(app main.cpp)
 target_link_libraries(app PUBLIC hnll_engine)
+
+# build the test

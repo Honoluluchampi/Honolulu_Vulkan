@@ -10,10 +10,10 @@
 #include <unordered_map>
 #include <iostream>
 
+namespace hnll::game{
+
 template <class T> using s_ptr = std::shared_ptr<T>;
 template <class T> using u_ptr = std::unique_ptr<T>;
-
-namespace hnll::game{
 
 using actor_id = unsigned int;
 // forward declaration

@@ -25,9 +25,6 @@ mesh_model_map engine::mesh_model_map_;
 GLFWwindow* engine::glfw_window_;
 std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> engine::glfw_mouse_button_callbacks_{};
 
-// x11
-// Display* engine::display_ = XOpenDisplay(NULL);
-
 engine::engine(const char* window_name) : graphics_engine_up_(std::make_unique<hnll::graphics::engine>(window_name))
 {
   set_glfw_window(); // ?
