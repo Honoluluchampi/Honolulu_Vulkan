@@ -40,7 +40,7 @@ class mesh_model
     void align_vertex_id();
 
     // vertices are assumed to be in a counter-clockwise order
-    vertex_id add_vertex(s_ptr<vertex>& v);
+    vertex_id add_vertex(const s_ptr<vertex>& v);
     face_id   add_face(s_ptr<vertex>& v0, s_ptr<vertex>& v1, s_ptr<vertex>& v2,
                        geometry::auto_vertex_normal_calculation avnc= geometry::auto_vertex_normal_calculation::OFF);
 

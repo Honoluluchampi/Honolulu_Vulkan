@@ -17,10 +17,10 @@ class app : public game::engine
     app() : game::engine("mesh_separation")
     {
       // set camera position
-      camera_up_->set_translation(glm::vec3{0.f, -5.f, -10.f});
+      camera_up_->set_translation(glm::vec3{0.f, 0.f, -10.f});
       // add light
       setup_lights();
-      add_separated_object("bunny.obj");
+      add_separated_object("light_bunny.obj");
     }
     ~app(){}
 

@@ -211,7 +211,7 @@ bool mesh_model::associate_half_edge_pair(const s_ptr<half_edge> &he)
 //  }
 }
 
-vertex_id mesh_model::add_vertex(s_ptr<vertex> &v)
+vertex_id mesh_model::add_vertex(const s_ptr<vertex> &v)
 {
   // if the vertex has not been involved
   if (vertex_map_.find(v->id_) == vertex_map_.end())

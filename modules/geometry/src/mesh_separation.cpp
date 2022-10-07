@@ -138,9 +138,30 @@ s_ptr<face> choose_random_face_from_map(const face_map& fc_map)
   return nullptr;
 }
 
-s_ptr<meshlet> recreate_meshlet(const s_ptr<meshlet>& old)
+s_ptr<vertex> duplicate_vertex(const s_ptr<vertex>& old_vertex)
 {
+  auto new_vertex = vertex::create(old_vertex->position_);
+  new_vertex->position_ = old_vertex->position_;
+  new_vertex->normal_ = old_vertex->normal_;
+  new_vertex->color_ = old_vertex->color_;
+  new_vertex->uv_ = old_vertex->uv_;
+  new_vertex->half_edge_ = old_vertex->half_edge_;
+  new_vertex->face_count_ = old_vertex->face_count_;
+  return new_vertex;
+}
 
+s_ptr<meshlet> recreate_meshlet(const s_ptr<meshlet>& old_mesh)
+{
+  auto new_mesh = mesh_model::create();
+
+  for (const auto& f_kv : old_mesh->get_face_map()) {
+    auto he = f_kv.second->half_edge_;
+    auto v0 = duplicate_vertex(he->get_vertex());
+    auto v1 = duplicate_vertex(he->get_next()->get_vertex());
+    auto v2 = duplicate_vertex(he->get_next()->get_next()->get_vertex());
+    new_mesh->add_face(v0, v1, v2);
+  }
+  return new_mesh;
 }
 
 std::vector<s_ptr<meshlet>> separate_greedy(const s_ptr<mesh_separation_helper>& helper)
@@ -167,7 +188,7 @@ std::vector<s_ptr<meshlet>> separate_greedy(const s_ptr<mesh_separation_helper>&
       helper->update_adjoining_face_map(adjoining_face_map, current_face);
       helper->remove_face(current_face->id_);
     }
-    meshlets.emplace_back(std::move(ml));
+    meshlets.emplace_back(recreate_meshlet(ml));
     current_face = choose_random_face_from_map(adjoining_face_map);
     if (current_face == nullptr)
       current_face = helper->get_random_remaining_face();
