@@ -76,11 +76,12 @@ class app : public game::engine
     {
       float light_intensity = 4.f;
       std::vector<glm::vec3> positions;
+      float position_radius = 4.f;
       for (int i = 0; i < 6; i++) {
-        positions.push_back({3.f * std::sin(M_PI/3.f * i), -2.f, 3.f * std::cos(M_PI/3.f * i)});
+        positions.push_back({position_radius * std::sin(M_PI/3.f * i), -2.f, position_radius * std::cos(M_PI/3.f * i)});
       }
-      positions.push_back({0.f, 3.f, 0.f});
-      positions.push_back({0.f, -3.f, 0.f});
+      positions.push_back({0.f, position_radius, 0.f});
+      positions.push_back({0.f, -position_radius, 0.f});
 
       for (const auto& position : positions) {
         auto light = hnll::game::actor::create();

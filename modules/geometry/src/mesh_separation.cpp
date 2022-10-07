@@ -8,12 +8,46 @@
 
 namespace hnll::geometry {
 
-const vec3 RED    = {1.f, 0.f, 0.f};
-const vec3 GREEN  = {0.f, 1.f, 0.f};
-const vec3 BLUE   = {0.f, 0.f, 1.f};
-const vec3 YELLOW = {1.f, 0.5f, 0.f};
-const vec3 LIGHT_BLUE = {0.3f, 0.7f, 0.7f};
-const std::vector<vec3> mesh_colors { GREEN, RED, BLUE, YELLOW, LIGHT_BLUE };
+std::vector<vec3> mesh_colors {
+  // universal
+//    { 255, 75, 0 },
+//    { 0, 90, 255 },
+//    { 3, 175, 122 },
+//    { 77, 196, 255 },
+//    { 246, 170, 0 },
+//    { 255, 241, 0 },
+//    { 153, 0, 153 },
+  // yumekawa
+    { 191,255,127 },
+    { 255,191,127 },
+    { 255,255,127 },
+    { 127,255,255 },
+    { 255,127,191 },
+    { 191,127,255 },
+    { 127,127,255 },
+    // vivid
+//    { 0,255,0 },
+//    { 0,255,255 },
+//    { 255,255,0 },
+//    { 255,35,35 },
+//    { 35,35,255 },
+//    { 255,35,255 },
+//    { 255,145,35 },
+};
+
+auto convert_color_255_to_1 (vec3& color)
+{
+  return color / 255.f;
+}
+
+auto convert_colors_255_to_1 (std::vector<vec3>& colors)
+{
+  std::vector<vec3> res;
+  for (const auto& color : colors) {
+    res.emplace_back(color / 255.f);
+  }
+  return res;
+}
 
 s_ptr<face> mesh_separation_helper::get_random_remaining_face()
 {
@@ -164,7 +198,7 @@ s_ptr<meshlet> recreate_meshlet(const s_ptr<meshlet>& old_mesh)
   return new_mesh;
 }
 
-std::vector<s_ptr<meshlet>> separate_greedy(const s_ptr<mesh_separation_helper>& helper)
+std::vector<s_ptr<meshlet>> separate_greedy(const s_ptr<mesh_separation_helper>& helper, mesh_separation::criterion crtr)
 {
   std::vector<s_ptr<meshlet>> meshlets;
   s_ptr<face> current_face = helper->get_random_remaining_face();
@@ -224,7 +258,7 @@ void colorize_meshlet(const s_ptr<meshlet>& ml)
   }
 
   static int i = 0;
-  auto new_color = mesh_colors[i++ % mesh_colors.size()];
+  auto new_color = convert_color_255_to_1(mesh_colors[i++ % mesh_colors.size()]);
   // assign color to vertices and faces
   for (const auto& vert_kv : ml->get_vertex_map())
     vert_kv.second->color_ = new_color;
@@ -232,11 +266,11 @@ void colorize_meshlet(const s_ptr<meshlet>& ml)
     face_kv.second->color_ = new_color;
 }
 
-std::vector<s_ptr<mesh_model>> mesh_separation::separate(const s_ptr<mesh_model>& model)
+std::vector<s_ptr<mesh_model>> mesh_separation::separate(const s_ptr<mesh_model>& model, criterion crtr)
 {
   auto helper = mesh_separation_helper::create(model);
 
-  std::vector<s_ptr<meshlet>> mesh_lets = separate_greedy(helper);
+  std::vector<s_ptr<meshlet>> mesh_lets = separate_greedy(helper, crtr);
 
   // colorization
   for (const auto& ml : mesh_lets)

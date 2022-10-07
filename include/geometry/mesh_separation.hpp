@@ -34,10 +34,11 @@ enum class solution {
 };
 
 enum class criterion {
-  MINIMIZE_VARIATION
+  MINIMIZE_VARIATION,
+  MINIMIZE_BOUNDING_SPHERE
 };
 
-std::vector<s_ptr<mesh_model>> separate(const s_ptr<mesh_model>& model);
+std::vector<s_ptr<mesh_model>> separate(const s_ptr<mesh_model>& model, criterion crtr = criterion::MINIMIZE_BOUNDING_SPHERE);
 
 } // namespace mesh_separation
 
