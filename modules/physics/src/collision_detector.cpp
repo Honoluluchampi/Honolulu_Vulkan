@@ -51,7 +51,7 @@ bool collision_detector::intersection_sphere_sphere(const bounding_volume &spher
 }
 
 // support functions for intersection_aabb_sphere
-// prefix 'cp' abbreviation of 'closest point'
+// prefix 'cp' is abbreviation of 'closest point'
 point cp_point_to_plane(const point& q, const plane& p)
 {
   // plane's normal must be normalized before this test

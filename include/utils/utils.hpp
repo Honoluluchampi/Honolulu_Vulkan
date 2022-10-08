@@ -34,11 +34,11 @@ struct transform
   // Matrix corresponds to Translate * Ry * Rz * Rx * Scale
   // Rotations correspond to Tait-bryan angles of Y(1), Z(2), X(3)
   // https://en.wikipedia.org/wiki/Euler_angles#Rotation_matrix
-  Eigen::Matrix4d mat4();
-  Eigen::Matrix4d rotate_mat4();
-  Eigen::Matrix3d rotate_mat3();
+  Eigen::Matrix4d mat4() const;
+  Eigen::Matrix4d rotate_mat4() const;
+  Eigen::Matrix3d rotate_mat3() const;
   // normal = R * S(-1)
-  Eigen::Matrix4d normal_matrix();
+  Eigen::Matrix4d normal_matrix() const;
 };
 
 static inline glm::vec3 sclXvec(const float scalar, const glm::vec3& vec)

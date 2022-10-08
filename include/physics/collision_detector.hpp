@@ -21,6 +21,9 @@ class collision_detector
     bool intersection_bounding_volume(const geometry::bounding_volume& a, const geometry::bounding_volume& b);
     static void add_rigid_component  (const s_ptr<rigid_component>& rc) { rigid_components_.push_back(rc); }
 
+    // testing functions for culling algorithms
+    static void intersection_sphere_frustum(const geometry::bounding_volume& sphere, );
+
   private:
     bool intersection_aabb_aabb      (const geometry::bounding_volume& aabb_a, const geometry::bounding_volume& aabb_b);
     // TODO : impl
