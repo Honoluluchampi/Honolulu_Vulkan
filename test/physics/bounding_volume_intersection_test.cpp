@@ -1,11 +1,11 @@
 // hnll
-#include <physics/collision_detector.hpp>
+#include <geometry/collision_detector.hpp>
 #include <geometry/bounding_volume.hpp>
 
 // lib
 #include <gtest/gtest.h>
 
-using namespace hnll::physics;
+using hnll::geometry::collision_detector;
 using hnll::geometry::bounding_volume;
 
 collision_detector cdd;

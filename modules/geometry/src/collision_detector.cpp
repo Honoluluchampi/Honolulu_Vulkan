@@ -1,23 +1,15 @@
 // hnll
-#include <physics/collision_detector.hpp>
+#include <geometry/collision_detector.hpp>
 #include <physics/rigid_component.hpp>
 #include <geometry/bounding_volume.hpp>
+#include <geometry/perspective_frustum.hpp>
 
 // lib
 #include <eigen3/Eigen/Dense>
 
-using hnll::geometry::bounding_volume;
-
-namespace hnll::physics {
+namespace hnll::geometry {
 
 using point = Eigen::Vector3d;
-struct plane
-{
-  Eigen::Vector3d point;
-  Eigen::Vector3d normal;
-  // plane's normal is guaranteed to be normalized
-  plane(const Eigen::Vector3d& point_, const Eigen::Vector3d& normal_) : point(point_), normal(normal_) { normal.normalize(); }
-};
 
 // static members' declaration
 std::vector<s_ptr<rigid_component>> rigid_components_{};
@@ -94,6 +86,23 @@ bool collision_detector::intersection_aabb_sphere(const bounding_volume &aabb, c
 {
   auto sq_dist = sq_dist_point_to_aabb(sphere.get_center_point(), aabb);
   return std::pow(sphere.get_sphere_radius(), 2) > sq_dist;
+}
+
+bool collision_detector::intersection_sphere_frustum(const geometry::bounding_volume &sphere, const perspective_frustum &frustum)
+{
+  const auto  center = sphere.get_center_point();
+  const auto  radius = sphere.get_sphere_radius();
+
+  // TODO : simdlize
+  // compare each distance with sphere radius;
+  if (distance_point_to_plane(center, frustum.get_near_ref())   > -radius) return false;
+  if (distance_point_to_plane(center, frustum.get_far_ref())    > -radius) return false;
+  if (distance_point_to_plane(center, frustum.get_left_ref())   > -radius) return false;
+  if (distance_point_to_plane(center, frustum.get_right_ref())  > -radius) return false;
+  if (distance_point_to_plane(center, frustum.get_top_ref())    > -radius) return false;
+  if (distance_point_to_plane(center, frustum.get_bottom_ref()) > -radius) return false;
+
+  return true;
 }
 
 } // namespace hnll::physics

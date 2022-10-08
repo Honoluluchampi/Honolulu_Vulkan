@@ -31,6 +31,10 @@ struct transform
   // y-z-x tait-brian rotation
   glm::vec3 rotation{};
 
+  const glm::vec3& get_translation_ref() const { return translation; }
+  const glm::vec3& get_scale_ref() const       { return scale; }
+  const glm::vec3& get_rotation_ref() const    { return rotation; }
+
   // Matrix corresponds to Translate * Ry * Rz * Rx * Scale
   // Rotations correspond to Tait-bryan angles of Y(1), Z(2), X(3)
   // https://en.wikipedia.org/wiki/Euler_angles#Rotation_matrix
