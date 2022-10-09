@@ -51,10 +51,10 @@ elseif (UNIX)
     target_include_directories(hnll_audio PUBLIC $ENV{HNLL_ENGN}/include)
 endif (APPLE)
 # openAL
-#if (APPLE)
-#    target_link_directories(hnll_audio PUBLIC ${OPEN_AL_DIRECTORY}/lib)
-#endif (APPLE)
-#target_link_libraries(hnll_audio PUBLIC openal)
+if (APPLE)
+    target_link_directories(hnll_audio PUBLIC ${OPEN_AL_DIRECTORY}/lib)
+endif (APPLE)
+target_link_libraries(hnll_audio PUBLIC openal)
 
 # build test
 #project(audio_test)

@@ -14,8 +14,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "-g3 -O0")
 
 # build engine
-file(GLOB_RECURSE SOURCES modules/*.cpp)
+file(GLOB_RECURSE SOURCES modules/game/*.cpp)
 add_library(hnll_engine STATIC ${SOURCES})
+add_subdirectory(modules/audio)
+add_subdirectory(modules/geometry)
+add_subdirectory(modules/graphics)
+add_subdirectory(modules/physics)
+add_subdirectory(modules/gui)
+add_subdirectory(modules/utils)
 
 target_include_directories(hnll_engine PUBLIC include/ submodules/imgui submodules/tiny_obj_loader)
 target_link_directories(hnll_engine PUBLIC $ENV{VULKAN_DIR}/lib)
@@ -23,7 +29,14 @@ if (APPLE)
     target_link_directories(hnll_engine PUBLIC $ENV{VULKAN_DIR}/lib $ENV{GLFW_DIR}/lib)
 endif (APPLE)
 
-target_link_libraries(hnll_engine PUBLIC vulkan openal glfw)
+target_link_libraries(hnll_engine PUBLIC
+        hnll_audio
+        hnll_physics
+        hnll_geometry
+        hnll_gui
+        hnll_graphics
+        hnll_utils
+        vulkan glfw)
 
 # build the example
 add_executable(app main.cpp)

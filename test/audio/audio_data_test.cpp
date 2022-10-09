@@ -5,15 +5,13 @@
 // gtest
 #include <gtest/gtest.h>
 
-#define eq EXPECT_EQ
-
 using namespace hnll::audio;
 
 TEST(audio_data, construct)
 {
   audio_data audio_data;
-    eq(audio_data.get_sampling_rate(), 44100);
-    eq(audio_data.get_format(), AL_FORMAT_MONO16);
+    EXPECT_EQ(audio_data.get_sampling_rate(), 44100);
+    EXPECT_EQ(audio_data.get_format(), AL_FORMAT_MONO16);
 }
 
 TEST(audio_data, setter_getter)
@@ -23,9 +21,9 @@ TEST(audio_data, setter_getter)
   data.set_sampling_rate(22050);
   data.set_format(AL_FORMAT_MONO8);
 
-    eq(*data.get_data(), 1000);
-    eq(data.get_sampling_rate(), 22050);
-    eq(data.get_format(), AL_FORMAT_MONO8);
+    EXPECT_EQ(*data.get_data(), 1000);
+    EXPECT_EQ(data.get_sampling_rate(), 22050);
+    EXPECT_EQ(data.get_format(), AL_FORMAT_MONO8);
   // ALshort is 16-bit
-    eq(data.get_data_size_in_byte(), 3 * 2);
+    EXPECT_EQ(data.get_data_size_in_byte(), 3 * 2);
 }

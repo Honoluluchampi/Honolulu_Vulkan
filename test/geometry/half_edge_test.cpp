@@ -52,18 +52,18 @@ TEST(mesh_model, add_face) {
   auto v1 = vertex::create({ 0.f, 1.f, 0.f});
   auto v2 = vertex::create({ 1.f, 0.f, 0.f });
   auto v3 = vertex::create({ 1.f, 1.f, 0.f});
-  auto fc_id0 = model->add_face(v0, v1, v2);
+  auto fc_id0 = model->add_face(v0, v1, v2, hnll::geometry::auto_vertex_normal_calculation::ON);
   EXPECT_EQ(model->get_half_edge_count(), 3);
   EXPECT_EQ(model->get_face_count(), 1);
   EXPECT_EQ(model->get_vertex_count(), 3);
   EXPECT_EQ(model->get_vertex(v0->id_)->normal_, vec3(0.f, 0.f, -1.f));
   EXPECT_EQ(model->get_face(fc_id0)->normal_, vec3(0.f, 0.f, -1.f));
   auto fc_id1 = model->add_face(v1, v3, v2);
-  EXPECT_EQ(model->get_half_edge_count(), 5);
+  EXPECT_EQ(model->get_half_edge_count(), 6);
   EXPECT_EQ(model->get_face_count(), 2);
   EXPECT_EQ(model->get_vertex_count(), 4);
   auto v4 = vertex::create({ 0.f, 0.f, 1.f });
-  auto fc_id2 = model->add_face(v2, v3, v4);
+  auto fc_id2 = model->add_face(v2, v3, v4, hnll::geometry::auto_vertex_normal_calculation::ON);
   EXPECT_TRUE(eps_eq(
     model->get_vertex(v2->id_)->normal_,
     vec3(sqrt(2)/6.f, 0.f, (sqrt(2)/2.f - 2.f) / 3.f).normalized()));
@@ -100,6 +100,6 @@ TEST(half_edge, pair) {
   // invalid half-edge
   EXPECT_EQ(model->get_half_edge(v0, v3), nullptr);
   // unpaired half-edge
-  EXPECT_EQ(model->get_half_edge(v0, v2)->get_pair(), nullptr);
+  EXPECT_EQ(model->get_half_edge(v2, v0)->get_pair(), nullptr);
 }
 } // namespace hnll::geometry
