@@ -23,7 +23,7 @@ if (APPLE)
     target_link_directories(hnll_engine PUBLIC $ENV{VULKAN_DIR}/lib $ENV{GLFW_DIR}/lib)
 endif (APPLE)
 
-target_link_libraries(hnll_engine PUBLIC vulkan glfw)
+target_link_libraries(hnll_engine PUBLIC vulkan openal glfw)
 
 # build the example
 add_executable(app main.cpp)
