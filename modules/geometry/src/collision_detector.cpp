@@ -12,7 +12,7 @@ namespace hnll::geometry {
 using point = Eigen::Vector3d;
 
 // static members' declaration
-std::vector<s_ptr<rigid_component>> rigid_components_{};
+std::vector<s_ptr<physics::rigid_component>> rigid_components_{};
 
 bool collision_detector::intersection_bounding_volume(const bounding_volume &a, const bounding_volume &b)
 {

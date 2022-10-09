@@ -5,6 +5,6 @@
 namespace hnll::physics {
 
 // static members' declaration
-u_ptr<collision_detector> engine::collision_detector_up_{};
+u_ptr<geometry::collision_detector> engine::collision_detector_up_{};
 
 } // namespace hnll::physics

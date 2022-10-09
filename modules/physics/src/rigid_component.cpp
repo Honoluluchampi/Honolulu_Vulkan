@@ -17,7 +17,7 @@ s_ptr<rigid_component> rigid_component::create_with_aabb(const s_ptr<hnll::game:
 
   // automatically add to the collision_detector (as static member)
   auto rc = std::make_shared<rigid_component>(std::move(bv));
-  collision_detector::add_rigid_component(rc);
+  geometry::collision_detector::add_rigid_component(rc);
   return rc;
 }
 
