@@ -1,6 +1,6 @@
 // hnll
 #include <geometry/bounding_volume.hpp>
-#include <physics/collision_detector.hpp>
+#include <geometry/collision_detector.hpp>
 // lib
 #include <gtest/gtest.h>
 

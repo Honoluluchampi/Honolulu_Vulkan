@@ -2,7 +2,7 @@
 #include <game/actor.hpp>
 #include <game/components/mesh_component.hpp>
 #include <physics/rigid_component.hpp>
-#include <physics/collision_detector.hpp>
+#include <geometry/collision_detector.hpp>
 #include <geometry/bounding_volume.hpp>
 
 namespace hnll::physics {

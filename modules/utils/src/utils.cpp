@@ -3,7 +3,7 @@
 
 namespace hnll::utils {
 
-Eigen::Matrix4d transform::mat4()
+Eigen::Matrix4d transform::mat4() const
 {
   const float c3 = std::cos(rotation.z), s3 = std::sin(rotation.z), c2 = std::cos(rotation.x),
     s2 = std::sin(rotation.x), c1 = std::cos(rotation.y), s1 = std::sin(rotation.y);
@@ -16,7 +16,7 @@ Eigen::Matrix4d transform::mat4()
   return ret;
 }
 
-Eigen::Matrix4d transform::rotate_mat4()
+Eigen::Matrix4d transform::rotate_mat4() const
 {
   const float c3 = std::cos(rotation.z), s3 = std::sin(rotation.z), c2 = std::cos(rotation.x),
   s2 = std::sin(rotation.x), c1 = std::cos(rotation.y), s1 = std::sin(rotation.y);
@@ -29,7 +29,7 @@ Eigen::Matrix4d transform::rotate_mat4()
   return ret;
 }
 
-Eigen::Matrix3d transform::rotate_mat3()
+Eigen::Matrix3d transform::rotate_mat3() const
 {
   const float c3 = std::cos(rotation.z), s3 = std::sin(rotation.z), c2 = std::cos(rotation.x),
   s2 = std::sin(rotation.x), c1 = std::cos(rotation.y), s1 = std::sin(rotation.y);
@@ -42,7 +42,7 @@ Eigen::Matrix3d transform::rotate_mat3()
 }
 
 // normal = R * S(-1)
-Eigen::Matrix4d transform::normal_matrix()
+Eigen::Matrix4d transform::normal_matrix() const
 {
   const float c3 = std::cos(rotation.z), s3 = std::sin(rotation.z), c2 = std::cos(rotation.x),
     s2 = std::sin(rotation.x), c1 = std::cos(rotation.y), s1 = std::sin(rotation.y);

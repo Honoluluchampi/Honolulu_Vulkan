@@ -1,6 +1,6 @@
 // hnll
 #include <physics/engine.hpp>
-#include <physics/collision_detector.hpp>
+#include <geometry/collision_detector.hpp>
 
 namespace hnll::physics {
 
