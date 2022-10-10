@@ -107,7 +107,7 @@ void engine::render(utils::viewer_info&& viewer_info)
     // member and detect it in begin_swap_chain_render_pass func
     renderer_.begin_swap_chain_render_pass(command_buffer, HVE_RENDER_PASS_ID);
     // programmable stage of rendering
-    // system can now access gameobjects via frame_info
+    // system can now access game objects via frame_info
     for (auto& system : rendering_systems_)
       system.second->render(frame_info);
 

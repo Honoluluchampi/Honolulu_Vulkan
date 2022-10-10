@@ -28,6 +28,8 @@ struct plane
 class perspective_frustum
 {
   public:
+    u_ptr<perspective_frustum> create();
+
     void update_planes(const utils::transform& tf);
 
     // getter

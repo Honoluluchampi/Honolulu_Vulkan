@@ -1,7 +1,7 @@
 // hnll
 #include <game/engine.hpp>
+#include <game/components/rigid_component.hpp>
 #include <geometry/mesh_separation.hpp>
-#include <geome
 
 namespace hnll {
 
@@ -9,6 +9,11 @@ class view_frustum_culling : public game::engine
 {
   public:
     view_frustum_culling() : game::engine("view_frustum_culling")
+    {
+
+    }
+
+    void update_game(float dt) override
     {
 
     }

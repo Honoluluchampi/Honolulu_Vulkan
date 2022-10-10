@@ -81,7 +81,7 @@ void line_rendering_system::render(frame_info frame_info)
     VK_PIPELINE_BIND_POINT_GRAPHICS,
     pipeline_layout_,
     0, 1,
-    &frame_info.global_discriptor_set,
+    &frame_info.global_descriptor_set,
     0, nullptr
   );
 

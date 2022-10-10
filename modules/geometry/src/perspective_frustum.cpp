@@ -11,7 +11,6 @@ void perspective_frustum::update_planes(const utils::transform &tf)
 
   // TODO : eigenize and delete
   vec3 tl = { translation.x, translation.y, translation.z };
-  Eigen::Matrix3d rotation;
   // update
   near_->point   = rotate_mat * vec3(0.f, 0.f, near_z_) + tl;
   far_->point    = rotate_mat * vec3(0.f, 0.f, far_z_)  + tl;
