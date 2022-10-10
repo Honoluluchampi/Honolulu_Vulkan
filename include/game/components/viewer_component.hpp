@@ -22,6 +22,7 @@ class viewer_component : public component
   public:
     enum class update_view_frustum { ON, OFF };
 
+    static s_ptr<viewer_component> create(utils::transform& transform, graphics::renderer& renderer, double fov_x = fov_y_, double fov_y = fov_y_, double near_z = near_distance_, double far_z = near_distance_);
     viewer_component(hnll::utils::transform &transform, hnll::graphics::renderer &renderer);
     ~viewer_component() override;
 
@@ -44,6 +45,9 @@ class viewer_component : public component
     void set_view_direction(const glm::vec3 &position, const glm::vec3 &direction, const glm::vec3 &up = glm::vec3(0.f, -1.f, 0.f));
     void set_view_target(const glm::vec3 &position, const glm::vec3 &target, const glm::vec3 &up = glm::vec3(0.f, -1.f, 0.f));
     void set_view_yxz();
+
+    void set_perspective_frustum(u_ptr<geometry::perspective_frustum>&& frustum) { perspective_frustum_ = std::move(frustum); }
+    void auto_update_view_frustum() { update_view_frustum_ = update_view_frustum::ON; }
 
   private:
     // ref of owner transform

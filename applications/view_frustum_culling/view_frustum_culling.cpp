@@ -1,9 +1,25 @@
 // hnll
 #include <game/engine.hpp>
+#include <game/components/viewer_component.hpp>
 #include <game/components/rigid_component.hpp>
 #include <geometry/mesh_separation.hpp>
 
 namespace hnll {
+
+class virtual_camera : public game::actor
+{
+  public:
+    static s_ptr<virtual_camera> create(hnll::graphics::renderer& renderer)
+    {
+      auto camera = std::make_shared<virtual_camera>();
+      auto viewer_comp = game::viewer_component::create(*camera->get_transform_sp(), renderer);
+      viewer_comp->auto_update_view_frustum();
+    }
+    virtual_camera() = default;
+    ~virtual_camera() = default;
+  private:
+    u_ptr<game::viewer_component> viewer_comp_;
+};
 
 class view_frustum_culling : public game::engine
 {
@@ -18,6 +34,12 @@ class view_frustum_culling : public game::engine
 
     }
   private:
+    void add_virtual_camera()
+    {
+      auto virtual_camera = virtual_camera::create(get_graphics_engine().get_renderer());
+      add_actor(virtual_camera);
+    }
+
     void add_separated_model(const std::string& filename)
     {
 

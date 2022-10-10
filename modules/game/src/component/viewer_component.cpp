@@ -15,16 +15,22 @@ float viewer_component::near_distance_ = 0.1f;
 float viewer_component::far_distance_  = 50.f;
 float viewer_component::fov_y_ = glm::radians(50.f);
 
+s_ptr<viewer_component> viewer_component::create(utils::transform& transform, graphics::renderer &renderer,double fov_x, double fov_y, double near_z, double far_z)
+{
+  auto viewer_comp = std::make_shared<viewer_component>(transform, renderer);
+  auto frustum = geometry::perspective_frustum::create(fov_x, fov_y, near_z, far_z);
+  viewer_comp->set_perspective_frustum(std::move(frustum));
+  return viewer_comp;
+}
+
 viewer_component::viewer_component(hnll::utils::transform& transform, hnll::graphics::renderer& renderer)
   : component(), transform_(transform), renderer_(renderer)
 {
-  perspective_frustum_ = geometry::perspective_frustum::create(fov_y_, fov_y_, near_distance_, far_distance_);
 }
 
 viewer_component::~viewer_component() = default;
 
-void viewer_component::set_orthogonal_projection(
-    float left, float right, float top, float bottom, float near, float far) 
+void viewer_component::set_orthogonal_projection(float left, float right, float top, float bottom, float near, float far)
 {
   projection_matrix_ <<
     2.f / (right - left), 0.f,                  0.f,                -(right + left) / (right - left),
