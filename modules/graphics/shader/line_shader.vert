@@ -24,6 +24,10 @@ layout(push_constant) uniform Push
   float radius;
 } push;
 
+void line(vec3 s, vec3 e) {
+  vec3 p = gl_FragCoord.xyz / resolution;
+}
+
 void main() 
 {
   vec3 cameraRightWorld = {ubo.view[0][0], ubo.view[1][0], ubo.view[2][0]};

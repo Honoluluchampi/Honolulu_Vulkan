@@ -1,19 +1,19 @@
 // hnll
 #include <graphics/systems/line_rendering_system.hpp>
-
-// hge
 #include <game/components/line_component.hpp>
 
-namespace hnll::graphics {
+// lib
+#include <eigen3/Eigen/Dense>
 
-int line_rendering_system::inter_polating_points_count = 4;
+namespace hnll::graphics {
 
 // should be compatible with a shader
 // TODO use head and tail
 struct line_push_constant
 {
-  glm::vec4 position{};
-  glm::vec4 color{1.f};
+  glm::vec4 head  = {};// Eigen::Vector4f::Identity();
+  glm::vec4 tail  = {};// Eigen::Vector4f::Identity();
+  glm::vec4 color = {};// Eigen::Vector4f::Identity();
   float radius;
 };
 
@@ -58,11 +58,11 @@ void line_rendering_system::create_pipeline(
 
   pipeline_config_info pipeline_config{};
   pipeline::default_pipeline_config_info(pipeline_config);
-  // for original configuration (dont use any vertex input attribute)
+  // for original configuration (don't use any vertex input attribute)
   pipeline_config.attribute_descriptions.clear();
   pipeline_config.binding_descriptions.clear();
 
-  pipeline_config.render_pass = render_pass;
+  pipeline_config.render_pass     = render_pass;
   pipeline_config.pipeline_layout = pipeline_layout_;
   pipeline_ = std::make_unique<pipeline>(
     device_,
@@ -91,25 +91,22 @@ void line_rendering_system::render(frame_info frame_info)
 
     auto head_to_tail = obj->get_tail() - obj->get_head();
     // TODO : draw line
-    for (int i = 1; i < inter_polating_points_count + 1; i++) {
-      // fill push constant
-      line_push_constant push{};
-      push.position = glm::vec4(head_to_tail, 0.f);
-      push.position *= (float)i / (inter_polating_points_count + 1);
-      push.position += glm::vec4(obj->get_head(), 0.f);
-      push.color = glm::vec4(obj->get_color(), 0.f);
-      push.radius = obj->get_radius();
+    // fill push constant
+    line_push_constant push{};
+    push.head   = glm::vec4{obj->get_head(), 1.f};
+    push.tail   = glm::vec4{obj->get_tail(), 1.f};
+    push.color  = glm::vec4(obj->get_color(), 0.f);
+    push.radius = obj->get_radius();
 
-      vkCmdPushConstants(
-          frame_info.command_buffer,
-          pipeline_layout_, 
-          VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 
-          0, 
-          sizeof(line_push_constant), 
-          &push
+    vkCmdPushConstants(
+    frame_info.command_buffer,
+      pipeline_layout_,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(line_push_constant),
+      &push
       );
-      vkCmdDraw(frame_info.command_buffer, 6, 1, 0, 0);
-    }
+    vkCmdDraw(frame_info.command_buffer, 6, 1, 0, 0);
   }
 }
 
