@@ -4,6 +4,16 @@
 
 namespace hnll::geometry {
 
+u_ptr<perspective_frustum> perspective_frustum::create(double fov_x, double fov_y, double near_z, double far_z)
+{
+ auto frustum = std::make_unique<perspective_frustum>();
+ frustum->set_fov_x(fov_x);
+ frustum->set_fov_y(fov_y);
+ frustum->set_near_z(near_z);
+ frustum->set_far_z(far_z);
+ return frustum;
+}
+
 void perspective_frustum::update_planes(const utils::transform &tf)
 {
   const auto& translation = tf.get_translation_ref();

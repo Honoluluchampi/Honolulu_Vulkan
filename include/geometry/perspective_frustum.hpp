@@ -28,7 +28,9 @@ struct plane
 class perspective_frustum
 {
   public:
-    u_ptr<perspective_frustum> create();
+    enum class update_fov_x { ON, OFF };
+
+    static u_ptr<perspective_frustum> create(double fov_x, double fov_y, double near_z_, double far_z_);
 
     void update_planes(const utils::transform& tf);
 
@@ -45,9 +47,17 @@ class perspective_frustum
     const plane& get_right_ref()  const { return *right_; }
     const plane& get_top_ref()    const { return *top_; }
     const plane& get_bottom_ref() const { return *bottom_; }
+
+    // setter
+    void set_fov_x(double fx)  { fov_x_ = fx; }
+    void set_fov_y(double fy)  { fov_y_ = fy; }
+    void set_near_z(double nz) { near_z_ = nz; }
+    void set_far_z(double fz)  { far_z_ = fz; }
+
   private:
     u_ptr<plane>  near_, far_, left_, right_, top_, bottom_;
     double fov_x_ = M_PI / 4.f, fov_y_ = M_PI / 4.f, near_z_, far_z_;
+    update_fov_x update_fov_x_ = update_fov_x::ON;
 };
 
 

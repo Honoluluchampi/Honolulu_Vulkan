@@ -25,7 +25,8 @@ public:
   default_camera& operator=(default_camera &&) = default;
 
   // getter
-  utils::viewer_info get_viewer_info() const { return {viewer_comp_sp_->get_projection(), viewer_comp_sp_->get_view()}; }
+  utils::viewer_info get_viewer_info() const { return {viewer_comp_sp_->get_projection_ref(),
+                                                       viewer_comp_sp_->get_view_ref()}; }
   inline hnll::utils::transform& get_transform() { return transform_; }
   inline s_ptr<viewer_component> get_viewer_component_sp() const { return viewer_comp_sp_; }  
   // setter

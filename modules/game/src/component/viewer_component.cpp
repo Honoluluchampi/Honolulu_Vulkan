@@ -12,12 +12,13 @@
 namespace hnll::game {
 
 float viewer_component::near_distance_ = 0.1f;
-float viewer_component::fovy_ = glm::radians(50.f);
+float viewer_component::far_distance_  = 50.f;
+float viewer_component::fov_y_ = glm::radians(50.f);
 
 viewer_component::viewer_component(hnll::utils::transform& transform, hnll::graphics::renderer& renderer)
   : component(), transform_(transform), renderer_(renderer)
 {
-  
+  perspective_frustum_ = geometry::perspective_frustum::create(fov_y_, fov_y_, near_distance_, far_distance_);
 }
 
 viewer_component::~viewer_component() = default;
@@ -112,12 +113,12 @@ Eigen::Matrix4f viewer_component::get_inverse_view_yxz() const
   return inv_view;
 }
 
-// owner's transform should be update by keyMoveComp before this function
+// owner's transform should be updated by keyMoveComp before this function
 void viewer_component::update_component(float dt)
 {
   set_view_yxz();
   auto aspect = renderer_.get_aspect_ratio();
-  set_perspective_projection(fovy_, aspect, near_distance_, 50.f);
+  set_perspective_projection(fov_y_, aspect, near_distance_, far_distance_);
 
   if (update_view_frustum_ == update_view_frustum::ON)
     perspective_frustum_->update_planes(transform_);
