@@ -134,7 +134,7 @@ void viewer_component::update_component(float dt)
 const geometry::perspective_frustum& viewer_component::get_perspective_frustum_ref() const
 { return *perspective_frustum_; }
 
-void viewer_component::set_perspective_frustum(u_ptr<geometry::perspective_frustum>&& frustum)
+void viewer_component::set_perspective_frustum(s_ptr<geometry::perspective_frustum>&& frustum)
 { perspective_frustum_ = std::move(frustum); }
 
 

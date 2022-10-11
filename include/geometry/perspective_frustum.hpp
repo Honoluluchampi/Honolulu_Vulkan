@@ -30,7 +30,7 @@ class perspective_frustum
   public:
     enum class update_fov_x { ON, OFF };
 
-    static u_ptr<perspective_frustum> create(double fov_x, double fov_y, double near_z_, double far_z_);
+    static s_ptr<perspective_frustum> create(double fov_x, double fov_y, double near_z_, double far_z_);
 
     void update_planes(const utils::transform& tf);
 
@@ -41,12 +41,20 @@ class perspective_frustum
     vec3 get_right_n()  const { return right_->normal; }
     vec3 get_top_n()    const { return top_->normal; }
     vec3 get_bottom_n() const { return bottom_->normal; }
+    vec3 get_near_p()   const { return near_->point;}
+    vec3 get_far_p()    const { return far_->point;}
+    vec3 get_left_p()   const { return left_->point;}
+    vec3 get_right_p()  const { return right_->point;}
+    vec3 get_top_p()    const { return top_->point;}
+    vec3 get_bottom_p() const { return bottom_->point;}
     const plane& get_near_ref()   const { return *near_; }
     const plane& get_far_ref()    const { return *far_; }
     const plane& get_left_ref()   const { return *left_; }
     const plane& get_right_ref()  const { return *right_; }
     const plane& get_top_ref()    const { return *top_; }
     const plane& get_bottom_ref() const { return *bottom_; }
+    double get_near_z() const { return near_z_; }
+    double get_far_z()  const { return far_z_; }
 
     // setter
     void set_fov_x(double fx)  { fov_x_ = fx; }

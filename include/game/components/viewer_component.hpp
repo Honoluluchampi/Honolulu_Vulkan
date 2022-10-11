@@ -45,7 +45,7 @@ class viewer_component : public component
     void set_view_target(const glm::vec3 &position, const glm::vec3 &target, const glm::vec3 &up = glm::vec3(0.f, -1.f, 0.f));
     void set_view_yxz();
 
-    void set_perspective_frustum(u_ptr<geometry::perspective_frustum>&& frustum);
+    void set_perspective_frustum(s_ptr<geometry::perspective_frustum>&& frustum);
     void auto_update_view_frustum() { update_view_frustum_ = update_view_frustum::ON; }
 
   private:
@@ -55,7 +55,7 @@ class viewer_component : public component
     Eigen::Matrix4f view_matrix_       = Eigen::Matrix4f::Identity();
     hnll::graphics::renderer &renderer_;
 
-    u_ptr<geometry::perspective_frustum> perspective_frustum_;
+    s_ptr<geometry::perspective_frustum> perspective_frustum_;
     update_view_frustum update_view_frustum_ = update_view_frustum::OFF;
 
     // distance to the screen

@@ -2,6 +2,7 @@
 #include <game/engine.hpp>
 #include <game/components/viewer_component.hpp>
 #include <game/components/rigid_component.hpp>
+#include <game/components/wire_frame_frustum_component.hpp>
 #include <geometry/mesh_separation.hpp>
 
 namespace hnll {
@@ -19,6 +20,7 @@ class virtual_camera : public game::actor
     ~virtual_camera() = default;
   private:
     u_ptr<game::viewer_component> viewer_comp_;
+    u_ptr<game::wire_frame_frustum_component> wire_frustum_comp_;
 };
 
 class view_frustum_culling : public game::engine

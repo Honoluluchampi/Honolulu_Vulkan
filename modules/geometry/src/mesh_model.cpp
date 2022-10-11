@@ -1,7 +1,6 @@
 // hnll
 #include <geometry/mesh_model.hpp>
 #include <geometry/half_edge.hpp>
-#include <graphics/mesh_model.hpp>
 #include <utils/utils.hpp>
 
 // std
