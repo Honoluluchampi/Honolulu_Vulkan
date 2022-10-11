@@ -30,6 +30,7 @@ void perspective_frustum::update_planes(const utils::transform &tf)
   bottom_->point = tl;
 
   // default normal * rotate_mat
+  // TODO : use symmetry
   near_->normal   = rotate_mat * vec3(0.f, 0.f, 1.f);
   far_->normal    = rotate_mat * vec3(0.f, 0.f, -1.f);
   left_->normal   = rotate_mat * vec3(std::cos(fov_x_), 0.f, std::sin(fov_x_));

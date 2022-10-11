@@ -11,9 +11,10 @@ namespace hnll::graphics {
 
 struct wire_frustum_constant
 {
-  vec3f top_n, bottom_n, left_n, right_n;
-  vec3f top_p, bottom_p, left_p, right_p;
-  float near, far;
+  // far_n = -near_n
+  vec3f top_n, bottom_n, left_n, right_n, near_n;
+  vec3f origin_p, near_p, far_p;
+  vec3f color;
 };
 
 wire_frustum_rendering_system::wire_frustum_rendering_system(device &device, VkRenderPass render_pass, VkDescriptorSetLayout global_set_layout)
@@ -84,12 +85,11 @@ void wire_frustum_rendering_system::render(frame_info frame_info)
     push.bottom_n = frustum.get_bottom_n().cast<float>();
     push.left_n   = frustum.get_left_n().cast<float>();
     push.right_n  = frustum.get_right_n().cast<float>();
-    push.top_p    = frustum.get_top_p().cast<float>();
-    push.bottom_p = frustum.get_bottom_p().cast<float>();
-    push.left_p   = frustum.get_left_p().cast<float>();
-    push.right_p  = frustum.get_right_p().cast<float>();
-    push.near     = frustum.get_near_z();
-    push.far      = frustum.get_far_z();
+    push.near_n   = frustum.get_near_n().cast<float>();
+    push.origin_p = frustum.get_top_p().cast<float>();
+    push.near_p   = frustum.get_near_p().cast<float>();
+    push.far_p    = frustum.get_far_p().cast<float>();
+    push.color    = obj->get_color().cast<float>();
 
     vkCmdPushConstants(
         frame_info.command_buffer,
