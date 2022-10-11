@@ -35,8 +35,7 @@ class viewer_component : public component
     const Eigen::Matrix4f& get_view_ref()       const { return view_matrix_; }
     Eigen::Matrix4f        get_inverse_perspective_projection() const;
     Eigen::Matrix4f        get_inverse_view_yxz() const;
-    const geometry::perspective_frustum& get_perspective_frustum_ref() const { return *perspective_frustum_; }
-
+    const geometry::perspective_frustum& get_perspective_frustum_ref() const;
     // setter
     void set_orthogonal_projection(float left, float right, float top, float bottom, float near, float far);
     void set_perspective_projection(float fov_y, float aspect, float near, float far);
@@ -46,7 +45,7 @@ class viewer_component : public component
     void set_view_target(const glm::vec3 &position, const glm::vec3 &target, const glm::vec3 &up = glm::vec3(0.f, -1.f, 0.f));
     void set_view_yxz();
 
-    void set_perspective_frustum(u_ptr<geometry::perspective_frustum>&& frustum) { perspective_frustum_ = std::move(frustum); }
+    void set_perspective_frustum(u_ptr<geometry::perspective_frustum>&& frustum);
     void auto_update_view_frustum() { update_view_frustum_ = update_view_frustum::ON; }
 
   private:

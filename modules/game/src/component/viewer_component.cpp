@@ -130,4 +130,13 @@ void viewer_component::update_component(float dt)
     perspective_frustum_->update_planes(transform_);
 }
 
+// getter setter
+const geometry::perspective_frustum& viewer_component::get_perspective_frustum_ref() const
+{ return *perspective_frustum_; }
+
+void viewer_component::set_perspective_frustum(u_ptr<geometry::perspective_frustum>&& frustum)
+{ perspective_frustum_ = std::move(frustum); }
+
+
+
 } // namespace hnll::game
