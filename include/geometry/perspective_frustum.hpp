@@ -30,8 +30,8 @@ class perspective_frustum
   public:
     enum class update_fov_x { ON, OFF };
 
-    static s_ptr<perspective_frustum> create(double fov_x, double fov_y, double near_z_, double far_z_);
-
+    static s_ptr<perspective_frustum> create(double fov_x, double fov_y, double near_z, double far_z);
+    perspective_frustum(double fov_x, double fov_y, double near_z, double far_z);
     void update_planes(const utils::transform& tf);
 
     // getter
@@ -55,6 +55,8 @@ class perspective_frustum
     const plane& get_bottom_ref() const { return *bottom_; }
     double get_near_z() const { return near_z_; }
     double get_far_z()  const { return far_z_; }
+    const std::array<vec3, 4>& get_default_near_points() const { return default_near_points_; }
+    const std::array<vec3, 4>& get_default_far_points()  const { return default_far_points_; }
 
     // setter
     void set_fov_x(double fx)  { fov_x_ = fx; }
@@ -66,6 +68,9 @@ class perspective_frustum
     u_ptr<plane>  near_, far_, left_, right_, top_, bottom_;
     double fov_x_ = M_PI / 4.f, fov_y_ = M_PI / 4.f, near_z_, far_z_;
     update_fov_x update_fov_x_ = update_fov_x::ON;
+    // start from upper left point, and goes around near plane in counter-clockwise direction
+    std::array<vec3, 4> default_near_points_;
+    std::array<vec3, 4> default_far_points_;
 };
 
 

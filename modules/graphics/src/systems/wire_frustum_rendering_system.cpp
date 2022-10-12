@@ -11,9 +11,14 @@ namespace hnll::graphics {
 
 struct wire_frustum_constant
 {
-  // far_n = -near_n
-  vec3f top_n, bottom_n, left_n, right_n, near_n;
-  vec3f origin_p, near_p, far_p;
+  vec3f near_upper_left;
+  vec3f near_upper_right;
+  vec3f near_lower_right;
+  vec3f near_lower_left;
+  vec3f far_upper_left;
+  vec3f far_upper_right;
+  vec3f far_lower_right;
+  vec3f far_lower_left;
   vec3f color;
 };
 
@@ -79,16 +84,16 @@ void wire_frustum_rendering_system::render(frame_info frame_info)
   for (auto& target : render_target_map_) {
     auto obj = dynamic_cast<hnll::game::wire_frame_frustum_component*>(target.second.get());
     wire_frustum_constant push{};
-    // only near and far will be calculated in shader
-    const auto& frustum = obj->get_perspective_frustum();
-    push.top_n    = frustum.get_top_n().cast<float>();
-    push.bottom_n = frustum.get_bottom_n().cast<float>();
-    push.left_n   = frustum.get_left_n().cast<float>();
-    push.right_n  = frustum.get_right_n().cast<float>();
-    push.near_n   = frustum.get_near_n().cast<float>();
-    push.origin_p = frustum.get_top_p().cast<float>();
-    push.near_p   = frustum.get_near_p().cast<float>();
-    push.far_p    = frustum.get_far_p().cast<float>();
+    const auto& near_points = obj->get_perspective_frustum().get_default_near_points();
+    const auto& far_points  = obj->get_perspective_frustum().get_default_far_points();
+    push.near_upper_left  = near_points[0].cast<float>();
+    push.near_upper_right = near_points[1].cast<float>();
+    push.near_lower_right = near_points[2].cast<float>();
+    push.near_lower_left  = near_points[3].cast<float>();
+    push.far_upper_left   = far_points[0].cast<float>();
+    push.far_upper_right  = far_points[1].cast<float>();
+    push.far_lower_right  = far_points[2].cast<float>();
+    push.far_lower_left   = far_points[3].cast<float>();
     push.color    = obj->get_color().cast<float>();
 
     vkCmdPushConstants(

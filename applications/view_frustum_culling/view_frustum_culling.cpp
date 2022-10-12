@@ -13,14 +13,17 @@ class virtual_camera : public game::actor
     static s_ptr<virtual_camera> create(hnll::graphics::renderer& renderer)
     {
       auto camera = std::make_shared<virtual_camera>();
-      auto viewer_comp = game::viewer_component::create(*camera->get_transform_sp(), renderer);
-      viewer_comp->auto_update_view_frustum();
+      camera->viewer_comp_ = game::viewer_component::create(*camera->get_transform_sp(), renderer);
+      camera->viewer_comp_->auto_update_view_frustum();
+      auto frustum = geometry::perspective_frustum::create(M_PI / 4.f, M_PI / 4.f, 50.f, 0.1f);
+      camera->wire_frustum_comp_ = game::wire_frame_frustum_component::create(camera, frustum);
+      return camera;
     }
     virtual_camera() = default;
     ~virtual_camera() = default;
   private:
-    u_ptr<game::viewer_component> viewer_comp_;
-    u_ptr<game::wire_frame_frustum_component> wire_frustum_comp_;
+    s_ptr<game::viewer_component> viewer_comp_;
+    s_ptr<game::wire_frame_frustum_component> wire_frustum_comp_;
 };
 
 class view_frustum_culling : public game::engine
@@ -28,7 +31,7 @@ class view_frustum_culling : public game::engine
   public:
     view_frustum_culling() : game::engine("view_frustum_culling")
     {
-
+      add_virtual_camera();
     }
 
     void update_game(float dt) override
