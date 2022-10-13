@@ -70,7 +70,7 @@ void engine::init()
     global_set_layout_->get_descriptor_set_layout()
   );
 
-  auto wire_frustum_renderer = std::make_unique<line_rendering_system>(
+  auto wire_frustum_renderer = std::make_unique<wire_frustum_rendering_system>(
     device_,
     renderer_.get_swap_chain_render_pass(HVE_RENDER_PASS_ID),
     global_set_layout_->get_descriptor_set_layout()

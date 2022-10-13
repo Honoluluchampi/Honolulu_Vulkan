@@ -44,10 +44,10 @@ class actor
 #endif
 
     // getter
-    inline actor_id get_id() const { return id_; }
-    inline const state get_actor_state() const { return state_; }
-    inline s_ptr<renderable_component> get_renderable_component_sp() { return renderable_component_; }
-    inline bool is_renderable() const { return renderable_component_ != nullptr; }
+    inline actor_id get_id()                                   const { return id_; }
+    inline const state get_actor_state()                       const { return state_; }
+    inline bool is_renderable()                                const { return renderable_component_ != nullptr; }
+    inline const s_ptr<renderable_component>& get_renderable_component_sp() { return renderable_component_; }
     s_ptr<hnll::utils::transform> get_transform_sp();
     // setter
     void add_component(u_ptr<component>&& comp) { comp->specific_add_process(*this); unique_components_.emplace_back(std::move(comp)); }

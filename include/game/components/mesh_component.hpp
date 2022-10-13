@@ -4,7 +4,6 @@
 #include <graphics/mesh_model.hpp>
 #include <game/component.hpp>
 #include <game/components/renderable_component.hpp>
-#include <game/actor.hpp>
 
 // std
 #include <unordered_map>
