@@ -23,12 +23,17 @@ layout(push_constant) uniform Push {
   mat4 modelMatrix;
 } push;
 
-void main() 
-{
-  const float thresh = 0.005;
-  bvec2 to_discard = greaterThan(fract(uv), vec2(thresh, thresh));
+const float edge_width = 1;
 
-  if (all (to_discard))
+float edge_factor() {
+  vec2 d = fwidth(uv);
+  vec2 f = step( d * edge_width, uv);
+  return min(f.x, f.y);
+}
+
+void main()
+{  
+  if (edge_factor() > 0.4)
     discard;
   out_color = vec4(frustum_color, 1.0);
 }

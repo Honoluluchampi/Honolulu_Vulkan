@@ -16,7 +16,7 @@ class virtual_camera : public game::actor
       auto camera = std::make_shared<virtual_camera>();
       camera->viewer_comp_ = game::viewer_component::create(*camera->get_transform_sp(), renderer);
       camera->viewer_comp_->auto_update_view_frustum();
-      auto frustum = geometry::perspective_frustum::create(M_PI / 4.f, M_PI / 4.f, 5.f, 2.f);
+      auto frustum = geometry::perspective_frustum::create(M_PI / 4.f, M_PI / 4.f, 5.f, 0.2f);
       camera->wire_frustum_comp_ = game::wire_frame_frustum_component::create(camera, frustum, device);
       return camera;
     }
