@@ -50,23 +50,50 @@ class wire_frame_frustum_component : public renderable_component
       graphics::mesh_model::vertex vertex;
       vertex.color    = color_.cast<float>();
       vertex.position = near * default_points[0].cast<float>();
+      vertex.uv = {0, 0};
       vertices.push_back(vertex);
       vertex.position = near * default_points[1].cast<float>();
+      vertex.uv = {1, 0};
       vertices.push_back(vertex);
       vertex.position = near * default_points[2].cast<float>();
+      vertex.uv = {0, 0};
       vertices.push_back(vertex);
       vertex.position = near * default_points[3].cast<float>();
+      vertex.uv = {0, 1};
       vertices.push_back(vertex);
       vertex.position = far  * default_points[0].cast<float>();
+      vertex.uv = {0, 1};
       vertices.push_back(vertex);
       vertex.position = far  * default_points[1].cast<float>();
+      vertex.uv = {0, 0};
       vertices.push_back(vertex);
       vertex.position = far  * default_points[2].cast<float>();
+      vertex.uv = {1, 0};
       vertices.push_back(vertex);
       vertex.position = far  * default_points[3].cast<float>();
+      vertex.uv = {0, 0};
+      vertices.push_back(vertex);
+      vertex.position = near * default_points[3].cast<float>();
+      vertex.uv = {1, 0};
+      vertices.push_back(vertex);
+      vertex.position = far  * default_points[2].cast<float>();
+      vertex.uv = {0, 1};
       vertices.push_back(vertex);
       // register indices
-      std::vector<uint32_t> indices = {0,3,1,1,3,2,0,1,4,1,5,4,1,2,6,1,6,5,0,4,3,3,4,7,2,3,7,2,7,6,7,4,5,5,6,7};
+      std::vector<uint32_t> indices = {
+          0, 3, 1,
+          1, 3, 2,
+          1, 2, 9,
+          5, 1, 9,
+          4, 5, 6,
+          4, 6, 7,
+          0, 4, 8,
+          4, 7, 8,
+          0, 1, 4,
+          1, 5, 4,
+          2, 3, 6,
+          7, 6, 3,
+      };
 
       graphics::mesh_model::builder builder;
       builder.vertices = std::move(vertices);

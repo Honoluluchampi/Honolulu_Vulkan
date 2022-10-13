@@ -1,9 +1,8 @@
 #version 450
 
-layout (location = 0) in vec3 fragColor;
-layout (location = 1) in vec3 fragPosWorld;
-layout (location = 2) in vec3 fragNormalWorld;
-layout (location = 0) out vec4 outColor;
+layout (location = 0) in vec3 frustum_color;
+layout (location = 1) in vec2 uv;
+layout (location = 0) out vec4 out_color;
 
 struct PointLight
 {
@@ -22,24 +21,14 @@ layout(set = 0, binding = 0) uniform GlobalUbo
 
 layout(push_constant) uniform Push {
   mat4 modelMatrix;
-  vec3 normalMatrix;
 } push;
 
 void main() 
 {
-  vec3 diffuseLight = ubo.ambientLightColor.xyz * ubo.ambientLightColor.w;
-  vec3 surfaceNormal = normalize(fragNormalWorld);
+  const float thresh = 0.005;
+  bvec2 to_discard = greaterThan(fract(uv), vec2(thresh, thresh));
 
-  for (int i = 0; i < ubo.numLights; i++) {
-    PointLight light = ubo.pointLights[i];
-    vec3 directionToLight = light.position.xyz - fragPosWorld;
-    float attenuation = 1.0 / dot(directionToLight, directionToLight); // distance squared
-    float cosAngIncidence = max(dot(surfaceNormal, normalize(directionToLight)), 0);
-    vec3 intensity = light.color.xyz * light.color.w * attenuation;
-
-    diffuseLight += intensity * cosAngIncidence;
-  }
-
-  // rgba
-  outColor = vec4(diffuseLight * fragColor, 1.0);
+  if (all (to_discard))
+    discard;
+  out_color = vec4(frustum_color, 1.0);
 }
