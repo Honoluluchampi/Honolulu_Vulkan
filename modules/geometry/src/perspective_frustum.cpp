@@ -29,14 +29,10 @@ perspective_frustum::perspective_frustum(double fov_x, double fov_y, double near
   auto vertical   = fov_y / 2.f;
   auto horizontal = fov_x / 2.f;
   auto z_unit     = near_->normal;
-  default_near_points_[0] = near_z * ( z_unit + vertical * vec3(0, -1, 0) + horizontal * vec3(-1, 0, 0));
-  default_near_points_[1] = near_z * ( z_unit + vertical * vec3(0, -1, 0) + horizontal * vec3( 1, 0, 0));
-  default_near_points_[2] = near_z * ( z_unit + vertical * vec3(0,  1, 0) + horizontal * vec3( 1, 0, 0));
-  default_near_points_[3] = near_z * ( z_unit + vertical * vec3(0,  1, 0) + horizontal * vec3(-1, 0, 0));
-  default_far_points_[0]  = far_z  * ( z_unit + vertical * vec3(0, -1, 0) + horizontal * vec3(-1, 0, 0));
-  default_far_points_[1]  = far_z  * ( z_unit + vertical * vec3(0, -1, 0) + horizontal * vec3( 1, 0, 0));
-  default_far_points_[2]  = far_z  * ( z_unit + vertical * vec3(0,  1, 0) + horizontal * vec3( 1, 0, 0));
-  default_far_points_[3]  = far_z  * ( z_unit + vertical * vec3(0,  1, 0) + horizontal * vec3(-1, 0, 0));
+  default_points_[0] = z_unit + vertical * vec3(0, -1, 0) + horizontal * vec3(-1, 0, 0);
+  default_points_[1] = z_unit + vertical * vec3(0, -1, 0) + horizontal * vec3( 1, 0, 0);
+  default_points_[2] = z_unit + vertical * vec3(0,  1, 0) + horizontal * vec3( 1, 0, 0);
+  default_points_[3] = z_unit + vertical * vec3(0,  1, 0) + horizontal * vec3(-1, 0, 0);
 }
 
 void perspective_frustum::update_planes(const utils::transform &tf)

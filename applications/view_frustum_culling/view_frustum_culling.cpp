@@ -10,13 +10,13 @@ namespace hnll {
 class virtual_camera : public game::actor
 {
   public:
-    static s_ptr<virtual_camera> create(hnll::graphics::renderer& renderer)
+    static s_ptr<virtual_camera> create(hnll::graphics::renderer& renderer, graphics::device& device)
     {
       auto camera = std::make_shared<virtual_camera>();
       camera->viewer_comp_ = game::viewer_component::create(*camera->get_transform_sp(), renderer);
       camera->viewer_comp_->auto_update_view_frustum();
-      auto frustum = geometry::perspective_frustum::create(M_PI / 4.f, M_PI / 4.f, 50.f, 0.1f);
-      camera->wire_frustum_comp_ = game::wire_frame_frustum_component::create(camera, frustum);
+      auto frustum = geometry::perspective_frustum::create(M_PI / 4.f, M_PI / 4.f, 5.f, 0.1f);
+      camera->wire_frustum_comp_ = game::wire_frame_frustum_component::create(camera, frustum, device);
       return camera;
     }
     virtual_camera() = default;
@@ -41,7 +41,7 @@ class view_frustum_culling : public game::engine
   private:
     void add_virtual_camera()
     {
-      auto virtual_camera = virtual_camera::create(get_graphics_engine().get_renderer());
+      auto virtual_camera = virtual_camera::create(get_graphics_engine().get_renderer(), get_graphics_device());
       add_actor(virtual_camera);
     }
 

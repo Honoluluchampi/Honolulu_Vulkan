@@ -11,15 +11,7 @@ namespace hnll::graphics {
 
 struct wire_frustum_constant
 {
-  vec3f near_upper_left;
-  vec3f near_upper_right;
-  vec3f near_lower_right;
-  vec3f near_lower_left;
-  vec3f far_upper_left;
-  vec3f far_upper_right;
-  vec3f far_lower_right;
-  vec3f far_lower_left;
-  vec3f color;
+  Eigen::Matrix4f model_mat;
 };
 
 wire_frustum_rendering_system::wire_frustum_rendering_system(device &device, VkRenderPass render_pass, VkDescriptorSetLayout global_set_layout)
@@ -84,17 +76,7 @@ void wire_frustum_rendering_system::render(frame_info frame_info)
   for (auto& target : render_target_map_) {
     auto obj = dynamic_cast<hnll::game::wire_frame_frustum_component*>(target.second.get());
     wire_frustum_constant push{};
-    const auto& near_points = obj->get_perspective_frustum().get_default_near_points();
-    const auto& far_points  = obj->get_perspective_frustum().get_default_far_points();
-    push.near_upper_left  = near_points[0].cast<float>();
-    push.near_upper_right = near_points[1].cast<float>();
-    push.near_lower_right = near_points[2].cast<float>();
-    push.near_lower_left  = near_points[3].cast<float>();
-    push.far_upper_left   = far_points[0].cast<float>();
-    push.far_upper_right  = far_points[1].cast<float>();
-    push.far_lower_right  = far_points[2].cast<float>();
-    push.far_lower_left   = far_points[3].cast<float>();
-    push.color    = obj->get_color().cast<float>();
+    push.model_mat   = obj->get_transform_sp()->mat4().cast<float>();
 
     vkCmdPushConstants(
         frame_info.command_buffer,
@@ -103,7 +85,8 @@ void wire_frustum_rendering_system::render(frame_info frame_info)
         0,
         sizeof(wire_frustum_constant),
         &push);
-    vkCmdDraw(frame_info.command_buffer, 8, 1, 0, 0);
+    obj->get_frustum_mesh_sp()->bind(frame_info.command_buffer);
+    obj->get_frustum_mesh_sp()->draw(frame_info.command_buffer);
   }
 }
 

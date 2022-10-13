@@ -1,43 +1,50 @@
-#version 450
+#version 450 
 
-layout(location = 0) out vec3 frag_color;
-layout(location = 1) out vec3 frag_pos_world;
-layout(location = 2) out vec3 frag_normal_world;
+// build in type
+// corners of triangles
+
+// in keyword indicates that 'position' gets the data from a vertex buffer
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec3 color;
+layout(location = 2) in vec3 normal;
+layout(location = 3) in vec3 uv;
+
+layout(location = 0) out vec3 fragColor;
+layout(location = 1) out vec3 fragPosWorld;
+layout(location = 2) out vec3 fragNormalWorld;
 
 // ubo
-struct PointLight {
-    vec4 position;
-    vec4 color;
+// should be compatible with a description layout
+struct PointLight
+{
+  vec4 position;
+  vec4 color;
 };
 
-layout(set = 0, binding = 0) uniform GlobalUbo {
+layout(set = 0, binding = 0) uniform GlobalUbo
+{
   mat4 projection;
   mat4 view;
-  vec4 ambient_light_colo;
-  PointLight point_lights[20];
-  int num_lights;
+  vec4 ambientLightColor;
+  PointLight pointLights[20];
+  int numLights;
 } ubo;
 
+// compatible with a renderer system
 layout(push_constant) uniform Push {
-  vec3 top_n;
-  vec3 bottom_n;
-  vec3 left_n;
-  vec3 right_n;
-  vec3 near_n;
-  vec3 origin_p;
-  vec3 near_p;
-  vec3 far_p;
-  vec3 color;
+  // more efficient than cpu's projection
+  // mat4 projectionMatrix;
+  mat4 modelMatrix; // projection * view * model
+  mat4 normalMatrix;
 } push;
 
+// executed for each vertex
+void main()
+{
+  vec4 positionWorld = push.modelMatrix * vec4(position, 1.0);
+  gl_Position = ubo.projection * ubo.view * positionWorld;
 
-
-vec3 positions[8] = {
-  vec3(push.)
-};
-
-
-void main() {
-  vec3 far_n  = -push.near_n;
-  
+  fragNormalWorld = normalize(mat3(push.normalMatrix) * normal);
+  fragPosWorld = positionWorld.xyz;
+  fragColor = color;
 }
