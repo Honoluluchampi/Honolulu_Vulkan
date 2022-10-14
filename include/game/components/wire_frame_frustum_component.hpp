@@ -30,7 +30,7 @@ class wire_frame_frustum_component : public renderable_component
     // getter
     const geometry::perspective_frustum& get_perspective_frustum() const { return *frustum_; }
     const s_ptr<graphics::mesh_model>&   get_frustum_mesh_sp()     const { return frustum_mesh_; }
-    vec3 get_color() const { return color_; }
+    vec3  get_color() const { return color_; }
     // setter
     void set_perspective_frustum(s_ptr<geometry::perspective_frustum>& p_frustum) { frustum_ = p_frustum; }
   private:

@@ -84,10 +84,6 @@ void engine::update()
     // check if the actor is dead
     if (actor->get_actor_state() == actor::state::DEAD) {
       dead_actor_ids_.emplace_back(id);
-      // erase relevant model comp.
-      // TODO dont use hgeActor::id_t but component::id_t
-      // if(actor->is_renderable())
-        // graphics_engine_up_->remove_renderable_component(id);
     }
   }
 

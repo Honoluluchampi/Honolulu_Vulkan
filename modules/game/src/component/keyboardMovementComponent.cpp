@@ -1,4 +1,4 @@
-#include <game/components/keyboardMovementComponent.hpp>
+#include <game/components/keyboard_movement_component.hpp>
 #include <game/engine.hpp>
 
 // lib
@@ -39,6 +39,7 @@ keyboard_movement_component::keyboard_movement_component(GLFWwindow* window, hnl
 
 void keyboard_movement_component::update_component(float dt)
 {
+  if (updating_ == updating::OFF) return;
   GLFWgamepadstate state;
   glfwGetGamepadState(pad_number_, &state);
   process_rotate_input(state, dt);
