@@ -94,7 +94,13 @@ void mesh_rendering_system::render(frame_info frame_info)
   for (auto& target : render_target_map_) {
     
     auto obj = dynamic_cast<hnll::game::mesh_component*>(target.second.get());
+
+    if (!obj->get_should_be_drawn()) {
+      obj->set_should_be_drawn();
+      continue;
+    }
     if (obj->get_model_sp() == nullptr) continue;
+
     mesh_push_constant push{};
     // camera projection
     push.model_matrix = obj->get_transform().mat4().cast<float>();

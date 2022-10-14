@@ -298,6 +298,7 @@ std::vector<s_ptr<meshlet>> separate_greedy(const s_ptr<mesh_separation_helper>&
       helper->update_adjoining_face_map(adjoining_face_map, current_face);
       helper->remove_face(current_face->id_);
     }
+    ml->set_bounding_volume(std::move(sphere));
     meshlets.emplace_back(recreate_meshlet(ml));
     current_face = choose_random_face_from_map(adjoining_face_map);
     if (current_face == nullptr)
@@ -352,7 +353,6 @@ std::vector<s_ptr<mesh_model>> mesh_separation::separate(const s_ptr<mesh_model>
   for (const auto& ml : mesh_lets)
     colorize_meshlet(ml);
 
-  std::cout << mesh_lets.size() << std::endl;
   return mesh_lets;
 }
 } // namespace hnll::geometry

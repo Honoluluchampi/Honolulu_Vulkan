@@ -16,6 +16,8 @@ namespace hnll::geometry {
 struct vertex;
 struct face;
 class  half_edge;
+class  bounding_volume;
+enum class bv_type;
 
 template<typename T> using u_ptr = std::unique_ptr<T>;
 template<typename T> using s_ptr = std::shared_ptr<T>;
@@ -34,9 +36,10 @@ using half_edge_map = std::unordered_map<half_edge_key, s_ptr<half_edge>>;
 class mesh_model
 {
   public:
-    static s_ptr<mesh_model> create() { return std::make_shared<mesh_model>(); }
+    static s_ptr<mesh_model> create();
     static s_ptr<mesh_model> create_from_obj_file(const std::string& filename);
 
+    mesh_model();
     void align_vertex_id();
 
     // vertices are assumed to be in a counter-clockwise order
@@ -54,9 +57,13 @@ class mesh_model
     s_ptr<face>      get_face(const face_id id)     { return face_map_[id]; }
     s_ptr<vertex>    get_vertex(const vertex_id id) { return vertex_map_[id]; }
     s_ptr<half_edge> get_half_edge(const s_ptr<vertex>& v0, const s_ptr<vertex>& v1);
+    const bounding_volume& get_bounding_volume() const;
+    u_ptr<bounding_volume> get_ownership_of_bounding_volume();
 
     // setter
+    void set_bounding_volume(u_ptr<bounding_volume>&& bv);
     void colorize_whole_mesh(const vec3& color);
+    void set_bv_type(bv_type type);
   private:
     // returns false if the pair have not been registered to the map
     bool associate_half_edge_pair(const s_ptr<half_edge>& he);
@@ -64,6 +71,7 @@ class mesh_model
     half_edge_map half_edge_map_;
     face_map      face_map_;
     vertex_map    vertex_map_;
+    u_ptr<bounding_volume> bounding_volume_;
 };
 
 } // namespace hnll::geometry

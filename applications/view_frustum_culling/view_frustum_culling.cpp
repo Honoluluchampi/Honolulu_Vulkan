@@ -3,10 +3,15 @@
 #include <game/actors/default_camera.hpp>
 #include <game/components/viewer_component.hpp>
 #include <game/components/rigid_component.hpp>
+#include <game/components/mesh_component.hpp>
 #include <game/components/point_light_component.hpp>
 #include <game/components/wire_frame_frustum_component.hpp>
 #include <game/components/keyboard_movement_component.hpp>
+#include <geometry/mesh_model.hpp>
 #include <geometry/mesh_separation.hpp>
+#include <geometry/perspective_frustum.hpp>
+#include <geometry/bounding_volume.hpp>
+#include <geometry/collision_detector.hpp>
 
 namespace hnll {
 
@@ -28,6 +33,10 @@ class virtual_camera : public game::actor
     virtual_camera() = default;
     ~virtual_camera() = default;
 
+    // getter
+    const geometry::perspective_frustum& get_perspective_frustum() { return wire_frustum_comp_->get_perspective_frustum(); }
+
+    // setter
     void set_movement_updating_on()  { key_comp_->set_updating_on(); }
     void set_movement_updating_off() { key_comp_->set_updating_off(); }
   private:
@@ -36,18 +45,40 @@ class virtual_camera : public game::actor
     s_ptr<game::keyboard_movement_component> key_comp_;
 };
 
+class meshlet_actor : public game::actor
+{
+  public:
+    meshlet_actor() : game::actor() {}
+
+    // getter
+    const geometry::bounding_volume get_bounding_volume() const { return *bounding_volume_; }
+    // setter
+    void set_bounding_volume(u_ptr<geometry::bounding_volume>&& bv) { bounding_volume_ = std::move(bv); }
+
+  private:
+    u_ptr<geometry::bounding_volume> bounding_volume_;
+};
+
 class view_frustum_culling : public game::engine
 {
   public:
     view_frustum_culling() : game::engine("view_frustum_culling")
     {
       add_virtual_camera();
+      add_separated_object("light_bunny.obj");
       setup_lights();
     }
 
     void update_game(float dt) override
     {
-
+      const auto& frustum = virtual_camera_->get_perspective_frustum();
+      for (auto& meshlet : meshlet_actors_) {
+        const auto& sphere = meshlet->get_bounding_volume();
+        if (!geometry::collision_detector::intersection_sphere_frustum(sphere, frustum)) {
+          auto obj = dynamic_cast<hnll::game::mesh_component*>(meshlet->get_renderable_component_sp().get());
+          obj->set_should_not_be_drawn();
+        }
+      }
     }
 
     void update_game_gui() override
@@ -91,11 +122,22 @@ class view_frustum_culling : public game::engine
       }
     };
 
-    void add_separated_model(const std::string& filename)
+    void add_separated_object(const std::string& filename)
     {
-
+      auto sphere_geometry = geometry::mesh_model::create_from_obj_file(filename);
+      auto sphere_meshlets = geometry::mesh_separation::separate(sphere_geometry);
+      for (auto& ml : sphere_meshlets) {
+        auto ml_actor = std::make_shared<meshlet_actor>();
+        ml_actor->set_bounding_volume(ml->get_ownership_of_bounding_volume());
+        auto ml_graphics = graphics::mesh_model::create_from_geometry_mesh_model(get_graphics_device(), ml);
+        auto ml_mesh_comp = game::mesh_component::create(ml_actor, std::move(ml_graphics));
+        meshlet_actors_.push_back(ml_actor);
+        game::engine::add_actor(ml_actor);
+        ml_actor->set_rotation({M_PI, 0.f, 0.f});
+      }
     }
     s_ptr<virtual_camera> virtual_camera_;
+    std::vector<s_ptr<meshlet_actor>> meshlet_actors_;
 };
 
 }

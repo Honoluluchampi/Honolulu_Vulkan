@@ -58,6 +58,7 @@ class bounding_volume
     inline double get_max_z() const { return center_point_.z() + radius_.z(); }
     inline double get_min_z() const { return center_point_.z() - radius_.z(); }
     // setter
+    void set_bv_type(bv_type type)                  { bv_type_ = type; }
     void set_center_point(const vec3 &center_point) { center_point_ = center_point; }
     void set_aabb_radius(const vec3& radius)        { radius_ = radius; }
     void set_sphere_radius(const double radius)     { radius_.x() = radius; }
