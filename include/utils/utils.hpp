@@ -59,8 +59,8 @@ inline bool is_same_handed_system(const glm_vec auto& a1, const glm_vec auto& a2
 
 struct viewer_info
 {
-  glm::mat4 projection{1.f};
-  glm::mat4 view{1.f};
+  Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
+  Eigen::Matrix4f view       = Eigen::Matrix4f::Identity();
 };
 
 } // namespace utils

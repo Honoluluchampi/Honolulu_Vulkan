@@ -1,7 +1,7 @@
 // hnll
 #include <geometry/mesh_model.hpp>
 #include <geometry/half_edge.hpp>
-#include <graphics/mesh_model.hpp>
+#include <geometry/bounding_volume.hpp>
 #include <utils/utils.hpp>
 
 // std
@@ -60,6 +60,11 @@ struct hash<hnll::geometry::vertex>
 } // namespace std
 
 namespace hnll::geometry {
+
+s_ptr<mesh_model> mesh_model::create()
+{ return std::make_shared<mesh_model>(); }
+
+mesh_model::mesh_model() { bounding_volume_ = bounding_volume::create_blank_aabb(); }
 
 s_ptr<vertex> create_vertex_from_pseudo(vertex&& pseudo)
 {
@@ -260,5 +265,16 @@ face_id mesh_model::add_face(s_ptr<vertex> &v0, s_ptr<vertex> &v1, s_ptr<vertex>
   }
   return fc->id_;
 }
+
+const bounding_volume& mesh_model::get_bounding_volume() const
+{ return *bounding_volume_; }
+
+u_ptr<bounding_volume> mesh_model::get_ownership_of_bounding_volume()
+{ return std::move(bounding_volume_); }
+
+void mesh_model::set_bounding_volume(u_ptr<bounding_volume> &&bv)
+{ bounding_volume_ = std::move(bv); }
+void mesh_model::set_bv_type(bv_type type)
+{ bounding_volume_->set_bv_type(type); }
 
 } // namespace hnll::geometry

@@ -38,9 +38,9 @@ class renderer
     { return swap_chain_->get_render_pass(render_pass_id); }
 #endif 
 
-    inline float get_aspect_ratio() const { return swap_chain_->extent_aspect_ratio(); }
-    inline bool is_frame_in_progress() const { return is_frame_started_; }
-    inline swap_chain& get_swap_chain() const { return *swap_chain_; }
+    inline float get_aspect_ratio()         const { return swap_chain_->extent_aspect_ratio(); }
+    inline bool is_frame_in_progress()      const { return is_frame_started_; }
+    inline swap_chain& get_swap_chain()     const { return *swap_chain_; }
     inline VkCommandPool get_command_pool() const { return device_.get_command_pool(); }
     
     VkCommandBuffer get_current_command_buffer() const 

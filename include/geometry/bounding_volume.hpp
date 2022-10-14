@@ -38,9 +38,9 @@ class bounding_volume
         : center_point_(center_point), radius_(radius, 0.f, 0.f), bv_type_(bv_type::SPHERE) {}
 
     // bounding_volumes are owned only by rigid_component
-    static u_ptr<bounding_volume> create_aabb(std::vector<vec3> &vertices);
+    static u_ptr<bounding_volume> create_aabb(const std::vector<vec3> &vertices);
     static u_ptr<bounding_volume> create_blank_aabb(const vec3& initial_point = {0.f, 0.f, 0.f}); // for mesh separation
-    static u_ptr<bounding_volume> create_bounding_sphere(bv_ctor_type type, std::vector<vec3> &vertices);
+    static u_ptr<bounding_volume> create_bounding_sphere(bv_ctor_type type, const std::vector<vec3> &vertices);
     static u_ptr<bounding_volume> ritter_ctor(const std::vector<vec3> &vertices);
 
     // getter
@@ -58,6 +58,7 @@ class bounding_volume
     inline double get_max_z() const { return center_point_.z() + radius_.z(); }
     inline double get_min_z() const { return center_point_.z() - radius_.z(); }
     // setter
+    void set_bv_type(bv_type type)                  { bv_type_ = type; }
     void set_center_point(const vec3 &center_point) { center_point_ = center_point; }
     void set_aabb_radius(const vec3& radius)        { radius_ = radius; }
     void set_sphere_radius(const double radius)     { radius_.x() = radius; }

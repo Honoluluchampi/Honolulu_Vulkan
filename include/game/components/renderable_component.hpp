@@ -11,7 +11,8 @@ enum class render_type
 {
   MESH,
   POINT_LIGHT,
-  LINE
+  LINE,
+  WIRE_FRUSTUM
 };
 
 template <class A>

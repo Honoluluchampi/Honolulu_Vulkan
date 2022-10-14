@@ -10,10 +10,10 @@ default_camera::default_camera(hnll::graphics::engine& hve) : actor()
   // set initial position
   transform_.translation.z = -2.5f;
   
-  auto key_comp = std::make_shared<keyboard_movement_component>(hve.get_glfw_window(), transform_);
+  key_comp_sp_ = std::make_shared<keyboard_movement_component>(hve.get_glfw_window(), transform_);
   
   // key move must be updated before view
-  add_component(key_comp);
+  add_component(key_comp_sp_);
   // shared by hveApp
   add_component(viewer_comp_sp_);
 }

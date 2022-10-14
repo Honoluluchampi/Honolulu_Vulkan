@@ -15,14 +15,10 @@ class line_rendering_system : public rendering_system
 {
   public:
     line_rendering_system(device& device, VkRenderPass render_pass, VkDescriptorSetLayout global_set_layout);
-    ~line_rendering_system();
+    ~line_rendering_system() override;
 
-    void render(frame_info frameInfo) override;
+    void render(frame_info frame_info) override;
     
-    static std::vector<VkVertexInputAttributeDescription> get_attribute_descriptions();
-    
-    // TODO : delete
-    static int inter_polating_points_count;
   private:
     void create_pipeline_layout(VkDescriptorSetLayout global_set_layout) override;
     void create_pipeline(

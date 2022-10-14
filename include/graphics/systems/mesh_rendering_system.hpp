@@ -15,7 +15,7 @@ class mesh_rendering_system : public rendering_system
     mesh_rendering_system(device& device, VkRenderPass render_pass, VkDescriptorSetLayout global_set_layout);
     ~mesh_rendering_system();
 
-    // dont make camera object as a member variable so as to share the camera between multiple render system
+    // don't make camera object as a member variable so as to share the camera between multiple render system
     void render(frame_info frame_info) override;
     
   private:

@@ -3,7 +3,7 @@
 
 namespace hnll::geometry {
 
-u_ptr<bounding_volume> bounding_volume::create_aabb(std::vector<Eigen::Vector3d>& vertices)
+u_ptr<bounding_volume> bounding_volume::create_aabb(const std::vector<vec3>& vertices)
 {
   // TODO : compute convex-hull
   auto convex_hull = vertices;
@@ -32,7 +32,7 @@ u_ptr<bounding_volume> bounding_volume::create_blank_aabb(const vec3& initial_po
   return std::make_unique<bounding_volume>(initial_point, vec3(0.f, 0.f, 0.f));
 }
 
-u_ptr<bounding_volume> bounding_volume::create_bounding_sphere(bv_ctor_type type, std::vector<Eigen::Vector3d>& vertices)
+u_ptr<bounding_volume> bounding_volume::create_bounding_sphere(bv_ctor_type type, const std::vector<vec3>& vertices)
 {
   switch (type) {
     case bv_ctor_type::RITTER:

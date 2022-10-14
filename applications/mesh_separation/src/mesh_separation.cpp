@@ -20,7 +20,7 @@ class app : public game::engine
       camera_up_->set_translation(glm::vec3{0.f, 0.f, -10.f});
       // add light
       setup_lights();
-      add_separated_object("light_bunny.obj");
+      add_separated_object("bunny.obj");
     }
     ~app(){}
 

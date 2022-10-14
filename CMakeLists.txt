@@ -32,9 +32,9 @@ endif (APPLE)
 target_link_libraries(hnll_engine PUBLIC
         hnll_audio
         hnll_physics
-        hnll_geometry
         hnll_gui
         hnll_graphics
+        hnll_geometry
         hnll_utils
         vulkan glfw)
 

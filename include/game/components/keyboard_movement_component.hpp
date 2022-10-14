@@ -55,6 +55,8 @@ class keyboard_movement_component : public component
       pad_id rota_y = GLFW_GAMEPAD_AXIS_RIGHT_X;
     };
 
+    enum class updating { ON, OFF };
+
     // update owner's position (owner's transformation's ref was passed in the ctor)
     void update_component(float dt) override;
 
@@ -65,6 +67,12 @@ class keyboard_movement_component : public component
     // dont use lambda's capture
     void set_axis_func(pad_id axis_id, std::function<glm::vec3(float, float)> func)
     { pad_map_.emplace(axis_id, std::make_unique<std::function<glm::vec3(float, float)>>(func)); }
+
+    void set_updating_on()  { updating_ = updating::ON; }
+    void set_updating_off() { updating_ = updating::OFF; }
+
+    // getter
+    bool is_updating() const { return updating_ == updating::ON; }
 
     void remove_button_func(key_id key_id) { button_map_.erase(key_id); }
     void remove_axis_func(pad_id axis_id) { pad_map_.erase(axis_id); }
@@ -79,6 +87,8 @@ class keyboard_movement_component : public component
     // mapping
     static key_mappings keys;
     static pad_mappings pads;
+
+    updating updating_ = updating::ON;
     
     GLFWwindow* window_;
     // this component should be deleted before the owner
