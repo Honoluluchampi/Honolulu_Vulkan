@@ -33,7 +33,7 @@ int main()
   hnll::audio::engine::bind_audio_to_buffer(audio_data);
   hnll::audio::engine::bind_buffer_to_source(audio_data);
   hnll::audio::engine::play_audio_from_source(audio_data.get_source_id());
-  std::this_thread::sleep_for(std::chrono::seconds(2));
+  std::this_thread::sleep_for(std::chrono::seconds(3));
 
   hnll::audio::engine::kill_hae_context();
 }

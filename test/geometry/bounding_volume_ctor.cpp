@@ -1,17 +1,14 @@
 // hnll
 #include <geometry/bounding_volume.hpp>
-#include <geometry/collision_detector.hpp>
+#include <geometry/intersection.hpp>
 // lib
 #include <gtest/gtest.h>
 
-using namespace hnll::physics;
 using namespace hnll::geometry;
 Eigen::Vector3d point1 = {1.f, 0.f, 0.f};
 Eigen::Vector3d point2 = {6.f, 0.f, 0.f};
 auto sp1 = bounding_volume(point1, 3.f);
 auto sp2 = bounding_volume(point2, 4.f);
-
-collision_detector cd;
 
 TEST(bounding_sphere, ctor){
   // ctor

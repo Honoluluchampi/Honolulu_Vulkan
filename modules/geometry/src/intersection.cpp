@@ -1,5 +1,5 @@
 // hnll
-#include <geometry/collision_detector.hpp>
+#include <geometry/intersection.hpp>
 #include <physics/rigid_component.hpp>
 #include <geometry/bounding_volume.hpp>
 #include <geometry/perspective_frustum.hpp>
@@ -14,7 +14,7 @@ using point = Eigen::Vector3d;
 // static members' declaration
 std::vector<s_ptr<physics::rigid_component>> rigid_components_{};
 
-bool collision_detector::intersection_bounding_volume(const bounding_volume &a, const bounding_volume &b)
+bool intersection::intersection_bounding_volume(const bounding_volume &a, const bounding_volume &b)
 {
   // call intersection test depending on the types of bv
   if (a.is_aabb() && b.is_aabb())     return intersection_aabb_aabb(a, b);
@@ -26,7 +26,7 @@ bool collision_detector::intersection_bounding_volume(const bounding_volume &a, 
   return false;
 }
 
-bool collision_detector::intersection_aabb_aabb(const bounding_volume &aabb_a, const bounding_volume &aabb_b)
+bool intersection::intersection_aabb_aabb(const bounding_volume &aabb_a, const bounding_volume &aabb_b)
 {
   if (std::abs(aabb_a.get_center_point().x() - aabb_b.get_center_point().x()) > aabb_a.get_aabb_radius().x() + aabb_b.get_aabb_radius().x()) return false;
   if (std::abs(aabb_a.get_center_point().y() - aabb_b.get_center_point().y()) > aabb_a.get_aabb_radius().y() + aabb_b.get_aabb_radius().y()) return false;
@@ -34,7 +34,7 @@ bool collision_detector::intersection_aabb_aabb(const bounding_volume &aabb_a, c
   return true;
 }
 
-bool collision_detector::intersection_sphere_sphere(const bounding_volume &sphere_a, const bounding_volume &sphere_b)
+bool intersection::intersection_sphere_sphere(const bounding_volume &sphere_a, const bounding_volume &sphere_b)
 {
   Eigen::Vector3d difference = sphere_a.get_center_point() - sphere_b.get_center_point();
   double distance2 = difference.dot(difference);
@@ -82,13 +82,13 @@ double sq_dist_point_to_aabb(const point& p, const bounding_volume& aabb)
   return result;
 }
 
-bool collision_detector::intersection_aabb_sphere(const bounding_volume &aabb, const bounding_volume &sphere)
+bool intersection::intersection_aabb_sphere(const bounding_volume &aabb, const bounding_volume &sphere)
 {
   auto sq_dist = sq_dist_point_to_aabb(sphere.get_center_point(), aabb);
   return std::pow(sphere.get_sphere_radius(), 2) > sq_dist;
 }
 
-bool collision_detector::intersection_sphere_frustum(const geometry::bounding_volume &sphere, const perspective_frustum &frustum)
+bool intersection::intersection_sphere_frustum(const geometry::bounding_volume &sphere, const perspective_frustum &frustum)
 {
   const auto  center = sphere.get_center_point();
   const auto  radius = sphere.get_sphere_radius();

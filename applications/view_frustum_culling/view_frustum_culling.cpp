@@ -11,7 +11,7 @@
 #include <geometry/mesh_separation.hpp>
 #include <geometry/perspective_frustum.hpp>
 #include <geometry/bounding_volume.hpp>
-#include <geometry/collision_detector.hpp>
+#include <geometry/intersection.hpp>
 
 namespace hnll {
 

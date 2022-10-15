@@ -2,7 +2,7 @@
 #include <game/actor.hpp>
 #include <game/components/mesh_component.hpp>
 #include <physics/rigid_component.hpp>
-#include <geometry/collision_detector.hpp>
+#include <physics/collision_detector.hpp>
 #include <geometry/bounding_volume.hpp>
 
 namespace hnll::physics {
@@ -15,9 +15,9 @@ s_ptr<rigid_component> rigid_component::create_with_aabb(const s_ptr<hnll::game:
   auto mesh_vertices = mesh_component_sp->get_model_sp()->get_vertex_position_list();
   auto bv = geometry::bounding_volume::create_aabb(mesh_vertices);
 
-  // automatically add to the collision_detector (as static member)
+  // automatically add to the intersection (as static member)
   auto rc = std::make_shared<rigid_component>(std::move(bv));
-  geometry::collision_detector::add_rigid_component(rc);
+  collision_detector::add_rigid_component(rc);
   return rc;
 }
 
