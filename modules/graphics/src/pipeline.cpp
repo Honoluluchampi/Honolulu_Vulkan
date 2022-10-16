@@ -78,7 +78,8 @@ void pipeline_config_info::create_color_blend_attachment()
   color_blend_attachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional 
   color_blend_attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; //Optional
   color_blend_attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; //Optional
-  color_blend_attachment.alphaBlendOp = VK_BLEND_OP_ADD; 
+  color_blend_attachment.alphaBlendOp = VK_BLEND_OP_ADD;
+
   color_blend_attachment.blendEnable = VK_TRUE;
   color_blend_attachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA; 
   color_blend_attachment.dstColorBlendFactor =VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA; 
@@ -284,4 +285,17 @@ void pipeline::default_pipeline_config_info(pipeline_config_info &config_info)
   config_info.attribute_descriptions = mesh_model::vertex::get_attribute_descriptions();
 }
 
+void pipeline::enable_alpha_blending(pipeline_config_info &config_info)
+{
+  config_info.color_blend_attachment.blendEnable = VK_TRUE;
+
+  config_info.color_blend_attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT |
+              VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+  config_info.color_blend_attachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+  config_info.color_blend_attachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+  config_info.color_blend_attachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional
+  config_info.color_blend_attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; //Optional
+  config_info.color_blend_attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; //Optional
+  config_info.color_blend_attachment.alphaBlendOp = VK_BLEND_OP_ADD;
+}
 } // namespace hnll::graphics

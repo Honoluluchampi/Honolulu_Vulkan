@@ -118,8 +118,11 @@ void engine::render(utils::viewer_info&& viewer_info)
     renderer_.begin_swap_chain_render_pass(command_buffer, HVE_RENDER_PASS_ID);
     // programmable stage of rendering
     // system can now access game objects via frame_info
-    for (auto& system : rendering_systems_)
-      system.second->render(frame_info);
+
+    // rendering order matters for alpha blending
+    // solid object should be drawn first, then transparent object should be drawn after that
+    rendering_systems_[game::render_type::MESH]->render(frame_info);
+    rendering_systems_[game::render_type::POINT_LIGHT]->render(frame_info);
 
     renderer_.end_swap_chain_render_pass(command_buffer);
     renderer_.end_frame();

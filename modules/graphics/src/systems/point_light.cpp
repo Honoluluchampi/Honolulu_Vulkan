@@ -11,7 +11,7 @@
 
 //std
 #include <stdexcept>
-#include <array>
+#include <map>
 
 namespace hnll::graphics {
 
@@ -64,7 +64,7 @@ void point_light_rendering_system::create_pipeline(
 
   pipeline_config_info pipeline_config{};
   pipeline::default_pipeline_config_info(pipeline_config);
-  // for special config 
+  // for special config
   pipeline_config.attribute_descriptions.clear();
   pipeline_config.binding_descriptions.clear();
 

@@ -50,6 +50,8 @@ void grid_rendering_system::create_pipeline(
 
   pipeline_config_info pipeline_config{};
   pipeline::default_pipeline_config_info(pipeline_config);
+  pipeline::enable_alpha_blending(pipeline_config);
+
   // discard vertex buffer attribute
   pipeline_config.attribute_descriptions.clear();
   pipeline_config.binding_descriptions.clear();

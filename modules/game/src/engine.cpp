@@ -215,6 +215,8 @@ void engine::load_actor()
   for (const auto& position : positions) {
     auto light = hnll::game::actor::create();
     auto light_component = hnll::game::point_light_component::create(light, light_intensity, 0.f);
+    light_component->set_color(glm::vec3(0.f, 1.f, 0.3f));
+    light_component->set_radius(0.5f);
     add_point_light(light, light_component);
     light->set_translation(position);
   }
