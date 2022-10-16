@@ -70,6 +70,11 @@ class bounding_volume
     vec3 radius_;
 };
 
+class infinite_plane
+{
+
+};
+
 // support functions
 std::pair<int, int> most_separated_points_on_aabb(const std::vector<vec3> &vertices);
 

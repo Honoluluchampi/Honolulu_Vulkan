@@ -5,7 +5,7 @@
 #include <graphics/systems/mesh_rendering_system.hpp>
 #include <graphics/systems/line_rendering_system.hpp>
 #include <graphics/systems/wire_frustum_rendering_system.hpp>
-
+#include <graphics/systems/grid_rendering_system.hpp>
 //std
 #include <stdexcept>
 #include <array>
@@ -76,12 +76,20 @@ void engine::init()
     global_set_layout_->get_descriptor_set_layout()
   );
 
+  auto grid_renderer = std::make_unique<grid_rendering_system>(
+    device_,
+    renderer_.get_swap_chain_render_pass(HVE_RENDER_PASS_ID),
+    global_set_layout_->get_descriptor_set_layout()
+  );
+
   rendering_systems_.emplace
     (mesh_renderer->get_render_type(), std::move(mesh_renderer));
   rendering_systems_.emplace
     (point_light_renderer->get_render_type(), std::move(point_light_renderer));
   rendering_systems_.emplace
     (wire_frustum_renderer->get_render_type(), std::move(wire_frustum_renderer));
+  rendering_systems_.emplace
+    (grid_renderer->get_render_type(), std::move(grid_renderer));
 }
 
 // each render systems automatically detect render target components
