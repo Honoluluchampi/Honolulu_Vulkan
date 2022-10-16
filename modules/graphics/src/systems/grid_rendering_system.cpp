@@ -50,6 +50,10 @@ void grid_rendering_system::create_pipeline(
 
   pipeline_config_info pipeline_config{};
   pipeline::default_pipeline_config_info(pipeline_config);
+  // discard vertex buffer attribute
+  pipeline_config.attribute_descriptions.clear();
+  pipeline_config.binding_descriptions.clear();
+
   pipeline_config.render_pass = render_pass;
   pipeline_config.pipeline_layout = pipeline_layout_;
   pipeline_ = std::make_unique<pipeline>(
