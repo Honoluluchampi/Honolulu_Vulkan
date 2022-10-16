@@ -1,7 +1,7 @@
 #version 450
 
-layout(location = 1) out vec3 near_point;
-layout(location = 2) out vec3 far_point;
+layout(location = 0) out vec3 near_point;
+layout(location = 1) out vec3 far_point;
 
 
 struct PointLight

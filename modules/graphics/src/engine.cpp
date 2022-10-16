@@ -88,8 +88,8 @@ void engine::init()
     (point_light_renderer->get_render_type(), std::move(point_light_renderer));
   rendering_systems_.emplace
     (wire_frustum_renderer->get_render_type(), std::move(wire_frustum_renderer));
-//  rendering_systems_.emplace
-//    (grid_renderer->get_render_type(), std::move(grid_renderer));
+  rendering_systems_.emplace
+    (grid_renderer->get_render_type(), std::move(grid_renderer));
 }
 
 // each render systems automatically detect render target components
@@ -123,6 +123,7 @@ void engine::render(utils::viewer_info&& viewer_info)
     // solid object should be drawn first, then transparent object should be drawn after that
     rendering_systems_[game::render_type::MESH]->render(frame_info);
     rendering_systems_[game::render_type::POINT_LIGHT]->render(frame_info);
+    rendering_systems_[game::render_type::GRID]->render(frame_info);
 
     renderer_.end_swap_chain_render_pass(command_buffer);
     renderer_.end_frame();
