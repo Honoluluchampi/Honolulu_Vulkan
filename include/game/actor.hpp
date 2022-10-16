@@ -50,9 +50,9 @@ class actor
     inline const s_ptr<renderable_component>& get_renderable_component_sp() { return renderable_component_; }
     s_ptr<hnll::utils::transform> get_transform_sp();
     // setter
-    void add_component(u_ptr<component>&& comp) { comp->specific_add_process(*this); unique_components_.emplace_back(std::move(comp)); }
-    void add_component(s_ptr<component>&& comp) { comp->specific_add_process(*this); shared_components_.emplace_back(std::move(comp)); }
-    void add_component(const s_ptr<component>& comp) { shared_components_.emplace_back(comp); comp->specific_add_process(*this); }
+    void add_component(u_ptr<component>&& comp) { unique_components_.emplace_back(std::move(comp)); }
+    void add_component(s_ptr<component>&& comp) { shared_components_.emplace_back(std::move(comp)); }
+    void add_component(const s_ptr<component>& comp) { shared_components_.emplace_back(comp); }
     // takes std::shared_ptr<RenderableComponent>
     void set_renderable_component(s_ptr<renderable_component>&& comp);
     void set_renderable_component(const s_ptr<renderable_component>& comp);

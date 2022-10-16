@@ -17,7 +17,6 @@ enum class render_type
 
 template <class A>
 concept Actor = requires (A& at) {
-  at.get_transform_sp();
   at.get_actor_state();
 };
 

@@ -1,6 +1,6 @@
 // hnll
+#include <game/components/rigid_component.hpp>
 #include <geometry/intersection.hpp>
-#include <physics/rigid_component.hpp>
 #include <geometry/bounding_volume.hpp>
 #include <geometry/perspective_frustum.hpp>
 
@@ -10,9 +10,6 @@
 namespace hnll::geometry {
 
 using point = Eigen::Vector3d;
-
-// static members' declaration
-std::vector<s_ptr<physics::rigid_component>> rigid_components_{};
 
 bool intersection::intersection_bounding_volume(const bounding_volume &a, const bounding_volume &b)
 {
