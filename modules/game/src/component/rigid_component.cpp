@@ -18,9 +18,14 @@ s_ptr<rigid_component> rigid_component::create_with_aabb(s_ptr<actor>& owner, co
   return rc;
 }
 
-s_ptr<rigid_component> create_with_b_sphere(s_ptr<actor>& owner, const s_ptr<game::mesh_component>& mesh_component)
+s_ptr<rigid_component> rigid_component::create_with_b_sphere(s_ptr<actor>& owner, const s_ptr<game::mesh_component>& mesh_component)
 {
-
+  auto mesh_vertices = mesh_component->get_model_sp()->get_vertex_position_list();
+  auto bv = geometry::bounding_volume::create_bounding_sphere(geometry::bv_ctor_type::RITTER, mesh_vertices);
+  auto rc = std::make_shared<rigid_component>(owner);
+  rc->set_bounding_volume(std::move(bv));
+  physics::collision_detector::add_rigid_component(rc);
+  return rc;
 }
 
 s_ptr<rigid_component> rigid_component::create_from_bounding_volume(s_ptr<actor>& owner, u_ptr<geometry::bounding_volume>&& bv)
@@ -30,7 +35,7 @@ s_ptr<rigid_component> rigid_component::create_from_bounding_volume(s_ptr<actor>
   return rc;
 }
 
-static s_ptr<rigid_component> create(s_ptr<actor>& owner, const std::vector<vec3>& positions, geometry::bv_type type)
+s_ptr<rigid_component> rigid_component::create(s_ptr<actor>& owner, const std::vector<vec3>& positions, geometry::bv_type type)
 {
   auto rc = std::make_shared<rigid_component>(owner);
   u_ptr<geometry::bounding_volume> bv;
@@ -52,7 +57,7 @@ rigid_component::rigid_component(s_ptr<actor>& owner) : component()
 
 void rigid_component::re_update_owner(physics::collision_info&& info)
 {
-  // TODO : impl
+  owner_->re_update(std::move(info));
 }
 
 } // namespace hnll::game

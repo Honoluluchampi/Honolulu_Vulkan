@@ -31,15 +31,15 @@ class rigid_component : public component
     static s_ptr<rigid_component> create_from_bounding_volume(s_ptr<actor>& owner, u_ptr<geometry::bounding_volume>&& bv);
     static s_ptr<rigid_component> create(s_ptr<actor>& owner, const std::vector<vec3>& positions, geometry::bv_type type);
 
-    rigid_component(s_ptr<actor>& owner);
+    explicit rigid_component(s_ptr<actor>& owner);
     ~rigid_component() override = default;
 
     void re_update_owner(physics::collision_info&& info);
 
     // getter
     [[nodiscard]] const geometry::bounding_volume& get_bounding_volume() const { return *bounding_volume_; }
-    [[nodiscard]] const utils::transform&          get_transform_ref() const   { return *transform_sp_; }
-    [[nodiscard]] s_ptr<utils::transform>          get_transform() const       { return transform_sp_; }
+    [[nodiscard]] const utils::transform&          get_transform_ref()   const { return *transform_sp_; }
+    [[nodiscard]] s_ptr<utils::transform>          get_transform()       const { return transform_sp_; }
 
     // setter
     void set_bounding_volume(u_ptr<geometry::bounding_volume>&& bv) { bounding_volume_ = std::move(bv); }

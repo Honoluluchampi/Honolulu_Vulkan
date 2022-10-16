@@ -1,6 +1,7 @@
 // hnll
 #include <game/actor.hpp>
 #include <game/engine.hpp>
+#include <physics/collision_info.hpp>
 
 namespace hnll::game {
 
@@ -33,6 +34,8 @@ for (const auto& comp : unique_components_)
 for (const auto& comp : shared_components_)
   comp->update(dt);
 }
+
+void actor::re_update(physics::collision_info &&info) {}
 
 #ifndef IMGUI_DISABLED
  void actor::update_gui()
