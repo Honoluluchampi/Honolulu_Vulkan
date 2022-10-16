@@ -69,7 +69,7 @@ void pipeline_config_info::create_multi_sample_state()
 void pipeline_config_info::create_color_blend_attachment()
 {
   // per framebuffer struct
-  // in contrast, VkPipelineColcorBlendStateCreateInfo is global color blending settings
+  // in contrast, VkPipelineColorBlendStateCreateInfo is global color blending settings
   color_blend_attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT |
             VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT; 
   color_blend_attachment.blendEnable = VK_FALSE;

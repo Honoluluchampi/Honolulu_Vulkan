@@ -13,6 +13,7 @@ layout(set = 0, binding = 0) uniform GlobalUbo
 {
   mat4 projection;
   mat4 view;
+  mat4 inv_view;
   vec4 ambientLightColor;
   PointLight pointLights[20];
   int numLights;

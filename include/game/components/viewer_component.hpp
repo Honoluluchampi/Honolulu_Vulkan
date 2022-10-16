@@ -31,8 +31,9 @@ class viewer_component : public component
     // getter
     static float get_near_distance() { return near_distance_; }
     static float get_fov_y()         { return fov_y_; }
-    const Eigen::Matrix4f& get_projection_ref() const { return projection_matrix_; }
-    const Eigen::Matrix4f& get_view_ref()       const { return view_matrix_; }
+    const Eigen::Matrix4f& get_projection_ref()   const { return projection_matrix_; }
+    const Eigen::Matrix4f& get_view_ref()         const { return view_matrix_; }
+    const Eigen::Matrix4f& get_inverse_view_ref() const { return inverse_view_matrix_; }
     Eigen::Matrix4f        get_inverse_perspective_projection() const;
     Eigen::Matrix4f        get_inverse_view_yxz() const;
     const geometry::perspective_frustum& get_perspective_frustum_ref() const;
@@ -51,8 +52,9 @@ class viewer_component : public component
   private:
     // ref of owner transform
     hnll::utils::transform &transform_;
-    Eigen::Matrix4f projection_matrix_ = Eigen::Matrix4f::Identity();
-    Eigen::Matrix4f view_matrix_       = Eigen::Matrix4f::Identity();
+    Eigen::Matrix4f projection_matrix_   = Eigen::Matrix4f::Identity();
+    Eigen::Matrix4f view_matrix_         = Eigen::Matrix4f::Identity();
+    Eigen::Matrix4f inverse_view_matrix_ = Eigen::Matrix4f::Identity();
     hnll::graphics::renderer &renderer_;
 
     s_ptr<geometry::perspective_frustum> perspective_frustum_;

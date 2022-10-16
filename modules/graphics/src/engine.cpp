@@ -88,8 +88,8 @@ void engine::init()
     (point_light_renderer->get_render_type(), std::move(point_light_renderer));
   rendering_systems_.emplace
     (wire_frustum_renderer->get_render_type(), std::move(wire_frustum_renderer));
-  rendering_systems_.emplace
-    (grid_renderer->get_render_type(), std::move(grid_renderer));
+//  rendering_systems_.emplace
+//    (grid_renderer->get_render_type(), std::move(grid_renderer));
 }
 
 // each render systems automatically detect render target components
@@ -106,8 +106,9 @@ void engine::render(utils::viewer_info&& viewer_info)
     };
 
     // update 
-    ubo_.projection = viewer_info.projection;
-    ubo_.view = viewer_info.view;
+    ubo_.projection   = viewer_info.projection;
+    ubo_.view         = viewer_info.view;
+    ubo_.inverse_view = viewer_info.inverse_view;
     ubo_buffers_[frame_index]->write_to_buffer(&ubo_);
     ubo_buffers_[frame_index]->flush();
 

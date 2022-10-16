@@ -22,8 +22,9 @@ struct point_light
 struct global_ubo
 {
   // check alignment rules
-  Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
-  Eigen::Matrix4f view       = Eigen::Matrix4f::Identity();
+  Eigen::Matrix4f projection   = Eigen::Matrix4f::Identity();
+  Eigen::Matrix4f view         = Eigen::Matrix4f::Identity();
+  Eigen::Matrix4f inverse_view = Eigen::Matrix4f::Identity();
   // point light
   glm::vec4 ambient_light_color{1.f, 1.f, 1.f, .02f}; // w is light intensity
   point_light point_lights[MAX_LIGHTS];
