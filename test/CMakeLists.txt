@@ -4,7 +4,7 @@ project(hnll_test)
 file(GLOB_RECURSE TEST_SRC
     audio/engine_test.cpp audio/audio_data_test.cpp
     geometry/bounding_volume_ctor.cpp geometry/half_edge_test.cpp geometry/mesh_separation_test.cpp
-    physics/bounding_volume_intersection_test.cpp
+        geometry/bounding_volume_intersection_test.cpp
     )
 add_executable(hnll_test ${TEST_SRC})
 enable_testing()
