@@ -42,7 +42,9 @@ TEST(bounding_volume_intersection, aabb_sphere)
 
 }
 
-perspective_frustum frustum = { M_PI/4.f, M_PI/4.f, 3, 10 };
+
+
+perspective_frustum frustum = { M_PI/2.f, M_PI/2.f, 3, 10 };
 using vec3 = Eigen::Vector3d;
 
 TEST(bounding_volume_intersection, sphere_frustum)
@@ -61,5 +63,17 @@ TEST(bounding_volume_intersection, sphere_frustum)
   sphere.set_center_point({0.f, 0.f, -0.1f});
   EXPECT_FALSE(test_sphere_frustum(sphere, frustum));
 
-  // top test
+  // right test
+  double r32 = 3.f / std::sqrt(2.f);
+  double eps = 0.0001f;
+  sphere.set_center_point({5.f + r32 - eps, 0.f, 5.f - r32 + eps});
+  EXPECT_TRUE(test_sphere_frustum(sphere, frustum));
+  sphere.set_center_point({5.f + r32 - 0.1f, 0.f, 5.f - r32 + eps});
+  EXPECT_TRUE(test_sphere_frustum(sphere, frustum));
+  sphere.set_center_point({5.f + r32 + 0.1f, 0.f, 5.f - r32 + eps});
+  EXPECT_FALSE(test_sphere_frustum(sphere, frustum));
+  sphere.set_center_point({5.f + r32 - eps, 0.f, 5.f - r32 + 0.1f});
+  EXPECT_TRUE(test_sphere_frustum(sphere, frustum));
+  sphere.set_center_point({5.f + r32 - eps, 0.f, 5.f - r32 - 0.1f});
+  EXPECT_FALSE(test_sphere_frustum(sphere, frustum));
 }

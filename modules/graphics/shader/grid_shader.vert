@@ -32,12 +32,6 @@ vec3 grid_plane[6] = vec3 [](
   vec3( 1, 0, -1)
 );
 
-vec3 unproject_point(float x, float y, float z) {
-  mat4 proj_inv = inverse(ubo.projection);
-  vec4 unprojected_point = ubo.inv_view * proj_inv * vec4(x, y, z, 1.0);
-  return unprojected_point.xyz / unprojected_point.w;
-}
-
 const float scale = 500.0;
 
 void main() {

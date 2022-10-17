@@ -2,10 +2,14 @@
 cmake_minimum_required(VERSION 3.16)
 project(hnll_test)
 file(GLOB_RECURSE TEST_SRC
-    audio/engine_test.cpp audio/audio_data_test.cpp
-    geometry/bounding_volume_ctor.cpp geometry/half_edge_test.cpp geometry/mesh_separation_test.cpp
+        audio/engine_test.cpp audio/audio_data_test.cpp
+        geometry/bounding_volume_ctor.cpp geometry/half_edge_test.cpp geometry/mesh_separation_test.cpp
         geometry/bounding_volume_intersection_test.cpp
+        geometry/perspective_frustum_test.cpp
     )
+
+add_definitions(-std=c++2a)
+
 add_executable(hnll_test ${TEST_SRC})
 enable_testing()
 
