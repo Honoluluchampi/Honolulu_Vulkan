@@ -63,6 +63,7 @@ class pipeline
     void bind(VkCommandBuffer command_buffer);
 
     static void default_pipeline_config_info(pipeline_config_info &config_info);
+    static void enable_alpha_blending(pipeline_config_info& config_info);
 
   private:
     // fstream can only output char not std::string

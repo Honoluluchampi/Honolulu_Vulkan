@@ -20,7 +20,6 @@ public:
   virtual ~component(){}
 
   inline void update(float dt) { update_component(dt); }
-  virtual void specific_add_process(actor& _actor) {}
 
 #ifndef IMGUI_DISABLED
   virtual void update_gui(){}

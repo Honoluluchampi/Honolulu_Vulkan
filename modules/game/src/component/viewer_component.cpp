@@ -61,6 +61,13 @@ void viewer_component::set_view_direction(const glm::vec3& position, const glm::
     v.x, v.y, v.z, -glm::dot(u, position),
     w.x, w.y, w.z, -glm::dot(w, position),
     0.f, 0.f, 0.f, 1.f;
+
+  // also update inverse view matrix
+  inverse_view_matrix_ <<
+    u.x, v.x, w.x, position.x,
+    u.y, v.y, w.y, position.y,
+    u.z, v.z, w.z, position.z,
+    0.f, 0.f, 0.f, 1.f;
 }
 
 void viewer_component::set_view_target(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up) 
@@ -86,6 +93,13 @@ void viewer_component::set_view_yxz()
     v.x(), v.y(), v.z(), -v.dot(position),
     w.x(), w.y(), w.z(), -w.dot(position),
     0.f,   0.f,   0.f,   1.f;
+
+  // also update inverse view matrix
+  inverse_view_matrix_ <<
+    u.x(), v.x(), w.x(), position.x(),
+    u.y(), v.y(), w.y(), position.y(),
+    u.z(), v.z(), w.z(), position.z(),
+    0.f, 0.f, 0.f, 1.f;
 }
 
 Eigen::Matrix4f viewer_component::get_inverse_perspective_projection() const

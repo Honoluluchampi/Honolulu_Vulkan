@@ -153,7 +153,7 @@ void engine::load_data()
 {
   // load raw mesh data
   load_mesh_models("/home/honolulu/models/primitives");
-  load_actor();
+  // load_actor();
 }
 
 // use filenames as the key of the map
@@ -179,17 +179,15 @@ void engine::remove_actor(id_t id)
 {
   pending_actor_map_.erase(id);
   active_actor_map_.erase(id);
-  // renderableActorMap_m.erase(id);
 }
 
 void engine::load_actor()
 {
   auto smooth_vase = actor::create();
-  auto smooth_vase_mesh_model = mesh_model_map_["smooth_vase"];
+  auto smooth_vase_mesh_model = mesh_model_map_["sphere"];
   auto smooth_vase_model_comp = mesh_component::create(smooth_vase, std::move(smooth_vase_mesh_model));
-  smooth_vase->set_translation(glm::vec3{-0.5f, 0.5f, 0.f});
-  smooth_vase->set_scale(glm::vec3{3.f, 1.5f, 3.f});
-  
+  smooth_vase->set_translation(glm::vec3{0.f, 0.f, 3.f});
+
   // temporary
   hieModelID_ = smooth_vase->get_id();
 
@@ -204,6 +202,24 @@ void engine::load_actor()
   auto floor_model_comp = mesh_component::create(floor, std::move(floor_mesh_comp));
   floor->set_translation(glm::vec3{0.f, 0.5f, 0.f});
   floor->set_scale(glm::vec3{3.f, 1.5f, 3.f});
+
+  float light_intensity = 4.f;
+  std::vector<glm::vec3> positions;
+  float position_radius = 4.f;
+  for (int i = 0; i < 6; i++) {
+    positions.push_back({position_radius * std::sin(M_PI/3.f * i), -2.f, position_radius * std::cos(M_PI/3.f * i)});
+  }
+  positions.push_back({0.f, position_radius, 0.f});
+  positions.push_back({0.f, -position_radius, 0.f});
+
+  for (const auto& position : positions) {
+    auto light = hnll::game::actor::create();
+    auto light_component = hnll::game::point_light_component::create(light, light_intensity, 0.f);
+    light_component->set_color(glm::vec3(0.f, 1.f, 0.3f));
+    light_component->set_radius(0.5f);
+    add_point_light(light, light_component);
+    light->set_translation(position);
+  }
 }
 
 void engine::add_point_light(s_ptr<actor>& owner, s_ptr<point_light_component>& light_comp)

@@ -11,7 +11,7 @@
 #include <geometry/mesh_separation.hpp>
 #include <geometry/perspective_frustum.hpp>
 #include <geometry/bounding_volume.hpp>
-#include <geometry/collision_detector.hpp>
+#include <geometry/intersection.hpp>
 
 namespace hnll {
 
@@ -74,7 +74,7 @@ class view_frustum_culling : public game::engine
       const auto& frustum = virtual_camera_->get_perspective_frustum();
       for (auto& meshlet : meshlet_actors_) {
         const auto& sphere = meshlet->get_bounding_volume();
-        if (!geometry::collision_detector::intersection_sphere_frustum(sphere, frustum)) {
+        if (!geometry::intersection::test_sphere_frustum(sphere, frustum)) {
           auto obj = dynamic_cast<hnll::game::mesh_component*>(meshlet->get_renderable_component_sp().get());
           obj->set_should_not_be_drawn();
         }

@@ -1,5 +1,8 @@
 #pragma once
 
+// hnll
+#include <utils/utils.hpp>
+
 // std
 #include <memory>
 #include <vector>
@@ -31,11 +34,11 @@ class bounding_volume
   public:
     // ctor for aabb
     explicit bounding_volume(const vec3 &center_point = {0.f, 0.f, 0.f}, const vec3& radius = {0.f, 0.f, 0.f})
-        : center_point_(center_point), radius_(radius), bv_type_(bv_type::AABB) {}
+        : center_point_(center_point), radius_(radius), bv_type_(bv_type::AABB), transform_(std::make_shared<utils::transform>()) {}
 
     // ctor for sphere
     explicit bounding_volume(const vec3 &center_point = {0.f, 0.f, 0.f}, const double radius = 1.f)
-        : center_point_(center_point), radius_(radius, 0.f, 0.f), bv_type_(bv_type::SPHERE) {}
+        : center_point_(center_point), radius_(radius, 0.f, 0.f), bv_type_(bv_type::SPHERE), transform_(std::make_shared<utils::transform>()) {}
 
     // bounding_volumes are owned only by rigid_component
     static u_ptr<bounding_volume> create_aabb(const std::vector<vec3> &vertices);
@@ -58,16 +61,17 @@ class bounding_volume
     inline double get_max_z() const { return center_point_.z() + radius_.z(); }
     inline double get_min_z() const { return center_point_.z() - radius_.z(); }
     // setter
-    void set_bv_type(bv_type type)                  { bv_type_ = type; }
-    void set_center_point(const vec3 &center_point) { center_point_ = center_point; }
-    void set_aabb_radius(const vec3& radius)        { radius_ = radius; }
-    void set_sphere_radius(const double radius)     { radius_.x() = radius; }
-
+    void set_bv_type(bv_type type)                               { bv_type_ = type; }
+    void set_center_point(const vec3 &center_point)              { center_point_ = center_point; }
+    void set_aabb_radius(const vec3& radius)                     { radius_ = radius; }
+    void set_sphere_radius(const double radius)                  { radius_.x() = radius; }
+    void set_transform(const s_ptr<utils::transform>& transform) { transform_ = transform; }
   private:
     bv_type bv_type_;
     vec3 center_point_;
     // if bv_type == SPHERE, only radius_.x() is valid.
     vec3 radius_;
+    s_ptr<utils::transform> transform_;
 };
 
 // support functions

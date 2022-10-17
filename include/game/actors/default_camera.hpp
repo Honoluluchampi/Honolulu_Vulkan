@@ -25,7 +25,7 @@ public:
   default_camera& operator=(default_camera &&) = default;
 
   // getter
-  utils::viewer_info get_viewer_info() const { return {viewer_comp_sp_->get_projection_ref(), viewer_comp_sp_->get_view_ref()}; }
+  utils::viewer_info get_viewer_info() const { return {viewer_comp_sp_->get_projection_ref(), viewer_comp_sp_->get_view_ref(), viewer_comp_sp_->get_inverse_view_ref()}; }
   bool is_movement_updating() const { return key_comp_sp_->is_updating(); }
   inline hnll::utils::transform& get_transform() { return transform_; }
   inline s_ptr<viewer_component> get_viewer_component_sp() const { return viewer_comp_sp_; }  

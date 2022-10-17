@@ -37,7 +37,10 @@ result engine::bind_audio_to_buffer(audio_data &audio_data)
 {
   // generate buffer
   buffer_id buffer_id;
-  alGenBuffers(1, &buffer_id);
+  if (audio_data.is_bound_to_buffer())
+    buffer_id = audio_data.get_buffer_id();
+  else
+    alGenBuffers(1, &buffer_id);
 
   // TODO : use try & catch to check alBufferData is successfully processed
   // copy the data to the buffer

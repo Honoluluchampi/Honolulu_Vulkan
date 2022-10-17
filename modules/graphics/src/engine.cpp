@@ -5,7 +5,7 @@
 #include <graphics/systems/mesh_rendering_system.hpp>
 #include <graphics/systems/line_rendering_system.hpp>
 #include <graphics/systems/wire_frustum_rendering_system.hpp>
-
+#include <graphics/systems/grid_rendering_system.hpp>
 //std
 #include <stdexcept>
 #include <array>
@@ -76,12 +76,20 @@ void engine::init()
     global_set_layout_->get_descriptor_set_layout()
   );
 
+  auto grid_renderer = std::make_unique<grid_rendering_system>(
+    device_,
+    renderer_.get_swap_chain_render_pass(HVE_RENDER_PASS_ID),
+    global_set_layout_->get_descriptor_set_layout()
+  );
+
   rendering_systems_.emplace
     (mesh_renderer->get_render_type(), std::move(mesh_renderer));
   rendering_systems_.emplace
     (point_light_renderer->get_render_type(), std::move(point_light_renderer));
   rendering_systems_.emplace
     (wire_frustum_renderer->get_render_type(), std::move(wire_frustum_renderer));
+  rendering_systems_.emplace
+    (grid_renderer->get_render_type(), std::move(grid_renderer));
 }
 
 // each render systems automatically detect render target components
@@ -98,8 +106,9 @@ void engine::render(utils::viewer_info&& viewer_info)
     };
 
     // update 
-    ubo_.projection = viewer_info.projection;
-    ubo_.view = viewer_info.view;
+    ubo_.projection   = viewer_info.projection;
+    ubo_.view         = viewer_info.view;
+    ubo_.inverse_view = viewer_info.inverse_view;
     ubo_buffers_[frame_index]->write_to_buffer(&ubo_);
     ubo_buffers_[frame_index]->flush();
 
@@ -109,8 +118,13 @@ void engine::render(utils::viewer_info&& viewer_info)
     renderer_.begin_swap_chain_render_pass(command_buffer, HVE_RENDER_PASS_ID);
     // programmable stage of rendering
     // system can now access game objects via frame_info
-    for (auto& system : rendering_systems_)
-      system.second->render(frame_info);
+
+    // rendering order matters for alpha blending
+    // solid object should be drawn first, then transparent object should be drawn after that
+    rendering_systems_[game::render_type::MESH]->render(frame_info);
+    rendering_systems_[game::render_type::WIRE_FRUSTUM]->render(frame_info);
+    rendering_systems_[game::render_type::POINT_LIGHT]->render(frame_info);
+    rendering_systems_[game::render_type::GRID]->render(frame_info);
 
     renderer_.end_swap_chain_render_pass(command_buffer);
     renderer_.end_frame();

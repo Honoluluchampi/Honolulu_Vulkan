@@ -12,12 +12,12 @@ enum class render_type
   MESH,
   POINT_LIGHT,
   LINE,
-  WIRE_FRUSTUM
+  WIRE_FRUSTUM,
+  GRID
 };
 
 template <class A>
 concept Actor = requires (A& at) {
-  at.get_transform_sp();
   at.get_actor_state();
 };
 
@@ -35,9 +35,9 @@ class renderable_component : public hnll::game::component
     renderable_component& operator=(renderable_component &&) = default;
 
     // getter
-    inline hnll::utils::transform get_transform() { return *transform_sp_; }
+    inline hnll::utils::transform        get_transform() { return *transform_sp_; }
     inline s_ptr<hnll::utils::transform> get_transform_sp() { return transform_sp_; }
-    const render_type get_render_type() const { return render_type_; }
+    const render_type                    get_render_type() const { return render_type_; }
 
     // setter
     // basically called by game::actor
