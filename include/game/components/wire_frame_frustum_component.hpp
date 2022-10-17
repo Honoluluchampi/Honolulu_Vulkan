@@ -3,6 +3,8 @@
 // hnll
 #include <game/components/renderable_component.hpp>
 #include <graphics/mesh_model.hpp>
+#include <utils/utils.hpp>
+
 // TODO : make graphics::device static
 #include <graphics/device.hpp>
 #include <geometry/perspective_frustum.hpp>
@@ -26,6 +28,8 @@ class wire_frame_frustum_component : public renderable_component
     template <Actor A>
     wire_frame_frustum_component(s_ptr<A>& owner_sp) : renderable_component(owner_sp, render_type::WIRE_FRUSTUM) {}
     ~wire_frame_frustum_component() override = default;
+
+    void update_frustum_planes(utils::transform& tf) { frustum_->update_planes(tf); }
 
     // getter
     const geometry::perspective_frustum& get_perspective_frustum() const { return *frustum_; }

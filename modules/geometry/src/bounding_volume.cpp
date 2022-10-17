@@ -76,7 +76,7 @@ u_ptr<bounding_volume> sphere_from_distant_points(const std::vector<Eigen::Vecto
 {
   auto separated_idx = most_separated_points_on_aabb(vertices);
   auto center_point = (vertices[separated_idx.first] + vertices[separated_idx.second]) * 0.5f;
-  auto radius = (vertices[separated_idx.first] - center_point).dot(vertices[separated_idx.first] - center_point);
+  double radius = (vertices[separated_idx.first] - center_point).dot(vertices[separated_idx.first] - center_point);
   radius = std::sqrt(radius);
   return std::make_unique<bounding_volume>(center_point, radius);
 }

@@ -23,7 +23,7 @@ class virtual_camera : public game::actor
       auto camera = std::make_shared<virtual_camera>();
       camera->viewer_comp_ = game::viewer_component::create(*camera->get_transform_sp(), engine.get_renderer());
       camera->viewer_comp_->auto_update_view_frustum();
-      auto frustum = geometry::perspective_frustum::create(M_PI / 4.f, M_PI / 4.f, 5.f, 0.2f);
+      auto frustum = geometry::perspective_frustum::create(M_PI / 4.f, M_PI / 4.f, 1.f, 10.f);
       camera->wire_frustum_comp_ = game::wire_frame_frustum_component::create(camera, frustum, device);
       camera->key_comp_ = std::make_shared<game::keyboard_movement_component>(engine.get_window().get_glfw_window(), *camera->get_transform_sp());
       camera->add_component(camera->key_comp_);
@@ -32,6 +32,11 @@ class virtual_camera : public game::actor
     }
     virtual_camera() = default;
     ~virtual_camera() = default;
+
+    void update_frustum_planes()
+    {
+      wire_frustum_comp_->update_frustum_planes(*get_transform_sp());
+    }
 
     // getter
     const geometry::perspective_frustum& get_perspective_frustum() { return wire_frustum_comp_->get_perspective_frustum(); }
@@ -71,6 +76,9 @@ class view_frustum_culling : public game::engine
 
     void update_game(float dt) override
     {
+      // TODO : auto-update
+      virtual_camera_->update_frustum_planes();
+      // virtual frustum culling
       const auto& frustum = virtual_camera_->get_perspective_frustum();
       for (auto& meshlet : meshlet_actors_) {
         const auto& sphere = meshlet->get_bounding_volume();

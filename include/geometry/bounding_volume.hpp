@@ -66,6 +66,7 @@ class bounding_volume
     void set_aabb_radius(const vec3& radius)                     { radius_ = radius; }
     void set_sphere_radius(const double radius)                  { radius_.x() = radius; }
     void set_transform(const s_ptr<utils::transform>& transform) { transform_ = transform; }
+    void flip_center_point_y_coordinate()                        { center_point_.y() *= -1; }
   private:
     bv_type bv_type_;
     vec3 center_point_;
