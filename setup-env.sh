@@ -43,3 +43,6 @@ if [ "$(uname)" == 'Darwin' ]; then
   X11_VERSION=`ls ${BREW_PREFIX}/Cellar/libx11`
   export X11_DIR=${BREW_PREFIX}/Cellar/libx11/${X11_DIR}
 fi
+
+# compile shaders
+source ${HNLL_ENGN}/modules/graphics/compile.sh

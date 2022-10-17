@@ -1,7 +1,6 @@
 #version 450
 
-layout(location = 0) in vec3 near_point;
-layout(location = 1) in vec3 far_point;
+layout(location = 0) in vec3 vertex_position;
 
 layout(location = 0) out vec4 out_color;
 
@@ -46,9 +45,28 @@ float compute_depth(vec3 pos) {
   return (clip_space_pos.z / clip_space_pos.w);
 }
 
+const float near = 0.01;
+const float far  = 100;
+
+float compute_linear_depth(vec3 pos) {
+  vec4 clip_space_pos = ubo.projection * ubo.view * vec4(pos.xyz, 1.0);
+  float clip_space_depth = (clip_space_pos.z / clip_space_pos.w) * 2.0 - 1.0;
+  float linear_depth = (2.0 * near * far) / (far + near - clip_space_depth * (far - near));
+  return linear_depth / far;
+}
+
+const float scale = 500.0;
+
 void main() {
-  float t = near_point.y / (far_point.y - near_point.y);
-  vec3 frag_pos_3d = near_point + t * (far_point - near_point);
+  out_color = vec4(1, 0, 0, 1);
+
+  vec3 frag_pos_3d = vertex_position;
+  
   gl_FragDepth = compute_depth(frag_pos_3d);
-  out_color = grid(frag_pos_3d, 1, true) * float(t > 0);
+  
+  float linear_depth = compute_linear_depth(frag_pos_3d);
+  float fading = max(0, (0.5 - linear_depth));
+
+  out_color = grid(frag_pos_3d, 1, true);
+  out_color.a *= fading;
 }
