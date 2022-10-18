@@ -136,6 +136,7 @@ class view_frustum_culling : public game::engine
 
       // virtual frustum culling
       active_triangle_count_ = 0;
+      whole_triangle_count_  = 0;
       const auto& frustum = virtual_camera_->get_perspective_frustum();
       for (auto& owner : meshlet_owners_) {
         for (auto& meshlet : owner->get_meshlet_actors_ref()) {
@@ -145,6 +146,7 @@ class view_frustum_culling : public game::engine
             obj->set_should_not_be_drawn();
           }
           else active_triangle_count_ += obj->get_face_count();
+          whole_triangle_count_ += obj->get_face_count();
         }
       }
     }
@@ -153,6 +155,8 @@ class view_frustum_culling : public game::engine
     {
       ImGui::Begin("d");
         ImGui::Text("active triangle count: %d", active_triangle_count_);
+        ImGui::Text("whole triangle count: %d", whole_triangle_count_);
+        ImGui::Text("active triangle percentage: %.f", float(active_triangle_count_) / float(whole_triangle_count_) * 100.f);
 
         if (ImGui::Button("change key move target")) {
           if (camera_up_->is_movement_updating()) {
@@ -190,6 +194,7 @@ class view_frustum_culling : public game::engine
     s_ptr<virtual_camera> virtual_camera_;
     std::vector<s_ptr<meshlet_owner>> meshlet_owners_;
     unsigned active_triangle_count_;
+    unsigned whole_triangle_count_;
 };
 
 }
