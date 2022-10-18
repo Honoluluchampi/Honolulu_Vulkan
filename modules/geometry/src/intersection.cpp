@@ -88,7 +88,10 @@ bool intersection::test_aabb_sphere(const bounding_volume &aabb, const bounding_
 bool intersection::test_sphere_frustum(const geometry::bounding_volume &sphere, const perspective_frustum &frustum)
 {
   const auto  center = sphere.get_world_center_point();
-  const auto  radius = sphere.get_sphere_radius();
+//  const auto  radius = sphere.get_sphere_radius();
+
+  auto radii = sphere.get_aabb_radius();
+  auto radius = std::sqrt(std::pow(radii.x(), 2) + std::pow(radii.y(), 2) + std::pow(radii.z(), 2));
 
   // TODO : simdlize
   // compare each distance with sphere radius;

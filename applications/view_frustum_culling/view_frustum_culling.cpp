@@ -117,8 +117,8 @@ class view_frustum_culling : public game::engine
 
     view_frustum_culling() : game::engine("view_frustum_culling")
     {
-      auto geometry = geometry::mesh_model::create_from_obj_file("light_bunny.obj");
-      auto meshlets = geometry::mesh_separation::separate(geometry);
+      auto geometry = geometry::mesh_model::create_from_obj_file("bunny.obj");
+      auto meshlets = geometry::mesh_separation::separate(geometry, geometry::mesh_separation::criterion::MINIMIZE_BOUNDING_SPHERE);
 
       for (const auto& translation : translations) {
         auto meshlet_owne = std::make_shared<meshlet_owner>();
@@ -151,6 +151,15 @@ class view_frustum_culling : public game::engine
       }
     }
 
+    void rotate_actors(const glm::vec3& rotation)
+    {
+      for (auto& owner : meshlet_owners_) {
+        for (auto& meshlet : owner->get_meshlet_actors_ref()) {
+          meshlet->set_rotation(rotation);
+        }
+      }
+    }
+
     void update_game_gui() override
     {
       ImGui::Begin("d");
@@ -168,6 +177,13 @@ class view_frustum_culling : public game::engine
             virtual_camera_->set_movement_updating_off();
           }
         }
+
+        if (ImGui::Button("front"))  { rotate_actors({M_PI, 0.f, 0.f}); }
+        if (ImGui::Button("back"))   { rotate_actors({0.f, 0.f, 0.f}); }
+        if (ImGui::Button("right"))  { rotate_actors({M_PI, M_PI / 2.f, 0.f}); }
+        if (ImGui::Button("left"))   { rotate_actors({M_PI, -M_PI / 2.f, 0.f}); }
+        if (ImGui::Button("top"))    { rotate_actors({1.5 * M_PI, 0.f, 0.f}); }
+        if (ImGui::Button("bottom")) { rotate_actors({M_PI / 2.f, 0.f, 0.f}); }
       ImGui::End();
     }
   private:
