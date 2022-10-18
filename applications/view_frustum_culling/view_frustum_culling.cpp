@@ -78,30 +78,36 @@ class view_frustum_culling : public game::engine
     {
       // TODO : auto-update
       virtual_camera_->update_frustum_planes();
+
       // virtual frustum culling
+      active_triangle_count_ = 0;
       const auto& frustum = virtual_camera_->get_perspective_frustum();
       for (auto& meshlet : meshlet_actors_) {
         const auto& sphere = meshlet->get_bounding_volume();
+        auto obj = dynamic_cast<hnll::game::mesh_component*>(meshlet->get_renderable_component_sp().get());
         if (!geometry::intersection::test_sphere_frustum(sphere, frustum)) {
-          auto obj = dynamic_cast<hnll::game::mesh_component*>(meshlet->get_renderable_component_sp().get());
           obj->set_should_not_be_drawn();
         }
+        else active_triangle_count_ += obj->get_face_count();
       }
+
     }
 
     void update_game_gui() override
     {
       ImGui::Begin("d");
-      if (ImGui::Button("change key move target")) {
-        if (camera_up_->is_movement_updating()) {
-          camera_up_->set_movement_updating_off();
-          virtual_camera_->set_movement_updating_on();
+        ImGui::Text("active triangle count: %d", active_triangle_count_);
+
+        if (ImGui::Button("change key move target")) {
+          if (camera_up_->is_movement_updating()) {
+            camera_up_->set_movement_updating_off();
+            virtual_camera_->set_movement_updating_on();
+          }
+          else {
+            camera_up_->set_movement_updating_on();
+            virtual_camera_->set_movement_updating_off();
+          }
         }
-        else {
-          camera_up_->set_movement_updating_on();
-          virtual_camera_->set_movement_updating_off();
-        }
-      }
       ImGui::End();
     }
   private:
@@ -146,6 +152,7 @@ class view_frustum_culling : public game::engine
     }
     s_ptr<virtual_camera> virtual_camera_;
     std::vector<s_ptr<meshlet_actor>> meshlet_actors_;
+    unsigned active_triangle_count_;
 };
 
 }

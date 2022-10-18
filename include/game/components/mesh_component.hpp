@@ -30,7 +30,8 @@ class mesh_component : public renderable_component
 
     // getter
     s_ptr<hnll::graphics::mesh_model>& get_model_sp() { return model_sp_; }
-    bool get_should_be_drawn() const { return should_be_drawn_; }
+    bool get_should_be_drawn() const                  { return should_be_drawn_; }
+    unsigned get_face_count() const                   { return model_sp_->get_face_count(); }
     // setter
     void set_mesh_model(s_ptr<hnll::graphics::mesh_model>&& model) { model_sp_ = std::move(model); }
     void set_should_be_drawn()     { should_be_drawn_ = true; }

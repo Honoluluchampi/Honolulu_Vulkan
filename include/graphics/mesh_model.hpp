@@ -75,9 +75,9 @@ class mesh_model
     // setter
     bool has_index_buffer() const { return had_index_buffer_; }
     // getter
-    const std::vector<vertex>& get_vertex_list() const { return vertex_list_; }
+    const std::vector<vertex>&   get_vertex_list() const { return vertex_list_; }
     std::vector<Eigen::Vector3d> get_vertex_position_list() const;
-
+    unsigned                     get_face_count() const { return index_count_ / 3; }
   private:
     void create_vertex_buffers(const std::vector<vertex> &vertices);
     void create_index_buffers(const std::vector<uint32_t> &indices);
