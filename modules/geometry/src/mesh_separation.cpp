@@ -271,7 +271,6 @@ s_ptr<meshlet> recreate_meshlet(const s_ptr<meshlet>& old_mesh)
     new_mesh->add_face(v0, v1, v2);
   }
   auto bv = old_mesh->get_ownership_of_bounding_volume();
-  bv->flip_center_point_y_coordinate();
   new_mesh->set_bounding_volume(std::move(bv));
   return new_mesh;
 }

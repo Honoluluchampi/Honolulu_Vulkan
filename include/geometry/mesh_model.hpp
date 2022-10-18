@@ -58,6 +58,7 @@ class mesh_model
     s_ptr<vertex>    get_vertex(const vertex_id id) { return vertex_map_[id]; }
     s_ptr<half_edge> get_half_edge(const s_ptr<vertex>& v0, const s_ptr<vertex>& v1);
     const bounding_volume& get_bounding_volume() const;
+    u_ptr<bounding_volume> get_bounding_volume_copy() const;
     u_ptr<bounding_volume> get_ownership_of_bounding_volume();
 
     // setter

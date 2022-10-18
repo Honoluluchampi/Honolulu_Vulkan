@@ -49,12 +49,12 @@ class bounding_volume
     // getter
     inline bv_type get_bv_type() const      { return bv_type_; }
     // TODO : auto update for every member function
-    inline vec3 get_world_center_point() const { return transform_->get_translation_eigen() + center_point_;}
+    inline vec3 get_world_center_point() const { return transform_->rotate_mat3() * center_point_ + transform_->get_translation_eigen(); }
     inline vec3 get_local_center_point() const { return center_point_; }
-    inline vec3 get_aabb_radius() const     { return radius_; }
-    inline double get_sphere_radius() const { return radius_.x(); }
-    inline bool is_sphere() const           { return bv_type_ == bv_type::SPHERE; }
-    inline bool is_aabb() const             { return bv_type_ == bv_type::AABB; }
+    inline vec3 get_aabb_radius()        const { return radius_; }
+    inline double get_sphere_radius()    const { return radius_.x(); }
+    inline bool is_sphere()              const { return bv_type_ == bv_type::SPHERE; }
+    inline bool is_aabb()                const { return bv_type_ == bv_type::AABB; }
     // aabb getter
     inline double get_max_x() const { return center_point_.x() + radius_.x(); }
     inline double get_min_x() const { return center_point_.x() - radius_.x(); }
@@ -68,11 +68,9 @@ class bounding_volume
     void set_aabb_radius(const vec3& radius)                     { radius_ = radius; }
     void set_sphere_radius(const double radius)                  { radius_.x() = radius; }
     void set_transform(const s_ptr<utils::transform>& transform) { transform_ = transform; }
-    void flip_center_point_y_coordinate()                        { center_point_.y() *= -1; }
   private:
     bv_type bv_type_;
     vec3 center_point_;
-    vec3 original_center_point_;
     // if bv_type == SPHERE, only radius_.x() is valid.
     vec3 radius_;
     s_ptr<utils::transform> transform_;
