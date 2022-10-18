@@ -128,9 +128,9 @@ double compute_loss_function_for_sphere(const bounding_volume& current_sphere, c
 {
   auto he = new_face->half_edge_;
   auto radius2 = std::pow(current_sphere.get_sphere_radius(), 2);
-  radius2 = std::max(radius2, calc_dist(current_sphere.get_center_point(), he->get_vertex()->position_));
-  radius2 = std::max(radius2, calc_dist(current_sphere.get_center_point(), he->get_next()->get_vertex()->position_));
-  radius2 = std::max(radius2, calc_dist(current_sphere.get_center_point(), he->get_next()->get_next()->get_vertex()->position_));
+  radius2 = std::max(radius2, calc_dist(current_sphere.get_world_center_point(), he->get_vertex()->position_));
+  radius2 = std::max(radius2, calc_dist(current_sphere.get_world_center_point(), he->get_next()->get_vertex()->position_));
+  radius2 = std::max(radius2, calc_dist(current_sphere.get_world_center_point(), he->get_next()->get_next()->get_vertex()->position_));
   return radius2;
 }
 
@@ -193,15 +193,15 @@ void update_sphere(bounding_volume& current_sphere, const s_ptr<face>& new_face)
   int far_id = -1;
   auto he = new_face->half_edge_;
   auto radius2 = std::pow(current_sphere.get_sphere_radius(), 2);
-  if (auto dist = calc_dist(current_sphere.get_center_point(), he->get_vertex()->position_); dist > radius2 ){
+  if (auto dist = calc_dist(current_sphere.get_world_center_point(), he->get_vertex()->position_); dist > radius2 ){
     radius2 = dist;
     far_id = 0;
   }
-  if (auto dist = calc_dist(current_sphere.get_center_point(), he->get_next()->get_vertex()->position_); dist > radius2 ){
+  if (auto dist = calc_dist(current_sphere.get_world_center_point(), he->get_next()->get_vertex()->position_); dist > radius2 ){
     radius2 = dist;
     far_id = 1;
   }
-  if (auto dist = calc_dist(current_sphere.get_center_point(), he->get_next()->get_next()->get_vertex()->position_); dist > radius2 ){
+  if (auto dist = calc_dist(current_sphere.get_world_center_point(), he->get_next()->get_next()->get_vertex()->position_); dist > radius2 ){
     radius2 = dist;
     far_id = 2;
   }
@@ -214,9 +214,10 @@ void update_sphere(bounding_volume& current_sphere, const s_ptr<face>& new_face)
   }
   new_position = he->get_vertex()->position_;
 
-  auto new_center = current_sphere.get_center_point() + (new_position - current_sphere.get_center_point()) / 2.f;
+  auto new_center =
+      current_sphere.get_world_center_point() + (new_position - current_sphere.get_world_center_point()) / 2.f;
   current_sphere.set_center_point(new_center);
-  auto new_radius = current_sphere.get_sphere_radius() + calc_dist(new_position, current_sphere.get_center_point()) / 2.f;
+  auto new_radius = current_sphere.get_sphere_radius() + calc_dist(new_position, current_sphere.get_world_center_point()) / 2.f;
   current_sphere.set_sphere_radius(new_radius);
 }
 

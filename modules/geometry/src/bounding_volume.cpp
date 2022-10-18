@@ -83,14 +83,14 @@ u_ptr<bounding_volume> sphere_from_distant_points(const std::vector<Eigen::Vecto
 
 void extend_sphere_to_point(bounding_volume& sphere, const Eigen::Vector3d& point)
 {
-  auto diff = point - sphere.get_center_point();
+  auto diff = point - sphere.get_world_center_point();
   auto dist2 = diff.dot(diff);
   if (dist2 > sphere.get_sphere_radius() * sphere.get_sphere_radius()) {
     auto dist = std::sqrt(dist2);
     auto new_radius = (sphere.get_sphere_radius() + dist) * 0.5f;
     auto k = (new_radius - sphere.get_sphere_radius()) / dist;
     sphere.set_sphere_radius(new_radius);
-    sphere.set_center_point(sphere.get_center_point() + diff * k);
+    sphere.set_center_point(sphere.get_world_center_point() + diff * k);
   }
 }
 
