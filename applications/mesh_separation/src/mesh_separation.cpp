@@ -14,69 +14,46 @@ using vec3 = Eigen::Vector3d;
 class app : public game::engine
 {
   public:
-    app() : game::engine("mesh_separation")
+   auto add_separated_object(const std::string& filename, geometry::mesh_separation::criterion crtr)
     {
-      // set camera position
-      camera_up_->set_translation(glm::vec3{0.f, 0.f, -10.f});
-      // add light
-      setup_lights();
-      add_separated_object("bunny.obj");
-    }
-    ~app(){}
-
-    void add_bunny()
-    {
-       auto bunny_geometry = geometry::mesh_model::create_from_obj_file("bunny.obj");
-       auto bunny_graphics = graphics::mesh_model::create_from_geometry_mesh_model(get_graphics_device(), bunny_geometry);
-       auto bunny = game::actor::create();
-       auto bunny_mesh_comp = game::mesh_component::create(bunny, std::move(bunny_graphics));
-       game::engine::add_actor(bunny);
-       bunny->set_rotation({M_PI, 0.f, 0.f});
-    }
-
-    void add_separated_object(const std::string& filename)
-    {
+      std::vector<s_ptr<game::actor>> mesh_lets;
       auto sphere_geometry = geometry::mesh_model::create_from_obj_file(filename);
-      auto sphere_meshlets = geometry::mesh_separation::separate(sphere_geometry);
+      auto sphere_meshlets = geometry::mesh_separation::separate(sphere_geometry, crtr);
       for (auto& ml : sphere_meshlets) {
         auto ml_actor = game::actor::create();
         auto ml_graphics = graphics::mesh_model::create_from_geometry_mesh_model(get_graphics_device(), ml);
         auto ml_mesh_comp = game::mesh_component::create(ml_actor, std::move(ml_graphics));
         game::engine::add_actor(ml_actor);
         ml_actor->set_rotation({M_PI, 0.f, 0.f});
+        mesh_lets.push_back(ml_actor);
       }
+      return mesh_lets;
     }
 
-    void add_plane()
+    app() : game::engine("mesh_separation")
     {
-      auto plane_geometry = create_plane_mesh();
-      auto plane_graphics = graphics::mesh_model::create_from_geometry_mesh_model(get_graphics_device(), plane_geometry);
-      auto plane = game::actor::create();
-      auto plane_mesh_comp = game::mesh_component::create(plane, std::move(plane_graphics));
-      game::engine::add_actor(plane);
+      // set camera position
+      camera_up_->set_translation(glm::vec3{0.f, -2.f, -7.f});
+      // add light
+      setup_lights();
+      auto mv = add_separated_object("bunny.obj", hnll::geometry::mesh_separation::criterion::MINIMIZE_BOUNDING_SPHERE);
+//      auto bs = add_separated_object("bunny.obj", hnll::geometry::mesh_separation::criterion::MINIMIZE_BOUNDING_SPHERE);
+
+      for (auto& m : mv) {
+        m->set_rotation({M_PI, -0.25f, 0.f});
+      }
+//      for (auto& b : bs) {
+//        b->set_translation({-2.f, 0.f, 0.f});
+//      }
     }
 
-    s_ptr<geometry::mesh_model> create_plane_mesh()
-    {
-      auto v0 = geometry::vertex::create(vec3(-1.f, 0.f, 1.f));
-      auto v1 = geometry::vertex::create(vec3(-1.f, 0.f, -1.f));
-      auto v2 = geometry::vertex::create(vec3(1.f, 0.f, -1.f));
-      auto v3 = geometry::vertex::create(vec3(1.f, 0.f, 1.f));
-      v0->normal_ = { 0.f, -1.f, 0.f };
-      v1->normal_ = { 0.f, -1.f, 0.f };
-      v2->normal_ = { 0.f, -1.f, 0.f };
-      v3->normal_ = { 0.f, -1.f, 0.f };
-      auto model = geometry::mesh_model::create();
-      model->add_face(v0, v1, v2);
-      model->add_face(v0, v2, v3);
-      return model;
-    }
+    ~app(){}
 
     void setup_lights()
     {
-      float light_intensity = 4.f;
+      float light_intensity = 20.f;
       std::vector<glm::vec3> positions;
-      float position_radius = 4.f;
+      float position_radius = 8.f;
       for (int i = 0; i < 6; i++) {
         positions.push_back({position_radius * std::sin(M_PI/3.f * i), -2.f, position_radius * std::cos(M_PI/3.f * i)});
       }

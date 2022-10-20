@@ -272,8 +272,18 @@ const bounding_volume& mesh_model::get_bounding_volume() const
 u_ptr<bounding_volume> mesh_model::get_ownership_of_bounding_volume()
 { return std::move(bounding_volume_); }
 
+u_ptr<bounding_volume> mesh_model::get_bounding_volume_copy() const
+{
+  auto res = bounding_volume::create_blank_aabb();
+  res->set_bv_type(bounding_volume_->get_bv_type());
+  res->set_center_point(bounding_volume_->get_local_center_point());
+  res->set_aabb_radius(bounding_volume_->get_aabb_radius());
+  return res;
+}
+
 void mesh_model::set_bounding_volume(u_ptr<bounding_volume> &&bv)
 { bounding_volume_ = std::move(bv); }
+
 void mesh_model::set_bv_type(bv_type type)
 { bounding_volume_->set_bv_type(type); }
 

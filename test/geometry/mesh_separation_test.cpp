@@ -5,9 +5,10 @@
 // lib
 #include <gtest/gtest.h>
 
-namespace hnll::geometry {
+namespace hnll::geometry::test {
 
-TEST(mesh_separation, mesh_colorize) {
+
+TEST(mesh_separation, helper_ctor) {
 
 }
 } // namespace hnll::geometry

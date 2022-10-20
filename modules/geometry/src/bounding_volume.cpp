@@ -76,21 +76,21 @@ u_ptr<bounding_volume> sphere_from_distant_points(const std::vector<Eigen::Vecto
 {
   auto separated_idx = most_separated_points_on_aabb(vertices);
   auto center_point = (vertices[separated_idx.first] + vertices[separated_idx.second]) * 0.5f;
-  auto radius = (vertices[separated_idx.first] - center_point).dot(vertices[separated_idx.first] - center_point);
+  double radius = (vertices[separated_idx.first] - center_point).dot(vertices[separated_idx.first] - center_point);
   radius = std::sqrt(radius);
   return std::make_unique<bounding_volume>(center_point, radius);
 }
 
 void extend_sphere_to_point(bounding_volume& sphere, const Eigen::Vector3d& point)
 {
-  auto diff = point - sphere.get_center_point();
+  auto diff = point - sphere.get_world_center_point();
   auto dist2 = diff.dot(diff);
   if (dist2 > sphere.get_sphere_radius() * sphere.get_sphere_radius()) {
     auto dist = std::sqrt(dist2);
     auto new_radius = (sphere.get_sphere_radius() + dist) * 0.5f;
     auto k = (new_radius - sphere.get_sphere_radius()) / dist;
     sphere.set_sphere_radius(new_radius);
-    sphere.set_center_point(sphere.get_center_point() + diff * k);
+    sphere.set_center_point(sphere.get_world_center_point() + diff * k);
   }
 }
 

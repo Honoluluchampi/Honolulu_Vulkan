@@ -31,6 +31,7 @@ struct transform
   // y-z-x tait-brian rotation
   glm::vec3 rotation{};
 
+  const Eigen::Vector3d get_translation_eigen() { return Eigen::Vector3d{translation.x, translation.y, translation.z}; };
   const glm::vec3& get_translation_ref() const { return translation; }
   const glm::vec3& get_scale_ref() const       { return scale; }
   const glm::vec3& get_rotation_ref() const    { return rotation; }

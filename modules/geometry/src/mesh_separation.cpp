@@ -115,7 +115,15 @@ double compute_loss_function(const bounding_volume& current_aabb, const s_ptr<fa
   double min_y = std::min(current_aabb.get_min_y(), face_aabb->get_min_y());
   double max_z = std::max(current_aabb.get_max_z(), face_aabb->get_max_z());
   double min_z = std::min(current_aabb.get_min_z(), face_aabb->get_min_z());
-  return (max_x - min_x) * (max_y - min_y) * (max_z - min_z);
+  auto x_diff = max_x - min_x;
+  auto y_diff = max_y - min_y;
+  auto z_diff = max_z - min_z;
+
+  auto volume = x_diff * y_diff * z_diff;
+
+  auto mean = (x_diff + y_diff + z_diff) / 3.f;
+  auto variance = (std::pow(x_diff - mean, 2) + std::pow(y_diff - mean, 2) + std::pow(z_diff - mean, 2)) / 3.f;
+  return volume + variance;
 }
 
 double calc_dist(const vec3& a, const vec3& b)
@@ -128,9 +136,9 @@ double compute_loss_function_for_sphere(const bounding_volume& current_sphere, c
 {
   auto he = new_face->half_edge_;
   auto radius2 = std::pow(current_sphere.get_sphere_radius(), 2);
-  radius2 = std::max(radius2, calc_dist(current_sphere.get_center_point(), he->get_vertex()->position_));
-  radius2 = std::max(radius2, calc_dist(current_sphere.get_center_point(), he->get_next()->get_vertex()->position_));
-  radius2 = std::max(radius2, calc_dist(current_sphere.get_center_point(), he->get_next()->get_next()->get_vertex()->position_));
+  radius2 = std::max(radius2, calc_dist(current_sphere.get_local_center_point(), he->get_vertex()->position_));
+  radius2 = std::max(radius2, calc_dist(current_sphere.get_local_center_point(), he->get_next()->get_vertex()->position_));
+  radius2 = std::max(radius2, calc_dist(current_sphere.get_local_center_point(), he->get_next()->get_next()->get_vertex()->position_));
   return radius2;
 }
 
@@ -141,8 +149,10 @@ s_ptr<face> choose_the_best_face(const face_map& adjoining_face_map, const bound
   // minimize this loss_value
   double loss_value = 1e9 + 7;
   for (const auto& fc_kv : adjoining_face_map) {
-    if (compute_loss_function(aabb, fc_kv.second) < loss_value)
+    if (auto new_loss = compute_loss_function(aabb, fc_kv.second); new_loss < loss_value) {
+      loss_value = new_loss;
       res = fc_kv.second;
+    }
   }
   return res;
 }
@@ -154,8 +164,10 @@ s_ptr<face> choose_the_best_face_for_sphere(const face_map& adjoining_face_map, 
   // minimize this loss_value
   double loss_value = 1e9 + 7;
   for (const auto& fc_kv : adjoining_face_map) {
-    if (compute_loss_function_for_sphere(sphere, fc_kv.second) < loss_value)
+    if (auto new_loss = compute_loss_function_for_sphere(sphere, fc_kv.second); new_loss < loss_value) {
+      loss_value = new_loss;
       res = fc_kv.second;
+    }
   }
   return res;
 }
@@ -192,17 +204,17 @@ void update_sphere(bounding_volume& current_sphere, const s_ptr<face>& new_face)
   // calc farthest point
   int far_id = -1;
   auto he = new_face->half_edge_;
-  auto radius2 = std::pow(current_sphere.get_sphere_radius(), 2);
-  if (auto dist = calc_dist(current_sphere.get_center_point(), he->get_vertex()->position_); dist > radius2 ){
-    radius2 = dist;
+  auto far_dist2 = std::pow(current_sphere.get_sphere_radius(), 2);
+  if (auto dist = calc_dist(current_sphere.get_local_center_point(), he->get_vertex()->position_); dist > far_dist2 ){
+    far_dist2 = dist;
     far_id = 0;
   }
-  if (auto dist = calc_dist(current_sphere.get_center_point(), he->get_next()->get_vertex()->position_); dist > radius2 ){
-    radius2 = dist;
+  if (auto dist = calc_dist(current_sphere.get_local_center_point(), he->get_next()->get_vertex()->position_); dist > far_dist2 ){
+    far_dist2 = dist;
     far_id = 1;
   }
-  if (auto dist = calc_dist(current_sphere.get_center_point(), he->get_next()->get_next()->get_vertex()->position_); dist > radius2 ){
-    radius2 = dist;
+  if (auto dist = calc_dist(current_sphere.get_local_center_point(), he->get_next()->get_next()->get_vertex()->position_); dist > far_dist2 ){
+    far_dist2 = dist;
     far_id = 2;
   }
 
@@ -214,9 +226,15 @@ void update_sphere(bounding_volume& current_sphere, const s_ptr<face>& new_face)
   }
   new_position = he->get_vertex()->position_;
 
-  auto new_center = current_sphere.get_center_point() + (new_position - current_sphere.get_center_point()) / 2.f;
+  // compute new center and radius
+  auto center = current_sphere.get_local_center_point();
+  auto radius = current_sphere.get_sphere_radius();
+  auto new_dir = (new_position - center).normalized();
+  auto opposite = center - radius * new_dir;
+  auto new_center = 0.5f * (new_position + opposite);
   current_sphere.set_center_point(new_center);
-  auto new_radius = current_sphere.get_sphere_radius() + calc_dist(new_position, current_sphere.get_center_point()) / 2.f;
+
+  auto new_radius = std::sqrt(calc_dist(new_center, new_position));
   current_sphere.set_sphere_radius(new_radius);
 }
 
@@ -269,6 +287,8 @@ s_ptr<meshlet> recreate_meshlet(const s_ptr<meshlet>& old_mesh)
     auto v2 = duplicate_vertex(he->get_next()->get_next()->get_vertex());
     new_mesh->add_face(v0, v1, v2);
   }
+  auto bv = old_mesh->get_ownership_of_bounding_volume();
+  new_mesh->set_bounding_volume(std::move(bv));
   return new_mesh;
 }
 
@@ -281,24 +301,34 @@ std::vector<s_ptr<meshlet>> separate_greedy(const s_ptr<mesh_separation_helper>&
     // compute each meshlet
     // init objects
     s_ptr<meshlet> ml = mesh_model::create();
-//    auto aabb = create_aabb_from_single_face(current_face);
-    auto sphere = create_b_sphere_from_single_face(current_face);
+
+    // change functions depending on the criterion
+    u_ptr<bounding_volume> bv;
+    if (crtr == mesh_separation::criterion::MINIMIZE_VARIATION) bv = create_aabb_from_single_face(current_face);
+    if (crtr == mesh_separation::criterion::MINIMIZE_BOUNDING_SPHERE) bv = create_b_sphere_from_single_face(current_face);
+
     face_map adjoining_face_map {{current_face->id_ ,current_face}};
+
     // meshlet api limitation
     while (ml->get_vertex_count() < mesh_separation::VERTEX_COUNT_PER_MESHLET
         && ml->get_face_count() < mesh_separation::PRIMITIVE_COUNT_PER_MESHLET
         && adjoining_face_map.size() != 0) {
 
       // algorithm dependent part
-      current_face = choose_the_best_face_for_sphere(adjoining_face_map, *sphere);
+      if (crtr == mesh_separation::criterion::MINIMIZE_VARIATION)
+        current_face = choose_the_best_face(adjoining_face_map, *bv);
+      if (crtr == mesh_separation::criterion::MINIMIZE_BOUNDING_SPHERE)
+        current_face = choose_the_best_face_for_sphere(adjoining_face_map, *bv);
       // update each object
       add_face_to_meshlet(current_face, ml);
-//      update_aabb(*aabb, current_face);
-      update_sphere(*sphere, current_face);
+      if (crtr == mesh_separation::criterion::MINIMIZE_VARIATION)
+        update_aabb(*bv, current_face);
+      if (crtr == mesh_separation::criterion::MINIMIZE_BOUNDING_SPHERE)
+        update_sphere(*bv, current_face);
       helper->update_adjoining_face_map(adjoining_face_map, current_face);
       helper->remove_face(current_face->id_);
     }
-    ml->set_bounding_volume(std::move(sphere));
+    ml->set_bounding_volume(std::move(bv));
     meshlets.emplace_back(recreate_meshlet(ml));
     current_face = choose_random_face_from_map(adjoining_face_map);
     if (current_face == nullptr)

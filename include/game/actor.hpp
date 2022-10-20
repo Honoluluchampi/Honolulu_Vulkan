@@ -64,10 +64,12 @@ void update_gui();
     // takes std::shared_ptr<RenderableComponent>
     void set_renderable_component(s_ptr<renderable_component>&& comp);
     void set_renderable_component(const s_ptr<renderable_component>& comp);
-    inline void set_actor_state(state st) { state_ = st; }
-    void set_translation(const glm::vec3& translation) { transform_sp_->translation = translation; }
-    void set_rotation(const glm::vec3& rotation) { transform_sp_->rotation = rotation; }
-    void set_scale(const glm::vec3& scale) { transform_sp_->scale = scale; }
+    void set_transform(const s_ptr<utils::transform>& t) { transform_sp_ = t; }
+    void set_translation(const glm::vec3& translation)   { transform_sp_->translation = translation; }
+    void set_rotation(const glm::vec3& rotation)         { transform_sp_->rotation = rotation; }
+    void set_scale(const glm::vec3& scale)               { transform_sp_->scale = scale; }
+    inline void set_actor_state(state st)                { state_ = st; }
+
   private:
     actor_id id_;
     state state_ = state::ACTIVE;

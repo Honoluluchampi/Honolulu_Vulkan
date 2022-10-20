@@ -34,11 +34,11 @@ class bounding_volume
   public:
     // ctor for aabb
     explicit bounding_volume(const vec3 &center_point = {0.f, 0.f, 0.f}, const vec3& radius = {0.f, 0.f, 0.f})
-        : center_point_(center_point), radius_(radius), bv_type_(bv_type::AABB), transform_(std::make_shared<utils::transform>()) {}
+      : center_point_(center_point), radius_(radius), bv_type_(bv_type::AABB), transform_(std::make_shared<utils::transform>()) {}
 
     // ctor for sphere
     explicit bounding_volume(const vec3 &center_point = {0.f, 0.f, 0.f}, const double radius = 1.f)
-        : center_point_(center_point), radius_(radius, 0.f, 0.f), bv_type_(bv_type::SPHERE), transform_(std::make_shared<utils::transform>()) {}
+      : center_point_(center_point), radius_(radius, 0.f, 0.f), bv_type_(bv_type::SPHERE), transform_(std::make_shared<utils::transform>()) {}
 
     // bounding_volumes are owned only by rigid_component
     static u_ptr<bounding_volume> create_aabb(const std::vector<vec3> &vertices);
@@ -48,11 +48,13 @@ class bounding_volume
 
     // getter
     inline bv_type get_bv_type() const      { return bv_type_; }
-    inline vec3 get_center_point() const    { return center_point_; }
-    inline vec3 get_aabb_radius() const     { return radius_; }
-    inline double get_sphere_radius() const { return radius_.x(); }
-    inline bool is_sphere() const           { return bv_type_ == bv_type::SPHERE; }
-    inline bool is_aabb() const             { return bv_type_ == bv_type::AABB; }
+    // TODO : auto update for every member function
+    inline vec3 get_world_center_point() const { return transform_->rotate_mat3() * center_point_ + transform_->get_translation_eigen(); }
+    inline vec3 get_local_center_point() const { return center_point_; }
+    inline vec3 get_aabb_radius()        const { return radius_; }
+    inline double get_sphere_radius()    const { return radius_.x(); }
+    inline bool is_sphere()              const { return bv_type_ == bv_type::SPHERE; }
+    inline bool is_aabb()                const { return bv_type_ == bv_type::AABB; }
     // aabb getter
     inline double get_max_x() const { return center_point_.x() + radius_.x(); }
     inline double get_min_x() const { return center_point_.x() - radius_.x(); }
