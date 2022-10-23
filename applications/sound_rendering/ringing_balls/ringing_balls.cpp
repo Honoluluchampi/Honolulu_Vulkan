@@ -9,6 +9,7 @@
 #include <game/actors/default_camera.hpp>
 #include <physics/engine.hpp>
 #include <physics/collision_info.hpp>
+#include <physics/collision_detector.hpp>
 
 using namespace hnll;
 
@@ -28,13 +29,14 @@ public:
         // create bounding_sphere
         auto bounding_sphere = hnll::geometry::bounding_volume::create_bounding_sphere
                 (hnll::geometry::bv_ctor_type::RITTER, ball_mesh_vertex_position_list);
-        game::rigid_component::create_from_bounding_volume(*ball, std::move(bounding_sphere));
+        ball->rigid_component_ = game::rigid_component::create_from_bounding_volume(*ball, std::move(bounding_sphere));
 
         ball->position_ = glm::vec3{center_point.x(), center_point.y(), center_point.z()};
         ball->set_translation(glm::vec3{center_point.x(), center_point.y(), center_point.z()});
         ball->velocity_ = {0.f, 0.f, 0.f};
         // register the ball to the engine
         hnll::game::engine::add_actor(ball);
+        physics::collision_detector::add_rigid_component(ball->rigid_component_);
         return ball;
     };
 
@@ -72,13 +74,18 @@ public:
         auto plane_mesh = hnll::game::engine::get_mesh_model_sp("plane");
         auto plane_mesh_vertices = plane_mesh->get_vertex_position_list();
         auto plane_mesh_comp = hnll::game::mesh_component::create(plane, std::move(plane_mesh));
-        plane->bounding_box = hnll::geometry::bounding_volume::create_aabb(plane_mesh_vertices);
+        auto bounding_box = hnll::geometry::bounding_volume::create_aabb(plane_mesh_vertices);
+
+        plane->rigid_component_ = game::rigid_component::create_from_bounding_volume(*plane, std::move(bounding_box));
+
         plane->set_translation({0.f, 1.f, 0.f});
         hnll::game::engine::add_actor(plane);
+        physics::collision_detector::add_rigid_component(plane->rigid_component_);
+
         return plane;
     }
 private:
-    s_ptr<hnll::geometry::bounding_volume> bounding_box = nullptr;
+    s_ptr<game::rigid_component> rigid_component_;
     glm::vec3 position_;
 };
 

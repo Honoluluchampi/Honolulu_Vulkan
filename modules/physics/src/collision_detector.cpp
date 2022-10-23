@@ -13,7 +13,7 @@ std::vector<collision_info> collision_detector::intersection_test()
 {
   std::vector<collision_info> res;
 
-  auto rc_count = rigid_components_.size();
+  int rc_count = rigid_components_.size();
 
   // full search
   for (int i = 0; i < rc_count - 1; i++) {

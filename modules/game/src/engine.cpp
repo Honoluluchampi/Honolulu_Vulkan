@@ -53,6 +53,9 @@ void engine::run()
     glfwPollEvents();
     process_input();
     update();
+    // TODO : implement as physics engine
+    re_update_actors();
+
     render();
   }
   graphics_engine_up_->wait_idle();
@@ -123,7 +126,8 @@ void engine::re_update_actors()
   // actors will be re-updated in this function
   auto collision_info_list = physics::collision_detector::intersection_test();
   for (const auto& info : collision_info_list) {
-
+    active_actor_map_[info.actor_a_]->re_update(info);
+    active_actor_map_[info.actor_b_]->re_update(info);
   }
 }
 
