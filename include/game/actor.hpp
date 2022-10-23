@@ -43,7 +43,7 @@ class actor
     // for specific update
     virtual void update_actor(float dt) {}
     // for collision detection
-    virtual void re_update(physics::collision_info&& info);
+    virtual void re_update(const physics::collision_info& info);
 
 #ifndef IMGUI_DISABLED
 void update_gui();

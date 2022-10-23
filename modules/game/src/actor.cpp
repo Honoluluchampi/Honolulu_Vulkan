@@ -35,7 +35,7 @@ for (const auto& comp : shared_components_)
   comp->update(dt);
 }
 
-void actor::re_update(physics::collision_info &&info) {}
+void actor::re_update(const physics::collision_info &info) {}
 
 #ifndef IMGUI_DISABLED
  void actor::update_gui()

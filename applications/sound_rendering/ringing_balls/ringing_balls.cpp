@@ -2,66 +2,121 @@
 #include <game/components/audio_component.hpp>
 #include <game/actor.hpp>
 #include <game/engine.hpp>
+#include <game/components/rigid_component.hpp>
+#include <geometry/bounding_volume.hpp>
+#include <game/components/mesh_component.hpp>
+#include <game/components/point_light_component.hpp>
+#include <game/actors/default_camera.hpp>
+#include <physics/engine.hpp>
+#include <physics/collision_info.hpp>
 
-namespace hnll {
+using namespace hnll;
 
-class ringing_ball : public game::actor
+class rigid_ball : public hnll::game::actor
 {
-  public:
-    s_ptr<ringing_ball> create()
+public:
+    rigid_ball(const Eigen::Vector3d& center_point, double radius) : hnll::game::actor(){}
+
+    static s_ptr<rigid_ball> create(const Eigen::Vector3d& center_point, double radius)
     {
+        // create ball actor and its mesh
+        auto ball = std::make_shared<rigid_ball>(center_point, radius);
+        auto ball_mesh = hnll::game::engine::get_mesh_model_sp("sphere");
+        auto ball_mesh_vertex_position_list = ball_mesh->get_vertex_position_list();
+        auto ball_mesh_comp = hnll::game::mesh_component::create(ball, std::move(ball_mesh));
 
-    }
-    ringing_ball()
+        // create bounding_sphere
+        auto bounding_sphere = hnll::geometry::bounding_volume::create_bounding_sphere
+                (hnll::geometry::bv_ctor_type::RITTER, ball_mesh_vertex_position_list);
+        game::rigid_component::create_from_bounding_volume(*ball, std::move(bounding_sphere));
+
+        ball->position_ = glm::vec3{center_point.x(), center_point.y(), center_point.z()};
+        ball->set_translation(glm::vec3{center_point.x(), center_point.y(), center_point.z()});
+        ball->velocity_ = {0.f, 0.f, 0.f};
+        // register the ball to the engine
+        hnll::game::engine::add_actor(ball);
+        return ball;
+    };
+
+    void update_actor(float dt) override
     {
-
+        position_ += velocity_ * dt;
+        velocity_.y += gravity_ * dt;
+        this->set_translation(position_);
     }
-  private:
-    std::vector<short> create_sound(double force)
+
+    // this update function is invoked if collision_detector detects collision with other component (plane in this situation)
+    void re_update(const hnll::physics::collision_info& info) override
     {
-      std::vector<short> raw_audio;
-      float duration = force * max_duration_;
-      float pitch    = force * max_pitch_;
-
-      raw_audio.resize(static_cast<size_t>(frequency_ * duration));
-      for (int i = 0; i < raw_audio.size(); i++) {
-        raw_audio[i] = std::sin(pitch * M_PI * 2.0 * i / frequency_)
-          * std::numeric_limits<ALshort>::max();
-      }
-
-      return raw_audio;
+        position_.y *= -1;
+        velocity_.y = -velocity_.y * restitution_;
+        this->set_translation(position_);
     }
-    static uint32_t frequency_;
-    static float    max_duration_;
-    static float    max_pitch_;
-    u_ptr<game::audio_component> audio_component_;
+
+private:
+    glm::vec3 position_;
+    glm::vec3 velocity_;
+    double gravity_ = 40.f;
+    double restitution_ = 0.5;
+    s_ptr<hnll::game::rigid_component> rigid_component_;
 };
 
-uint32_t ringing_ball::frequency_    = 44100;
-float    ringing_ball::max_duration_ = 0.5f;
-float    ringing_ball::max_pitch_    = 1000.f;
-
-class app : public game::engine
+// plate is bounding box of which thickness is 0.
+class rigid_plane : public hnll::game::actor
 {
-  public:
-    app() {
+public:
+    rigid_plane() : actor(){}
+    static s_ptr<rigid_plane> create()
+    {
+        auto plane = std::make_shared<rigid_plane>();
+        auto plane_mesh = hnll::game::engine::get_mesh_model_sp("plane");
+        auto plane_mesh_vertices = plane_mesh->get_vertex_position_list();
+        auto plane_mesh_comp = hnll::game::mesh_component::create(plane, std::move(plane_mesh));
+        plane->bounding_box = hnll::geometry::bounding_volume::create_aabb(plane_mesh_vertices);
+        plane->set_translation({0.f, 1.f, 0.f});
+        hnll::game::engine::add_actor(plane);
+        return plane;
     }
-  private:
-    void setup_default_sound()
+private:
+    s_ptr<hnll::geometry::bounding_volume> bounding_box = nullptr;
+    glm::vec3 position_;
+};
+
+class falling_ball_app : public hnll::game::engine
+{
+public:
+    falling_ball_app() : hnll::game::engine("falling ball")
+    {
+        // set camera position
+        camera_up_->set_translation(glm::vec3{0.f, 0.f, -20.f});
+        // add light
+        auto light = hnll::game::actor::create();
+        auto light_component = hnll::game::point_light_component::create(light, 100.f);
+        add_point_light(light, light_component);
+        light->set_translation({0.f, -20.f, 0.f});
+        // add rigid ball
+        auto ball = rigid_ball::create({0.f, -5.f, 0.f}, 1.f);
+        // add plane
+        auto rigid_plane = rigid_plane::create();
+    }
+
+    void update_game(float dt) override
     {
 
     }
+
+private:
+    hnll::physics::engine physics_engine_{};
 };
 
 int main()
 {
-  app app{};
-  try { app.run(); }
-  catch (const std::exception& e){
-    std::cerr << e.what() << std::endl;
-    return EXIT_FAILURE;
-  }
-  return EXIT_SUCCESS;
-}
+    falling_ball_app app{};
+    try { app.run(); }
+    catch (const std::exception& e) {
+        std::cerr << e.what() << '\n';
+        return EXIT_FAILURE;
+    }
 
-} // namespace hnll
+    return EXIT_SUCCESS;
+}

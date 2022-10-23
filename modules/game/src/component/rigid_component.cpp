@@ -6,7 +6,7 @@
 
 namespace hnll::game {
 
-s_ptr<rigid_component> rigid_component::create_with_aabb(s_ptr<actor>& owner, const s_ptr<hnll::game::mesh_component>& mesh_component)
+s_ptr<rigid_component> rigid_component::create_with_aabb(actor& owner, const s_ptr<hnll::game::mesh_component>& mesh_component)
 {
   auto mesh_vertices = mesh_component->get_model_sp()->get_vertex_position_list();
   auto bv = geometry::bounding_volume::create_aabb(mesh_vertices);
@@ -18,7 +18,7 @@ s_ptr<rigid_component> rigid_component::create_with_aabb(s_ptr<actor>& owner, co
   return rc;
 }
 
-s_ptr<rigid_component> rigid_component::create_with_b_sphere(s_ptr<actor>& owner, const s_ptr<game::mesh_component>& mesh_component)
+s_ptr<rigid_component> rigid_component::create_with_b_sphere(actor& owner, const s_ptr<game::mesh_component>& mesh_component)
 {
   auto mesh_vertices = mesh_component->get_model_sp()->get_vertex_position_list();
   auto bv = geometry::bounding_volume::create_bounding_sphere(geometry::bv_ctor_type::RITTER, mesh_vertices);
@@ -28,14 +28,14 @@ s_ptr<rigid_component> rigid_component::create_with_b_sphere(s_ptr<actor>& owner
   return rc;
 }
 
-s_ptr<rigid_component> rigid_component::create_from_bounding_volume(s_ptr<actor>& owner, u_ptr<geometry::bounding_volume>&& bv)
+s_ptr<rigid_component> rigid_component::create_from_bounding_volume(actor& owner, u_ptr<geometry::bounding_volume>&& bv)
 {
   auto rc = std::make_shared<rigid_component>(owner);
   rc->set_bounding_volume(std::move(bv));
   return rc;
 }
 
-s_ptr<rigid_component> rigid_component::create(s_ptr<actor>& owner, const std::vector<vec3>& positions, geometry::bv_type type)
+s_ptr<rigid_component> rigid_component::create(actor& owner, const std::vector<vec3>& positions, geometry::bv_type type)
 {
   auto rc = std::make_shared<rigid_component>(owner);
   u_ptr<geometry::bounding_volume> bv;
@@ -48,16 +48,14 @@ s_ptr<rigid_component> rigid_component::create(s_ptr<actor>& owner, const std::v
   return rc;
 }
 
-rigid_component::rigid_component(s_ptr<actor>& owner) : component()
+rigid_component::rigid_component(actor& owner) : component()
 {
-  this->owner_ = owner;
-  // use same transform as owner's
-  this->transform_sp_ = owner->get_transform_sp();
-}
+  static rigid_component_id id = 0;
 
-void rigid_component::re_update_owner(physics::collision_info&& info)
-{
-  owner_->re_update(std::move(info));
+  this->rigid_component_id_ = id++;
+  this->owner_id_ = owner.get_id();
+  // use same transform as owner's
+  this->transform_sp_ = owner.get_transform_sp();
 }
 
 } // namespace hnll::game

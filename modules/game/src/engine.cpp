@@ -4,6 +4,7 @@
 #include <game/actors/point_light_manager.hpp>
 #include <game/actors/default_camera.hpp>
 #include <game/components/mesh_component.hpp>
+#include <physics/collision_info.hpp>
 
 // lib
 #include <imgui.h>
@@ -114,6 +115,14 @@ void engine::update()
   dead_actor_ids_.clear();
 }
 
+
+// physics
+void engine::re_update_actors(const physics::collision_info& info)
+{
+  active_actor_map_[info.actor_a_]->re_update(info);
+  active_actor_map_[info.actor_b_]->re_update(info);
+}
+
 void engine::render()
 {
   graphics_engine_up_->render(camera_up_->get_viewer_info());
@@ -187,9 +196,6 @@ void engine::load_actor()
   auto smooth_vase_mesh_model = mesh_model_map_["sphere"];
   auto smooth_vase_model_comp = mesh_component::create(smooth_vase, std::move(smooth_vase_mesh_model));
   smooth_vase->set_translation(glm::vec3{0.f, 0.f, 3.f});
-
-  // temporary
-  hieModelID_ = smooth_vase->get_id();
 
   auto flat_vase = actor::create();
   auto flat_vase_mesh_model = mesh_model_map_["flat_vase"];

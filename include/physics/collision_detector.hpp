@@ -10,7 +10,10 @@ template <typename T> using u_ptr = std::unique_ptr<T>;
 template <typename T> using s_ptr = std::shared_ptr<T>;
 
 // forward declaration
-namespace game { class rigid_component; }
+namespace game {
+class rigid_component;
+using rigid_component_id = unsigned;
+}
 
 namespace physics {
 

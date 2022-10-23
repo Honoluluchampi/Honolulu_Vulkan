@@ -7,7 +7,6 @@
 
 // lib
 #include <GLFW/glfw3.h>
-// #include <X11/extensions/XTest.h>
 
 //std
 #include <chrono>
@@ -16,121 +15,157 @@
 #include <unordered_map>
 #include <string>
 
-namespace hnll::game {
+namespace hnll {
+
+// forward declaration
+namespace physics { class collision_info; }
+
+namespace game {
 
 // forward declaration
 class actor;
+
 class default_camera;
+
 class point_light_manager;
+
 class point_light_component;
 
 using actor_id = unsigned int;
 using actor_map = std::unordered_map<actor_id, s_ptr<actor>>;
 using mesh_model_map = std::unordered_map<std::string, s_ptr<hnll::graphics::mesh_model>>;
 
-class engine
-{
-public:
-  engine(const char* windowName = "honolulu engine");
-  virtual ~engine() = default;
-  // delete copy ctor
-  engine(const engine &) = delete;
-  engine& operator=(const engine &) = delete;
+class engine {
+  public:
+    engine(const char *windowName = "honolulu engine");
 
-  bool initialize();
-  void run();
+    virtual ~engine() = default;
 
-  static void add_actor(const s_ptr<actor>& actor);
-  // void add_actor(s_ptr<actor>&& actor);
-  void remove_actor(actor_id id);
+    // delete copy ctor
+    engine(const engine &) = delete;
 
-  // takes s_ptr<renderable_component>
-  template <class S>
-  void set_renderable_component(S&& comp) { graphics_engine_up_->set_renderable_component(std::forward<S>(comp)); }
-  template <class S> 
-  void replace_renderable_component(S&& comp) { graphics_engine_up_->replace_renderable_component(std::forward<S>(comp)); }
-  void remove_renderable_component(render_type type, component_id id) { graphics_engine_up_->remove_renderable_component_without_owner(type, id); }
+    engine &operator=(const engine &) = delete;
 
-  void add_point_light(s_ptr<actor>& owner, s_ptr<point_light_component>& light_comp);
-  // TODO : delete this func
-  void add_point_light_without_owner(const s_ptr<point_light_component>& light_comp);
-  void remove_point_light_without_owner(component_id id);
+    bool initialize();
 
-  // getter
-  hnll::graphics::engine& get_graphics_engine() { return *graphics_engine_up_; }
-  hnll::graphics::device& get_graphics_device() { return graphics_engine_up_->get_device(); }
-  static s_ptr<hnll::graphics::mesh_model> get_mesh_model_sp(std::string model_name) { return mesh_model_map_[model_name]; }
+    void run();
 
-#ifndef IMGUI_DISABLED
-  u_ptr<hnll::gui::engine>& get_gui_engine_up() { return gui_engine_up_; }
-#endif
-  // move u_ptr<func> before add
-  static void add_glfw_mouse_button_callback(u_ptr<std::function<void(GLFWwindow*, int, int, int)>>&& func);
+    static void add_actor(const s_ptr<actor> &actor);
 
-  // X11
-  // static Display* x11Display() { return display_; }
-protected:
-  // TODO : remove static
-  static GLFWwindow* glfw_window_;
-  // hge actors
-  s_ptr<default_camera> camera_up_;
-  s_ptr<point_light_manager> light_manager_up_;
+    // void add_actor(s_ptr<actor>&& actor);
+    void remove_actor(actor_id id);
 
-private:
-  inline void set_glfw_window() { glfw_window_ = graphics_engine_up_->get_glfw_window() ; }
-  void cleanup();
-  void process_input();
-  void update();
-  // engine spacific update
-  virtual void update_game(float dt){}
-  void render();
+    // takes s_ptr<renderable_component>
+    template<class S>
+    void set_renderable_component(S &&comp) { graphics_engine_up_->set_renderable_component(std::forward<S>(comp)); }
+
+    template<class S>
+    void replace_renderable_component(S &&comp) {
+      graphics_engine_up_->replace_renderable_component(std::forward<S>(comp));
+    }
+
+    void remove_renderable_component(render_type type, component_id id) {
+      graphics_engine_up_->remove_renderable_component_without_owner(type, id);
+    }
+
+    void add_point_light(s_ptr<actor> &owner, s_ptr<point_light_component> &light_comp);
+
+    // TODO : delete this func
+    void add_point_light_without_owner(const s_ptr<point_light_component> &light_comp);
+
+    void remove_point_light_without_owner(component_id id);
+
+    // getter
+    hnll::graphics::engine &get_graphics_engine() { return *graphics_engine_up_; }
+
+    hnll::graphics::device &get_graphics_device() { return graphics_engine_up_->get_device(); }
+
+    static s_ptr<hnll::graphics::mesh_model>
+    get_mesh_model_sp(std::string model_name) { return mesh_model_map_[model_name]; }
 
 #ifndef IMGUI_DISABLED
-  void update_gui();
-  virtual void update_game_gui(){}
+
+    u_ptr<hnll::gui::engine> &get_gui_engine_up() { return gui_engine_up_; }
+
 #endif
 
-  // init 
-  void init_actors();
-  void load_data();
-  virtual void load_actor();
+    // move u_ptr<func> before add
+    static void add_glfw_mouse_button_callback(u_ptr<std::function<void(GLFWwindow *, int, int, int)>> &&func);
 
-  void unload_data();
-  // load all models in modleDir
-  // use filenames as the key of the map
-  void load_mesh_models(const std::string& modelDir = "/models");
+    // TODO : implement as physics engine
+    void re_update_actors(const physics::collision_info& info);
 
-  // glfw
-  static void set_glfw_mouse_button_callbacks();
-  static void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+  protected:
+    // TODO : remove static
+    static GLFWwindow *glfw_window_;
+    // hge actors
+    s_ptr<default_camera> camera_up_;
+    s_ptr<point_light_manager> light_manager_up_;
 
-  actor_map active_actor_map_;
-  static actor_map pending_actor_map_;
-  std::vector<actor_id> dead_actor_ids_;
+  private:
+    inline void set_glfw_window() { glfw_window_ = graphics_engine_up_->get_glfw_window(); }
 
-  u_ptr<hnll::graphics::engine> graphics_engine_up_;
+    void cleanup();
+
+    void process_input();
+
+    void update();
+
+    // engine spacific update
+    virtual void update_game(float dt) {}
+
+    void render();
 
 #ifndef IMGUI_DISABLED
-  u_ptr<hnll::gui::engine> gui_engine_up_;
+
+    void update_gui();
+
+    virtual void update_game_gui() {}
+
 #endif
 
-  // map of mesh_model contains raw vulkan buffer of its model
-  // shared by engine and some modelComponents
-  // pool all models which could be necessary
-  static mesh_model_map mesh_model_map_;
-  // map of mesh_model_info contains
+    // init
+    void init_actors();
 
-  bool is_updating_ = false; // for update
-  bool is_running_ = false; // for run loop
+    void load_data();
 
-  std::chrono::system_clock::time_point current_time_;
+    virtual void load_actor();
 
-  // temp
-  actor_id hieModelID_;
+    void unload_data();
 
-  // glfw
-  static std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> 
-    glfw_mouse_button_callbacks_;
+    // load all models in modleDir
+    // use filenames as the key of the map
+    void load_mesh_models(const std::string &modelDir = "/models");
+
+    // glfw
+    static void set_glfw_mouse_button_callbacks();
+
+    static void glfw_mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
+
+    actor_map active_actor_map_;
+    static actor_map pending_actor_map_;
+    std::vector<actor_id> dead_actor_ids_;
+
+    u_ptr<hnll::graphics::engine> graphics_engine_up_;
+
+#ifndef IMGUI_DISABLED
+    u_ptr<hnll::gui::engine> gui_engine_up_;
+#endif
+
+    // map of mesh_model contains raw vulkan buffer of its model
+    // shared by engine and some modelComponents
+    // pool all models which could be necessary
+    static mesh_model_map mesh_model_map_;
+    // map of mesh_model_info contains
+
+    bool is_updating_ = false; // for update
+    bool is_running_ = false; // for run loop
+
+    std::chrono::system_clock::time_point current_time_;
+
+    // glfw
+    static std::vector<u_ptr<std::function<void(GLFWwindow *, int, int, int)>>>
+        glfw_mouse_button_callbacks_;
 };
 
-} // namespace hnll::game
+}} // namespace hnll::game
