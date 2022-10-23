@@ -5,6 +5,7 @@
 #include <game/actors/default_camera.hpp>
 #include <game/components/mesh_component.hpp>
 #include <physics/collision_info.hpp>
+#include <physics/collision_detector.hpp>
 
 // lib
 #include <imgui.h>
@@ -117,10 +118,13 @@ void engine::update()
 
 
 // physics
-void engine::re_update_actors(const physics::collision_info& info)
+void engine::re_update_actors()
 {
-  active_actor_map_[info.actor_a_]->re_update(info);
-  active_actor_map_[info.actor_b_]->re_update(info);
+  // actors will be re-updated in this function
+  auto collision_info_list = physics::collision_detector::intersection_test();
+  for (const auto& info : collision_info_list) {
+
+  }
 }
 
 void engine::render()

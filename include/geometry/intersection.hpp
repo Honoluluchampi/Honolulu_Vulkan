@@ -27,7 +27,6 @@ namespace intersection {
   bool test_sphere_frustum(const geometry::bounding_volume& sphere, const perspective_frustum& frustum);
 
   bool test_aabb_aabb      (const bounding_volume& aabb_a, const bounding_volume& aabb_b);
-  // TODO : impl
   bool test_aabb_sphere    (const bounding_volume& aabb, const bounding_volume& sphere);
   bool test_sphere_sphere  (const bounding_volume& sphere_a, const bounding_volume& sphere_b);
 }; // namespace intersection

@@ -17,9 +17,6 @@
 
 namespace hnll {
 
-// forward declaration
-namespace physics { class collision_info; }
-
 namespace game {
 
 // forward declaration
@@ -93,7 +90,7 @@ class engine {
     static void add_glfw_mouse_button_callback(u_ptr<std::function<void(GLFWwindow *, int, int, int)>> &&func);
 
     // TODO : implement as physics engine
-    void re_update_actors(const physics::collision_info& info);
+    void re_update_actors();
 
   protected:
     // TODO : remove static
