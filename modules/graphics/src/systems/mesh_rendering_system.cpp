@@ -31,6 +31,7 @@ mesh_rendering_system::mesh_rendering_system
   : rendering_system(device, hnll::game::render_type::MESH)
 { 
   create_pipeline_layout(global_set_layout);
+  std::cout << std::getenv("HNLL_ENGN") << std::endl;
   create_pipeline(render_pass, "simple_shader.vert.spv", "simple_shader.frag.spv");
 }
 

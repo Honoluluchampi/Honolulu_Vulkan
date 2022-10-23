@@ -2,7 +2,7 @@
 ### Ubuntu
 prepare dependencies
 ```shell
-sudo apt install libx11-dev libglfw3-dev libglm-dev
+sudo apt install libglfw3-dev libeigen3-dev libopenal-dev
 ```
 
 ### MacOS

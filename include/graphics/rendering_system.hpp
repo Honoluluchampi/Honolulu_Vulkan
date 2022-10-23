@@ -49,14 +49,6 @@ public:
 
   hnll::game::render_type get_render_type() const { return render_type_; }
 
-private:
-  virtual void create_pipeline_layout(VkDescriptorSetLayout global_set_layout) {}
-  virtual void create_pipeline(
-    VkRenderPass render_pass,
-    std::string vertex_shader,
-    std::string fragment_shader,
-    std::string shaders_directory) {}
-
 protected:
   device& device_;
   u_ptr<pipeline> pipeline_ = nullptr;

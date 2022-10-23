@@ -40,7 +40,8 @@ target_link_libraries(hnll_engine PUBLIC
         hnll_geometry
         hnll_utils
         vulkan
-        glfw)
+        glfw
+        )
 
 # build the example
 add_executable(app main.cpp)
