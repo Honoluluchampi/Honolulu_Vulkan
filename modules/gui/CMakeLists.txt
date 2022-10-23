@@ -16,5 +16,7 @@ elseif (UNIX)
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/submodules/imgui
         $ENV{VULKAN_DIR}/include
+        $ENV{GLM_DIR}
+        $ENV{GLFW_DIR}
     )
 endif (APPLE)

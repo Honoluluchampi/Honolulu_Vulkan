@@ -23,11 +23,14 @@ add_subdirectory(modules/physics)
 add_subdirectory(modules/gui)
 add_subdirectory(modules/utils)
 
-target_include_directories(hnll_engine PUBLIC include/ submodules/imgui submodules/tiny_obj_loader)
+target_include_directories(hnll_engine PUBLIC
+        include/
+        submodules/imgui
+        submodules/tiny_obj_loader
+        submodules/glfw
+        submodules/glm)
+
 target_link_directories(hnll_engine PUBLIC $ENV{VULKAN_DIR}/lib)
-if (APPLE)
-    target_link_directories(hnll_engine PUBLIC $ENV{VULKAN_DIR}/lib $ENV{GLFW_DIR}/lib)
-endif (APPLE)
 
 target_link_libraries(hnll_engine PUBLIC
         hnll_audio
@@ -36,7 +39,8 @@ target_link_libraries(hnll_engine PUBLIC
         hnll_graphics
         hnll_geometry
         hnll_utils
-        vulkan glfw)
+        vulkan
+        glfw)
 
 # build the example
 add_executable(app main.cpp)

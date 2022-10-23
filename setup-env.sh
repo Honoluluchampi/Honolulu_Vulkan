@@ -13,6 +13,8 @@ fi
 
 # git submodules
 export IMGUI_DIR=$HNLL_ENGN/submodules/imgui
+export GLFW_DIR=$HNLL_ENGN/submodules/glfw
+export GLM_DIR=$HNLL_ENGN/submodules/glm
 
 # download imgui font
 if [ ! -e $HNLL_ENGN/include/gui/roboto_regular.embed ]; then
@@ -28,21 +30,6 @@ fi
 export TINY_OBJ_LOADER_DIR=$HNLL_ENGN/submodules/tiny_obj_loader
 
 export MODEL_DIR=$HNLL_ENGN/models
-
-# glfw glm
-# for OS X
-if [ "$(uname)" == 'Darwin' ]; then
-  BREW_PREFIX=`brew --prefix`
-  # glfw
-  GLFW_VERSION=`ls ${BREW_PREFIX}/Cellar/glfw`
-  export GLFW_DIR=${BREW_PREFIX}/Cellar/glfw/${GLFW_VERSION}
-  # glm
-  GLM_VERSION=`ls ${BREW_PREFIX}/Cellar/glm`
-  export GLM_DIR=${BREW_PREFIX}/Cellar/glm/${GLM_VERSION}
-  # x11
-  X11_VERSION=`ls ${BREW_PREFIX}/Cellar/libx11`
-  export X11_DIR=${BREW_PREFIX}/Cellar/libx11/${X11_DIR}
-fi
 
 # compile shaders
 source ${HNLL_ENGN}/modules/graphics/compile.sh
