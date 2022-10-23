@@ -13,8 +13,6 @@ fi
 
 # git submodules
 export IMGUI_DIR=$HNLL_ENGN/submodules/imgui
-export GLFW_DIR=$HNLL_ENGN/submodules/glfw
-export GLM_DIR=$HNLL_ENGN/submodules/glm
 
 # download imgui font
 if [ ! -e $HNLL_ENGN/include/gui/roboto_regular.embed ]; then

@@ -6,5 +6,4 @@ add_library(hnll_geometry STATIC ${TARGETS})
 target_include_directories(hnll_geometry PUBLIC
         $ENV{HNLL_ENGN}/include
         ${PROJECT_SOURCE_DIR}/submodules/tiny_obj_loader
-        $ENV{GLM_DIR}
         )

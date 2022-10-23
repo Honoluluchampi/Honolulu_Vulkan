@@ -5,5 +5,4 @@ add_library(hnll_utils STATIC ${TARGETS})
 
 target_include_directories(hnll_utils PUBLIC
     $ENV{HNLL_ENGN}/include
-    $ENV{GLM_DIR}
 )
