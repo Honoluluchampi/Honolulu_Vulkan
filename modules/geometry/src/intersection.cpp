@@ -74,7 +74,7 @@ double sq_dist_point_to_aabb(const vec3& p, const bounding_volume& aabb)
     if (v < aabb.get_world_center_point()[i] - aabb.get_aabb_radius()[i]) result += std::pow(
           aabb.get_world_center_point()[i] - aabb.get_aabb_radius()[i] - v, 2);
     else if (v > aabb.get_world_center_point()[i] + aabb.get_aabb_radius()[i]) result += std::pow(v -
-                                                                                                  aabb.get_world_center_point()[i] - aabb.get_aabb_radius()[i], 2);
+          aabb.get_world_center_point()[i] - aabb.get_aabb_radius()[i], 2);
   }
   return result;
 }
