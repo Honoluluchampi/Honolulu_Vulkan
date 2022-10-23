@@ -20,6 +20,8 @@ std::vector<collision_info> collision_detector::intersection_test()
     for (int j = i; j < rc_count; j++) {
       auto& a = rigid_components_[i];
       auto& b = rigid_components_[j];
+      // skip if the owners are the same
+      if (a->get_id() == b->get_id()) continue;
       if (geometry::intersection::test_bounding_volumes(a->get_bounding_volume(), b->get_bounding_volume())) {
         // create collision_info
         collision_info info;
