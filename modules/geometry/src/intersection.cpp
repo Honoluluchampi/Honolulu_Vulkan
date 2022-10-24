@@ -9,7 +9,7 @@
 
 namespace hnll::geometry {
 
-bool intersection::test_bounding_volumes(const bounding_volume &a, const bounding_volume &b)
+double intersection::test_bounding_volumes(const bounding_volume &a, const bounding_volume &b)
 {
   // call intersection test depending on the types of bv
   if (a.is_aabb() && b.is_aabb())     return test_aabb_aabb(a, b);
@@ -21,7 +21,7 @@ bool intersection::test_bounding_volumes(const bounding_volume &a, const boundin
   return false;
 }
 
-bool intersection::test_aabb_aabb(const bounding_volume &aabb_a, const bounding_volume &aabb_b)
+double intersection::test_aabb_aabb(const bounding_volume &aabb_a, const bounding_volume &aabb_b)
 {
   if (std::abs(aabb_a.get_world_center_point().x() - aabb_b.get_world_center_point().x()) > aabb_a.get_aabb_radius().x() + aabb_b.get_aabb_radius().x()) return false;
   if (std::abs(aabb_a.get_world_center_point().y() - aabb_b.get_world_center_point().y()) > aabb_a.get_aabb_radius().y() + aabb_b.get_aabb_radius().y()) return false;
@@ -29,7 +29,7 @@ bool intersection::test_aabb_aabb(const bounding_volume &aabb_a, const bounding_
   return true;
 }
 
-bool intersection::test_sphere_sphere(const bounding_volume &sphere_a, const bounding_volume &sphere_b)
+double intersection::test_sphere_sphere(const bounding_volume &sphere_a, const bounding_volume &sphere_b)
 {
   Eigen::Vector3d difference = sphere_a.get_world_center_point() - sphere_b.get_world_center_point();
   double distance2 = difference.dot(difference);
@@ -74,18 +74,18 @@ double sq_dist_point_to_aabb(const vec3& p, const bounding_volume& aabb)
     if (v < aabb.get_world_center_point()[i] - aabb.get_aabb_radius()[i]) result += std::pow(
           aabb.get_world_center_point()[i] - aabb.get_aabb_radius()[i] - v, 2);
     else if (v > aabb.get_world_center_point()[i] + aabb.get_aabb_radius()[i]) result += std::pow(v -
-                                                                                                  aabb.get_world_center_point()[i] - aabb.get_aabb_radius()[i], 2);
+          aabb.get_world_center_point()[i] - aabb.get_aabb_radius()[i], 2);
   }
   return result;
 }
 
-bool intersection::test_aabb_sphere(const bounding_volume &aabb, const bounding_volume &sphere)
+double intersection::test_aabb_sphere(const bounding_volume &aabb, const bounding_volume &sphere)
 {
   auto sq_dist = sq_dist_point_to_aabb(sphere.get_world_center_point(), aabb);
-  return std::pow(sphere.get_sphere_radius(), 2) > sq_dist;
+  return std::max(sphere.get_sphere_radius() - std::sqrt(sq_dist), static_cast<double>(0));
 }
 
-bool intersection::test_sphere_frustum(const geometry::bounding_volume &sphere, const perspective_frustum &frustum)
+double intersection::test_sphere_frustum(const geometry::bounding_volume &sphere, const perspective_frustum &frustum)
 {
   const auto  center = sphere.get_world_center_point();
 //  const auto  radius = sphere.get_sphere_radius();

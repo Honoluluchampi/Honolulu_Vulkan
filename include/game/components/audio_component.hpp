@@ -15,7 +15,8 @@ class audio_component : public game::component
       auto audio_comp = std::make_unique<audio_component>();
       return audio_comp;
     }
-    audio_component() : game::component() {}
+    audio_component() : game::component()
+    { audio_data_ = std::make_unique<audio::audio_data>(); }
 
     void play_sound()
     {

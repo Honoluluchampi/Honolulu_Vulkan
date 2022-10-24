@@ -126,8 +126,8 @@ void engine::re_update_actors()
   // actors will be re-updated in this function
   auto collision_info_list = physics::collision_detector::intersection_test();
   for (const auto& info : collision_info_list) {
-    active_actor_map_[info.actor_a_]->re_update(info);
-    active_actor_map_[info.actor_b_]->re_update(info);
+    active_actor_map_[info.actor_a]->re_update(info);
+    active_actor_map_[info.actor_b]->re_update(info);
   }
 }
 

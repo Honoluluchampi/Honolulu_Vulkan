@@ -10,6 +10,7 @@ s_ptr<rigid_component> rigid_component::create_with_aabb(actor& owner, const s_p
 {
   auto mesh_vertices = mesh_component->get_model_sp()->get_vertex_position_list();
   auto bv = geometry::bounding_volume::create_aabb(mesh_vertices);
+  bv->set_transform(owner.get_transform_sp());
 
   // automatically add to the intersection (as static member)
   auto rc = std::make_shared<rigid_component>(owner);
@@ -22,6 +23,8 @@ s_ptr<rigid_component> rigid_component::create_with_b_sphere(actor& owner, const
 {
   auto mesh_vertices = mesh_component->get_model_sp()->get_vertex_position_list();
   auto bv = geometry::bounding_volume::create_bounding_sphere(geometry::bv_ctor_type::RITTER, mesh_vertices);
+  bv->set_transform(owner.get_transform_sp());
+
   auto rc = std::make_shared<rigid_component>(owner);
   rc->set_bounding_volume(std::move(bv));
   physics::collision_detector::add_rigid_component(rc);
@@ -30,6 +33,7 @@ s_ptr<rigid_component> rigid_component::create_with_b_sphere(actor& owner, const
 
 s_ptr<rigid_component> rigid_component::create_from_bounding_volume(actor& owner, u_ptr<geometry::bounding_volume>&& bv)
 {
+  bv->set_transform(owner.get_transform_sp());
   auto rc = std::make_shared<rigid_component>(owner);
   rc->set_bounding_volume(std::move(bv));
   return rc;
@@ -44,6 +48,9 @@ s_ptr<rigid_component> rigid_component::create(actor& owner, const std::vector<v
   else if (type == geometry::bv_type::SPHERE)
     bv = geometry::bounding_volume::create_bounding_sphere
     (geometry::bv_ctor_type::RITTER, positions);
+
+  bv->set_transform(owner.get_transform_sp());
+
   rc->set_bounding_volume(std::move(bv));
   return rc;
 }
