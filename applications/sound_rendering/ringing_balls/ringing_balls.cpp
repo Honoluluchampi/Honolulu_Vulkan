@@ -50,7 +50,7 @@ public:
     // this update function is invoked if collision_detector detects collision with other component (plane in this situation)
     void re_update(const hnll::physics::collision_info& info) override
     {
-        position_.y *= -1;
+        position_.y -= info.intersection_depth;
         velocity_.y = -velocity_.y * restitution_;
         this->set_translation(position_);
     }
@@ -58,7 +58,7 @@ public:
 private:
     glm::vec3 position_;
     glm::vec3 velocity_;
-    double gravity_ = 40.f;
+    double gravity_ = 4.f;
     double restitution_ = 0.5;
     s_ptr<hnll::game::rigid_component> rigid_component_;
 };
@@ -78,7 +78,6 @@ public:
 
         plane->rigid_component_ = game::rigid_component::create_from_bounding_volume(*plane, std::move(bounding_box));
 
-        plane->set_translation({0.f, 1.f, 0.f});
         hnll::game::engine::add_actor(plane);
         physics::collision_detector::add_rigid_component(plane->rigid_component_);
 

@@ -14,9 +14,10 @@ namespace physics {
 struct collision_info
 {
   double mass;
-  vec3   velocity_;
-  game::actor_id actor_a_;
-  game::actor_id actor_b_;
+  vec3   velocity;
+  double intersection_depth;
+  game::actor_id actor_a;
+  game::actor_id actor_b;
 };
 
 }} // namespace hnll::physics
