@@ -122,13 +122,13 @@ class falling_ball_app : public hnll::game::engine
 {
   public:
    std::vector<Eigen::Vector3d> position_list = {
-       {0.f, -10.f, 0.f},
-       {2.1f, -2.f, 0.f},
-       {-2.1f, -7.f, 0.f}
+       {2.1f, -4.f, 0.f},
+       {0.f, -8.f, 0.f},
+       {-2.1f, -12.f, 0.f}
    };
    std::vector<double> pitch_list = {
+       220.f,
        440.f,
-       110.f,
        880.f,
    };
     falling_ball_app() : hnll::game::engine("falling ball")
