@@ -102,7 +102,7 @@ class rigid_plane : public hnll::game::actor
       static s_ptr<rigid_plane> create()
       {
           auto plane = std::make_shared<rigid_plane>();
-          auto plane_mesh = hnll::game::engine::get_mesh_model_sp("plane");
+          auto plane_mesh = hnll::game::engine::get_mesh_model_sp("big_plane");
           auto plane_mesh_vertices = plane_mesh->get_vertex_position_list();
   //        auto plane_mesh_comp = hnll::game::mesh_component::create(plane, std::move(plane_mesh));
           auto bounding_box = hnll::geometry::bounding_volume::create_aabb(plane_mesh_vertices);
@@ -122,53 +122,63 @@ class rigid_plane : public hnll::game::actor
 class falling_ball_app : public hnll::game::engine
 {
   public:
-      falling_ball_app() : hnll::game::engine("falling ball")
-      {
-        audio::engine::start_hae_context();
+   std::vector<Eigen::Vector3d> position_list = {
+       {0.f, -10.f, 0.f},
+       {2.1f, -2.f, 0.f},
+       {-2.1f, -7.f, 0.f}
+   };
+    falling_ball_app() : hnll::game::engine("falling ball")
+    {
+      audio::engine::start_hae_context();
 
-        // set camera position
-        camera_up_->set_translation(glm::vec3{0.f, 0.f, -20.f});
+      // set camera position
+      camera_up_->set_translation(glm::vec3{0.f, 0.f, -20.f});
 
-        // add light
-        auto light = hnll::game::actor::create();
-        auto light_component = hnll::game::point_light_component::create(light, 100.f);
-        add_point_light(light, light_component);
-        light->set_translation({-8.f, -20.f, -8.f});
+      // add light
+      auto light = hnll::game::actor::create();
+      auto light_component = hnll::game::point_light_component::create(light, 100.f);
+      add_point_light(light, light_component);
+      light->set_translation({-8.f, -20.f, -8.f});
 
-        // add rigid ball
-        ball_ = rigid_ball::create();
-        ball_->init({0.f, -5.f, 0.f}, 1.f);
-        ball_->assign_audio();
-
-        // add plane
-        auto rigid_plane = rigid_plane::create();
+      // add rigid ball
+      for (const auto& position : position_list) {
+        auto ball = rigid_ball::create();
+        ball->init(position, 1.f);
+        ball->assign_audio();
+        balls_.emplace_back(std::move(ball));
       }
 
-      ~falling_ball_app() { audio::engine::kill_hae_context(); }
+      // add plane
+      auto rigid_plane = rigid_plane::create();
+    }
 
-      void update_game_gui() override
-      {
-        ImGui::Begin("debug");
+    ~falling_ball_app() { audio::engine::kill_hae_context(); }
 
-        if (ImGui::Button("restart")) {
-          ball_->init({0.f, -5.f, 0.f}, 1.f);
+    void update_game_gui() override
+    {
+      ImGui::Begin("debug");
+
+      if (ImGui::Button("restart")) {
+        for(int i = 0; i < balls_.size(); i++) {
+          balls_[i]->init(position_list[i], 1.f);
         }
-        ImGui::End();
       }
+      ImGui::End();
+    }
 
   private:
-      s_ptr<rigid_ball> ball_;
-      hnll::physics::engine physics_engine_{};
+    std::vector<s_ptr<rigid_ball>> balls_;
+    hnll::physics::engine physics_engine_{};
 };
 
 int main()
 {
-    falling_ball_app app{};
-    try { app.run(); }
-    catch (const std::exception& e) {
-        std::cerr << e.what() << '\n';
-        return EXIT_FAILURE;
-    }
+  falling_ball_app app{};
+  try { app.run(); }
+  catch (const std::exception& e) {
+      std::cerr << e.what() << '\n';
+      return EXIT_FAILURE;
+  }
 
-    return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }
