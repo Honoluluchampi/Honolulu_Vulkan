@@ -37,13 +37,12 @@ class rigid_ball : public hnll::game::actor
           return ball;
       };
 
-      void assign_audio()
+      void assign_audio(const float pitch = 440.f)
       {
         audio_component_ = game::audio_component::create();
 
         // raw audio creation
         const unsigned int freq = 44100;
-        const float pitch = 440.0f;
         const float duration = 0.05f;
         std::vector<ALshort> audio(static_cast<size_t>(freq * duration));
         for (int i = 0; i < audio.size(); i++) {
@@ -127,6 +126,11 @@ class falling_ball_app : public hnll::game::engine
        {2.1f, -2.f, 0.f},
        {-2.1f, -7.f, 0.f}
    };
+   std::vector<double> pitch_list = {
+       440.f,
+       110.f,
+       880.f,
+   };
     falling_ball_app() : hnll::game::engine("falling ball")
     {
       audio::engine::start_hae_context();
@@ -141,10 +145,10 @@ class falling_ball_app : public hnll::game::engine
       light->set_translation({-8.f, -20.f, -8.f});
 
       // add rigid ball
-      for (const auto& position : position_list) {
+      for (int i = 0; i < position_list.size(); i++) {
         auto ball = rigid_ball::create();
-        ball->init(position, 1.f);
-        ball->assign_audio();
+        ball->init(position_list[i], 1.f);
+        ball->assign_audio(pitch_list[i]);
         balls_.emplace_back(std::move(ball));
       }
 
