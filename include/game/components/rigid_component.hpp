@@ -40,12 +40,18 @@ class rigid_component : public component
     [[nodiscard]] s_ptr<utils::transform>          get_transform()       const { return transform_sp_; }
     [[nodiscard]] rigid_component_id               get_id()              const { return rigid_component_id_; }
     [[nodiscard]] actor_id                         get_owner_id()        const { return owner_id_; }
+    [[nodiscard]] double get_mass()                                      const { return mass_; }
+    [[nodiscard]] double get_restitution()                               const { return restitution_; }
 
     // setter
     void set_bounding_volume(u_ptr<geometry::bounding_volume>&& bv) { bounding_volume_ = std::move(bv); }
     void set_transform(const s_ptr<utils::transform>& transform_sp) { transform_sp_ = transform_sp; }
+    double set_mass(double mass)               { mass_ = mass; }
+    double set_restitution(double restitution) { restitution_ = restitution; }
 
   private:
+    double mass_ = 1.f;
+    double restitution_ = 1.f;
     s_ptr<hnll::utils::transform>    transform_sp_;
     u_ptr<geometry::bounding_volume> bounding_volume_;
     actor_id           owner_id_;

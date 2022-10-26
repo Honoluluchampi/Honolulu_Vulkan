@@ -46,8 +46,7 @@ class rigid_ball : public hnll::game::actor
         const float duration = 0.05f;
         std::vector<ALshort> audio(static_cast<size_t>(freq * duration));
         for (int i = 0; i < audio.size(); i++) {
-          audio[i] = std::sin(pitch * M_PI * 2.0 * i / freq)
-                     * std::numeric_limits<ALshort>::max();
+          audio[i] = std::sin(pitch * M_PI * 2.0 * i / freq) * std::numeric_limits<ALshort>::max();
         }
 
         audio_component_->set_raw_audio(std::move(audio));
@@ -74,7 +73,7 @@ class rigid_ball : public hnll::game::actor
       void re_update(const hnll::physics::collision_info& info) override
       {
           position_.y -= info.intersection_depth;
-          velocity_.y = -velocity_.y * restitution_;
+          velocity_.y = -velocity_.y * rigid_component_->get_restitution();
           if (std::abs(velocity_.y) < velocity_thresh_) velocity_.y = 0;
           else {
             audio_component_->play_sound();
@@ -82,13 +81,14 @@ class rigid_ball : public hnll::game::actor
           }
       }
 
+      void set_restitution(double restitution) { rigid_component_->set_restitution(restitution); }
+
   private:
       glm::vec3 position_;
       glm::vec3 velocity_;
       double mass_ = 3.f;
       double velocity_thresh_ = 1.3f;
       double gravity_ = 40.f;
-      double restitution_ = 0.5;
       s_ptr<hnll::game::rigid_component> rigid_component_;
       u_ptr<game::audio_component> audio_component_;
 };
@@ -131,6 +131,12 @@ class falling_ball_app : public hnll::game::engine
        440.f,
        880.f,
    };
+   std::vector<double> restitution_list = {
+       0.7f,
+       0.5f,
+       0.2f,
+   };
+
     falling_ball_app() : hnll::game::engine("falling ball")
     {
       audio::engine::start_hae_context();
@@ -148,6 +154,7 @@ class falling_ball_app : public hnll::game::engine
       for (int i = 0; i < position_list.size(); i++) {
         auto ball = rigid_ball::create();
         ball->init(position_list[i], 1.f);
+        ball->set_restitution(restitution_list[i]);
         ball->assign_audio(pitch_list[i]);
         balls_.emplace_back(std::move(ball));
       }

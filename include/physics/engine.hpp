@@ -18,6 +18,8 @@ class engine
     engine(){}
     ~engine(){}
 
+    static void re_update();
+
   private:
     static u_ptr<collision_detector> collision_detector_;
 };

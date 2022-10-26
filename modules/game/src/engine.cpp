@@ -6,6 +6,7 @@
 #include <game/components/mesh_component.hpp>
 #include <physics/collision_info.hpp>
 #include <physics/collision_detector.hpp>
+#include <physics/engine.hpp>
 
 // lib
 #include <imgui.h>
@@ -21,21 +22,24 @@ constexpr float MAX_FPS = 60.0f;
 constexpr float MAX_DT = 0.05f;
 
 // static members
-actor_map engine::pending_actor_map_;
+actor_map engine::active_actor_map_{};
+actor_map engine::pending_actor_map_{};
+std::vector<actor_id> engine::dead_actor_ids_{};
 mesh_model_map engine::mesh_model_map_;
+
 // glfw
 GLFWwindow* engine::glfw_window_;
 std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> engine::glfw_mouse_button_callbacks_{};
 
-engine::engine(const char* window_name) : graphics_engine_up_(std::make_unique<hnll::graphics::engine>(window_name))
+engine::engine(const char* window_name) : graphics_engine_(std::make_unique<hnll::graphics::engine>(window_name))
 {
   set_glfw_window(); // ?
 
 #ifndef IMGUI_DISABLED
-  gui_engine_up_ = std::make_unique<hnll::gui::engine>
-    (graphics_engine_up_->get_window(), graphics_engine_up_->get_device());
+  gui_engine_ = std::make_unique<hnll::gui::engine>
+    (graphics_engine_->get_window(), graphics_engine_->get_device());
   // configure dependency between renderers
-  graphics_engine_up_->get_renderer().set_next_renderer(gui_engine_up_->renderer_p());  
+  graphics_engine_->get_renderer().set_next_renderer(gui_engine_->renderer_p());
 #endif
 
   init_actors();
@@ -58,7 +62,7 @@ void engine::run()
 
     render();
   }
-  graphics_engine_up_->wait_idle();
+  graphics_engine_->wait_idle();
   cleanup();
 }
 
@@ -105,14 +109,14 @@ void engine::update()
   // activate pending actor
   for (auto& pend : pending_actor_map_) {
     if(pend.second->is_renderable())
-      graphics_engine_up_->set_renderable_component(pend.second->get_renderable_component_sp());
+      graphics_engine_->set_renderable_component(pend.second->get_renderable_component_sp());
     active_actor_map_.emplace(pend.first, std::move(pend.second));
   }
   pending_actor_map_.clear();
   // clear all the dead actors
   for (const auto& id : dead_actor_ids_) {
     if (active_actor_map_[id]->is_renderable())
-      graphics_engine_up_->remove_renderable_component_without_owner(
+      graphics_engine_->remove_renderable_component_without_owner(
         active_actor_map_[id]->get_renderable_component_sp()->get_render_type(), id);
     active_actor_map_.erase(id);
   }
@@ -123,22 +127,17 @@ void engine::update()
 // physics
 void engine::re_update_actors()
 {
-  // actors will be re-updated in this function
-  auto collision_info_list = physics::collision_detector::intersection_test();
-  for (const auto& info : collision_info_list) {
-    active_actor_map_[info.actor_a]->re_update(info);
-    active_actor_map_[info.actor_b]->re_update(info);
-  }
+  physics_engine_->re_update();
 }
 
 void engine::render()
 {
-  graphics_engine_up_->render(camera_up_->get_viewer_info());
+  graphics_engine_->render(camera_up_->get_viewer_info());
 #ifndef IMGUI_DISABLED
   if (!hnll::graphics::renderer::swap_chain_recreated_){
-    gui_engine_up_->begin_imgui();
+    gui_engine_->begin_imgui();
     update_gui();
-    gui_engine_up_->render();
+    gui_engine_->render();
   }
 #endif
 }
@@ -159,10 +158,10 @@ void engine::update_gui()
 void engine::init_actors()
 {
   // hge actors
-  camera_up_ = std::make_shared<default_camera>(*graphics_engine_up_);
+  camera_up_ = std::make_shared<default_camera>(*graphics_engine_);
   
   // TODO : configure priorities of actors, then update light manager after all light comp
-  light_manager_up_ = std::make_shared<point_light_manager>(graphics_engine_up_->get_global_ubo());
+  light_manager_up_ = std::make_shared<point_light_manager>(graphics_engine_->get_global_ubo());
 
 }
 
@@ -183,7 +182,7 @@ void engine::load_mesh_models(const std::string& model_directory)
     auto filename = std::string(file.path());
     auto length = filename.size() - path.size() - 5;
     auto key = filename.substr(path.size() + 1, length);
-    auto mesh_model = hnll::graphics::mesh_model::create_model_from_file(graphics_engine_up_->get_device(), filename);
+    auto mesh_model = hnll::graphics::mesh_model::create_model_from_file(graphics_engine_->get_device(), filename);
     mesh_model_map_.emplace(key, std::move(mesh_model));
   }
 }
@@ -246,14 +245,14 @@ void engine::add_point_light(s_ptr<actor>& owner, s_ptr<point_light_component>& 
 void engine::add_point_light_without_owner(const s_ptr<point_light_component>& light_comp)
 {
   // path to the renderer
-  graphics_engine_up_->set_renderable_component(light_comp);
+  graphics_engine_->set_renderable_component(light_comp);
   // path to the manager
   light_manager_up_->add_light_comp(light_comp);
 }
 
 void engine::remove_point_light_without_owner(component_id id)
 {
-  graphics_engine_up_->remove_renderable_component_without_owner(render_type::POINT_LIGHT, id);
+  graphics_engine_->remove_renderable_component_without_owner(render_type::POINT_LIGHT, id);
   light_manager_up_->remove_light_comp(id);
 }
 

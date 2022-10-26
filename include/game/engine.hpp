@@ -17,15 +17,14 @@
 
 namespace hnll {
 
+namespace physics { class engine; }
+
 namespace game {
 
 // forward declaration
 class actor;
-
 class default_camera;
-
 class point_light_manager;
-
 class point_light_component;
 
 using actor_id = unsigned int;
@@ -54,15 +53,15 @@ class engine {
 
     // takes s_ptr<renderable_component>
     template<class S>
-    void set_renderable_component(S &&comp) { graphics_engine_up_->set_renderable_component(std::forward<S>(comp)); }
+    void set_renderable_component(S &&comp) { graphics_engine_->set_renderable_component(std::forward<S>(comp)); }
 
     template<class S>
     void replace_renderable_component(S &&comp) {
-      graphics_engine_up_->replace_renderable_component(std::forward<S>(comp));
+      graphics_engine_->replace_renderable_component(std::forward<S>(comp));
     }
 
     void remove_renderable_component(render_type type, component_id id) {
-      graphics_engine_up_->remove_renderable_component_without_owner(type, id);
+      graphics_engine_->remove_renderable_component_without_owner(type, id);
     }
 
     void add_point_light(s_ptr<actor> &owner, s_ptr<point_light_component> &light_comp);
@@ -73,16 +72,16 @@ class engine {
     void remove_point_light_without_owner(component_id id);
 
     // getter
-    hnll::graphics::engine &get_graphics_engine() { return *graphics_engine_up_; }
-
-    hnll::graphics::device &get_graphics_device() { return graphics_engine_up_->get_device(); }
-
+    hnll::graphics::engine &get_graphics_engine() { return *graphics_engine_; }
+    hnll::graphics::device &get_graphics_device() { return graphics_engine_->get_device(); }
+    static actor& get_active_actor(actor_id id)   { return *active_actor_map_[id]; }
+    static actor& get_pending_actor(actor_id id)  { return *pending_actor_map_[id]; }
     static s_ptr<hnll::graphics::mesh_model>
     get_mesh_model_sp(std::string model_name) { return mesh_model_map_[model_name]; }
 
 #ifndef IMGUI_DISABLED
 
-    u_ptr<hnll::gui::engine> &get_gui_engine_up() { return gui_engine_up_; }
+    u_ptr<hnll::gui::engine> &get_gui_engine_up() { return gui_engine_; }
 
 #endif
 
@@ -100,7 +99,7 @@ class engine {
     s_ptr<point_light_manager> light_manager_up_;
 
   private:
-    inline void set_glfw_window() { glfw_window_ = graphics_engine_up_->get_glfw_window(); }
+    inline void set_glfw_window() { glfw_window_ = graphics_engine_->get_glfw_window(); }
 
     void cleanup();
 
@@ -139,14 +138,15 @@ class engine {
 
     static void glfw_mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 
-    actor_map active_actor_map_;
+    static actor_map active_actor_map_;
     static actor_map pending_actor_map_;
-    std::vector<actor_id> dead_actor_ids_;
+    static std::vector<actor_id> dead_actor_ids_;
 
-    u_ptr<hnll::graphics::engine> graphics_engine_up_;
-
+    // each engines
+    u_ptr<hnll::graphics::engine> graphics_engine_;
+    u_ptr<hnll::physics::engine>  physics_engine_;
 #ifndef IMGUI_DISABLED
-    u_ptr<hnll::gui::engine> gui_engine_up_;
+    u_ptr<hnll::gui::engine>      gui_engine_;
 #endif
 
     // map of mesh_model contains raw vulkan buffer of its model
