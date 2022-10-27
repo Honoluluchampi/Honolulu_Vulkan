@@ -13,6 +13,11 @@
 
 namespace hnll::graphics {
 
+enum class rendering_type {
+    RASTERIZE,
+    RAY_TRACING,
+};
+
 // non-member function
 struct swap_chain_support_details
 {
@@ -83,6 +88,7 @@ class device
 
   private:
     // create sequence
+    void setup_device_extensions();
     void create_instance();
     void setup_debug_messenger();
     void create_surface();
@@ -115,7 +121,9 @@ class device
     VkCommandPool command_pool_;
 
     const std::vector<const char *> validation_layers_ = {"VK_LAYER_KHRONOS_validation"};
-    const std::vector<const char *> device_extensions_ = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    std::vector<const char *> device_extensions_;
+
+    rendering_type rendering_type_ = rendering_type::RAY_TRACING;
 };
 
 } // namespace hnll::graphics

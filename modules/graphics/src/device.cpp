@@ -1,6 +1,9 @@
 // hnll
 #include <graphics/device.hpp>
 
+// ray tracing
+#include <vulkan/vulkan_core.h>
+
 // std headers
 #include <cstring>
 #include <iostream>
@@ -55,6 +58,7 @@ void DestroyDebugUtilsMessengerEXT(
 // class member functions
 device::device(window &window) : window_{window} 
 {
+  setup_device_extensions();
   create_instance();
   // window surface should be created right after the instance creation, 
   // because it can actually influence the physical device selection
@@ -77,6 +81,31 @@ device::~device()
 
   vkDestroySurfaceKHR(instance_, surface_, nullptr);
   vkDestroyInstance(instance_, nullptr);
+}
+
+void device::setup_device_extensions()
+{
+  // for rasterize
+  if (rendering_type_ == rendering_type::RASTERIZE) {
+    device_extensions_ = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+    };
+  }
+
+  // for ray tracing
+  if (rendering_type_ == rendering_type::RAY_TRACING) {
+    device_extensions_ = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_KHR_MAINTENANCE_3_EXTENSION_NAME,
+        VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
+        // RAY TRACING
+        VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+        VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+        VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
+        // DESCRIPTOR INDEXING
+        VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+    };
+  }
 }
 
 // fill in a struct with some informattion about the application

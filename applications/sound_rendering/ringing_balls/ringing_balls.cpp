@@ -132,9 +132,9 @@ class falling_ball_app : public hnll::game::engine
        880.f,
    };
    std::vector<double> restitution_list = {
-       0.7f,
-       0.5f,
        0.2f,
+       0.5f,
+       0.8f,
    };
 
     falling_ball_app() : hnll::game::engine("falling ball")
