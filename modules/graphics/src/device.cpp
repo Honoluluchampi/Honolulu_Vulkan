@@ -58,14 +58,14 @@ void DestroyDebugUtilsMessengerEXT(
 // class member functions
 device::device(window &window) : window_{window} 
 {
-  setup_device_extensions();
+  setup_device_extensions(); // ray tracing
   create_instance();
   // window surface should be created right after the instance creation, 
   // because it can actually influence the physical device selection
   setup_debug_messenger();
   create_surface();
   pick_physical_device();
-  create_logical_device();
+  create_logical_device(); // ray tracing
   create_command_pool();
 }
 
@@ -165,7 +165,7 @@ void device::pick_physical_device()
   if (device_count == 0) {
     throw std::runtime_error("failed to find GPUs with Vulkan support!");
   }
-  // allocate an array to hold all of the VkPhysicalDevice handle
+  // allocate an array to hold all of VkPhysicalDevice handle
   std::cout << "Device count: " << device_count << std::endl;
   std::vector<VkPhysicalDevice> devices(device_count);
   vkEnumeratePhysicalDevices(instance_, &device_count, devices.data());
@@ -188,11 +188,11 @@ void device::pick_physical_device()
   vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device_, surface_, &details.capabilities_);
 }
 
-void device::create_logical_device() 
+void device::create_logical_device()
 {
   queue_family_indices indices = find_queue_families(physical_device_);
 
-  // create a set of all unique queue famililes that are necessary for required queues
+  // create a set of all unique queue families that are necessary for required queues
   std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
   // if queue families are the same, handle for those queues are also same
   std::set<uint32_t> unique_queue_families = {indices.graphics_family_.value(), indices.present_family_.value()};
@@ -204,14 +204,11 @@ void device::create_logical_device()
     queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queue_create_info.queueFamilyIndex = queue_family;
     queue_create_info.queueCount = 1;
-    // Vulkan lets us assign priorities to queues to influence the scheduling of commmand buffer execut9on
+    // Vulkan lets us assign priorities to queues to influence the scheduling of command buffer execution
     // using floating point numbers between 0.0 and 1.0
     queue_create_info.pQueuePriorities = &queue_property;
     queue_create_infos.push_back(queue_create_info);
   }
-  // we need nothing special right now
-  VkPhysicalDeviceFeatures device_features = {};
-  device_features.samplerAnisotropy = VK_TRUE;
 
   // filling in the main VkDeviceCreateInfo structure;
   VkDeviceCreateInfo create_info = {};
@@ -220,8 +217,59 @@ void device::create_logical_device()
   create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size());
   create_info.pQueueCreateInfos = queue_create_infos.data();
 
-  create_info.pEnabledFeatures = &device_features;
-  // enable device extension 
+  // configure device features for rasterize or ray tracing
+  // for rasterize
+  if (rendering_type_ == rendering_type::RASTERIZE) {
+    VkPhysicalDeviceFeatures device_features = {};
+    device_features.samplerAnisotropy = VK_TRUE;
+    create_info.pEnabledFeatures = &device_features;
+  }
+
+  // for ray tracing
+  if (rendering_type_ == rendering_type::RAY_TRACING) {
+    // enabling ray tracing extensions
+    VkPhysicalDeviceBufferDeviceAddressFeaturesKHR enabled_buffer_device_addr {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES,
+      nullptr
+    };
+    enabled_buffer_device_addr.bufferDeviceAddress = VK_TRUE;
+
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR enabled_ray_tracing_pipeline {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR,
+      nullptr
+    };
+    enabled_ray_tracing_pipeline.rayTracingPipeline = VK_TRUE;
+    enabled_ray_tracing_pipeline.pNext = &enabled_buffer_device_addr;
+
+    VkPhysicalDeviceAccelerationStructureFeaturesKHR enabled_acceleration_structure {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR,
+      nullptr
+    };
+    enabled_acceleration_structure.accelerationStructure = VK_TRUE;
+    enabled_acceleration_structure.pNext = &enabled_ray_tracing_pipeline;
+
+    VkPhysicalDeviceDescriptorIndexingFeatures enabled_descriptor_indexing {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES
+    };
+    enabled_descriptor_indexing.pNext = &enabled_acceleration_structure;
+    enabled_descriptor_indexing.shaderUniformBufferArrayNonUniformIndexing = VK_TRUE;
+    enabled_descriptor_indexing.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+    enabled_descriptor_indexing.runtimeDescriptorArray = VK_TRUE;
+
+    VkPhysicalDeviceFeatures features{};
+    vkGetPhysicalDeviceFeatures(physical_device_, &features);
+    VkPhysicalDeviceFeatures2 features2 {
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, nullptr,
+    };
+    features2.pNext = &enabled_descriptor_indexing;
+    features2.features = features;
+
+    create_info.pNext = &features2;
+    // device features are already included in features2
+    create_info.pEnabledFeatures = nullptr;
+  }
+
+  // enable device extension
   create_info.enabledExtensionCount = static_cast<uint32_t>(device_extensions_.size());
   create_info.ppEnabledExtensionNames = device_extensions_.data();
 
@@ -235,7 +283,7 @@ void device::create_logical_device()
     create_info.enabledLayerCount = 0;
   }
   // instantiate the logical device
-  // logical devices dont interact directly with  instances 
+  // logical devices don't interact directly with  instances
   if (vkCreateDevice(physical_device_, &create_info, nullptr, &device_) != VK_SUCCESS) {
     throw std::runtime_error("failed to create logical device!");
   }
@@ -246,7 +294,7 @@ void device::create_logical_device()
 }
 
 // Command pools manage the memory that is used to store the buffers 
-// and com- mand buffers are allocated from them.
+// and command buffers are allocated from them.
 void device::create_command_pool() 
 {
   queue_family_indices get_queue_family_indices = find_physical_queue_families();

@@ -14,7 +14,7 @@ set(TARGETS
         src/swap_chain.cpp
         src/window.cpp
         )
-add_library(hnll_graphics STATIC ${TARGETS})
+add_library(hnll_graphics STATIC ${TARGETS} src/introduce_ray_tracing.cpp)
 
 target_include_directories(hnll_graphics PUBLIC
     ${PROJECT_SOURCE_DIR}/include
@@ -23,6 +23,7 @@ target_include_directories(hnll_graphics PUBLIC
 
 
 # RAY TRACING SAMPLE
+cmake_minimum_required(VERSION 3.16)
 project(introduce_ray_tracing VERSION 1.0)
 
 # specify the c++ standard
@@ -30,3 +31,30 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "-g3 -O0")
 
+set(TARGETS
+        src/buffer.cpp
+        src/camera.cpp
+        src/descriptor_set_layout.cpp
+        src/device.cpp
+        src/mesh_model.cpp
+        src/pipeline.cpp
+        src/renderer.cpp
+        src/swap_chain.cpp
+        src/window.cpp
+        src/introduce_ray_tracing.cpp
+        )
+
+add_executable(introduce_ray_tracing ${TARGETS})
+
+target_include_directories(introduce_ray_tracing PUBLIC
+        $ENV{HNLL_ENGN}/include
+        $ENV{HNLL_ENGN}/submodules/tiny_obj_loader/
+        submodules/glfw
+        )
+
+target_link_directories(introduce_ray_tracing PUBLIC $ENV{VULKAN_DIR}/lib)
+
+target_link_libraries(introduce_ray_tracing PUBLIC
+        vulkan
+        glfw
+        )
