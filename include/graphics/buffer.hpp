@@ -32,14 +32,14 @@ class buffer {
     VkDescriptorBufferInfo descriptor_info_for_index(int index);
     VkResult invalidate_index(int index);
   
-    VkBuffer get_buffer() const { return buffer_; }
-    void* get_mapped_memory() const { return mapped_; }
-    uint32_t get_instance_count() const { return instance_count_; }
-    VkDeviceSize get_instance_size() const { return instance_size_; }
-    VkDeviceSize get_alignment_size() const { return instance_size_; }
-    VkBufferUsageFlags get_usage_flags() const { return usage_flags_; }
+    VkBuffer              get_buffer()                const { return buffer_; }
+    void*                 get_mapped_memory()         const { return mapped_; }
+    uint32_t              get_instance_count()        const { return instance_count_; }
+    VkDeviceSize          get_instance_size()         const { return instance_size_; }
+    VkDeviceSize          get_alignment_size()        const { return instance_size_; }
+    VkBufferUsageFlags    get_usage_flags()           const { return usage_flags_; }
     VkMemoryPropertyFlags get_memory_property_flags() const { return memory_property_flags_; }
-    VkDeviceSize get_buffer_size() const { return buffer_size_; }
+    VkDeviceSize          get_buffer_size()           const { return buffer_size_; }
   
   private:
     static VkDeviceSize get_alignment(VkDeviceSize instance_size, VkDeviceSize min_offset_alignment);
