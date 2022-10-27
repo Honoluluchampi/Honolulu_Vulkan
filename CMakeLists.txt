@@ -39,7 +39,7 @@ target_link_libraries(hnll_engine PUBLIC
         hnll_graphics
         hnll_geometry
         hnll_utils
-        vulkan
+        libvulkan.so.1.3.224
         glfw
         )
 

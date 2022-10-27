@@ -14,7 +14,7 @@ set(TARGETS
         src/swap_chain.cpp
         src/window.cpp
         )
-add_library(hnll_graphics STATIC ${TARGETS} src/introduce_ray_tracing.cpp)
+add_library(hnll_graphics STATIC ${TARGETS})
 
 target_include_directories(hnll_graphics PUBLIC
     ${PROJECT_SOURCE_DIR}/include
@@ -56,6 +56,6 @@ target_include_directories(introduce_ray_tracing PUBLIC
 target_link_directories(introduce_ray_tracing PUBLIC $ENV{VULKAN_DIR}/lib)
 
 target_link_libraries(introduce_ray_tracing PUBLIC
-        vulkan
+        libvulkan.so.1.3.224
         glfw
         )

@@ -2,6 +2,9 @@
 #include <graphics/device.hpp>
 #include <graphics/buffer.hpp>
 
+// sub
+#include <extensions_vk.hpp>
+
 // lib
 #include <eigen3/Eigen/Dense>
 
@@ -26,6 +29,9 @@ class hello_triangle {
     hello_triangle() {
       window_ = std::make_unique<graphics::window>(1920, 1080, "hello ray tracing triangle");
       device_ = std::make_unique<graphics::device>(*window_, graphics::rendering_type::RAY_TRACING);
+
+      // load all available extensions (of course including ray tracing extensions)
+      load_VK_EXTENSIONS(device_->get_instance(), vkGetInstanceProcAddr, device_->get_device(), vkGetDeviceProcAddr);
 
       create_triangle_as();
     }
@@ -90,7 +96,7 @@ class hello_triangle {
       as_geometry.geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
       as_geometry.geometry.triangles.vertexData = vertex_buffer_device_address;
       as_geometry.geometry.triangles.maxVertex = triangle_vertices_.size();
-      as_geometry.geometry.triangles.vertexStride = sizeof(triangle_vertices_[0]);
+      as_geometry.geometry.triangles.vertexStride = sizeof(vec3);
       as_geometry.geometry.triangles.indexType = VK_INDEX_TYPE_NONE_KHR;
 
       // build geometry info

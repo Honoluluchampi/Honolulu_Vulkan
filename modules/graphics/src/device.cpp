@@ -58,13 +58,13 @@ void DestroyDebugUtilsMessengerEXT(
 // class member functions
 device::device(window &window, rendering_type type) : window_{window}, rendering_type_(type)
 {
-  setup_device_extensions(); // ray tracing
   create_instance();
   // window surface should be created right after the instance creation, 
   // because it can actually influence the physical device selection
   setup_debug_messenger();
   create_surface();
   pick_physical_device();
+  setup_device_extensions(); // ray tracing
   create_logical_device(); // ray tracing
   create_command_pool();
 }
@@ -98,6 +98,7 @@ void device::setup_device_extensions()
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
         VK_KHR_MAINTENANCE_3_EXTENSION_NAME,
         VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
+        VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
         // RAY TRACING
         VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
         VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
@@ -105,6 +106,27 @@ void device::setup_device_extensions()
         // DESCRIPTOR INDEXING
         VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
     };
+  }
+
+  uint32_t extension_count = 0;
+  vkEnumerateDeviceExtensionProperties(physical_device_, nullptr, &extension_count, nullptr);
+  std::vector<VkExtensionProperties> extensions(extension_count);
+  vkEnumerateDeviceExtensionProperties(physical_device_, nullptr, &extension_count, extensions.data());
+
+  std::cout << "available device extensions:" << std::endl;
+  std::unordered_set<std::string> available;
+  for (const auto &extension : extensions) {
+    std::cout << "\t" << extension.extensionName << std::endl;
+    available.insert(extension.extensionName);
+  }
+
+  std::cout << "enabled device extensions:" << std::endl;
+  auto& required_extensions = device_extensions_;
+  for (const auto &required : required_extensions) {
+    std::cout << "\t" << required << std::endl;
+    if (available.find(required) == available.end()) {
+      throw std::runtime_error("Missing required device extension");
+    }
   }
 }
 
@@ -394,6 +416,7 @@ std::vector<const char *> device::get_required_extensions()
   std::vector<const char *> extensions(glfw_extensions, glfw_extensions + glfw_extension_count);
 
   if (enable_validation_layers) {
+    extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
 
@@ -411,14 +434,14 @@ void device::has_glfw_required_instance_extensions()
   std::vector<VkExtensionProperties> extensions(extension_count);
   vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extensions.data());
 
-  std::cout << "available extensions:" << std::endl;
+  std::cout << "available instance extensions:" << std::endl;
   std::unordered_set<std::string> available;
   for (const auto &extension : extensions) {
     std::cout << "\t" << extension.extensionName << std::endl;
     available.insert(extension.extensionName);
   }
 
-  std::cout << "required extensions:" << std::endl;
+  std::cout << "required instance extensions:" << std::endl;
   auto required_extensions = get_required_extensions();
   for (const auto &required : required_extensions) {
     std::cout << "\t" << required << std::endl;
