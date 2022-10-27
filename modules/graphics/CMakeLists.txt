@@ -42,14 +42,15 @@ set(TARGETS
         src/swap_chain.cpp
         src/window.cpp
         src/introduce_ray_tracing.cpp
-        )
+        ../../submodules/nvvk_extensions/extensions_vk.cpp)
 
 add_executable(introduce_ray_tracing ${TARGETS})
 
 target_include_directories(introduce_ray_tracing PUBLIC
         $ENV{HNLL_ENGN}/include
-        $ENV{HNLL_ENGN}/submodules/tiny_obj_loader/
-        submodules/glfw
+        $ENV{HNLL_ENGN}/submodules/tiny_obj_loader
+        $ENV{HNLL_ENGN}/submodules/glfw
+        $ENV{HNLL_ENGN}/submodules/nvvk_extensions
         )
 
 target_link_directories(introduce_ray_tracing PUBLIC $ENV{VULKAN_DIR}/lib)

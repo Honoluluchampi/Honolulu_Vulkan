@@ -56,7 +56,7 @@ void DestroyDebugUtilsMessengerEXT(
 }
 
 // class member functions
-device::device(window &window) : window_{window} 
+device::device(window &window, rendering_type type) : window_{window}, rendering_type_(type)
 {
   setup_device_extensions(); // ray tracing
   create_instance();
@@ -108,7 +108,7 @@ void device::setup_device_extensions()
   }
 }
 
-// fill in a struct with some informattion about the application
+// fill in a struct with some information about the application
 void device::create_instance() 
 {
   // validation layers
@@ -119,10 +119,10 @@ void device::create_instance()
   VkApplicationInfo app_info = {};
   app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
   app_info.pApplicationName = "HonoluluVulkanEngine App";
-  app_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+  app_info.applicationVersion = VK_MAKE_VERSION(1, 3, 0);
   app_info.pEngineName = "No Engine";
-  app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-  app_info.apiVersion = VK_API_VERSION_1_0;
+  app_info.engineVersion = VK_MAKE_VERSION(1, 3, 0);
+  app_info.apiVersion = VK_API_VERSION_1_3;
 
   VkInstanceCreateInfo create_info = {};
   create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -383,7 +383,7 @@ bool device::check_validation_layer_support()
   return true;
 }
 
-// required list of extensions based on wheather validation lyaers are enabled
+// required list of extensions based on whether validation layers are enabled
 std::vector<const char *> device::get_required_extensions() 
 {
   uint32_t glfw_extension_count = 0;
@@ -397,6 +397,10 @@ std::vector<const char *> device::get_required_extensions()
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
 
+  // ray tracing
+  if (rendering_type_ == rendering_type::RAY_TRACING) {
+    extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+  }
   return extensions;
 }
 
@@ -567,6 +571,18 @@ void device::create_buffer(
   allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
   allocate_info.allocationSize = memory_requirements.size;
   allocate_info.memoryTypeIndex = find_memory_type(memory_requirements.memoryTypeBits, properties);
+
+  // ray tracing (device address for buffer)
+  if (rendering_type_ == rendering_type::RAY_TRACING) {
+    VkMemoryAllocateFlagsInfo memory_allocate_flags_info {
+      VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO,
+      nullptr
+    };
+    memory_allocate_flags_info.flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR;
+    if (usage & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) {
+      allocate_info.pNext = &memory_allocate_flags_info;
+    }
+  }
 
   if (vkAllocateMemory(device_, &allocate_info, nullptr, &buffer_memory) != VK_SUCCESS) {
     throw std::runtime_error("failed to allocate vertex buffer memory!");

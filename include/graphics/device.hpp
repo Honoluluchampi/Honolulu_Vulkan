@@ -42,7 +42,7 @@ class device
       const bool enable_validation_layers = true;
     #endif
 
-    device(window &window);
+    device(window &window, rendering_type = rendering_type::RASTERIZE);
     ~device();
 
     // Not copyable or movable
@@ -65,9 +65,6 @@ class device
     uint32_t                   find_memory_type(uint32_t type_filter, VkMemoryPropertyFlags properties);
     queue_family_indices       find_physical_queue_families() { return find_queue_families(physical_device_); }
     VkFormat                   find_supported_format(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-
-    // setter
-    void set_rendering_type(rendering_type type) { rendering_type_ = type; }
 
     // Buffer Helper Functions
     void create_buffer(
