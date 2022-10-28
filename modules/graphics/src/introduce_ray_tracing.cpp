@@ -140,6 +140,9 @@ VkDeviceAddress get_device_address(VkDevice device, VkBuffer buffer)
   return vkGetBufferDeviceAddress(device, &buffer_device_info);
 }
 
+template<class T> T align(T size, uint32_t align)
+{ return (size + align - 1) & ~static_cast<T>(align - 1); }
+
 class hello_triangle {
   public:
     hello_triangle()
@@ -172,6 +175,7 @@ class hello_triangle {
       create_ray_traced_image();
       create_layout();
       create_pipeline();
+      create_shader_binding_table();
     }
 
     void create_vertex_buffer()
@@ -681,6 +685,96 @@ class hello_triangle {
       return shader_create_info;
     }
 
+    void create_shader_binding_table()
+    {
+      auto memory_props =
+        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+      auto usage =
+        VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR |
+        VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT; // additional
+      const auto pipeline_props = get_ray_tracing_pipeline_properties();
+
+      // compute size of each entry
+      const auto handle_size = pipeline_props.shaderGroupHandleSize;
+      const auto handle_alignment = pipeline_props.shaderGroupHandleAlignment;
+      auto shader_entry_size = align(handle_size, handle_alignment);
+
+      const auto raygen_shader_count = 1;
+      const auto miss_shader_count = 1;
+      const auto hit_shader_count = 1;
+
+      const auto base_align = pipeline_props.shaderGroupBaseAlignment;
+      auto region_raygen = align(shader_entry_size * raygen_shader_count, base_align);
+      auto region_miss   = align(shader_entry_size * miss_shader_count, base_align);
+      auto region_hit    = align(shader_entry_size * hit_shader_count, base_align);
+
+      shader_binding_table_ = std::make_unique<graphics::buffer>(
+        *device_,
+        region_raygen + region_miss + region_hit,
+        1,
+        usage,
+        memory_props,
+        0
+      );
+
+      // get shader group handle
+      auto handle_size_aligned = align(handle_size, handle_alignment);
+      auto handle_storage_size = shader_group_create_infos_.size() * handle_size_aligned;
+      std::vector<uint8_t> shader_handle_storage(handle_storage_size);
+      vkGetRayTracingShaderGroupHandlesKHR(
+        device_->get_device(),
+        pipeline_,
+        0,
+        uint32_t(shader_group_create_infos_.size()),
+        shader_handle_storage.size(),
+        shader_handle_storage.data()
+      );
+
+      // write raygen shader entry
+      auto device_address = get_device_address(device_->get_device(), shader_binding_table_->get_buffer());
+      shader_binding_table_->map(VK_WHOLE_SIZE, 0);
+      auto dst = static_cast<uint8_t*>(shader_binding_table_->get_mapped_memory());
+
+      auto raygen = shader_handle_storage.data() + handle_size_aligned * static_cast<int>(shader_stages::RAY_GENERATION);
+      memcpy(dst, raygen, handle_size);
+      dst += region_raygen;
+      region_raygen_.deviceAddress = device_address;
+      region_raygen_.stride = shader_entry_size;
+      region_raygen_.size = region_raygen_.stride;
+
+      // write miss shader entry
+      auto miss = shader_handle_storage.data() + handle_size_aligned * static_cast<int>(shader_stages::MISS);
+      memcpy(dst, miss, handle_size);
+      dst += region_miss;
+      region_miss_.deviceAddress = device_address + region_raygen;
+      region_miss_.size = region_miss;
+      region_miss_.stride = shader_entry_size;
+
+      // write hit shader entry
+      auto hit = shader_handle_storage.data() + handle_size_aligned * static_cast<int>(shader_stages::CLOSEST_HIT);
+      memcpy(dst, hit, handle_size);
+      dst += region_hit;
+      region_hit_.deviceAddress = device_address + region_raygen + region_miss;
+      region_hit_.size = region_hit;
+      region_hit_.stride = shader_entry_size;
+    }
+
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR get_ray_tracing_pipeline_properties()
+    {
+      // get data for size and order of shader entries
+      VkPhysicalDeviceRayTracingPipelinePropertiesKHR pipeline_properties {
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR
+      };
+      VkPhysicalDeviceProperties2 device_properties2 {
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2
+      };
+      device_properties2.pNext = &pipeline_properties;
+      vkGetPhysicalDeviceProperties2(device_->get_physical_device(), &device_properties2);
+      return pipeline_properties;
+    }
+
     void destroy_acceleration_structure(acceleration_structure& as)
     {
       auto device = device_->get_device();
@@ -720,6 +814,11 @@ class hello_triangle {
     VkPipeline            pipeline_;
 
     std::vector<VkRayTracingShaderGroupCreateInfoKHR> shader_group_create_infos_;
+    u_ptr<graphics::buffer> shader_binding_table_;
+
+    VkStridedDeviceAddressRegionKHR region_raygen_;
+    VkStridedDeviceAddressRegionKHR region_miss_;
+    VkStridedDeviceAddressRegionKHR region_hit_;
 };
 }
 
