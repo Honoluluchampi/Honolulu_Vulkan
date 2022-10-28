@@ -1,7 +1,7 @@
 // hnll
 #include <graphics/device.hpp>
 #include <graphics/buffer.hpp>
-#include <graphics/swap_chain.hpp>
+#include <graphics/descriptor_set_layout.hpp>
 #include <graphics/pipeline.hpp>
 
 // sub
@@ -161,7 +161,6 @@ class hello_triangle {
       destroy_acceleration_structure(*blas_);
       destroy_acceleration_structure(*tlas_);
       destroy_image_resource(*ray_traced_image_);
-      vkDestroyDescriptorSetLayout(device_->get_device(), descriptor_set_layout_, nullptr);
       vkDestroyPipelineLayout(device_->get_device(), pipeline_layout_, nullptr);
       vkDestroyPipeline(device_->get_device(), pipeline_, nullptr);
     }
@@ -176,6 +175,7 @@ class hello_triangle {
       create_layout();
       create_pipeline();
       create_shader_binding_table();
+      create_descriptor_set();
     }
 
     void create_vertex_buffer()
@@ -551,34 +551,16 @@ class hello_triangle {
 
     void create_layout()
     {
-      VkDescriptorSetLayoutBinding layout_as {};
-      layout_as.binding = 0;
-      layout_as.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
-      layout_as.descriptorCount = 1;
-      layout_as.stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR; // used only by raygen shader
-
-      VkDescriptorSetLayoutBinding layout_rt_image {};
-      layout_rt_image.binding = 1;
-      layout_rt_image.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-      layout_rt_image.descriptorCount = 1;
-      layout_rt_image.stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
-
-      std::vector<VkDescriptorSetLayoutBinding> bindings { layout_as, layout_rt_image };
-
-      VkDescriptorSetLayoutCreateInfo ds_create_info {
-        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO
-      };
-      ds_create_info.bindingCount = static_cast<uint32_t>(bindings.size());
-      ds_create_info.pBindings = bindings.data();
-
-      // create descriptor set layout
-      vkCreateDescriptorSetLayout(device_->get_device(), &ds_create_info, nullptr, &descriptor_set_layout_);
+      descriptor_set_layout_ = graphics::descriptor_set_layout::builder(*device_)
+        .add_binding(0, VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, VK_SHADER_STAGE_RAYGEN_BIT_KHR)
+        .add_binding(1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR)
+        .build();
 
       VkPipelineLayoutCreateInfo pl_create_info {
         VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO
       };
       pl_create_info.setLayoutCount = 1;
-      pl_create_info.pSetLayouts = &descriptor_set_layout_;
+      pl_create_info.pSetLayouts = descriptor_set_layout_->get_p_descriptor_set_layout();
       vkCreatePipelineLayout(device_->get_device(), &pl_create_info, nullptr, &pipeline_layout_);
     }
 
@@ -775,6 +757,53 @@ class hello_triangle {
       return pipeline_properties;
     }
 
+    void create_descriptor_set()
+    {
+      // create descriptor pool
+      descriptor_pool_ = graphics::descriptor_pool::builder(*device_)
+        .set_max_sets(100)
+        .add_pool_size(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000)
+        .add_pool_size(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000)
+        .add_pool_size(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000)
+        .add_pool_size(VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 100)
+        .add_pool_size(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000)
+        .add_pool_size(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000)
+        .set_pool_flags(VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT)
+        .build();
+
+      // write
+      VkWriteDescriptorSetAccelerationStructureKHR as_info {
+        VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR
+      };
+      as_info.accelerationStructureCount = 1;
+      as_info.pAccelerationStructures = &tlas_->handle;
+
+      VkDescriptorImageInfo image_info {};
+      image_info.imageView = ray_traced_image_->get_image_view();
+      image_info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+      graphics::descriptor_writer(*descriptor_set_layout_, *descriptor_pool_)
+        .write_acceleration_structure(0, &as_info)
+        .write_image(1, &image_info)
+        .build(descriptor_set_);
+    }
+
+    VkDescriptorSet allocate_descriptor_set(VkDescriptorSetLayout layout, const void* pNext = nullptr)
+    {
+      VkDescriptorSetAllocateInfo allocate_info {
+        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO, nullptr
+      };
+//      allocate_info.descriptorPool =
+      allocate_info.pSetLayouts = &layout;
+      allocate_info.descriptorSetCount = 1;
+      allocate_info.pNext = pNext;
+      VkDescriptorSet descriptor_set;
+      if (vkAllocateDescriptorSets(device_->get_device(), &allocate_info, &descriptor_set) != VK_SUCCESS) {
+        throw std::runtime_error("failed to allocate descriptor set");
+      }
+      return descriptor_set;
+    }
+
     void destroy_acceleration_structure(acceleration_structure& as)
     {
       auto device = device_->get_device();
@@ -809,9 +838,12 @@ class hello_triangle {
     u_ptr<acceleration_structure> blas_;
     u_ptr<acceleration_structure> tlas_;
 
-    VkDescriptorSetLayout descriptor_set_layout_;
     VkPipelineLayout      pipeline_layout_;
     VkPipeline            pipeline_;
+
+    u_ptr<graphics::descriptor_set_layout> descriptor_set_layout_;
+    u_ptr<graphics::descriptor_pool>       descriptor_pool_;
+    VkDescriptorSet       descriptor_set_;
 
     std::vector<VkRayTracingShaderGroupCreateInfoKHR> shader_group_create_infos_;
     u_ptr<graphics::buffer> shader_binding_table_;
