@@ -54,10 +54,8 @@ class hello_triangle {
 
     ~hello_triangle()
     {
-      auto device = device_->get_device();
-      vkDestroyAccelerationStructureKHR(device, blas_->handle, nullptr);
-      vkFreeMemory(device, blas_->memory, nullptr);
-      vkDestroyBuffer(device, blas_->buffer, nullptr);
+      destroy_acceleration_structure(*blas_);
+      destroy_acceleration_structure(*tlas_);
     }
 
   private:
@@ -280,9 +278,98 @@ class hello_triangle {
         usage,
         host_memory_props
       );
+
       // write the data to the buffer
       instances_buffer_->map();
       instances_buffer_->write_to_buffer((void *) &as_instance);
+
+      // compute required memory size
+      VkDeviceOrHostAddressConstKHR instance_data_device_address {};
+      instance_data_device_address.deviceAddress = get_device_address(device_->get_device(), instances_buffer_->get_buffer());
+
+      VkAccelerationStructureGeometryKHR as_geometry {};
+      as_geometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
+      as_geometry.geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
+      as_geometry.flags = VK_GEOMETRY_OPAQUE_BIT_KHR;
+      as_geometry.geometry.instances.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR;
+      as_geometry.geometry.instances.arrayOfPointers = VK_FALSE;
+      as_geometry.geometry.instances.data = instance_data_device_address;
+
+      // get size
+      VkAccelerationStructureBuildGeometryInfoKHR as_build_geometry_info {};
+      as_build_geometry_info.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR;
+      as_build_geometry_info.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+      as_build_geometry_info.flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
+      as_build_geometry_info.geometryCount = 1; // only one triangle
+      as_build_geometry_info.pGeometries = &as_geometry;
+
+      uint32_t primitive_count = 1;
+      VkAccelerationStructureBuildSizesInfoKHR as_build_sizes_info {
+        VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR
+      };
+      vkGetAccelerationStructureBuildSizesKHR(device, VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
+                                              &as_build_geometry_info, &primitive_count, &as_build_sizes_info);
+
+      // create tlas
+      tlas_ = create_acceleration_structure_buffer(as_build_sizes_info);
+
+      // create tlas buffer
+      VkAccelerationStructureCreateInfoKHR as_create_info {};
+      as_create_info.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR;
+      as_create_info.buffer = tlas_->buffer;
+      as_create_info.size = as_build_sizes_info.accelerationStructureSize;
+      as_create_info.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+      vkCreateAccelerationStructureKHR(device, &as_create_info, nullptr, &tlas_->handle);
+
+      // create scratch buffer
+      auto scratch_buffer = create_scratch_buffer(as_build_sizes_info.buildScratchSize);
+
+      // set up for building tlas
+      as_build_geometry_info.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR;
+      as_build_geometry_info.dstAccelerationStructure = tlas_->handle;
+      as_build_geometry_info.scratchData.deviceAddress = scratch_buffer->device_address;
+
+      // execute build command
+      VkAccelerationStructureBuildRangeInfoKHR as_build_range_info {};
+      as_build_range_info.primitiveCount = primitive_count;
+      as_build_range_info.primitiveOffset = 0;
+      as_build_range_info.firstVertex = 0;
+      as_build_range_info.transformOffset = 0;
+      std::vector<VkAccelerationStructureBuildRangeInfoKHR*> as_build_range_infos = { &as_build_range_info };
+
+      auto command = device_->begin_one_shot_commands();
+      vkCmdBuildAccelerationStructuresKHR(command, 1, &as_build_geometry_info, as_build_range_infos.data());
+
+      VkBufferMemoryBarrier barrier { VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER };
+      barrier.buffer = tlas_->buffer;
+      barrier.size = VK_WHOLE_SIZE;
+      barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      barrier.srcAccessMask =
+        VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR |
+        VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;
+      barrier.dstAccessMask = VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;
+
+      vkCmdPipelineBarrier(
+        command,
+        VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR,
+        VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR,
+        0, 0, nullptr, 1, &barrier, 0, nullptr
+      );
+
+      device_->end_one_shot_commands(command);
+
+      // destroy scratch buffer
+      vkDestroyBuffer(device_->get_device(), scratch_buffer->handle, nullptr);
+      vkFreeMemory(device_->get_device(), scratch_buffer->memory, nullptr);
+    }
+
+    void destroy_acceleration_structure(acceleration_structure& as)
+    {
+      auto device = device_->get_device();
+      vkDestroyAccelerationStructureKHR(device, as.handle, nullptr);
+      vkFreeMemory(device, as.memory, nullptr);
+      vkDestroyBuffer(device, as.buffer, nullptr);
     }
 
     // ----------------------------------------------------------------------------------------------
