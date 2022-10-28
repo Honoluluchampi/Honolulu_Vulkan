@@ -19,7 +19,7 @@ swap_chain::swap_chain(device &device, VkExtent2D extent, std::unique_ptr<swap_c
     : device_{device}, window_extent_{extent}, old_swap_chain_(std::move(previous)) 
 {
   init();
-  // clean up old swap chain since it's no longer neeeded
+  // clean up old swap chain since it's no longer needed
   old_swap_chain_.reset();
 }
 
@@ -172,7 +172,7 @@ void swap_chain::create_swap_chain()
 {
   swap_chain_support_details swap_chain_support = device_.get_swap_chain_support();
 
-  auto surface_format = choose_swap_surface_format(swap_chain_support.formats_);
+  surface_format_ = choose_swap_surface_format(swap_chain_support.formats_);
   auto present_mode = choose_swap_present_mode(swap_chain_support.present_modes_);
   auto extent = choose_swap_extent(swap_chain_support.capabilities_);
   // how many images id like to have in the swap chain
@@ -188,8 +188,8 @@ void swap_chain::create_swap_chain()
   create_info.surface = device_.get_surface();
 
   create_info.minImageCount = get_image_count;
-  create_info.imageFormat = surface_format.format;
-  create_info.imageColorSpace = surface_format.colorSpace;
+  create_info.imageFormat = surface_format_.format;
+  create_info.imageColorSpace = surface_format_.colorSpace;
   create_info.imageExtent = extent;
   // the amount of layers each image consists of
   create_info.imageArrayLayers = 1;
@@ -233,7 +233,7 @@ void swap_chain::create_swap_chain()
   swap_chain_images_.resize(get_image_count);
   vkGetSwapchainImagesKHR(device_.get_device(), swap_chain_, &get_image_count, swap_chain_images_.data());
 
-  swap_chain_image_format_ = surface_format.format;
+  swap_chain_image_format_ = surface_format_.format;
   swap_chain_extent_ = extent;
 }
 

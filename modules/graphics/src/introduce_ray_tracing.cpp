@@ -1,6 +1,7 @@
 // hnll
 #include <graphics/device.hpp>
 #include <graphics/buffer.hpp>
+#include <graphics/swap_chain.hpp>
 
 // sub
 #include <extensions_vk.hpp>
@@ -46,6 +47,10 @@ class image_resource {
     }
 
     // setter
+    void set_image(VkImage image) { image_ = image; }
+    void set_image_view(VkImageView view) { view_ = view; }
+    void set_device_memory(VkDeviceMemory memory) { memory_ = memory; }
+
     void set_image_layout_barrier_state(VkCommandBuffer command, VkImageLayout new_layout)
     {
       VkImageMemoryBarrier barrier {};
@@ -142,6 +147,7 @@ class hello_triangle {
     {
       destroy_acceleration_structure(*blas_);
       destroy_acceleration_structure(*tlas_);
+      destroy_image_resource(*ray_traced_image_);
     }
 
   private:
@@ -150,6 +156,7 @@ class hello_triangle {
       create_vertex_buffer();
       create_triangle_blas();
       create_scene_tlas();
+      create_ray_traced_image();
     }
 
     void create_vertex_buffer()
@@ -450,12 +457,94 @@ class hello_triangle {
       vkFreeMemory(device_->get_device(), scratch_buffer->memory, nullptr);
     }
 
+    void create_ray_traced_image()
+    {
+      // temporary : for format info
+      auto extent = window_->get_extent();
+//      auto swap_chain = std::make_unique<graphics::swap_chain>(*device_, extent);
+      VkSurfaceFormatKHR back_buffer_format = {
+        VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
+      };
+      auto format = back_buffer_format.format;
+      auto device = device_->get_device();
+      VkImageUsageFlags usage =
+        VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+        VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+        VK_IMAGE_USAGE_STORAGE_BIT;
+      VkMemoryPropertyFlags device_memory_props = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+      // create image
+      ray_traced_image_ = create_texture_2d(extent, format, usage, device_memory_props);
+
+      auto command = device_->begin_one_shot_commands();
+      ray_traced_image_->set_image_layout_barrier_state(command, VK_IMAGE_LAYOUT_GENERAL);
+      device_->end_one_shot_commands(command);
+    }
+
+    u_ptr<image_resource> create_texture_2d(VkExtent2D extent, VkFormat format, VkImageUsageFlags usage, VkMemoryPropertyFlags memory_props)
+    {
+      auto res = std::make_unique<image_resource>();
+
+      // create image
+      VkImageCreateInfo create_info {
+        VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        nullptr
+      };
+      create_info.imageType = VK_IMAGE_TYPE_2D;
+      create_info.format = format;
+      create_info.extent = {extent.width, extent.height, 1};
+      create_info.mipLevels = 1;
+      create_info.arrayLayers = 1;
+      create_info.samples = VK_SAMPLE_COUNT_1_BIT;
+      create_info.tiling = VK_IMAGE_TILING_OPTIMAL;
+      create_info.usage = usage | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+      create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+      create_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+      VkImage image;
+      VkDeviceMemory image_memory;
+
+      device_->create_image_with_info(create_info, memory_props, image, image_memory);
+
+      // create image view
+      VkImageViewCreateInfo view_create_info {
+        VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, nullptr
+      };
+      view_create_info.image = image;
+      view_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+      view_create_info.format = format;
+      view_create_info.components = VkComponentMapping{
+        VK_COMPONENT_SWIZZLE_R,
+        VK_COMPONENT_SWIZZLE_G,
+        VK_COMPONENT_SWIZZLE_B,
+        VK_COMPONENT_SWIZZLE_A,
+      };
+      view_create_info.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+
+      VkImageView view;
+      vkCreateImageView(device_->get_device(), &view_create_info, nullptr, &view);
+
+      res->set_image(image);
+      res->set_image_view(view);
+      res->set_device_memory(image_memory);
+
+      return res;
+    }
+
     void destroy_acceleration_structure(acceleration_structure& as)
     {
       auto device = device_->get_device();
       vkDestroyAccelerationStructureKHR(device, as.handle, nullptr);
       vkFreeMemory(device, as.memory, nullptr);
       vkDestroyBuffer(device, as.buffer, nullptr);
+    }
+
+    void destroy_image_resource(image_resource& ir)
+    {
+      auto device = device_->get_device();
+      vkDestroyImage(device, ir.get_image(), nullptr);
+      vkDestroyImageView(device, ir.get_image_view(), nullptr);
+      vkFreeMemory(device, ir.get_memory(), nullptr);
     }
 
     // ----------------------------------------------------------------------------------------------

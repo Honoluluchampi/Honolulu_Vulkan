@@ -33,31 +33,25 @@ class swap_chain {
   VkFramebuffer get_frame_buffer(int index) { return swap_chain_frame_buffers_[index]; }
   VkRenderPass get_render_pass() { return render_pass_; }
 #else
-  VkFramebuffer get_frame_buffer(int render_pass_id, int index)
-  { return multiple_frame_buffers_[render_pass_id][index]; }
-  VkRenderPass get_render_pass(int render_pass_id)
-  { return multiple_render_pass_[render_pass_id]; }
+  VkFramebuffer get_frame_buffer(int render_pass_id, int index) { return multiple_frame_buffers_[render_pass_id][index]; }
+  VkRenderPass get_render_pass(int render_pass_id) { return multiple_render_pass_[render_pass_id]; }
 #endif
 
-  VkImageView get_image_view(int index) { return swap_chain_image_views_[index]; }
-  size_t get_image_count() { return swap_chain_images_.size(); }
-  VkFormat get_swap_chain_images_format() { return swap_chain_image_format_; }
-  VkExtent2D get_swap_chain_extent() { return swap_chain_extent_; }
+  VkImageView        get_image_view(int index) { return swap_chain_image_views_[index]; }
+  size_t             get_image_count() { return swap_chain_images_.size(); }
+  VkFormat           get_swap_chain_images_format() { return swap_chain_image_format_; }
+  VkExtent2D         get_swap_chain_extent() { return swap_chain_extent_; }
+  VkSurfaceFormatKHR get_surface_format() { return surface_format_; }
   uint32_t get_width() { return swap_chain_extent_.width; }
   uint32_t get_height() { return swap_chain_extent_.height; }
-  const VkSemaphore& get_current_image_available_semaphore() const
-  { return image_available_semaphores_[current_frame_]; }
-  const VkSemaphore& get_current_render_finished_semaphore() const
-  { return render_finished_semaphores_[current_frame_]; }
-  const VkFence& get_current_in_flight_fence() const 
-  { return in_flight_fences_[current_frame_]; }
-  const VkFence& get_current_images_in_flight_fence() const
-  { return images_in_flight_[current_frame_]; }
+  const VkSemaphore& get_current_image_available_semaphore() const { return image_available_semaphores_[current_frame_]; }
+  const VkSemaphore& get_current_render_finished_semaphore() const { return render_finished_semaphores_[current_frame_]; }
+  const VkFence& get_current_in_flight_fence() const { return in_flight_fences_[current_frame_]; }
+  const VkFence& get_current_images_in_flight_fence() const { return images_in_flight_[current_frame_]; }
 
-  float extent_aspect_ratio() 
-  { return static_cast<float>(swap_chain_extent_.width) / static_cast<float>(swap_chain_extent_.height); }
+  float extent_aspect_ratio() { return static_cast<float>(swap_chain_extent_.width) / static_cast<float>(swap_chain_extent_.height); }
+
   VkFormat find_depth_format();
-
   VkResult acquire_next_image(uint32_t *image_index);
   VkResult submit_command_buffers(const VkCommandBuffer *buffers, uint32_t *image_index);
 
@@ -109,6 +103,7 @@ class swap_chain {
 
   VkFormat swap_chain_image_format_;
   VkFormat swap_chain_depth_format_;
+  VkSurfaceFormatKHR surface_format_;
   VkExtent2D swap_chain_extent_;
 
   // tell Vulkan about the framebuffer attachments that will be used while rendering
