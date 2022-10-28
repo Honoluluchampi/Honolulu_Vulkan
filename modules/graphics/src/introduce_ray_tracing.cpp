@@ -148,6 +148,8 @@ class hello_triangle {
       destroy_acceleration_structure(*blas_);
       destroy_acceleration_structure(*tlas_);
       destroy_image_resource(*ray_traced_image_);
+      vkDestroyDescriptorSetLayout(device_->get_device(), descriptor_set_layout_, nullptr);
+      vkDestroyPipelineLayout(device_->get_device(), pipeline_layout_, nullptr);
     }
 
   private:
@@ -157,6 +159,7 @@ class hello_triangle {
       create_triangle_blas();
       create_scene_tlas();
       create_ray_traced_image();
+      create_layout();
     }
 
     void create_vertex_buffer()
@@ -461,7 +464,6 @@ class hello_triangle {
     {
       // temporary : for format info
       auto extent = window_->get_extent();
-//      auto swap_chain = std::make_unique<graphics::swap_chain>(*device_, extent);
       VkSurfaceFormatKHR back_buffer_format = {
         VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
       };
@@ -531,6 +533,39 @@ class hello_triangle {
       return res;
     }
 
+    void create_layout()
+    {
+      VkDescriptorSetLayoutBinding layout_as {};
+      layout_as.binding = 0;
+      layout_as.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+      layout_as.descriptorCount = 1;
+      layout_as.stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR; // used only by raygen shader
+
+      VkDescriptorSetLayoutBinding layout_rt_image {};
+      layout_rt_image.binding = 1;
+      layout_rt_image.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+      layout_rt_image.descriptorCount = 1;
+      layout_rt_image.stageFlags = VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+
+      std::vector<VkDescriptorSetLayoutBinding> bindings { layout_as, layout_rt_image };
+
+      VkDescriptorSetLayoutCreateInfo ds_create_info {
+        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO
+      };
+      ds_create_info.bindingCount = static_cast<uint32_t>(bindings.size());
+      ds_create_info.pBindings = bindings.data();
+
+      // create descriptor set layout
+      vkCreateDescriptorSetLayout(device_->get_device(), &ds_create_info, nullptr, &descriptor_set_layout_);
+
+      VkPipelineLayoutCreateInfo pl_create_info {
+        VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO
+      };
+      pl_create_info.setLayoutCount = 1;
+      pl_create_info.pSetLayouts = &descriptor_set_layout_;
+      vkCreatePipelineLayout(device_->get_device(), &pl_create_info, nullptr, &pipeline_layout_);
+    }
+
     void destroy_acceleration_structure(acceleration_structure& as)
     {
       auto device = device_->get_device();
@@ -563,6 +598,9 @@ class hello_triangle {
     // acceleration structure
     u_ptr<acceleration_structure> blas_;
     u_ptr<acceleration_structure> tlas_;
+
+    VkDescriptorSetLayout descriptor_set_layout_;
+    VkPipelineLayout      pipeline_layout_;
 };
 }
 
