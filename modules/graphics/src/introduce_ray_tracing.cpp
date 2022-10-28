@@ -2,6 +2,7 @@
 #include <graphics/device.hpp>
 #include <graphics/buffer.hpp>
 #include <graphics/swap_chain.hpp>
+#include <graphics/pipeline.hpp>
 
 // sub
 #include <extensions_vk.hpp>
@@ -14,6 +15,15 @@ namespace hnll {
 using vec3 = Eigen::Vector3f;
 template<typename T> using u_ptr = std::unique_ptr<T>;
 template<typename T> using s_ptr = std::shared_ptr<T>;
+
+enum class shader_stages {
+  RAY_GENERATION,
+  MISS,
+  CLOSEST_HIT,
+  ANY_HIT,
+  INTERSECTION,
+  MAX_STAGE,
+};
 
 struct acceleration_structure
 {
@@ -150,6 +160,7 @@ class hello_triangle {
       destroy_image_resource(*ray_traced_image_);
       vkDestroyDescriptorSetLayout(device_->get_device(), descriptor_set_layout_, nullptr);
       vkDestroyPipelineLayout(device_->get_device(), pipeline_layout_, nullptr);
+      vkDestroyPipeline(device_->get_device(), pipeline_, nullptr);
     }
 
   private:
@@ -160,6 +171,7 @@ class hello_triangle {
       create_scene_tlas();
       create_ray_traced_image();
       create_layout();
+      create_pipeline();
     }
 
     void create_vertex_buffer()
@@ -566,6 +578,109 @@ class hello_triangle {
       vkCreatePipelineLayout(device_->get_device(), &pl_create_info, nullptr, &pipeline_layout_);
     }
 
+    void create_pipeline()
+    {
+      auto ray_generation_stage = load_shader("ray_generation.rgen.spv", VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+      auto miss_stage = load_shader("miss.rmiss.spv", VK_SHADER_STAGE_MISS_BIT_KHR);
+      auto closest_hit_stage = load_shader("closest_hit.rchit.spv", VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+
+      std::vector<VkPipelineShaderStageCreateInfo> stages = {
+        ray_generation_stage,
+        miss_stage,
+        closest_hit_stage,
+      };
+
+      const int index_ray_generation = 0;
+      const int index_miss = 1;
+      const int index_closest_hit = 2;
+
+      // create shader group
+      auto ray_generation_group = VkRayTracingShaderGroupCreateInfoKHR {
+        VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR
+      };
+      ray_generation_group.generalShader = index_ray_generation;
+      ray_generation_group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
+      ray_generation_group.closestHitShader = VK_SHADER_UNUSED_KHR;
+      ray_generation_group.anyHitShader = VK_SHADER_UNUSED_KHR;
+      ray_generation_group.intersectionShader = VK_SHADER_UNUSED_KHR;
+
+      auto miss_group = VkRayTracingShaderGroupCreateInfoKHR {
+        VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR
+      };
+      miss_group.generalShader = index_miss;
+      miss_group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
+      miss_group.closestHitShader = VK_SHADER_UNUSED_KHR;
+      miss_group.anyHitShader = VK_SHADER_UNUSED_KHR;
+      miss_group.intersectionShader = VK_SHADER_UNUSED_KHR;
+
+      auto closest_hit_group = VkRayTracingShaderGroupCreateInfoKHR {
+        VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR
+      };
+      closest_hit_group.generalShader = VK_SHADER_UNUSED_KHR;
+      closest_hit_group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
+      closest_hit_group.closestHitShader = index_closest_hit;
+      closest_hit_group.anyHitShader = VK_SHADER_UNUSED_KHR;
+      closest_hit_group.intersectionShader = VK_SHADER_UNUSED_KHR;
+
+      // shader_group_create_infos_.resize(static_cast<size_t>(shader_stages::MAX_STAGE));
+      shader_group_create_infos_.resize(3);
+      shader_group_create_infos_[static_cast<int>(shader_stages::RAY_GENERATION)] = ray_generation_group;
+      shader_group_create_infos_[static_cast<int>(shader_stages::MISS)] = miss_group;
+      shader_group_create_infos_[static_cast<int>(shader_stages::CLOSEST_HIT)] = closest_hit_group;
+
+      // create pipeline
+      VkRayTracingPipelineCreateInfoKHR pipeline_create_info {
+        VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR
+      };
+      pipeline_create_info.stageCount = uint32_t(stages.size());
+      pipeline_create_info.pStages = stages.data();
+      pipeline_create_info.groupCount = uint32_t(shader_group_create_infos_.size());
+      pipeline_create_info.pGroups = shader_group_create_infos_.data();
+      pipeline_create_info.maxPipelineRayRecursionDepth = 1;
+      pipeline_create_info.layout = pipeline_layout_;
+      vkCreateRayTracingPipelinesKHR(
+        device_->get_device(),
+        VK_NULL_HANDLE,
+        VK_NULL_HANDLE,
+        1,
+        &pipeline_create_info,
+        nullptr,
+        &pipeline_
+        );
+
+      // delete shader modules
+      for (auto& stage : stages) {
+        vkDestroyShaderModule(device_->get_device(), stage.module, nullptr);
+      }
+    }
+
+    VkPipelineShaderStageCreateInfo load_shader(const char* shader_name, VkShaderStageFlagBits stage)
+    {
+      std::string shaders_directory = std::string(std::getenv("HNLL_ENGN"))
+        + std::string("/modules/graphics/ray_tracing_shader/spv/");
+
+      VkPipelineShaderStageCreateInfo shader_create_info {
+        VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+        nullptr
+      };
+
+      auto shader_spv = graphics::pipeline::read_file(shaders_directory + shader_name);
+      VkShaderModuleCreateInfo module_create_info {
+        VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO, nullptr
+      };
+      module_create_info.codeSize = uint32_t(shader_spv.size());
+      module_create_info.pCode = reinterpret_cast<const uint32_t*>(shader_spv.data());
+
+      VkShaderModule shader_module;
+      vkCreateShaderModule(device_->get_device(), &module_create_info, nullptr, &shader_module);
+
+      shader_create_info.stage = stage;
+      shader_create_info.pName = "main";
+      shader_create_info.module = shader_module;
+
+      return shader_create_info;
+    }
+
     void destroy_acceleration_structure(acceleration_structure& as)
     {
       auto device = device_->get_device();
@@ -589,6 +704,7 @@ class hello_triangle {
     u_ptr<graphics::buffer> vertex_buffer_;
     u_ptr<graphics::buffer> instances_buffer_;
     u_ptr<image_resource>   ray_traced_image_;
+
     std::vector<vec3> triangle_vertices_ = {
         {-0.5f, -0.5f, 0.0f},
         {+0.5f, -0.5f, 0.0f},
@@ -601,6 +717,9 @@ class hello_triangle {
 
     VkDescriptorSetLayout descriptor_set_layout_;
     VkPipelineLayout      pipeline_layout_;
+    VkPipeline            pipeline_;
+
+    std::vector<VkRayTracingShaderGroupCreateInfoKHR> shader_group_create_infos_;
 };
 }
 
