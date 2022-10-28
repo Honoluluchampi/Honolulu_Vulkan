@@ -595,7 +595,7 @@ void device::create_buffer(
   allocate_info.memoryTypeIndex = find_memory_type(memory_requirements.memoryTypeBits, properties);
 
   // ray tracing (device address for buffer)
-  if (rendering_type_ == rendering_type::RAY_TRACING) {
+  if (usage & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) {
     VkMemoryAllocateFlagsInfo memory_allocate_flags_info {
       VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO,
       nullptr

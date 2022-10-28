@@ -65,6 +65,7 @@ class hello_triangle {
     {
       create_vertex_buffer();
       create_triangle_blas();
+      create_scene_tlas();
     }
 
     void create_vertex_buffer()
@@ -246,6 +247,45 @@ class hello_triangle {
       return scratch_buffer;
     }
 
+    void create_scene_tlas()
+    {
+      VkTransformMatrixKHR transform_matrix = {
+        1.f, 0.f, 0.f, 0.f,
+        0.f, 1.f, 0.f, 0.f,
+        0.f, 0.f, 1.f, 0.f
+      };
+
+      VkAccelerationStructureInstanceKHR as_instance {};
+      as_instance.transform = transform_matrix;
+      as_instance.instanceCustomIndex = 0;
+      as_instance.mask = 0xFF;
+      as_instance.instanceShaderBindingTableRecordOffset = 0;
+      as_instance.flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
+      as_instance.accelerationStructureReference = blas_->device_address;
+
+      auto device = device_->get_device();
+      VkBufferUsageFlags usage =
+        VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
+        VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
+      VkMemoryPropertyFlags host_memory_props =
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+      VkDeviceSize buffer_size = sizeof(VkAccelerationStructureInstanceKHR);
+
+      // create instances buffer
+      instances_buffer_ = std::make_unique<graphics::buffer>(
+        *device_,
+        buffer_size,
+        1,
+        usage,
+        host_memory_props
+      );
+      // write the data to the buffer
+      instances_buffer_->map();
+      instances_buffer_->write_to_buffer((void *) &as_instance);
+    }
+
+    // ----------------------------------------------------------------------------------------------
     // variables
     u_ptr<graphics::window> window_;
     u_ptr<graphics::device> device_;
@@ -259,6 +299,7 @@ class hello_triangle {
     // acceleration structure
     u_ptr<acceleration_structure> blas_;
     u_ptr<acceleration_structure> tlas_;
+    u_ptr<graphics::buffer> instances_buffer_;
 };
 }
 
