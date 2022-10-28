@@ -29,6 +29,92 @@ struct ray_tracing_scratch_buffer
   VkDeviceAddress device_address = 0;
 };
 
+class image_resource {
+  public:
+    // getter
+    [[nodiscard]] VkImage        get_image()        const { return image_; }
+    [[nodiscard]] VkImageView    get_image_view()   const { return view_; }
+    [[nodiscard]] VkDeviceMemory get_memory()       const { return memory_; }
+    [[nodiscard]] VkImageLayout  get_image_layout() const { return layout_; }
+
+    const VkDescriptorImageInfo *get_descriptor(VkSampler sampler = VK_NULL_HANDLE)
+    {
+      descriptor_.imageView = view_;
+      descriptor_.imageLayout = layout_;
+      descriptor_.sampler = sampler;
+      return &descriptor_;
+    }
+
+    // setter
+    void set_image_layout_barrier_state(VkCommandBuffer command, VkImageLayout new_layout)
+    {
+      VkImageMemoryBarrier barrier {};
+      barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+      barrier.oldLayout = layout_;
+      barrier.newLayout = new_layout;
+      barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      barrier.subresourceRange = sub_resource_range_;
+      barrier.image = image_;
+
+      VkPipelineStageFlags src_stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+      VkPipelineStageFlags dst_stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+
+      switch (layout_) {
+        case VK_IMAGE_LAYOUT_UNDEFINED:
+          barrier.srcAccessMask = 0;
+          break;
+        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+          barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+          src_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+          break;
+        default:
+          break;
+      }
+
+      switch (new_layout) {
+        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+          barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+          dst_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+          break;
+        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+          barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+          dst_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+          break;
+        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+          barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+          dst_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+          dst_stage = VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR;
+          break;
+        default:
+          break;
+      }
+
+      vkCmdPipelineBarrier(
+        command,
+        src_stage,
+        dst_stage,
+        0, 0, nullptr, 0, nullptr, 1, &barrier
+      );
+
+      layout_ = new_layout;
+    }
+
+  private:
+    VkImage image_ = VK_NULL_HANDLE;
+    VkImageView view_ = VK_NULL_HANDLE;
+    VkDeviceMemory memory_ = VK_NULL_HANDLE;
+    VkImageLayout layout_ = VK_IMAGE_LAYOUT_UNDEFINED;
+    VkImageSubresourceRange sub_resource_range_ = {
+      VK_IMAGE_ASPECT_COLOR_BIT,
+      0, // base mip level
+      1, // level count
+      0, // base array layer
+      1, // layer count
+    };
+    VkDescriptorImageInfo descriptor_ = {};
+};
+
 VkDeviceAddress get_device_address(VkDevice device, VkBuffer buffer)
 {
   VkBufferDeviceAddressInfo buffer_device_info {
@@ -377,6 +463,8 @@ class hello_triangle {
     u_ptr<graphics::window> window_;
     u_ptr<graphics::device> device_;
     u_ptr<graphics::buffer> vertex_buffer_;
+    u_ptr<graphics::buffer> instances_buffer_;
+    u_ptr<image_resource>   ray_traced_image_;
     std::vector<vec3> triangle_vertices_ = {
         {-0.5f, -0.5f, 0.0f},
         {+0.5f, -0.5f, 0.0f},
@@ -386,7 +474,6 @@ class hello_triangle {
     // acceleration structure
     u_ptr<acceleration_structure> blas_;
     u_ptr<acceleration_structure> tlas_;
-    u_ptr<graphics::buffer> instances_buffer_;
 };
 }
 
