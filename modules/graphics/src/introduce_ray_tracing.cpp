@@ -164,6 +164,50 @@ class hello_triangle {
       as_device_address_info.accelerationStructure = blas_->handle;
       blas_->device_address = vkGetAccelerationStructureDeviceAddressKHR(device_->get_device(), &as_device_address_info);
 
+      // create scratch buffer
+      auto scratch_buffer = create_scratch_buffer(as_build_sizes_info.buildScratchSize);
+
+      // build blas
+      as_build_geometry_info.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR;
+      as_build_geometry_info.dstAccelerationStructure = blas_->handle;
+      as_build_geometry_info.scratchData.deviceAddress = scratch_buffer->device_address;
+
+      // execute blas build command (in GPU)
+      VkAccelerationStructureBuildRangeInfoKHR as_build_range_info {};
+      as_build_range_info.primitiveCount = num_triangles;
+      as_build_range_info.primitiveOffset = 0;
+      as_build_range_info.firstVertex = 0;
+      as_build_range_info.transformOffset = 0;
+
+      std::vector<VkAccelerationStructureBuildRangeInfoKHR*> as_build_range_infos = { &as_build_range_info };
+
+      auto command = device_->begin_one_shot_commands();
+      vkCmdBuildAccelerationStructuresKHR(
+        command, 1, &as_build_geometry_info, as_build_range_infos.data()
+      );
+
+      VkBufferMemoryBarrier barrier { VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER };
+      barrier.buffer = blas_->buffer;
+      barrier.size = VK_WHOLE_SIZE;
+      barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+      barrier.srcAccessMask =
+        VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR |
+        VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;
+      barrier.dstAccessMask = VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;
+
+      vkCmdPipelineBarrier(
+        command,
+        VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR,
+        VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR,
+        0, 0, nullptr, 1, &barrier, 0, nullptr
+      );
+
+      device_->end_one_shot_commands(command);
+
+      // destroy scratch buffer
+      vkDestroyBuffer(device_->get_device(), scratch_buffer->handle, nullptr);
+      vkFreeMemory(device_->get_device(), scratch_buffer->memory, nullptr);
     }
 
     u_ptr<acceleration_structure> create_acceleration_structure_buffer
