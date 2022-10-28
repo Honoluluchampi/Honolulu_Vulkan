@@ -7,7 +7,7 @@ mkdir -p ${OUTPUTDIR}
 
 extensions=("rgen" "rmiss" "rchit" "rahit" "rint" "comp")
 
-for extension in ${extensions}
+for extension in ${extensions[@]}
   do
     for FILE in ${SHADERDIR}/*.${extension}
       do
