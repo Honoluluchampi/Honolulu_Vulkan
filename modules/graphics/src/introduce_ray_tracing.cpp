@@ -14,6 +14,14 @@ using vec3 = Eigen::Vector3f;
 template<typename T> using u_ptr = std::unique_ptr<T>;
 template<typename T> using s_ptr = std::shared_ptr<T>;
 
+struct acceleration_structure
+{
+  VkAccelerationStructureKHR handle = VK_NULL_HANDLE;
+  VkDeviceMemory             memory = VK_NULL_HANDLE;
+  VkBuffer                   buffer = VK_NULL_HANDLE;
+  VkDeviceAddress            device_address = 0;
+};
+
 VkDeviceAddress get_device_address(VkDevice device, VkBuffer buffer)
 {
   VkBufferDeviceAddressInfo buffer_device_info {
@@ -26,7 +34,8 @@ VkDeviceAddress get_device_address(VkDevice device, VkBuffer buffer)
 
 class hello_triangle {
   public:
-    hello_triangle() {
+    hello_triangle()
+    {
       window_ = std::make_unique<graphics::window>(1920, 1080, "hello ray tracing triangle");
       device_ = std::make_unique<graphics::device>(*window_, graphics::rendering_type::RAY_TRACING);
 
@@ -36,13 +45,23 @@ class hello_triangle {
       create_triangle_as();
     }
 
+    ~hello_triangle()
+    {
+      auto device = device_->get_device();
+      vkDestroyAccelerationStructureKHR(device, blas_->handle, nullptr);
+      vkFreeMemory(device, blas_->memory, nullptr);
+      vkDestroyBuffer(device, blas_->buffer, nullptr);
+    }
+
   private:
-    void create_triangle_as() {
+    void create_triangle_as()
+    {
       create_vertex_buffer();
       create_triangle_blas();
     }
 
-    void create_vertex_buffer() {
+    void create_vertex_buffer()
+    {
       uint32_t vertex_count = triangle_vertices_.size();
       uint32_t vertex_size = sizeof(triangle_vertices_[0]);
       VkDeviceSize buffer_size = vertex_size * vertex_count;
@@ -122,7 +141,55 @@ class hello_triangle {
       );
 
       // build blas (get handle of VkAccelerationStructureKHR)
+      blas_ = create_acceleration_structure_buffer(as_build_sizes_info);
 
+      // create blas
+      VkAccelerationStructureCreateInfoKHR as_create_info {};
+      as_create_info.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR;
+      as_create_info.buffer = blas_->buffer;
+      as_create_info.size = as_build_sizes_info.accelerationStructureSize;
+      as_create_info.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+      vkCreateAccelerationStructureKHR(device_->get_device(), &as_create_info, nullptr, &blas_->handle);
+
+      // get the device address of blas
+      VkAccelerationStructureDeviceAddressInfoKHR as_device_address_info {};
+      as_device_address_info.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR;
+      as_device_address_info.accelerationStructure = blas_->handle;
+      blas_->device_address = vkGetAccelerationStructureDeviceAddressKHR(device_->get_device(), &as_device_address_info);
+
+    }
+
+    u_ptr<acceleration_structure> create_acceleration_structure_buffer
+        (VkAccelerationStructureBuildSizesInfoKHR build_size_info)
+    {
+      auto as = std::make_unique<acceleration_structure>();
+      auto device = device_->get_device();
+
+      VkBufferCreateInfo buffer_create_info{};
+      buffer_create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+      buffer_create_info.size = build_size_info.accelerationStructureSize;
+      buffer_create_info.usage =
+          VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR |
+          VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+      vkCreateBuffer(device, &buffer_create_info, nullptr, &as->buffer);
+
+      VkMemoryRequirements memory_requirements{};
+      vkGetBufferMemoryRequirements(device, as->buffer, &memory_requirements);
+
+      VkMemoryAllocateFlagsInfo memory_allocate_flags_info{};
+      memory_allocate_flags_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO;
+      memory_allocate_flags_info.flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR;
+
+      VkMemoryAllocateInfo memory_allocate_info{};
+      memory_allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+      memory_allocate_info.pNext = &memory_allocate_flags_info;
+      memory_allocate_info.allocationSize = memory_requirements.size;
+      memory_allocate_info.memoryTypeIndex = device_->find_memory_type(memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+      vkAllocateMemory(device, &memory_allocate_info, nullptr, &as->memory);
+      vkBindBufferMemory(device, as->buffer, as->memory, 0);
+
+      return as;
     }
 
     u_ptr<graphics::window> window_;
@@ -133,6 +200,10 @@ class hello_triangle {
         {+0.5f, -0.5f, 0.0f},
         {0.0f,  0.75f, 0.0f}
     };
+
+    // acceleration structure
+    u_ptr<acceleration_structure> blas_;
+    u_ptr<acceleration_structure> tlas_;
 };
 }
 
