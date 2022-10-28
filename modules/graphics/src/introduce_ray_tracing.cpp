@@ -22,6 +22,13 @@ struct acceleration_structure
   VkDeviceAddress            device_address = 0;
 };
 
+struct ray_tracing_scratch_buffer
+{
+  VkBuffer        handle = VK_NULL_HANDLE;
+  VkDeviceMemory  memory = VK_NULL_HANDLE;
+  VkDeviceAddress device_address = 0;
+};
+
 VkDeviceAddress get_device_address(VkDevice device, VkBuffer buffer)
 {
   VkBufferDeviceAddressInfo buffer_device_info {
@@ -163,35 +170,39 @@ class hello_triangle {
         (VkAccelerationStructureBuildSizesInfoKHR build_size_info)
     {
       auto as = std::make_unique<acceleration_structure>();
-      auto device = device_->get_device();
+      auto usage = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR |
+                   VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
 
-      VkBufferCreateInfo buffer_create_info{};
-      buffer_create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-      buffer_create_info.size = build_size_info.accelerationStructureSize;
-      buffer_create_info.usage =
-          VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR |
-          VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
-      vkCreateBuffer(device, &buffer_create_info, nullptr, &as->buffer);
-
-      VkMemoryRequirements memory_requirements{};
-      vkGetBufferMemoryRequirements(device, as->buffer, &memory_requirements);
-
-      VkMemoryAllocateFlagsInfo memory_allocate_flags_info{};
-      memory_allocate_flags_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO;
-      memory_allocate_flags_info.flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR;
-
-      VkMemoryAllocateInfo memory_allocate_info{};
-      memory_allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-      memory_allocate_info.pNext = &memory_allocate_flags_info;
-      memory_allocate_info.allocationSize = memory_requirements.size;
-      memory_allocate_info.memoryTypeIndex = device_->find_memory_type(memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-      vkAllocateMemory(device, &memory_allocate_info, nullptr, &as->memory);
-      vkBindBufferMemory(device, as->buffer, as->memory, 0);
+      device_->create_buffer(
+        build_size_info.accelerationStructureSize,
+        usage,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        as->buffer,
+        as->memory
+      );
 
       return as;
     }
 
+    u_ptr<ray_tracing_scratch_buffer> create_scratch_buffer(VkDeviceSize size)
+    {
+      auto scratch_buffer = std::make_unique<ray_tracing_scratch_buffer>();
+      auto usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                   VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+
+      device_->create_buffer(
+        size,
+        usage,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        scratch_buffer->handle,
+        scratch_buffer->memory
+      );
+
+      scratch_buffer->device_address = get_device_address(device_->get_device(), scratch_buffer->handle);
+      return scratch_buffer;
+    }
+
+    // variables
     u_ptr<graphics::window> window_;
     u_ptr<graphics::device> device_;
     u_ptr<graphics::buffer> vertex_buffer_;
