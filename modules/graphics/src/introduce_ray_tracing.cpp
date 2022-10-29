@@ -7,6 +7,9 @@
 // sub
 #include <extensions_vk.hpp>
 
+// std
+#include <iostream>
+
 // lib
 #include <eigen3/Eigen/Dense>
 
@@ -165,7 +168,27 @@ class hello_triangle {
       vkDestroyPipeline(device_->get_device(), pipeline_, nullptr);
     }
 
+    void run()
+    {
+      while (glfwWindowShouldClose(window_->get_glfw_window()) == GLFW_FALSE) {
+        glfwPollEvents();
+        update();
+        render();
+      }
+    }
+
   private:
+
+    void update()
+    {
+
+    }
+
+    void render()
+    {
+
+    }
+
     void create_triangle_as()
     {
       create_vertex_buffer();
@@ -855,7 +878,14 @@ class hello_triangle {
 }
 
 int main() {
-  hnll::hello_triangle app;
+  hnll::hello_triangle app {};
+
+  try { app.run(); }
+  catch (const std::exception& e) {
+    std::cerr << e.what() << '\n';
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
 }
 
 // empty
