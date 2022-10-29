@@ -169,6 +169,19 @@ descriptor_writer &descriptor_writer::write_image(uint32_t binding, VkDescriptor
   return *this;
 }
 
+descriptor_writer& descriptor_writer::write_acceleration_structure(uint32_t binding, void* as_info)
+{
+  VkWriteDescriptorSet write{};
+  write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  write.pNext = as_info;
+  write.dstBinding = binding;
+  write.descriptorCount = 1;
+  write.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+
+  writes_.push_back(write);
+  return *this;
+}
+
 bool descriptor_writer::build(VkDescriptorSet &set) 
 {
   bool success = pool_.allocate_descriptor(set_layout_.get_descriptor_set_layout(), set);

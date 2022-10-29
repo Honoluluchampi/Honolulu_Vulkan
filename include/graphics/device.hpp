@@ -13,6 +13,11 @@
 
 namespace hnll::graphics {
 
+enum class rendering_type {
+    RASTERIZE,
+    RAY_TRACING,
+};
+
 // non-member function
 struct swap_chain_support_details
 {
@@ -37,7 +42,7 @@ class device
       const bool enable_validation_layers = true;
     #endif
 
-    device(window &window);
+    device(window &window, rendering_type = rendering_type::RASTERIZE);
     ~device();
 
     // Not copyable or movable
@@ -47,19 +52,19 @@ class device
     device &operator=(device &&) = delete;
 
     // getter
-    VkCommandPool get_command_pool() { return command_pool_; }
-    VkInstance get_instance() { return instance_; }
-    VkPhysicalDevice get_physical_device() { return physical_device_; }
-    VkDevice get_device() { return device_; }
-    VkSurfaceKHR get_surface() { return surface_; }
-    VkQueue get_graphics_queue() { return graphics_queue_; }
-    VkQueue get_present_queue() { return present_queue_; }
+    VkCommandPool        get_command_pool()         { return command_pool_; }
+    VkInstance           get_instance()             { return instance_; }
+    VkPhysicalDevice     get_physical_device()      { return physical_device_; }
+    VkDevice             get_device()               { return device_; }
+    VkSurfaceKHR         get_surface()              { return surface_; }
+    VkQueue              get_graphics_queue()       { return graphics_queue_; }
+    VkQueue              get_present_queue()        { return present_queue_; }
     queue_family_indices get_queue_family_indices() { return queue_family_indices_; }
 
     swap_chain_support_details get_swap_chain_support() { return query_swap_chain_support(physical_device_); }
-    uint32_t find_memory_type(uint32_t type_filter, VkMemoryPropertyFlags properties);
-    queue_family_indices find_physical_queue_families() { return find_queue_families(physical_device_); }
-    VkFormat find_supported_format(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+    uint32_t                   find_memory_type(uint32_t type_filter, VkMemoryPropertyFlags properties);
+    queue_family_indices       find_physical_queue_families() { return find_queue_families(physical_device_); }
+    VkFormat                   find_supported_format(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
     // Buffer Helper Functions
     void create_buffer(
@@ -83,6 +88,7 @@ class device
 
   private:
     // create sequence
+    void setup_device_extensions();
     void create_instance();
     void setup_debug_messenger();
     void create_surface();
@@ -115,7 +121,9 @@ class device
     VkCommandPool command_pool_;
 
     const std::vector<const char *> validation_layers_ = {"VK_LAYER_KHRONOS_validation"};
-    const std::vector<const char *> device_extensions_ = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    std::vector<const char *> device_extensions_;
+
+    rendering_type rendering_type_ = rendering_type::RASTERIZE;
 };
 
 } // namespace hnll::graphics

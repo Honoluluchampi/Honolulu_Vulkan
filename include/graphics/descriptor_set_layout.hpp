@@ -32,6 +32,7 @@ class descriptor_set_layout {
   descriptor_set_layout &operator=(const descriptor_set_layout &) = delete;
 
   VkDescriptorSetLayout get_descriptor_set_layout() const { return descriptor_set_layout_; }
+  VkDescriptorSetLayout* get_p_descriptor_set_layout() { return &descriptor_set_layout_; }
 
  private:
   device &device_;
@@ -85,7 +86,7 @@ class descriptor_writer {
 
   descriptor_writer &write_buffer(uint32_t binding, VkDescriptorBufferInfo *buffer_info);
   descriptor_writer &write_image(uint32_t binding, VkDescriptorImageInfo *image_info);
-
+  descriptor_writer &write_acceleration_structure(uint32_t binding, void* as_info);
   bool build(VkDescriptorSet &set);
   void overwrite(VkDescriptorSet &set);
 

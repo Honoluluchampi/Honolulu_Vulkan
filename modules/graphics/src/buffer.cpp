@@ -25,18 +25,18 @@ VkDeviceSize buffer::get_alignment(VkDeviceSize instance_size, VkDeviceSize min_
 buffer::buffer(
     device &device,
     VkDeviceSize instance_size,
-    uint32_t instace_count,
+    uint32_t instance_count,
     VkBufferUsageFlags usage_flags,
     VkMemoryPropertyFlags memory_property_flags,
     VkDeviceSize min_offset_alignment)
     : device_{device},
       instance_size_{instance_size},
-      instance_count_{instace_count},
+      instance_count_{instance_count},
       usage_flags_{usage_flags},
       memory_property_flags_{memory_property_flags} 
 {
   alignment_size_ = get_alignment(instance_size, min_offset_alignment);
-  buffer_size_ = alignment_size_ * instace_count;
+  buffer_size_ = alignment_size_ * instance_count;
   device_.create_buffer(buffer_size_, usage_flags, memory_property_flags, buffer_, memory_);
 }
  

@@ -39,12 +39,10 @@ target_link_libraries(hnll_engine PUBLIC
         hnll_graphics
         hnll_geometry
         hnll_utils
-        vulkan
+        libvulkan.so.1.3.224
         glfw
         )
 
 # build the example
 add_executable(app main.cpp)
 target_link_libraries(app PUBLIC hnll_engine)
-
-# build the test

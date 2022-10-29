@@ -46,15 +46,8 @@ void renderer::recreate_swap_chain()
     // move the ownership of the current swap chain to old one.
     std::unique_ptr<swap_chain> old_swap_chain = std::move(swap_chain_);
     swap_chain_ = std::make_unique<swap_chain>(device_, extent, std::move(old_swap_chain));
-
-  // TODO : enabled this segmetn
-    // if (!old_swap_chain->compare_swap_chain_formats(*swap_chain_.get()))
-    //   throw std::runtime_error("swap chian image( or depth) format has chainged");
-
-    // command buffers no longer depend on the swap chain image count
   }
   // if render pass compatible, do nothing else 
-
   // execute this function at the last of derived function's recreate_swap_chain();
   if (next_renderer_) next_renderer_->recreate_swap_chain();
 

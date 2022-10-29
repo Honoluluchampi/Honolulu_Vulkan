@@ -46,8 +46,8 @@ class rigid_component : public component
     // setter
     void set_bounding_volume(u_ptr<geometry::bounding_volume>&& bv) { bounding_volume_ = std::move(bv); }
     void set_transform(const s_ptr<utils::transform>& transform_sp) { transform_sp_ = transform_sp; }
-    double set_mass(double mass)               { mass_ = mass; }
-    double set_restitution(double restitution) { restitution_ = restitution; }
+    void set_mass(double mass)                                      { mass_ = mass; }
+    void set_restitution(double restitution)                        { restitution_ = restitution; }
 
   private:
     double mass_ = 1.f;
