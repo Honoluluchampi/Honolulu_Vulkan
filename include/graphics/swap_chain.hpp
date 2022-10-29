@@ -37,6 +37,7 @@ class swap_chain {
   VkRenderPass get_render_pass(int render_pass_id) { return multiple_render_pass_[render_pass_id]; }
 #endif
 
+  VkImage            get_image(int index)      { return swap_chain_images_[index]; }
   VkImageView        get_image_view(int index) { return swap_chain_image_views_[index]; }
   size_t             get_image_count() { return swap_chain_images_.size(); }
   VkFormat           get_swap_chain_images_format() { return swap_chain_image_format_; }

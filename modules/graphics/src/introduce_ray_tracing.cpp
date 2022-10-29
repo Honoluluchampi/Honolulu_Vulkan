@@ -3,6 +3,8 @@
 #include <graphics/buffer.hpp>
 #include <graphics/descriptor_set_layout.hpp>
 #include <graphics/pipeline.hpp>
+#include <graphics/renderer.hpp>
+#include <graphics/frame_info.hpp>
 
 // sub
 #include <extensions_vk.hpp>
@@ -46,10 +48,11 @@ struct ray_tracing_scratch_buffer
 class image_resource {
   public:
     // getter
-    [[nodiscard]] VkImage        get_image()        const { return image_; }
-    [[nodiscard]] VkImageView    get_image_view()   const { return view_; }
-    [[nodiscard]] VkDeviceMemory get_memory()       const { return memory_; }
-    [[nodiscard]] VkImageLayout  get_image_layout() const { return layout_; }
+    [[nodiscard]] VkImage           get_image()        const { return image_; }
+    [[nodiscard]] VkImageView       get_image_view()   const { return view_; }
+    [[nodiscard]] VkDeviceMemory    get_memory()       const { return memory_; }
+    [[nodiscard]] VkImageLayout     get_image_layout() const { return layout_; }
+    [[nodiscard]] const VkExtent2D& get_extent()       const { return extent_; }
 
     const VkDescriptorImageInfo *get_descriptor(VkSampler sampler = VK_NULL_HANDLE)
     {
@@ -60,9 +63,10 @@ class image_resource {
     }
 
     // setter
-    void set_image(VkImage image) { image_ = image; }
-    void set_image_view(VkImageView view) { view_ = view; }
-    void set_device_memory(VkDeviceMemory memory) { memory_ = memory; }
+    void set_image(const VkImage image)                 { image_ = image; }
+    void set_image_view(const VkImageView view)         { view_ = view; }
+    void set_extent(const VkExtent2D& extent)           { extent_ = extent; }
+    void set_device_memory(const VkDeviceMemory memory) { memory_ = memory; }
 
     void set_image_layout_barrier_state(VkCommandBuffer command, VkImageLayout new_layout)
     {
@@ -101,7 +105,6 @@ class image_resource {
           break;
         case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
           barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-          dst_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
           dst_stage = VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR;
           break;
         default:
@@ -119,10 +122,13 @@ class image_resource {
     }
 
   private:
-    VkImage image_ = VK_NULL_HANDLE;
-    VkImageView view_ = VK_NULL_HANDLE;
-    VkDeviceMemory memory_ = VK_NULL_HANDLE;
-    VkImageLayout layout_ = VK_IMAGE_LAYOUT_UNDEFINED;
+    VkImage               image_ = VK_NULL_HANDLE;
+    VkImageView           view_ = VK_NULL_HANDLE;
+    VkDeviceMemory        memory_ = VK_NULL_HANDLE;
+    VkImageLayout         layout_ = VK_IMAGE_LAYOUT_UNDEFINED;
+    VkExtent2D            extent_;
+    VkDescriptorImageInfo descriptor_ = {};
+
     VkImageSubresourceRange sub_resource_range_ = {
       VK_IMAGE_ASPECT_COLOR_BIT,
       0, // base mip level
@@ -130,7 +136,6 @@ class image_resource {
       0, // base array layer
       1, // layer count
     };
-    VkDescriptorImageInfo descriptor_ = {};
 };
 
 VkDeviceAddress get_device_address(VkDevice device, VkBuffer buffer)
@@ -152,6 +157,7 @@ class hello_triangle {
     {
       window_ = std::make_unique<graphics::window>(1920, 1080, "hello ray tracing triangle");
       device_ = std::make_unique<graphics::device>(*window_, graphics::rendering_type::RAY_TRACING);
+      renderer_ = std::make_unique<graphics::renderer>(*window_, *device_);
 
       // load all available extensions (of course including ray tracing extensions)
       load_VK_EXTENSIONS(device_->get_instance(), vkGetInstanceProcAddr, device_->get_device(), vkGetDeviceProcAddr);
@@ -186,7 +192,75 @@ class hello_triangle {
 
     void render()
     {
+      if (auto command = renderer_->begin_frame()) {
+        renderer_->begin_swap_chain_render_pass(command, HVE_RENDER_PASS_ID);
 
+        // execute ray tracing
+        vkCmdBindPipeline(
+          command,
+          VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,
+          pipeline_
+        );
+        vkCmdBindDescriptorSets(
+          command,
+          VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,
+          pipeline_layout_,
+          0,
+          1,
+          &descriptor_set_,
+          0,
+          nullptr
+        );
+
+        const auto& extent = ray_traced_image_->get_extent();
+
+        VkStridedDeviceAddressRegionKHR callable_shader_entry {};
+        vkCmdTraceRaysKHR(
+          command,
+          &region_raygen_,
+          &region_miss_,
+          &region_hit_,
+          &callable_shader_entry,
+          extent.width,
+          extent.height,
+          1
+        );
+
+        // copy the result to the back buffer
+        int frame_index = renderer_->get_frame_index();
+        if (frame_index >= back_buffers_.size()) {
+          auto new_buffer = std::make_unique<image_resource>();
+          new_buffer->set_image(renderer_->get_image(frame_index));
+          new_buffer->set_image_view(renderer_->get_view(frame_index));
+          back_buffers_.emplace_back(std::move(new_buffer));
+        }
+
+        auto& current_back_buffer = back_buffers_[frame_index];
+
+        VkImageCopy region {};
+        region.extent = { extent.width, extent.height, 1 };
+        region.srcSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+        region.dstSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+
+        ray_traced_image_->set_image_layout_barrier_state(command, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+        current_back_buffer->set_image_layout_barrier_state(command, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+        vkCmdCopyImage(
+          command,
+          ray_traced_image_->get_image(),
+          ray_traced_image_->get_image_layout(),
+          current_back_buffer->get_image(),
+          current_back_buffer->get_image_layout(),
+          1,
+          &region
+        );
+
+        ray_traced_image_->set_image_layout_barrier_state(command, VK_IMAGE_LAYOUT_GENERAL);
+        current_back_buffer->set_image_layout_barrier_state(command, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
+        renderer_->end_swap_chain_render_pass(command);
+        renderer_->end_frame();
+      }
     }
 
     void create_triangle_as()
@@ -845,11 +919,13 @@ class hello_triangle {
 
     // ----------------------------------------------------------------------------------------------
     // variables
-    u_ptr<graphics::window> window_;
-    u_ptr<graphics::device> device_;
-    u_ptr<graphics::buffer> vertex_buffer_;
-    u_ptr<graphics::buffer> instances_buffer_;
-    u_ptr<image_resource>   ray_traced_image_;
+    u_ptr<graphics::window>   window_;
+    u_ptr<graphics::device>   device_;
+    u_ptr<graphics::renderer> renderer_;
+    u_ptr<graphics::buffer>   vertex_buffer_;
+    u_ptr<graphics::buffer>   instances_buffer_;
+    u_ptr<image_resource>     ray_traced_image_;
+    std::vector<u_ptr<image_resource>> back_buffers_;
 
     std::vector<vec3> triangle_vertices_ = {
         {-0.5f, -0.5f, 0.0f},
@@ -861,12 +937,12 @@ class hello_triangle {
     u_ptr<acceleration_structure> blas_;
     u_ptr<acceleration_structure> tlas_;
 
-    VkPipelineLayout      pipeline_layout_;
-    VkPipeline            pipeline_;
+    VkPipelineLayout pipeline_layout_;
+    VkPipeline       pipeline_;
 
     u_ptr<graphics::descriptor_set_layout> descriptor_set_layout_;
     u_ptr<graphics::descriptor_pool>       descriptor_pool_;
-    VkDescriptorSet       descriptor_set_;
+    VkDescriptorSet                        descriptor_set_;
 
     std::vector<VkRayTracingShaderGroupCreateInfoKHR> shader_group_create_infos_;
     u_ptr<graphics::buffer> shader_binding_table_;
