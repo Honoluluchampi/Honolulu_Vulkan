@@ -168,11 +168,22 @@ class hello_triangle {
 
     ~hello_triangle()
     {
+      auto device = device_->get_device();
       destroy_acceleration_structure(*blas_);
       destroy_acceleration_structure(*tlas_);
       destroy_image_resource(*ray_traced_image_);
-      vkDestroyPipelineLayout(device_->get_device(), pipeline_layout_, nullptr);
-      vkDestroyPipeline(device_->get_device(), pipeline_, nullptr);
+      vkDestroyPipelineLayout(device, pipeline_layout_, nullptr);
+      vkDestroyPipeline(device, pipeline_, nullptr);
+      vkDestroySemaphore(device, render_completed_, nullptr);
+      vkDestroySemaphore(device, present_completed_, nullptr);
+      for (auto& cb : command_buffers_) {
+        vkDestroyFence(device, cb->fence, nullptr);
+      }
+      for (auto& rt : render_targets_) {
+        vkDestroyImageView(device, rt->get_image_view(), nullptr);
+      }
+      vkDestroySwapchainKHR(device, swap_chain_, nullptr);
+      vkDestroySurfaceKHR(device_->get_instance(), surface_, nullptr);
     }
 
     void run()
@@ -182,6 +193,7 @@ class hello_triangle {
         update();
         render();
       }
+      vkDeviceWaitIdle(device_->get_device());
     }
 
   private:
