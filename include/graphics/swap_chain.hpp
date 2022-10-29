@@ -18,6 +18,48 @@ namespace hnll::graphics {
 #define HVE_RENDER_PASS_ID 0
 #define GUI_RENDER_PASS_ID 1
 
+class image_resource {
+  public:
+    // getter
+    [[nodiscard]] VkImage           get_image()        const { return image_; }
+    [[nodiscard]] VkImageView       get_image_view()   const { return view_; }
+    [[nodiscard]] VkDeviceMemory    get_memory()       const { return memory_; }
+    [[nodiscard]] VkImageLayout     get_image_layout() const { return layout_; }
+    [[nodiscard]] const VkExtent2D& get_extent()       const { return extent_; }
+    [[nodiscard]] VkImageSubresourceRange get_sub_resource_range() const { return sub_resource_range_; }
+
+    const VkDescriptorImageInfo *get_descriptor(VkSampler sampler = VK_NULL_HANDLE)
+    {
+      descriptor_.imageView = view_;
+      descriptor_.imageLayout = layout_;
+      descriptor_.sampler = sampler;
+      return &descriptor_;
+    }
+
+    // setter
+    void set_image(const VkImage image)                 { image_ = image; }
+    void set_image_view(const VkImageView view)         { view_ = view; }
+    void set_extent(const VkExtent2D& extent)           { extent_ = extent; }
+    void set_device_memory(const VkDeviceMemory memory) { memory_ = memory; }
+    void set_image_layout_barrier_state(VkCommandBuffer command, VkImageLayout new_layout);
+
+  private:
+    VkImage               image_ = VK_NULL_HANDLE;
+    VkImageView           view_ = VK_NULL_HANDLE;
+    VkDeviceMemory        memory_ = VK_NULL_HANDLE;
+    VkImageLayout         layout_ = VK_IMAGE_LAYOUT_UNDEFINED;
+    VkExtent2D            extent_;
+    VkDescriptorImageInfo descriptor_ = {};
+
+    VkImageSubresourceRange sub_resource_range_ = {
+      VK_IMAGE_ASPECT_COLOR_BIT,
+      0, // base mip level
+      1, // level count
+      0, // base array layer
+      1, // layer count
+    };
+};
+
 class swap_chain {
  public:
   static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
@@ -102,6 +144,8 @@ class swap_chain {
   // choose resolution of output
   VkExtent2D choose_swap_extent(const VkSurfaceCapabilitiesKHR &capabilities);
 
+
+  // --------- variables ---------------------------------------------------
   VkFormat swap_chain_image_format_;
   VkFormat swap_chain_depth_format_;
   VkSurfaceFormatKHR surface_format_;
@@ -132,7 +176,7 @@ class swap_chain {
 
   // an image has been acquired and is ready for rendering
   std::vector<VkSemaphore> image_available_semaphores_;
-  // rendering has finished and presentation can happen
+  // rendering has finished and presentation can be happened
   std::vector<VkSemaphore> render_finished_semaphores_;
   // to use the right pair of semaphores every time
   size_t current_frame_ = 0;
