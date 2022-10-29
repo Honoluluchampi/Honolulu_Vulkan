@@ -37,6 +37,11 @@ enum class shader_stages {
   MAX_STAGE,
 };
 
+namespace scene_hit_shader_group {
+  const uint32_t plane_hit_shader = 0;
+  const uint32_t cube_hit_shader  = 1;
+}
+
 struct acceleration_structure
 {
   VkAccelerationStructureKHR handle = VK_NULL_HANDLE;
@@ -60,7 +65,7 @@ struct mesh_model
   uint32_t index_count = 0;
   uint32_t vertex_stride = 0;
   uint32_t hit_shader_index = 0;
-  u_ptr<acceleration_structure> blas = nullptr;
+  u_ptr<graphics::acceleration_structure> blas = nullptr;
 };
 
 struct ray_tracing_scratch_buffer
@@ -84,7 +89,7 @@ class hello_triangle {
       load_VK_EXTENSIONS(device_->get_instance(), vkGetInstanceProcAddr, device_->get_device(), vkGetDeviceProcAddr);
 
 //      create_triangle_as();
-      create_scene_geometries();
+      create_scene();
     }
 
     ~hello_triangle()
@@ -200,12 +205,18 @@ class hello_triangle {
       create_swap_chain();
       create_vertex_buffer();
       create_triangle_blas();
-      create_scene_tlas();
+      create_triangle_tlas();
       create_ray_traced_image();
       create_layout();
       create_pipeline();
       create_shader_binding_table();
       create_descriptor_set();
+    }
+
+    void create_scene()
+    {
+      create_scene_geometries();
+      create_scene_blas();
     }
 
     void create_vertex_buffer()
@@ -387,7 +398,7 @@ class hello_triangle {
       return scratch_buffer;
     }
 
-    void create_scene_tlas()
+    void create_triangle_tlas()
     {
       VkTransformMatrixKHR transform_matrix = {
         1.f, 0.f, 0.f, 0.f,
@@ -1214,6 +1225,50 @@ class hello_triangle {
           return v;
         }
       );
+    }
+
+    void create_scene_blas()
+    {
+      auto device = device_->get_device();
+
+      // create geometry
+      VkAccelerationStructureGeometryKHR geometry {
+        VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR
+      };
+      geometry.flags = VK_GEOMETRY_OPAQUE_BIT_KHR;
+      geometry.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+      auto& triangles = geometry.geometry.triangles;
+      triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
+      triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
+      triangles.vertexData.deviceAddress = hnll::get_device_address(device, plane_->vertex_buffer->get_buffer());
+      triangles.maxVertex = plane_->vertex_count;
+      triangles.vertexStride = plane_->vertex_stride;
+      triangles.indexType = VK_INDEX_TYPE_UINT32;
+      triangles.indexData.deviceAddress = hnll::get_device_address(device, plane_->index_buffer->get_buffer());
+
+      // create build range info
+      VkAccelerationStructureBuildRangeInfoKHR build_range_info {};
+      build_range_info.primitiveCount = plane_->index_count / 3;
+      build_range_info.primitiveOffset = 0;
+      build_range_info.firstVertex = 0;
+      build_range_info.transformOffset = 0;
+
+      // create input
+      graphics::acceleration_structure::input blas_input;
+      blas_input.geometry = { geometry };
+      blas_input.build_range_info = { build_range_info };
+
+      // execute build
+      plane_->blas = std::make_unique<graphics::acceleration_structure>(*device_);
+      plane_->blas->build_as(
+        VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
+        blas_input,
+        0
+      );
+      plane_->blas->destroy_scratch_buffer();
+
+      // configure hit shader index
+      plane_->hit_shader_index = scene_hit_shader_group::plane_hit_shader;
     }
 
     // ----------------------------------------------------------------------------------------------

@@ -156,4 +156,11 @@ void acceleration_structure::build(
   device_.end_one_shot_commands(command);
 }
 
+void acceleration_structure::destroy_scratch_buffer()
+{
+  if (auto buffer = scratch_buffer_->get_buffer(); buffer) {
+    vkDestroyBuffer(device_.get_device(), buffer, nullptr);
+  }
+}
+
 }} // namespace hnll::graphics
