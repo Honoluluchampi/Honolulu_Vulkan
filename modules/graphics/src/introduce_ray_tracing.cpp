@@ -264,7 +264,7 @@ class hello_triangle {
       );
 
       ray_traced_image_->set_image_layout_barrier_state(command, VK_IMAGE_LAYOUT_GENERAL);
-      ray_traced_image_->set_image_layout_barrier_state(command, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+      back_buffer->set_image_layout_barrier_state(command, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
       vkEndCommandBuffer(command);
 
@@ -988,14 +988,14 @@ class hello_triangle {
       vkGetPhysicalDeviceSurfaceFormatsKHR(device_->get_physical_device(), surface_, &count, formats.data());
       auto select_format = VkSurfaceFormatKHR{ VK_FORMAT_UNDEFINED };
 
-      auto compare_format = [=](auto f) {
+      auto compare_format = [=, this](auto f) {
         return f.format == back_buffer_format_.format && f.colorSpace == back_buffer_format_.colorSpace;
       };
 
       if (auto it = std::find_if(formats.begin(), formats.end(), compare_format); it != formats.end()) {
         select_format = *it;
       } else {
-        it = std::find_if(formats.begin(), formats.end(), [=](auto f) { return f.colorSpace == back_buffer_format_.colorSpace; });
+        it = std::find_if(formats.begin(), formats.end(), [=, this](auto f) { return f.colorSpace == back_buffer_format_.colorSpace; });
         if (it != formats.end()) {
           select_format = *it;
         } else {
