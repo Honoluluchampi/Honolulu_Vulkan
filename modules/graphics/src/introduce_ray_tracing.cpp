@@ -6,6 +6,7 @@
 #include <graphics/renderer.hpp>
 #include <graphics/frame_info.hpp>
 #include <graphics/swap_chain.hpp>
+#include <graphics/acceleration_structure.hpp>
 
 // sub
 #include <extensions_vk.hpp>
@@ -18,6 +19,7 @@
 #include <eigen3/Eigen/Dense>
 
 using hnll::graphics::image_resource;
+using hnll::get_device_address;
 
 namespace hnll {
 
@@ -67,16 +69,6 @@ struct ray_tracing_scratch_buffer
   VkDeviceMemory  memory = VK_NULL_HANDLE;
   VkDeviceAddress device_address = 0;
 };
-
-VkDeviceAddress get_device_address(VkDevice device, VkBuffer buffer)
-{
-  VkBufferDeviceAddressInfo buffer_device_info {
-    VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
-    nullptr
-  };
-  buffer_device_info.buffer = buffer;
-  return vkGetBufferDeviceAddress(device, &buffer_device_info);
-}
 
 template<class T> T align(T size, uint32_t align)
 { return (size + align - 1) & ~static_cast<T>(align - 1); }
