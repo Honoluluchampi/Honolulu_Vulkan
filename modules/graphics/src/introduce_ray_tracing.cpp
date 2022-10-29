@@ -22,6 +22,7 @@ using hnll::graphics::image_resource;
 namespace hnll {
 
 using vec3 = Eigen::Vector3f;
+using vec4 = Eigen::Vector4f;
 template<typename T> using u_ptr = std::unique_ptr<T>;
 template<typename T> using s_ptr = std::shared_ptr<T>;
 
@@ -40,6 +41,24 @@ struct acceleration_structure
   VkDeviceMemory             memory = VK_NULL_HANDLE;
   VkBuffer                   buffer = VK_NULL_HANDLE;
   VkDeviceAddress            device_address = 0;
+};
+
+struct vertex
+{
+  vec3 position;
+  vec3 normal;
+  vec4 color;
+};
+
+struct mesh_model
+{
+  u_ptr<graphics::buffer> vertex_buffer = nullptr;
+  u_ptr<graphics::buffer> index_buffer = nullptr;
+  uint32_t vertex_count = 0;
+  uint32_t index_count = 0;
+  uint32_t vertex_stride = 0;
+  uint32_t hit_shader_index = 0;
+  u_ptr<acceleration_structure> blas = nullptr;
 };
 
 struct ray_tracing_scratch_buffer
@@ -72,7 +91,8 @@ class hello_triangle {
       // load all available extensions (of course including ray tracing extensions)
       load_VK_EXTENSIONS(device_->get_instance(), vkGetInstanceProcAddr, device_->get_device(), vkGetDeviceProcAddr);
 
-      create_triangle_as();
+//      create_triangle_as();
+      create_scene_geometries();
     }
 
     ~hello_triangle()
@@ -1030,6 +1050,180 @@ class hello_triangle {
       return fence;
     }
 
+    void create_scene_geometries()
+    {
+      auto host_memory_props =
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+      auto usage_for_rt =
+        VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
+        VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
+      std::vector<vertex>   vertices;
+      std::vector<uint32_t> indices;
+      const auto vertex_stride = static_cast<uint32_t>(sizeof(vertex));
+      const auto index_stride  = static_cast<uint32_t>(sizeof(uint32_t));
+
+      // create plane mesh_model
+      plane_ = std::make_unique<mesh_model>();
+      create_plane(vertices, indices);
+
+      auto vertex_buffer_size = vertex_stride * vertices.size();
+      auto index_buffer_size  = index_stride * indices.size();
+
+      // create plane vertex buffer
+      auto usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | usage_for_rt;
+      plane_->vertex_buffer = std::make_unique<graphics::buffer>(
+        *device_,
+        vertex_buffer_size,
+        1,
+        usage,
+        host_memory_props
+      );
+      plane_->vertex_buffer->map();
+      plane_->vertex_buffer->write_to_buffer((void *) vertices.data());
+      plane_->vertex_count = static_cast<uint32_t>(vertices.size());
+      plane_->vertex_stride = vertex_stride;
+
+      // create plane index buffer
+      usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | usage_for_rt;
+      plane_->index_buffer = std::make_unique<graphics::buffer>(
+        *device_,
+        index_buffer_size,
+        1,
+        usage,
+        host_memory_props
+      );
+      plane_->index_buffer->map();
+      plane_->index_buffer->write_to_buffer((void *) indices.data());
+      plane_->index_count = static_cast<uint32_t>(indices.size());
+
+      // create cube mesh_model
+      cube_ = std::make_unique<mesh_model>();
+      create_cube(vertices, indices);
+
+      auto cube_vertex_buffer_size = vertex_stride * vertices.size();
+      auto cube_index_buffer_size  = index_stride * indices.size();
+
+      // create cube vertex buffer
+      usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | usage_for_rt;
+      cube_->vertex_buffer = std::make_unique<graphics::buffer>(
+        *device_,
+        cube_vertex_buffer_size,
+        1,
+        usage,
+        host_memory_props
+      );
+      cube_->vertex_buffer->map();
+      cube_->vertex_buffer->write_to_buffer((void *) vertices.data());
+      cube_->vertex_count = static_cast<uint32_t>(vertices.size());
+      cube_->vertex_stride = vertex_stride;
+
+      // create cube index buffer
+      usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | usage_for_rt;
+      cube_->index_buffer = std::make_unique<graphics::buffer>(
+        *device_,
+        cube_index_buffer_size,
+        1,
+        usage,
+        host_memory_props
+      );
+      cube_->index_buffer->map();
+      cube_->index_buffer->write_to_buffer((void *) indices.data());
+      cube_->index_count = static_cast<uint32_t>(indices.size());
+    }
+
+    void create_plane(std::vector<vertex>& vertices, std::vector<uint32_t>& indices, float size = 10.f)
+    {
+      vertices.clear();
+      indices.clear();
+
+      const vec4 white = vec4{ 1, 1, 1, 1 };
+      vertex src[] = {
+        vertex{ { -1.f, 0.f, -1.f }, { 0.f, 1.f, 0.f }, white },
+        vertex{ { -1.f, 0.f,  1.f }, { 0.f, 1.f, 0.f }, white },
+        vertex{ {  1.f, 0.f, -1.f }, { 0.f, 1.f, 0.f }, white },
+        vertex{ {  1.f, 0.f,  1.f }, { 0.f, 1.f, 0.f }, white },
+      };
+      vertices.resize(4);
+
+      // set size
+      std::transform(
+        std::begin(src), std::end(src), vertices.begin(),
+        [=](auto v) {
+          v.position.x() *= size;
+          v.position.z() *= size;
+          return v;
+        }
+      );
+      indices = { 0, 1, 2, 2, 1, 3};
+    }
+
+    void create_cube(std::vector<vertex>& vertices, std::vector<uint32_t>& indices, float size = 1.f)
+    {
+      vertices.clear();
+      indices.clear();
+
+      const vec4 red     { 1.f, 0.f, 0.f, 1.f };
+      const vec4 green   { 0.f, 1.f, 0.f, 1.f };
+      const vec4 blue    { 0.f, 0.f, 1.f, 1.f };
+      const vec4 white   { 1.f, 1.f, 1.f, 1.f };
+      const vec4 black   { 0.f, 0.f, 0.f, 1.f };
+      const vec4 yellow  { 1.f, 1.f, 0.f, 1.f };
+      const vec4 magenta { 1.f, 0.f, 1.f, 1.f };
+      const vec4 cyan    { 0.f, 1.f, 1.f, 1.f };
+
+      vertices = {
+        { { -1.f, -1.f, -1.f }, {  0.f,  0.f, -1.f }, red },
+        { { -1.f,  1.f, -1.f }, {  0.f,  0.f, -1.f }, yellow },
+        { {  1.f,  1.f, -1.f }, {  0.f,  0.f, -1.f }, white },
+        { {  1.f, -1.f, -1.f }, {  0.f,  0.f, -1.f }, magenta },
+
+        { {  1.f, -1.f, -1.f }, {  1.f,  0.f,  0.f }, magenta },
+        { {  1.f,  1.f, -1.f }, {  1.f,  0.f,  0.f }, white },
+        { {  1.f,  1.f,  1.f }, {  1.f,  0.f,  0.f }, cyan },
+        { {  1.f, -1.f,  1.f }, {  1.f,  0.f,  0.f }, blue },
+
+        { { -1.f, -1.f,  1.f }, { -1.f,  0.f,  0.f }, black },
+        { { -1.f,  1.f,  1.f }, { -1.f,  0.f,  0.f }, green },
+        { { -1.f,  1.f, -1.f }, { -1.f,  0.f,  0.f }, yellow },
+        { { -1.f, -1.f, -1.f }, { -1.f,  0.f,  0.f }, red },
+
+        { {  1.f, -1.f,  1.f }, {  0.f,  0.f,  1.f }, blue },
+        { {  1.f,  1.f,  1.f }, {  0.f,  0.f,  1.f }, cyan },
+        { { -1.f,  1.f,  1.f }, {  0.f,  0.f,  1.f }, green },
+        { { -1.f, -1.f,  1.f }, {  0.f,  0.f,  1.f }, black },
+
+        { { -1.f,  1.f, -1.f }, {  0.f,  1.f,  0.f }, yellow },
+        { { -1.f,  1.f,  1.f }, {  0.f,  1.f,  0.f }, green },
+        { {  1.f,  1.f,  1.f }, {  0.f,  1.f,  0.f }, cyan },
+        { {  1.f,  1.f, -1.f }, {  0.f,  1.f,  0.f }, white },
+
+        { { -1.f, -1.f,  1.f }, {  0.f, -1.f,  0.f }, black },
+        { { -1.f, -1.f, -1.f }, {  0.f, -1.f,  0.f }, red },
+        { {  1.f, -1.f, -1.f }, {  0.f, -1.f,  0.f }, magenta },
+        { {  1.f, -1.f,  1.f }, {  0.f, -1.f,  0.f }, blue },
+      };
+
+      indices = {
+        0, 1, 2, 2, 3, 0,
+        4, 5, 6, 6, 7, 4,
+        8, 9, 10, 10, 11, 8,
+        12, 13, 14, 14, 15, 12,
+        16, 17, 18, 18, 19, 16,
+        20, 21, 22, 22, 23, 20,
+      };
+
+      std::transform(
+        vertices.begin(), vertices.end(), vertices.begin(),
+        [=](auto v) {
+          v.position.x() *= size;
+          v.position.y() *= size;
+          v.position.z() *= size;
+          return v;
+        }
+      );
+    }
+
     // ----------------------------------------------------------------------------------------------
     // variables
     u_ptr<graphics::window>   window_;
@@ -1044,6 +1238,9 @@ class hello_triangle {
         {+0.5f, -0.5f, 0.0f},
         {0.0f,  0.75f, 0.0f}
     };
+
+    u_ptr<mesh_model> plane_;
+    u_ptr<mesh_model> cube_;
 
     // acceleration structure
     u_ptr<acceleration_structure> blas_;
