@@ -158,7 +158,7 @@ VkResult swap_chain::submit_command_buffers(const VkCommandBuffer *buffers, uint
   present_info.swapchainCount = 1;
   present_info.pSwapchains = swapChains;
   present_info.pImageIndices = image_index;
-  // nesessary for multi swap chain
+  // necessary for multi swap chain
   // present_info.pResults = nullptr;
 
   auto result = vkQueuePresentKHR(device_.get_present_queue(), &present_info);

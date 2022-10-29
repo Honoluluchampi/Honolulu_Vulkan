@@ -11,6 +11,7 @@
 
 // std
 #include <iostream>
+#include <algorithm>
 
 // lib
 #include <eigen3/Eigen/Dense>
@@ -53,6 +54,7 @@ class image_resource {
     [[nodiscard]] VkDeviceMemory    get_memory()       const { return memory_; }
     [[nodiscard]] VkImageLayout     get_image_layout() const { return layout_; }
     [[nodiscard]] const VkExtent2D& get_extent()       const { return extent_; }
+    [[nodiscard]] VkImageSubresourceRange get_sub_resource_range() const { return sub_resource_range_; }
 
     const VkDescriptorImageInfo *get_descriptor(VkSampler sampler = VK_NULL_HANDLE)
     {
@@ -157,7 +159,6 @@ class hello_triangle {
     {
       window_ = std::make_unique<graphics::window>(1920, 1080, "hello ray tracing triangle");
       device_ = std::make_unique<graphics::device>(*window_, graphics::rendering_type::RAY_TRACING);
-      renderer_ = std::make_unique<graphics::renderer>(*window_, *device_);
 
       // load all available extensions (of course including ray tracing extensions)
       load_VK_EXTENSIONS(device_->get_instance(), vkGetInstanceProcAddr, device_->get_device(), vkGetDeviceProcAddr);
@@ -192,79 +193,77 @@ class hello_triangle {
 
     void render()
     {
-      if (auto command = renderer_->begin_frame()) {
-        renderer_->begin_swap_chain_render_pass(command, HVE_RENDER_PASS_ID);
+      // get current available frame index
+      wait_available_frame();
+      auto command = command_buffers_[frame_index_]->command;
 
-        // execute ray tracing
-        vkCmdBindPipeline(
-          command,
-          VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,
-          pipeline_
-        );
-        vkCmdBindDescriptorSets(
-          command,
-          VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,
-          pipeline_layout_,
-          0,
-          1,
-          &descriptor_set_,
-          0,
-          nullptr
-        );
+      VkCommandBufferBeginInfo begin_info {
+        VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        nullptr, 0, nullptr
+      };
 
-        const auto& extent = ray_traced_image_->get_extent();
+      vkBeginCommandBuffer(command, &begin_info);
 
-        VkStridedDeviceAddressRegionKHR callable_shader_entry {};
-        vkCmdTraceRaysKHR(
-          command,
-          &region_raygen_,
-          &region_miss_,
-          &region_hit_,
-          &callable_shader_entry,
-          extent.width,
-          extent.height,
-          1
-        );
+      auto extent = window_->get_extent();
 
-        // copy the result to the back buffer
-        int frame_index = renderer_->get_frame_index();
-        if (frame_index >= back_buffers_.size()) {
-          auto new_buffer = std::make_unique<image_resource>();
-          new_buffer->set_image(renderer_->get_image(frame_index));
-          new_buffer->set_image_view(renderer_->get_view(frame_index));
-          back_buffers_.emplace_back(std::move(new_buffer));
-        }
+      vkCmdBindPipeline(
+        command,
+        VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,
+        pipeline_
+      );
+      vkCmdBindDescriptorSets(
+        command,
+        VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,
+        pipeline_layout_,
+        0,
+        1,
+        &descriptor_set_,
+        0,
+        nullptr
+      );
 
-        auto& current_back_buffer = back_buffers_[frame_index];
+      VkStridedDeviceAddressRegionKHR callable_shader_entry {};
+      vkCmdTraceRaysKHR(
+        command,
+        &region_raygen_,
+        &region_miss_,
+        &region_hit_,
+        &callable_shader_entry,
+        extent.width, extent.height, 1
+      );
 
-        VkImageCopy region {};
-        region.extent = { extent.width, extent.height, 1 };
-        region.srcSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
-        region.dstSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+      auto& back_buffer = render_targets_[frame_index_];
+      VkImageCopy region{};
+      region.extent = { extent.width, extent.height, 1 };
+      region.srcSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
+      region.dstSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
 
-        ray_traced_image_->set_image_layout_barrier_state(command, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-        current_back_buffer->set_image_layout_barrier_state(command, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+      ray_traced_image_->set_image_layout_barrier_state(command, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+      back_buffer->set_image_layout_barrier_state(command, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-        vkCmdCopyImage(
-          command,
-          ray_traced_image_->get_image(),
-          ray_traced_image_->get_image_layout(),
-          current_back_buffer->get_image(),
-          current_back_buffer->get_image_layout(),
-          1,
-          &region
-        );
+      vkCmdCopyImage(
+        command,
+        ray_traced_image_->get_image(),
+        ray_traced_image_->get_image_layout(),
+        back_buffer->get_image(),
+        back_buffer->get_image_layout(),
+        1,
+        &region
+      );
 
-        ray_traced_image_->set_image_layout_barrier_state(command, VK_IMAGE_LAYOUT_GENERAL);
-        current_back_buffer->set_image_layout_barrier_state(command, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+      ray_traced_image_->set_image_layout_barrier_state(command, VK_IMAGE_LAYOUT_GENERAL);
+      ray_traced_image_->set_image_layout_barrier_state(command, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-        renderer_->end_swap_chain_render_pass(command);
-        renderer_->end_frame();
-      }
+      vkEndCommandBuffer(command);
+
+      submit_current_frame_command_buffer();
+      present();
     }
 
     void create_triangle_as()
     {
+      // temporary swap chain
+      create_swap_chain();
       create_vertex_buffer();
       create_triangle_blas();
       create_scene_tlas();
@@ -577,10 +576,7 @@ class hello_triangle {
     {
       // temporary : for format info
       auto extent = window_->get_extent();
-      VkSurfaceFormatKHR back_buffer_format = {
-        VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
-      };
-      auto format = back_buffer_format.format;
+      auto format = back_buffer_format_.format;
       auto device = device_->get_device();
       VkImageUsageFlags usage =
         VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
@@ -917,11 +913,205 @@ class hello_triangle {
       vkFreeMemory(device, ir.get_memory(), nullptr);
     }
 
+    // temporary rendering system
+    void wait_available_frame()
+    {
+      auto timeout = UINT64_MAX;
+      auto result = vkAcquireNextImageKHR(
+        device_->get_device(),
+        swap_chain_,
+        timeout,
+        present_completed_,
+        VK_NULL_HANDLE,
+        &frame_index_
+      );
+      auto fence = command_buffers_[frame_index_]->fence;
+      vkWaitForFences(device_->get_device(), 1, &fence, VK_TRUE, timeout);
+    }
+
+    void submit_current_frame_command_buffer()
+    {
+      auto command = command_buffers_[frame_index_]->command;
+      VkPipelineStageFlags wait_stage_mask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+      VkSubmitInfo submit_info {
+        VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        nullptr,
+        1, &present_completed_,
+        &wait_stage_mask,
+        1, &command,
+        1, &render_completed_,
+      };
+      auto fence = command_buffers_[frame_index_]->fence;
+      vkResetFences(device_->get_device(), 1, &fence);
+      vkQueueSubmit(device_->get_graphics_queue(), 1, &submit_info, fence);
+    }
+
+    void present()
+    {
+      VkPresentInfoKHR present_info {
+        VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        nullptr,
+        1, &render_completed_,
+        1, &swap_chain_,
+        &frame_index_
+      };
+      vkQueuePresentKHR(device_->get_present_queue(), &present_info);
+    }
+
+    void create_swap_chain()
+    {
+      surface_extent_ = window_->get_extent();
+
+      VkResult result;
+      // create surface
+      glfwCreateWindowSurface(device_->get_instance(), window_->get_glfw_window(), nullptr, &surface_);
+
+      VkSurfaceCapabilitiesKHR surface_caps {};
+      if (vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device_->get_physical_device(), surface_, &surface_caps) != VK_SUCCESS)
+        throw std::runtime_error("failed to get surface capabilities.");
+
+      uint32_t count = 0;
+      vkGetPhysicalDeviceSurfaceFormatsKHR(device_->get_physical_device(), surface_, &count, nullptr);
+      std::vector<VkSurfaceFormatKHR> formats(count);
+      vkGetPhysicalDeviceSurfaceFormatsKHR(device_->get_physical_device(), surface_, &count, formats.data());
+      auto select_format = VkSurfaceFormatKHR{ VK_FORMAT_UNDEFINED };
+
+      auto compare_format = [=](auto f) {
+        return f.format == back_buffer_format_.format && f.colorSpace == back_buffer_format_.colorSpace;
+      };
+
+      if (auto it = std::find_if(formats.begin(), formats.end(), compare_format); it != formats.end()) {
+        select_format = *it;
+      } else {
+        it = std::find_if(formats.begin(), formats.end(), [=](auto f) { return f.colorSpace == back_buffer_format_.colorSpace; });
+        if (it != formats.end()) {
+          select_format = *it;
+        } else {
+          throw std::runtime_error("failed to get compatible surface format");
+        }
+      }
+
+      back_buffer_format_ = select_format;
+
+      VkBool32 is_supported;
+      if (vkGetPhysicalDeviceSurfaceSupportKHR(
+        device_->get_physical_device(),
+        device_->get_queue_family_indices().graphics_family_.value(),
+        surface_,
+        &is_supported) != VK_SUCCESS) {
+        throw std::runtime_error("failed to get surface support");
+      }
+
+      auto back_buffer_count = surface_caps.minImageCount + 1;
+
+      surface_extent_ = surface_caps.minImageExtent;
+
+      VkSwapchainCreateInfoKHR swap_chain_create_info {
+        VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        nullptr, 0,
+        surface_,
+        back_buffer_count,
+        back_buffer_format_.format,
+        back_buffer_format_.colorSpace,
+        surface_extent_,
+        1,
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+        VK_SHARING_MODE_EXCLUSIVE,
+        0, nullptr,
+        surface_caps.currentTransform,
+        VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+        VK_PRESENT_MODE_FIFO_KHR,
+        VK_TRUE,
+        VK_NULL_HANDLE
+      };
+      if (vkCreateSwapchainKHR(device_->get_device(), &swap_chain_create_info, nullptr, &swap_chain_) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create swap chain");
+      }
+
+      uint32_t image_count = 0;
+      vkGetSwapchainImagesKHR(device_->get_device(), swap_chain_, &image_count, nullptr);
+
+      std::vector<VkImage> images(image_count);
+      vkGetSwapchainImagesKHR(device_->get_device(), swap_chain_, &image_count, images.data());
+
+      render_targets_.resize(image_count);
+      for (uint32_t i = 0; i < image_count; ++i) {
+        render_targets_[i] = std::make_unique<image_resource>();
+        render_targets_[i]->set_image(images[i]);
+
+        VkImageViewCreateInfo view_create_info {
+          VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+          nullptr, 0,
+          images[i],
+          VK_IMAGE_VIEW_TYPE_2D,
+          back_buffer_format_.format,
+          VkComponentMapping{
+            VK_COMPONENT_SWIZZLE_R,
+            VK_COMPONENT_SWIZZLE_G,
+            VK_COMPONENT_SWIZZLE_B,
+            VK_COMPONENT_SWIZZLE_A
+          },
+          render_targets_[i]->get_sub_resource_range(),
+        };
+
+        VkImageView image_view;
+        if (vkCreateImageView(device_->get_device(), &view_create_info, nullptr, &image_view) != VK_SUCCESS) {
+          throw std::runtime_error("failed to create  image view");
+        }
+        render_targets_[i]->set_image_view(image_view);
+      }
+
+      auto command = device_->begin_one_shot_commands();
+      for (uint32_t i = 0; i < image_count; i++) {
+        render_targets_[i]->set_image_layout_barrier_state(command, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+      }
+      device_->end_one_shot_commands(command);
+
+      VkSemaphoreCreateInfo semaphore_create_info {
+        VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+        nullptr, 0,
+      };
+      vkCreateSemaphore(device_->get_device(), &semaphore_create_info, nullptr, &render_completed_);
+      vkCreateSemaphore(device_->get_device(), &semaphore_create_info, nullptr, &present_completed_);
+
+      command_buffers_.resize(image_count);
+      for (auto& cb : command_buffers_) {
+        cb = std::make_unique<frame_command_buffer>();
+        cb->command = create_command_buffer();
+        cb->fence = create_fence();
+      }
+    }
+
+    VkCommandBuffer create_command_buffer()
+    {
+      VkCommandBufferAllocateInfo allocate_info {
+        VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        nullptr,
+        device_->get_command_pool(),
+        VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        1
+      };
+      VkCommandBuffer command;
+      vkAllocateCommandBuffers(device_->get_device(), &allocate_info, &command);
+      return command;
+    }
+
+    VkFence create_fence()
+    {
+      VkFenceCreateInfo create_info {
+        VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+        nullptr,
+        VK_FENCE_CREATE_SIGNALED_BIT
+      };
+      VkFence fence;
+      vkCreateFence(device_->get_device(), &create_info, nullptr, &fence);
+      return fence;
+    }
+
     // ----------------------------------------------------------------------------------------------
     // variables
     u_ptr<graphics::window>   window_;
     u_ptr<graphics::device>   device_;
-    u_ptr<graphics::renderer> renderer_;
     u_ptr<graphics::buffer>   vertex_buffer_;
     u_ptr<graphics::buffer>   instances_buffer_;
     u_ptr<image_resource>     ray_traced_image_;
@@ -950,6 +1140,26 @@ class hello_triangle {
     VkStridedDeviceAddressRegionKHR region_raygen_;
     VkStridedDeviceAddressRegionKHR region_miss_;
     VkStridedDeviceAddressRegionKHR region_hit_;
+
+    // temporary rendering system
+    std::vector<u_ptr<image_resource>> render_targets_;
+    VkSemaphore render_completed_;
+    VkSemaphore present_completed_;
+
+    VkSurfaceKHR surface_ = VK_NULL_HANDLE;
+    VkExtent2D   surface_extent_;
+    VkSwapchainKHR swap_chain_ = VK_NULL_HANDLE;
+
+    VkSurfaceFormatKHR back_buffer_format_ = {
+      VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
+    };
+
+    uint32_t frame_index_ = 0;
+    struct frame_command_buffer {
+      VkCommandBuffer command;
+      VkFence fence;
+    };
+    std::vector<u_ptr<frame_command_buffer>> command_buffers_;
 };
 }
 
