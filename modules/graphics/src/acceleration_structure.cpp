@@ -24,7 +24,7 @@ acceleration_structure::acceleration_structure(hnll::graphics::device &device) :
 
 acceleration_structure::~acceleration_structure()
 {
-
+  vkDestroyAccelerationStructureKHR(device_.get_device(), as_handle_, nullptr);
 }
 
 void acceleration_structure::build_as(

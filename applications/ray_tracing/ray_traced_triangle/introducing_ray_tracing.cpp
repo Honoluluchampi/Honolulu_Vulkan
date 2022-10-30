@@ -38,8 +38,8 @@ enum class shader_stages {
 };
 
 namespace scene_hit_shader_group {
-  const uint32_t plane_hit_shader = 0;
-  const uint32_t cube_hit_shader  = 1;
+const uint32_t plane_hit_shader = 0;
+const uint32_t cube_hit_shader  = 1;
 }
 
 struct acceleration_structure
@@ -57,17 +57,6 @@ struct vertex
   vec4 color;
 };
 
-struct mesh_model
-{
-  u_ptr<graphics::buffer> vertex_buffer = nullptr;
-  u_ptr<graphics::buffer> index_buffer = nullptr;
-  uint32_t vertex_count = 0;
-  uint32_t index_count = 0;
-  uint32_t vertex_stride = 0;
-  uint32_t hit_shader_index = 0;
-  u_ptr<graphics::acceleration_structure> blas = nullptr;
-};
-
 struct ray_tracing_scratch_buffer
 {
   VkBuffer        handle = VK_NULL_HANDLE;
@@ -78,28 +67,17 @@ struct ray_tracing_scratch_buffer
 template<class T> T align(T size, uint32_t align)
 { return (size + align - 1) & ~static_cast<T>(align - 1); }
 
-// receives 3x4 matrix
-VkTransformMatrixKHR convert_transform(const Eigen::Matrix4f& matrix)
-{
-  VkTransformMatrixKHR ret {};
-  memcpy(&ret.matrix[0], &matrix(0), sizeof(float) * 4);
-  memcpy(&ret.matrix[1], &matrix(1), sizeof(float) * 4);
-  memcpy(&ret.matrix[2], &matrix(2), sizeof(float) * 4);
-  return ret;
-}
-
 class hello_triangle {
   public:
     hello_triangle()
     {
-      window_ = std::make_unique<graphics::window>(1920, 1080, "hello ray tracing triangle");
+      window_ = std::make_unique<graphics::window>(1920, 946, "hello ray tracing triangle");
       device_ = std::make_unique<graphics::device>(*window_, graphics::rendering_type::RAY_TRACING);
 
       // load all available extensions (of course including ray tracing extensions)
       load_VK_EXTENSIONS(device_->get_instance(), vkGetInstanceProcAddr, device_->get_device(), vkGetDeviceProcAddr);
 
-//      create_triangle_as();
-      create_scene();
+      create_triangle_as();
     }
 
     ~hello_triangle()
@@ -223,13 +201,6 @@ class hello_triangle {
       create_descriptor_set();
     }
 
-    void create_scene()
-    {
-      create_scene_geometries();
-      create_scene_blas();
-      create_scene_tlas();
-    }
-
     void create_vertex_buffer()
     {
       uint32_t vertex_count = triangle_vertices_.size();
@@ -238,29 +209,29 @@ class hello_triangle {
 
       // create staging buffer
       graphics::buffer staging_buffer{
-          *device_,
-          vertex_size,
-          vertex_count,
-          VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        *device_,
+        vertex_size,
+        vertex_count,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
       };
       staging_buffer.map();
       staging_buffer.write_to_buffer((void *) triangle_vertices_.data());
 
       // setup vertex buffer create info
       VkBufferUsageFlags usage =
-          VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-          VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-          VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
-          VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
+        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+        VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
+        VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
 
       // create vertex buffer
       vertex_buffer_ = std::make_unique<graphics::buffer>(
-          *device_,
-          vertex_size,
-          vertex_count,
-          usage,
-          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        *device_,
+        vertex_size,
+        vertex_count,
+        usage,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
       );
       // write data to the buffer
       device_->copy_buffer(staging_buffer.get_buffer(), vertex_buffer_->get_buffer(), buffer_size);
@@ -273,7 +244,7 @@ class hello_triangle {
       // get vertex buffer device address
       VkDeviceOrHostAddressConstKHR vertex_buffer_device_address {};
       vertex_buffer_device_address.deviceAddress =
-          get_device_address(device_->get_device(), vertex_buffer_->get_buffer());
+        get_device_address(device_->get_device(), vertex_buffer_->get_buffer());
 
       // geometry
       VkAccelerationStructureGeometryKHR as_geometry {
@@ -374,7 +345,7 @@ class hello_triangle {
     }
 
     u_ptr<acceleration_structure> create_acceleration_structure_buffer
-        (VkAccelerationStructureBuildSizesInfoKHR build_size_info)
+      (VkAccelerationStructureBuildSizesInfoKHR build_size_info)
     {
       auto as = std::make_unique<acceleration_structure>();
       auto usage = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR |
@@ -681,7 +652,7 @@ class hello_triangle {
         &pipeline_create_info,
         nullptr,
         &pipeline_
-        );
+      );
 
       // delete shader modules
       for (auto& stage : stages) {
@@ -692,7 +663,7 @@ class hello_triangle {
     VkPipelineShaderStageCreateInfo load_shader(const char* shader_name, VkShaderStageFlagBits stage)
     {
       std::string shaders_directory = std::string(std::getenv("HNLL_ENGN"))
-        + std::string("/modules/graphics/ray_tracing_shader/spv/");
+                                      + std::string("/modules/graphics/ray_tracing_shader/spv/");
 
       VkPipelineShaderStageCreateInfo shader_create_info {
         VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -1064,356 +1035,6 @@ class hello_triangle {
       return fence;
     }
 
-    void create_scene_geometries()
-    {
-      auto host_memory_props =
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-      auto usage_for_rt =
-        VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT |
-        VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
-      std::vector<vertex>   vertices;
-      std::vector<uint32_t> indices;
-      const auto vertex_stride = static_cast<uint32_t>(sizeof(vertex));
-      const auto index_stride  = static_cast<uint32_t>(sizeof(uint32_t));
-
-      // create plane mesh_model
-      plane_ = std::make_unique<mesh_model>();
-      create_plane(vertices, indices);
-
-      auto vertex_buffer_size = vertex_stride * vertices.size();
-      auto index_buffer_size  = index_stride * indices.size();
-
-      // create plane vertex buffer
-      auto usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | usage_for_rt;
-      plane_->vertex_buffer = std::make_unique<graphics::buffer>(
-        *device_,
-        vertex_buffer_size,
-        1,
-        usage,
-        host_memory_props
-      );
-      plane_->vertex_buffer->map();
-      plane_->vertex_buffer->write_to_buffer((void *) vertices.data());
-      plane_->vertex_count = static_cast<uint32_t>(vertices.size());
-      plane_->vertex_stride = vertex_stride;
-
-      // create plane index buffer
-      usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | usage_for_rt;
-      plane_->index_buffer = std::make_unique<graphics::buffer>(
-        *device_,
-        index_buffer_size,
-        1,
-        usage,
-        host_memory_props
-      );
-      plane_->index_buffer->map();
-      plane_->index_buffer->write_to_buffer((void *) indices.data());
-      plane_->index_count = static_cast<uint32_t>(indices.size());
-
-      // create cube mesh_model
-      cube_ = std::make_unique<mesh_model>();
-      create_cube(vertices, indices);
-
-      auto cube_vertex_buffer_size = vertex_stride * vertices.size();
-      auto cube_index_buffer_size  = index_stride * indices.size();
-
-      // create cube vertex buffer
-      usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | usage_for_rt;
-      cube_->vertex_buffer = std::make_unique<graphics::buffer>(
-        *device_,
-        cube_vertex_buffer_size,
-        1,
-        usage,
-        host_memory_props
-      );
-      cube_->vertex_buffer->map();
-      cube_->vertex_buffer->write_to_buffer((void *) vertices.data());
-      cube_->vertex_count = static_cast<uint32_t>(vertices.size());
-      cube_->vertex_stride = vertex_stride;
-
-      // create cube index buffer
-      usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | usage_for_rt;
-      cube_->index_buffer = std::make_unique<graphics::buffer>(
-        *device_,
-        cube_index_buffer_size,
-        1,
-        usage,
-        host_memory_props
-      );
-      cube_->index_buffer->map();
-      cube_->index_buffer->write_to_buffer((void *) indices.data());
-      cube_->index_count = static_cast<uint32_t>(indices.size());
-    }
-
-    void create_plane(std::vector<vertex>& vertices, std::vector<uint32_t>& indices, float size = 10.f)
-    {
-      vertices.clear();
-      indices.clear();
-
-      const vec4 white = vec4{ 1, 1, 1, 1 };
-      vertex src[] = {
-        vertex{ { -1.f, 0.f, -1.f }, { 0.f, 1.f, 0.f }, white },
-        vertex{ { -1.f, 0.f,  1.f }, { 0.f, 1.f, 0.f }, white },
-        vertex{ {  1.f, 0.f, -1.f }, { 0.f, 1.f, 0.f }, white },
-        vertex{ {  1.f, 0.f,  1.f }, { 0.f, 1.f, 0.f }, white },
-      };
-      vertices.resize(4);
-
-      // set size
-      std::transform(
-        std::begin(src), std::end(src), vertices.begin(),
-        [=](auto v) {
-          v.position.x() *= size;
-          v.position.z() *= size;
-          return v;
-        }
-      );
-      indices = { 0, 1, 2, 2, 1, 3};
-    }
-
-    void create_cube(std::vector<vertex>& vertices, std::vector<uint32_t>& indices, float size = 1.f)
-    {
-      vertices.clear();
-      indices.clear();
-
-      const vec4 red     { 1.f, 0.f, 0.f, 1.f };
-      const vec4 green   { 0.f, 1.f, 0.f, 1.f };
-      const vec4 blue    { 0.f, 0.f, 1.f, 1.f };
-      const vec4 white   { 1.f, 1.f, 1.f, 1.f };
-      const vec4 black   { 0.f, 0.f, 0.f, 1.f };
-      const vec4 yellow  { 1.f, 1.f, 0.f, 1.f };
-      const vec4 magenta { 1.f, 0.f, 1.f, 1.f };
-      const vec4 cyan    { 0.f, 1.f, 1.f, 1.f };
-
-      vertices = {
-        { { -1.f, -1.f, -1.f }, {  0.f,  0.f, -1.f }, red },
-        { { -1.f,  1.f, -1.f }, {  0.f,  0.f, -1.f }, yellow },
-        { {  1.f,  1.f, -1.f }, {  0.f,  0.f, -1.f }, white },
-        { {  1.f, -1.f, -1.f }, {  0.f,  0.f, -1.f }, magenta },
-
-        { {  1.f, -1.f, -1.f }, {  1.f,  0.f,  0.f }, magenta },
-        { {  1.f,  1.f, -1.f }, {  1.f,  0.f,  0.f }, white },
-        { {  1.f,  1.f,  1.f }, {  1.f,  0.f,  0.f }, cyan },
-        { {  1.f, -1.f,  1.f }, {  1.f,  0.f,  0.f }, blue },
-
-        { { -1.f, -1.f,  1.f }, { -1.f,  0.f,  0.f }, black },
-        { { -1.f,  1.f,  1.f }, { -1.f,  0.f,  0.f }, green },
-        { { -1.f,  1.f, -1.f }, { -1.f,  0.f,  0.f }, yellow },
-        { { -1.f, -1.f, -1.f }, { -1.f,  0.f,  0.f }, red },
-
-        { {  1.f, -1.f,  1.f }, {  0.f,  0.f,  1.f }, blue },
-        { {  1.f,  1.f,  1.f }, {  0.f,  0.f,  1.f }, cyan },
-        { { -1.f,  1.f,  1.f }, {  0.f,  0.f,  1.f }, green },
-        { { -1.f, -1.f,  1.f }, {  0.f,  0.f,  1.f }, black },
-
-        { { -1.f,  1.f, -1.f }, {  0.f,  1.f,  0.f }, yellow },
-        { { -1.f,  1.f,  1.f }, {  0.f,  1.f,  0.f }, green },
-        { {  1.f,  1.f,  1.f }, {  0.f,  1.f,  0.f }, cyan },
-        { {  1.f,  1.f, -1.f }, {  0.f,  1.f,  0.f }, white },
-
-        { { -1.f, -1.f,  1.f }, {  0.f, -1.f,  0.f }, black },
-        { { -1.f, -1.f, -1.f }, {  0.f, -1.f,  0.f }, red },
-        { {  1.f, -1.f, -1.f }, {  0.f, -1.f,  0.f }, magenta },
-        { {  1.f, -1.f,  1.f }, {  0.f, -1.f,  0.f }, blue },
-      };
-
-      indices = {
-        0, 1, 2, 2, 3, 0,
-        4, 5, 6, 6, 7, 4,
-        8, 9, 10, 10, 11, 8,
-        12, 13, 14, 14, 15, 12,
-        16, 17, 18, 18, 19, 16,
-        20, 21, 22, 22, 23, 20,
-      };
-
-      std::transform(
-        vertices.begin(), vertices.end(), vertices.begin(),
-        [=](auto v) {
-          v.position.x() *= size;
-          v.position.y() *= size;
-          v.position.z() *= size;
-          return v;
-        }
-      );
-    }
-
-    void create_scene_blas() {
-      auto device = device_->get_device();
-
-      // create plane
-      {
-        // create geometry
-        VkAccelerationStructureGeometryKHR geometry{
-          VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR
-        };
-        geometry.flags = VK_GEOMETRY_OPAQUE_BIT_KHR;
-        geometry.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
-        auto &triangles = geometry.geometry.triangles;
-        triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
-        triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
-        triangles.vertexData.deviceAddress = hnll::get_device_address(device, plane_->vertex_buffer->get_buffer());
-        triangles.maxVertex = plane_->vertex_count;
-        triangles.vertexStride = plane_->vertex_stride;
-        triangles.indexType = VK_INDEX_TYPE_UINT32;
-        triangles.indexData.deviceAddress = hnll::get_device_address(device, plane_->index_buffer->get_buffer());
-
-        // create build range info
-        VkAccelerationStructureBuildRangeInfoKHR build_range_info{};
-        build_range_info.primitiveCount = plane_->index_count / 3;
-        build_range_info.primitiveOffset = 0;
-        build_range_info.firstVertex = 0;
-        build_range_info.transformOffset = 0;
-
-        // create input
-        graphics::acceleration_structure::input blas_input;
-        blas_input.geometry = {geometry};
-        blas_input.build_range_info = {build_range_info};
-
-        // execute build
-        plane_->blas = std::make_unique<graphics::acceleration_structure>(*device_);
-        plane_->blas->build_as(
-          VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
-          blas_input,
-          0
-        );
-        plane_->blas->destroy_scratch_buffer();
-        // configure hit shader index
-        plane_->hit_shader_index = scene_hit_shader_group::plane_hit_shader;
-      }
-
-      // build cube
-      {
-        VkAccelerationStructureGeometryKHR geometry {
-          VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR
-        };
-        geometry.flags = VK_GEOMETRY_OPAQUE_BIT_KHR;
-        geometry.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
-        auto& triangles = geometry.geometry.triangles;
-        triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
-        triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
-        triangles.vertexData.deviceAddress = hnll::get_device_address(device, cube_->vertex_buffer->get_buffer());
-        triangles.maxVertex = cube_->vertex_count;
-        triangles.vertexStride = cube_->vertex_stride;
-        triangles.indexType = VK_INDEX_TYPE_UINT32;
-        triangles.indexData.deviceAddress = hnll::get_device_address(device, cube_->index_buffer->get_buffer());
-
-        VkAccelerationStructureBuildRangeInfoKHR build_range_info {};
-        build_range_info.primitiveCount = cube_->index_count / 3;
-        build_range_info.primitiveOffset = 0;
-        build_range_info.firstVertex = 0;
-        build_range_info.transformOffset = 0;
-
-        graphics::acceleration_structure::input blas_input;
-        blas_input.geometry = { geometry };
-        blas_input.build_range_info = { build_range_info };
-
-        cube_->blas = std::make_unique<graphics::acceleration_structure>(*device_);
-
-        cube_->blas->build_as(
-          VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
-          blas_input,
-          0
-        );
-        cube_->blas->destroy_scratch_buffer();
-        cube_->hit_shader_index = scene_hit_shader_group::cube_hit_shader;
-      }
-    }
-
-    void create_scene_tlas()
-    {
-      auto device = device_->get_device();
-
-      std::vector<VkAccelerationStructureInstanceKHR> instances;
-      deploy_objects(instances);
-
-      auto instance_buffer_size = sizeof(VkAccelerationStructureInstanceKHR) * instances.size();
-      auto usage =
-        VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |
-        VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
-      auto host_memory_props =
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-
-      // create and write buffer
-      instances_buffer_ = std::make_unique<graphics::buffer>(
-        *device_,
-        instance_buffer_size,
-        1,
-        usage,
-        host_memory_props
-      );
-      instances_buffer_->map();
-      instances_buffer_->write_to_buffer((void *) instances.data());
-
-      // get device address
-      VkDeviceOrHostAddressConstKHR instance_device_address {};
-      instance_device_address.deviceAddress = hnll::get_device_address(device, instances_buffer_->get_buffer());
-
-      // prepare input for tlas build
-      VkAccelerationStructureGeometryKHR geometry {};
-      geometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
-      geometry.geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
-      geometry.flags = VK_GEOMETRY_OPAQUE_BIT_KHR;
-      geometry.geometry.instances.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR;
-      geometry.geometry.instances.arrayOfPointers = VK_FALSE;
-      geometry.geometry.instances.data = instance_device_address;
-
-      VkAccelerationStructureBuildRangeInfoKHR build_range_info {};
-      build_range_info.primitiveCount = static_cast<uint32_t>(instances.size());
-      build_range_info.primitiveOffset = 0;
-      build_range_info.firstVertex = 0;
-      build_range_info.transformOffset = 0;
-
-      // build
-      graphics::acceleration_structure::input tlas_input {};
-      tlas_input.geometry = { geometry };
-      tlas_input.build_range_info = { build_range_info };
-      
-    }
-
-    void deploy_objects(std::vector<VkAccelerationStructureInstanceKHR>& instances)
-    {
-      VkAccelerationStructureInstanceKHR template_description {};
-      template_description.instanceCustomIndex = 0;
-      template_description.mask = 0xFF;
-      template_description.flags = 0;
-
-      // plane
-      {
-        VkTransformMatrixKHR transform = convert_transform(Eigen::Matrix4f::Identity());
-        VkAccelerationStructureInstanceKHR instance = template_description;
-        instance.transform = transform;
-        instance.accelerationStructureReference = plane_->blas->get_device_address();
-        instance.instanceShaderBindingTableRecordOffset = plane_->hit_shader_index;
-        instances.push_back(instance);
-      }
-      // cube 1
-      {
-        Eigen::Matrix4f tf = Eigen::Matrix4f::Identity();
-        tf(0, 3) = -2.f;
-        tf(1, 3) = 1.f;
-        VkTransformMatrixKHR transform = convert_transform(tf);
-        VkAccelerationStructureInstanceKHR instance = template_description;
-        instance.transform = transform;
-        instance.accelerationStructureReference = cube_->blas->get_device_address();
-        instance.instanceShaderBindingTableRecordOffset = cube_->hit_shader_index;
-        instances.push_back(instance);
-      }
-      // cube 2
-      {
-        Eigen::Matrix4f tf = Eigen::Matrix4f::Identity();
-        tf(0, 3) = 2.f;
-        tf(1, 3) = 1.f;
-        VkTransformMatrixKHR transform = convert_transform(tf);
-        VkAccelerationStructureInstanceKHR instance = template_description;
-        instance.transform = transform;
-        instance.accelerationStructureReference = cube_->blas->get_device_address();
-        instance.instanceShaderBindingTableRecordOffset = cube_->hit_shader_index;
-        instances.push_back(instance);
-      }
-    }
-
     // ----------------------------------------------------------------------------------------------
     // variables
     u_ptr<graphics::window>   window_;
@@ -1424,13 +1045,10 @@ class hello_triangle {
     std::vector<u_ptr<image_resource>> back_buffers_;
 
     std::vector<vec3> triangle_vertices_ = {
-        {-0.5f, -0.5f, 0.0f},
-        {+0.5f, -0.5f, 0.0f},
-        {0.0f,  0.75f, 0.0f}
+      {-0.5f, -0.5f, 0.0f},
+      {+0.5f, -0.5f, 0.0f},
+      {0.0f,  0.75f, 0.0f}
     };
-
-    u_ptr<mesh_model> plane_;
-    u_ptr<mesh_model> cube_;
 
     // acceleration structure
     u_ptr<acceleration_structure> blas_;

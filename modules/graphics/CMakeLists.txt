@@ -13,7 +13,7 @@ set(TARGETS
         src/renderer.cpp
         src/swap_chain.cpp
         src/window.cpp
-        ../../include/graphics/acceleration_structure.hpp)
+        ../../include/graphics/acceleration_structure.hpp ../../applications/ray_tracing/ray_traced_triangle/introducing_ray_tracing.cpp)
 add_library(hnll_graphics STATIC ${TARGETS})
 
 target_include_directories(hnll_graphics PUBLIC

@@ -51,11 +51,12 @@ class acceleration_structure
 
     //--------- variables ---------------------------------------------
     device& device_;
+
     // as resources
     VkAccelerationStructureKHR as_handle_ = VK_NULL_HANDLE;
-    VkDeviceAddress as_device_address_ = 0;
-    VkDeviceSize    as_size_ = 0;
-    u_ptr<graphics::buffer> as_buffer_;
+    VkDeviceAddress            as_device_address_ = 0;
+    VkDeviceSize               as_size_ = 0;
+    u_ptr<graphics::buffer>    as_buffer_;
 
     // helper buffers
     u_ptr<graphics::buffer> scratch_buffer_;
