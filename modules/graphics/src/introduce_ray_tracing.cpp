@@ -78,6 +78,16 @@ struct ray_tracing_scratch_buffer
 template<class T> T align(T size, uint32_t align)
 { return (size + align - 1) & ~static_cast<T>(align - 1); }
 
+// receives 3x4 matrix
+VkTransformMatrixKHR convert_transform(const Eigen::Matrix4f& matrix)
+{
+  VkTransformMatrixKHR ret {};
+  memcpy(&ret.matrix[0], &matrix(0), sizeof(float) * 4);
+  memcpy(&ret.matrix[1], &matrix(1), sizeof(float) * 4);
+  memcpy(&ret.matrix[2], &matrix(2), sizeof(float) * 4);
+  return ret;
+}
+
 class hello_triangle {
   public:
     hello_triangle()
@@ -217,6 +227,7 @@ class hello_triangle {
     {
       create_scene_geometries();
       create_scene_blas();
+      create_scene_tlas();
     }
 
     void create_vertex_buffer()
@@ -1227,48 +1238,134 @@ class hello_triangle {
       );
     }
 
-    void create_scene_blas()
-    {
+    void create_scene_blas() {
       auto device = device_->get_device();
 
-      // create geometry
-      VkAccelerationStructureGeometryKHR geometry {
-        VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR
-      };
-      geometry.flags = VK_GEOMETRY_OPAQUE_BIT_KHR;
-      geometry.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
-      auto& triangles = geometry.geometry.triangles;
-      triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
-      triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
-      triangles.vertexData.deviceAddress = hnll::get_device_address(device, plane_->vertex_buffer->get_buffer());
-      triangles.maxVertex = plane_->vertex_count;
-      triangles.vertexStride = plane_->vertex_stride;
-      triangles.indexType = VK_INDEX_TYPE_UINT32;
-      triangles.indexData.deviceAddress = hnll::get_device_address(device, plane_->index_buffer->get_buffer());
+      // create plane
+      {
+        // create geometry
+        VkAccelerationStructureGeometryKHR geometry{
+          VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR
+        };
+        geometry.flags = VK_GEOMETRY_OPAQUE_BIT_KHR;
+        geometry.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+        auto &triangles = geometry.geometry.triangles;
+        triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
+        triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
+        triangles.vertexData.deviceAddress = hnll::get_device_address(device, plane_->vertex_buffer->get_buffer());
+        triangles.maxVertex = plane_->vertex_count;
+        triangles.vertexStride = plane_->vertex_stride;
+        triangles.indexType = VK_INDEX_TYPE_UINT32;
+        triangles.indexData.deviceAddress = hnll::get_device_address(device, plane_->index_buffer->get_buffer());
 
-      // create build range info
-      VkAccelerationStructureBuildRangeInfoKHR build_range_info {};
-      build_range_info.primitiveCount = plane_->index_count / 3;
-      build_range_info.primitiveOffset = 0;
-      build_range_info.firstVertex = 0;
-      build_range_info.transformOffset = 0;
+        // create build range info
+        VkAccelerationStructureBuildRangeInfoKHR build_range_info{};
+        build_range_info.primitiveCount = plane_->index_count / 3;
+        build_range_info.primitiveOffset = 0;
+        build_range_info.firstVertex = 0;
+        build_range_info.transformOffset = 0;
 
-      // create input
-      graphics::acceleration_structure::input blas_input;
-      blas_input.geometry = { geometry };
-      blas_input.build_range_info = { build_range_info };
+        // create input
+        graphics::acceleration_structure::input blas_input;
+        blas_input.geometry = {geometry};
+        blas_input.build_range_info = {build_range_info};
 
-      // execute build
-      plane_->blas = std::make_unique<graphics::acceleration_structure>(*device_);
-      plane_->blas->build_as(
-        VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
-        blas_input,
-        0
-      );
-      plane_->blas->destroy_scratch_buffer();
+        // execute build
+        plane_->blas = std::make_unique<graphics::acceleration_structure>(*device_);
+        plane_->blas->build_as(
+          VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
+          blas_input,
+          0
+        );
+        plane_->blas->destroy_scratch_buffer();
+        // configure hit shader index
+        plane_->hit_shader_index = scene_hit_shader_group::plane_hit_shader;
+      }
 
-      // configure hit shader index
-      plane_->hit_shader_index = scene_hit_shader_group::plane_hit_shader;
+      // build cube
+      {
+        VkAccelerationStructureGeometryKHR geometry {
+          VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR
+        };
+        geometry.flags = VK_GEOMETRY_OPAQUE_BIT_KHR;
+        geometry.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+        auto& triangles = geometry.geometry.triangles;
+        triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
+        triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
+        triangles.vertexData.deviceAddress = hnll::get_device_address(device, cube_->vertex_buffer->get_buffer());
+        triangles.maxVertex = cube_->vertex_count;
+        triangles.vertexStride = cube_->vertex_stride;
+        triangles.indexType = VK_INDEX_TYPE_UINT32;
+        triangles.indexData.deviceAddress = hnll::get_device_address(device, cube_->index_buffer->get_buffer());
+
+        VkAccelerationStructureBuildRangeInfoKHR build_range_info {};
+        build_range_info.primitiveCount = cube_->index_count / 3;
+        build_range_info.primitiveOffset = 0;
+        build_range_info.firstVertex = 0;
+        build_range_info.transformOffset = 0;
+
+        graphics::acceleration_structure::input blas_input;
+        blas_input.geometry = { geometry };
+        blas_input.build_range_info = { build_range_info };
+
+        cube_->blas = std::make_unique<graphics::acceleration_structure>(*device_);
+
+        cube_->blas->build_as(
+          VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
+          blas_input,
+          0
+        );
+        cube_->blas->destroy_scratch_buffer();
+        cube_->hit_shader_index = scene_hit_shader_group::cube_hit_shader;
+      }
+    }
+
+    void create_scene_tlas()
+    {
+      std::vector<VkAccelerationStructureInstanceKHR> instances;
+      deploy_objects(instances);
+    }
+
+    void deploy_objects(std::vector<VkAccelerationStructureInstanceKHR>& instances)
+    {
+      VkAccelerationStructureInstanceKHR template_description {};
+      template_description.instanceCustomIndex = 0;
+      template_description.mask = 0xFF;
+      template_description.flags = 0;
+
+      // plane
+      {
+        VkTransformMatrixKHR transform = convert_transform(Eigen::Matrix4f::Identity());
+        VkAccelerationStructureInstanceKHR instance = template_description;
+        instance.transform = transform;
+        instance.accelerationStructureReference = plane_->blas->get_device_address();
+        instance.instanceShaderBindingTableRecordOffset = plane_->hit_shader_index;
+        instances.push_back(instance);
+      }
+      // cube 1
+      {
+        Eigen::Matrix4f tf = Eigen::Matrix4f::Identity();
+        tf(0, 3) = -2.f;
+        tf(1, 3) = 1.f;
+        VkTransformMatrixKHR transform = convert_transform(tf);
+        VkAccelerationStructureInstanceKHR instance = template_description;
+        instance.transform = transform;
+        instance.accelerationStructureReference = cube_->blas->get_device_address();
+        instance.instanceShaderBindingTableRecordOffset = cube_->hit_shader_index;
+        instances.push_back(instance);
+      }
+      // cube 2
+      {
+        Eigen::Matrix4f tf = Eigen::Matrix4f::Identity();
+        tf(0, 3) = 2.f;
+        tf(1, 3) = 1.f;
+        VkTransformMatrixKHR transform = convert_transform(tf);
+        VkAccelerationStructureInstanceKHR instance = template_description;
+        instance.transform = transform;
+        instance.accelerationStructureReference = cube_->blas->get_device_address();
+        instance.instanceShaderBindingTableRecordOffset = cube_->hit_shader_index;
+        instances.push_back(instance);
+      }
     }
 
     // ----------------------------------------------------------------------------------------------

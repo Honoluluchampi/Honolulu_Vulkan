@@ -63,6 +63,7 @@ void acceleration_structure::build_as(
   // create as
   VkBufferUsageFlags usage =
     VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR |
+    VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
     VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
   VkMemoryPropertyFlags memory_props = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
   // create buffer
