@@ -60,7 +60,7 @@ class acceleration_structure
 
     // helper buffers
     u_ptr<graphics::buffer> scratch_buffer_;
-    u_ptr<graphics::buffer> update_buffer_;
+//    u_ptr<graphics::buffer> update_buffer_;
 };
 
 }} // namespace hnll::graphics

@@ -105,15 +105,15 @@ void acceleration_structure::build_as(
     );
   }
   // create update buffer
-  if (size_info.updateScratchSize > 0) {
-    update_buffer_ = std::make_unique<buffer>(
-      device_,
-      size_info.updateScratchSize,
-      1,
-      usage,
-      memory_props
-    );
-  }
+//  if (size_info.updateScratchSize > 0) {
+//    update_buffer_ = std::make_unique<buffer>(
+//      device_,
+//      size_info.updateScratchSize,
+//      1,
+//      usage,
+//      memory_props
+//    );
+//  }
   // build as
   geometry_info.dstAccelerationStructure = as_handle_;
   geometry_info.scratchData.deviceAddress = hnll::get_device_address(device, scratch_buffer_->get_buffer());
