@@ -286,6 +286,8 @@ class hello_triangle {
       descriptor_set_layout_ = graphics::descriptor_set_layout::builder(*device_)
         .add_binding(0, VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, VK_SHADER_STAGE_RAYGEN_BIT_KHR)
         .add_binding(1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_RAYGEN_BIT_KHR)
+        // make it dynamic because the ubo is writen by cpu accessed by gpu
+        .add_binding(2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_ALL)
         .build();
 
       VkPipelineLayoutCreateInfo pl_create_info {
