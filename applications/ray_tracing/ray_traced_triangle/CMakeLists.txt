@@ -19,7 +19,7 @@ set(TARGETS
         $ENV{HNLL_ENGN}/modules/graphics/src/swap_chain.cpp
         $ENV{HNLL_ENGN}/modules/graphics/src/window.cpp
         ../../../submodules/nvvk_extensions/extensions_vk.cpp
-        $ENV{HNLL_ENGN}/modules/graphics/src/acceleration_structure.cpp ../scene_objects/scene_objects.cpp)
+        $ENV{HNLL_ENGN}/modules/graphics/src/acceleration_structure.cpp)
 
 add_executable(introduce_ray_tracing ${TARGETS})
 

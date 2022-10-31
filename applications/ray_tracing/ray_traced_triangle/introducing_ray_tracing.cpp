@@ -14,14 +14,18 @@
 // std
 #include <iostream>
 #include <algorithm>
+#include <filesystem>
 
-// lib
+// lib1
 #include <eigen3/Eigen/Dense>
 
 using hnll::graphics::image_resource;
 using hnll::get_device_address;
 
 namespace hnll {
+
+const std::string SHADERS_DIRECTORY = std::string(std::getenv("HNLL_ENGN")) +
+  "/applications/ray_tracing/ray_traced_triangle/shaders/spv/";
 
 using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
@@ -662,15 +666,12 @@ class hello_triangle {
 
     VkPipelineShaderStageCreateInfo load_shader(const char* shader_name, VkShaderStageFlagBits stage)
     {
-      std::string shaders_directory = std::string(std::getenv("HNLL_ENGN"))
-                                      + std::string("/modules/graphics/ray_tracing_shader/spv/");
-
       VkPipelineShaderStageCreateInfo shader_create_info {
         VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
         nullptr
       };
 
-      auto shader_spv = graphics::pipeline::read_file(shaders_directory + shader_name);
+      auto shader_spv = graphics::pipeline::read_file(SHADERS_DIRECTORY + shader_name);
       VkShaderModuleCreateInfo module_create_info {
         VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO, nullptr
       };

@@ -1,8 +1,8 @@
 COMPILER=${VULKAN_DIR}/bin/glslangValidator
 TARGET_ENV=vulkan1.3
 
-SHADERDIR=${HNLL_ENGN}/modules/graphics/ray_tracing_shader
-OUTPUTDIR=${HNLL_ENGN}/modules/graphics/ray_tracing_shader/spv
+SHADERDIR=shaders
+OUTPUTDIR=shaders/spv
 mkdir -p ${OUTPUTDIR}
 
 extensions=("rgen" "rmiss" "rchit" "rahit" "rint" "comp")
