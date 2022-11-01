@@ -1,5 +1,8 @@
 #pragma once
 
+// hnll
+#include <geometry/half_edge.hpp>
+
 // std
 #include <memory>
 #include <unordered_map>
@@ -13,9 +16,6 @@ namespace hnll::graphics { class mesh_model; struct builder; }
 namespace hnll::geometry {
 
 // forward declaration
-struct vertex;
-struct face;
-class  half_edge;
 class  bounding_volume;
 enum class bv_type;
 
@@ -74,5 +74,16 @@ class mesh_model
     vertex_map    vertex_map_;
     u_ptr<bounding_volume> bounding_volume_;
 };
+
+void mesh_model::align_vertex_id()
+{
+  vertex_map new_map;
+  vertex_id new_id = 0;
+  for (const auto& kv : vertex_map_) {
+    kv.second->id_ = new_id;
+    new_map[new_id++] = kv.second;
+  }
+  vertex_map_ = new_map;
+}
 
 } // namespace hnll::geometry

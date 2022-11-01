@@ -162,17 +162,6 @@ s_ptr<mesh_model> mesh_model::create_from_obj_file(const std::string& filename)
   return mesh_model;
 }
 
-void mesh_model::align_vertex_id()
-{
-  vertex_map new_map;
-  vertex_id new_id = 0;
-  for (const auto& kv : vertex_map_) {
-    kv.second->id_ = new_id;
-    new_map[new_id++] = kv.second;
-  }
-  vertex_map_ = new_map;
-}
-
 void mesh_model::colorize_whole_mesh(const vec3& color)
 { for (const auto& kv : vertex_map_) kv.second->color_ = color; }
 

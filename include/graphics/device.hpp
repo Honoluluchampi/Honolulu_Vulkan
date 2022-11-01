@@ -16,6 +16,7 @@ namespace hnll::graphics {
 enum class rendering_type {
     RASTERIZE,
     RAY_TRACING,
+    MESH_SHADING,
 };
 
 // non-member function

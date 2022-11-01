@@ -9,7 +9,7 @@
 #include <graphics/acceleration_structure.hpp>
 
 // sub
-#include <extensions_vk.hpp>
+#include <ray_tracing_extensions.hpp>
 
 // std
 #include <iostream>

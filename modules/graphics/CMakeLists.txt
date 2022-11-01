@@ -41,7 +41,7 @@ set(TARGETS
         src/renderer.cpp
         src/swap_chain.cpp
         src/window.cpp
-        ../../submodules/nvvk_extensions/extensions_vk.cpp src/acceleration_structure.cpp)
+        ../../submodules/extensions/ray_tracing_extensions.cpp src/acceleration_structure.cpp)
 
 add_executable(introduce_ray_tracing ${TARGETS})
 

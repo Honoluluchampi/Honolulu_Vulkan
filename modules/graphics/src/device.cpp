@@ -3,6 +3,8 @@
 
 // ray tracing
 #include <vulkan/vulkan_core.h>
+#include <ray_tracing_extensions.hpp>
+#include <mesh_shader_extensions.h>
 
 // std headers
 #include <cstring>
@@ -105,6 +107,14 @@ void device::setup_device_extensions()
         // DESCRIPTOR INDEXING
         VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
     };
+
+    // for mesh shading
+    if (rendering_type_ == rendering_type::MESH_SHADING) {
+      device_extensions_ = {
+        VK_NV_MESH_SHADER_EXTENSION_NAME,
+        VK_EXT_MESH_SHADER_EXTENSION_NAME
+      };
+    }
   }
 
   uint32_t extension_count = 0;
