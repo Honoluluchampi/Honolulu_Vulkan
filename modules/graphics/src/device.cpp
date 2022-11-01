@@ -162,7 +162,7 @@ void device::create_instance()
 
 void device::pick_physical_device() 
 {
-  // rate device suitability if its nesessary
+  // rate device suitability if its necessary
   uint32_t device_count = 0;
   vkEnumeratePhysicalDevices(instance_, &device_count, nullptr);
   if (device_count == 0) {
@@ -444,13 +444,12 @@ bool device::check_device_extension_support(VkPhysicalDevice device)
       available_extensions.data());
 
   std::set<std::string> required_extensions(device_extensions_.begin(), device_extensions_.end());
-
   for (const auto &extension : available_extensions) {
     required_extensions.erase(extension.extensionName);
   }
 
   return required_extensions.empty();
-  // check wheather all glfw_extensions are supported
+  // check whether all glfw_extensions are supported
 }
 
 queue_family_indices device::find_queue_families(VkPhysicalDevice device) 

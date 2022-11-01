@@ -29,6 +29,7 @@ target_include_directories(introduction PUBLIC
         $ENV{HNLL_ENGN}/submodules/tiny_obj_loader
         $ENV{HNLL_ENGN}/submodules/glfw
         $ENV{HNLL_ENGN}/submodules/extensions
+        $ENV{VULKAN_DIR}/include
         )
 
 target_link_directories(introduction PUBLIC $ENV{VULKAN_DIR}/lib)

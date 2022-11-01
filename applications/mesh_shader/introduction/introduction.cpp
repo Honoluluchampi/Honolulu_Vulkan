@@ -1,7 +1,6 @@
 // hnll
 #include <graphics/device.hpp>
 #include <graphics/window.hpp>
-#include <mesh_shader_extensions.h>
 
 // submodules
 #include <ray_tracing_extensions.hpp>
@@ -19,7 +18,7 @@ class mesh_shader_introduction {
     mesh_shader_introduction() {
       std::vector<const char *> device_extensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        VK_NV_MESH_SHADER_EXTENSION_NAME,
+        VK_NV_MESH_SHADER_EXTENSION_NAME
       };
 
       window_ = std::make_unique<graphics::window>(960, 840, "mesh shader introduction");
