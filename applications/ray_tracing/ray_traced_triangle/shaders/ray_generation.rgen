@@ -21,7 +21,7 @@ void main() {
         tlas,
         gl_RayFlagsOpaqueEXT,
         0xff,
-        0, 
+        0,
         0,
         0,
         origin,

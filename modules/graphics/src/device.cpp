@@ -112,10 +112,8 @@ void device::setup_device_extensions()
   std::vector<VkExtensionProperties> extensions(extension_count);
   vkEnumerateDeviceExtensionProperties(physical_device_, nullptr, &extension_count, extensions.data());
 
-  std::cout << "available device extensions:" << std::endl;
   std::unordered_set<std::string> available;
   for (const auto &extension : extensions) {
-    std::cout << "\t" << extension.extensionName << std::endl;
     available.insert(extension.extensionName);
   }
 
@@ -433,19 +431,17 @@ void device::has_glfw_required_instance_extensions()
   std::vector<VkExtensionProperties> extensions(extension_count);
   vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extensions.data());
 
-  std::cout << "available instance extensions:" << std::endl;
   std::unordered_set<std::string> available;
   for (const auto &extension : extensions) {
-    std::cout << "\t" << extension.extensionName << std::endl;
     available.insert(extension.extensionName);
   }
 
-  std::cout << "required instance extensions:" << std::endl;
+  std::cout << "enabled instance extensions:" << std::endl;
   auto required_extensions = get_required_extensions();
   for (const auto &required : required_extensions) {
     std::cout << "\t" << required << std::endl;
     if (available.find(required) == available.end()) {
-      throw std::runtime_error("Missing required glfw extension");
+      throw std::runtime_error("missing required glfw extension");
     }
   }
 }
