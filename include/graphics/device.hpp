@@ -43,7 +43,11 @@ class device
       const bool enable_validation_layers = true;
     #endif
 
-    device(window &window, rendering_type = rendering_type::RASTERIZE);
+    // default device extension is VK_KHR_SWAPCHAIN_EXTENSION_NAME
+    device(window &window,
+           rendering_type type = rendering_type::RASTERIZE,
+           std::vector<const char*>&& device_extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME }
+    );
     ~device();
 
     // Not copyable or movable
@@ -124,7 +128,7 @@ class device
     const std::vector<const char *> validation_layers_ = {"VK_LAYER_KHRONOS_validation"};
     std::vector<const char *> device_extensions_;
 
-    rendering_type rendering_type_ = rendering_type::RASTERIZE;
+    rendering_type rendering_type_;
 };
 
 } // namespace hnll::graphics

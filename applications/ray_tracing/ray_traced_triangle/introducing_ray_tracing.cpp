@@ -14,6 +14,7 @@
 // std
 #include <iostream>
 #include <algorithm>
+#include <memory>
 #include <filesystem>
 
 // lib1
@@ -75,8 +76,24 @@ class hello_triangle {
   public:
     hello_triangle()
     {
+      std::vector<const char*> device_extensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_KHR_MAINTENANCE_3_EXTENSION_NAME,
+        VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
+        // RAY TRACING
+        VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+        VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+        VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
+        // DESCRIPTOR INDEXING
+        VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+      };
+
       window_ = std::make_unique<graphics::window>(1920, 946, "hello ray tracing triangle");
-      device_ = std::make_unique<graphics::device>(*window_, graphics::rendering_type::RAY_TRACING);
+      device_ = std::make_unique<graphics::device>(
+        *window_,
+        graphics::rendering_type::RAY_TRACING,
+        std::move(device_extensions)
+      );
 
       // load all available extensions (of course including ray tracing extensions)
       load_VK_EXTENSIONS(device_->get_instance(), vkGetInstanceProcAddr, device_->get_device(), vkGetDeviceProcAddr);
@@ -1101,7 +1118,3 @@ int main() {
   }
   return EXIT_SUCCESS;
 }
-
-// empty
-#include <geometry/mesh_model.hpp>
-void hnll::geometry::mesh_model::align_vertex_id() {}

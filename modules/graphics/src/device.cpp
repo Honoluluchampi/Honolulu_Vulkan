@@ -58,7 +58,11 @@ void DestroyDebugUtilsMessengerEXT(
 }
 
 // class member functions
-device::device(window &window, rendering_type type) : window_{window}, rendering_type_(type)
+device::device(
+  window &window,
+  rendering_type type,
+  std::vector<const char*>&& device_extensions
+) : window_{window}, rendering_type_(type), device_extensions_(std::move(device_extensions))
 {
   create_instance();
   // window surface should be created right after the instance creation, 
@@ -87,36 +91,6 @@ device::~device()
 
 void device::setup_device_extensions()
 {
-  // for rasterize
-  if (rendering_type_ == rendering_type::RASTERIZE) {
-    device_extensions_ = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-    };
-  }
-
-  // for ray tracing
-  if (rendering_type_ == rendering_type::RAY_TRACING) {
-    device_extensions_ = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        VK_KHR_MAINTENANCE_3_EXTENSION_NAME,
-        VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
-        // RAY TRACING
-        VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
-        VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
-        VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
-        // DESCRIPTOR INDEXING
-        VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
-    };
-
-    // for mesh shading
-    if (rendering_type_ == rendering_type::MESH_SHADING) {
-      device_extensions_ = {
-        VK_NV_MESH_SHADER_EXTENSION_NAME,
-        VK_EXT_MESH_SHADER_EXTENSION_NAME
-      };
-    }
-  }
-
   uint32_t extension_count = 0;
   vkEnumerateDeviceExtensionProperties(physical_device_, nullptr, &extension_count, nullptr);
   std::vector<VkExtensionProperties> extensions(extension_count);
@@ -428,7 +402,7 @@ std::vector<const char *> device::get_required_extensions()
   }
 
   // ray tracing
-  if (rendering_type_ == rendering_type::RAY_TRACING) {
+  if (rendering_type_ != rendering_type::RASTERIZE) {
     extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
   }
   return extensions;
