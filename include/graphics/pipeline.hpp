@@ -54,6 +54,8 @@ class pipeline
         const std::string &vert_filepath,
         const std::string &frag_filepath,
         const pipeline_config_info &config_info);
+    // for mesh shader and ray tracing pipeline
+    pipeline(device &device) : device_(device){}
     ~pipeline();
 
     // uncopyable
@@ -67,20 +69,25 @@ class pipeline
     // fstream can only output char not std::string
     static std::vector<char> read_file(const std::string &filepath);
 
+    // getter
+    VkPipeline get_pipeline() const { return graphics_pipeline_; }
+
+  protected:
+    void create_shader_module(const std::vector<char>& code, VkShaderModule* shader_module);
+
+    device& device_;
+    VkPipeline graphics_pipeline_;
+
   private:
     void create_graphics_pipeline(
       const std::string &vert_filepath, 
       const std::string &frag_filepath, 
       const pipeline_config_info &config_info);
 
-    void create_shader_module(const std::vector<char>& code, VkShaderModule* shader_module);
-
     VkPipelineShaderStageCreateInfo create_vertex_shader_stage_info();
     VkPipelineShaderStageCreateInfo create_fragment_shader_stage_info();
     VkPipelineVertexInputStateCreateInfo create_vertex_input_info();
     // 
-    device& device_;
-    VkPipeline graphics_pipeline_;
     VkShaderModule vertex_shader_module_;
     VkShaderModule fragment_shader_module_;
 };

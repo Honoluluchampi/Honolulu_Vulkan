@@ -1,17 +1,53 @@
 // hnll
 #include <graphics/device.hpp>
 #include <graphics/window.hpp>
+#include <graphics/pipeline.hpp>
 
 // submodules
 #include <ray_tracing_extensions.hpp>
 
 // std
 #include <memory>
+#include <iostream>
 
 namespace hnll {
 
 template<typename T> using u_ptr = std::unique_ptr<T>;
 template<typename T> using s_ptr = std::shared_ptr<T>;
+
+class mesh_pipeline : public graphics::pipeline
+{
+  public:
+    mesh_pipeline(graphics::device& device) : graphics::pipeline(device)
+    {
+      create_pipeline();
+    }
+    ~mesh_pipeline()
+    {
+      // vkDestroyShaderModule
+      // vkDestroyPipeline(device_.get_device(), graphics_pipeline_, nullptr);
+    }
+  private:
+    void create_pipeline()
+    {
+      // create shader modules
+      auto directory = std::string(std::getenv("HNLL_ENGN")) + "/applications/mesh_shader/introduction/shaders/spv/";
+      auto mesh_shader_path = directory + "draw_triangle.mesh.spv";
+      auto frag_shader_path = directory + "draw_triangle.frag.spv";
+      auto mesh_shader_code = read_file(mesh_shader_path);
+      auto frag_shader_code = read_file(frag_shader_path);
+      create_shader_module(mesh_shader_code, &mesh_shader_module_);
+      create_shader_module(frag_shader_code, &frag_shader_module_);
+
+      // shader stages consists of mesh and frag shader (TODO : add task)
+      VkPipelineShaderStageCreateInfo shader_stages[2] = {
+
+      };
+    }
+
+    VkShaderModule mesh_shader_module_;
+    VkShaderModule frag_shader_module_;
+};
 
 class mesh_shader_introduction {
   public:
@@ -64,19 +100,23 @@ class mesh_shader_introduction {
     void render()
     {
       VkCommandBuffer command;
-      vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, mesh_pipeline_);
+//      pipeline_->bind(command);
       uint32_t num_work_groups = 1;
-      vkCmdDrawMeshTasksNV(command, num_work_groups, 0);
-      vkCmdDrawMeshTasks
+//      vkCmdDrawMeshTasksNV(command, num_work_groups, 0);
     }
 
     u_ptr<graphics::window> window_;
     u_ptr<graphics::device> device_;
 
-    VkPipeline mesh_pipeline_;
+    u_ptr<mesh_pipeline> pipeline_;
+    VkPipelineLayout pipeline_layout_;
 };
 } // namespace hnll
 
 int main() {
   hnll::mesh_shader_introduction app{};
+  try { app.run(); }
+  catch (const std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
 }
