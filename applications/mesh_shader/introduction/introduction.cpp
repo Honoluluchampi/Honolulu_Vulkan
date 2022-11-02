@@ -19,10 +19,10 @@ template<typename T> using s_ptr = std::shared_ptr<T>;
 class mesh_pipeline : public graphics::pipeline
 {
   public:
-    mesh_pipeline(graphics::device& device) : graphics::pipeline(device)
+    mesh_pipeline(graphics::device& device, VkRenderPass render_pass) : graphics::pipeline(device)
     {
       create_layout();
-      create_pipeline();
+      create_pipeline(render_pass);
     }
     ~mesh_pipeline()
     {
@@ -52,7 +52,7 @@ class mesh_pipeline : public graphics::pipeline
       }
     }
 
-    void create_pipeline()
+    void create_pipeline(VkRenderPass render_pass)
     {
       // create shader modules
       auto directory = std::string(std::getenv("HNLL_ENGN")) + "/applications/mesh_shader/introduction/shaders/spv/";
@@ -88,7 +88,7 @@ class mesh_pipeline : public graphics::pipeline
       create_info.pDynamicState       = &config_info.dynamic_state_info;
 
       create_info.layout     = layout_;
-      create_info.renderPass = config_info.render_pass;
+      create_info.renderPass = render_pass;
       create_info.subpass    = config_info.subpass;
 
       create_info.basePipelineIndex = -1;
@@ -142,8 +142,7 @@ class mesh_shader_introduction {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
         VK_NV_MESH_SHADER_EXTENSION_NAME,
         VK_NV_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME,
-        VK_KHR_PIPELINE_EXECUTABLE_PROPERTIES_EXTENSION_NAME,
-        VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME,
+        VK_KHR_MAINTENANCE_4_EXTENSION_NAME,
       };
 
       window_ = std::make_unique<graphics::window>(960, 840, "mesh shader introduction");
@@ -155,7 +154,8 @@ class mesh_shader_introduction {
       // load extensions
       load_VK_EXTENSIONS(device_->get_instance(), vkGetInstanceProcAddr, device_->get_device(), vkGetDeviceProcAddr);
 
-      pipeline_ = std::make_unique<mesh_pipeline>(*device_);
+      renderer_ = std::make_unique<graphics::renderer>(*window_, *device_);
+      pipeline_ = std::make_unique<mesh_pipeline>(*device_, renderer_->get_swap_chain_render_pass(HVE_RENDER_PASS_ID));
     }
 
     void run()

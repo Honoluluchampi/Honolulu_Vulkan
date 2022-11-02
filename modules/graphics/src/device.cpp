@@ -272,6 +272,37 @@ void device::create_logical_device()
     create_info.pEnabledFeatures = nullptr;
   }
 
+  // for mesh shader
+  if (rendering_type_ == rendering_type::MESH_SHADING) {
+    VkPhysicalDeviceMaintenance4Features maintenance4_features {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES
+    };
+    maintenance4_features.maintenance4 = VK_TRUE;
+
+    VkPhysicalDeviceMeshShaderFeaturesNV mesh_features = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_NV
+    };
+    mesh_features.meshShader = VK_TRUE;
+    mesh_features.taskShader = VK_TRUE;
+    mesh_features.pNext = &maintenance4_features;
+
+    VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV baryFeatures = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_NV
+    };
+    baryFeatures.fragmentShaderBarycentric = VK_TRUE;
+    baryFeatures.pNext = &mesh_features;
+
+    VkPhysicalDeviceFeatures features{};
+    vkGetPhysicalDeviceFeatures(physical_device_, &features);
+    VkPhysicalDeviceFeatures2 features2 {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, nullptr
+    };
+    features2.pNext = &baryFeatures;
+
+    create_info.pNext = &features2;
+    create_info.pEnabledFeatures = nullptr;
+  }
+
   // enable device extension
   create_info.enabledExtensionCount = static_cast<uint32_t>(device_extensions_.size());
   create_info.ppEnabledExtensionNames = device_extensions_.data();
