@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "-g3 -O0")
 
 set(TARGETS
+        # graphics
         introduction.cpp
         $ENV{HNLL_ENGN}/modules/graphics/src/buffer.cpp
         $ENV{HNLL_ENGN}/modules/graphics/src/camera.cpp
@@ -19,8 +20,14 @@ set(TARGETS
         $ENV{HNLL_ENGN}/modules/graphics/src/swap_chain.cpp
         $ENV{HNLL_ENGN}/modules/graphics/src/window.cpp
         $ENV{HNLL_ENGN}/modules/graphics/src/acceleration_structure.cpp
+        # gui
+        $ENV{HNLL_ENGN}/modules/gui/src/engine.cpp
+        $ENV{HNLL_ENGN}/modules/gui/src/renderer.cpp
+        $ENV{HNLL_ENGN}/modules/gui/src/imgui_build.cpp
+        # extensions
         $ENV{HNLL_ENGN}/submodules/extensions/ray_tracing_extensions.cpp
-        $ENV{HNLL_ENGN}/submodules/extensions/mesh_shader_extensions.cpp)
+        $ENV{HNLL_ENGN}/submodules/extensions/mesh_shader_extensions.cpp
+        )
 
 add_executable(introduction ${TARGETS})
 
@@ -29,6 +36,7 @@ target_include_directories(introduction PUBLIC
         $ENV{HNLL_ENGN}/submodules/tiny_obj_loader
         $ENV{HNLL_ENGN}/submodules/glfw
         $ENV{HNLL_ENGN}/submodules/extensions
+        $ENV{HNLL_ENGN}/submodules/imgui
         $ENV{VULKAN_DIR}/include
         )
 

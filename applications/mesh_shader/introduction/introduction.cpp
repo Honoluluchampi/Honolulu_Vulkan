@@ -3,6 +3,7 @@
 #include <graphics/window.hpp>
 #include <graphics/pipeline.hpp>
 #include <graphics/renderer.hpp>
+#include <gui/engine.hpp>
 
 // submodules
 #include <ray_tracing_extensions.hpp>
@@ -156,6 +157,9 @@ class mesh_shader_introduction {
 
       renderer_ = std::make_unique<graphics::renderer>(*window_, *device_);
       pipeline_ = std::make_unique<mesh_pipeline>(*device_, renderer_->get_swap_chain_render_pass(HVE_RENDER_PASS_ID));
+
+      gui_engine_ = std::make_unique<gui::engine>(*window_, *device_);
+      renderer_->set_next_renderer(gui_engine_->renderer_p());
     }
 
     void run()
@@ -164,6 +168,10 @@ class mesh_shader_introduction {
       while (glfwWindowShouldClose(window_->get_glfw_window()) == GLFW_FALSE) {
         glfwPollEvents();
         render();
+        if (!hnll::graphics::renderer::swap_chain_recreated_) {
+          gui_engine_->begin_imgui();
+          gui_engine_->render();
+        }
       }
       vkDeviceWaitIdle(device_->get_device());
     }
@@ -181,16 +189,26 @@ class mesh_shader_introduction {
 
     void render()
     {
-      VkCommandBuffer command;
-//      pipeline_->bind(command);
-      uint32_t num_work_groups = 1;
-//      vkCmdDrawMeshTasksNV(command, num_work_groups, 0);
+      if (auto command_buffer = renderer_->begin_frame()) {
+        int frame_index = renderer_->get_frame_index();
+
+        renderer_->begin_swap_chain_render_pass(command_buffer, HVE_RENDER_PASS_ID);
+
+        pipeline_->bind(command_buffer);
+        uint32_t num_work_groups = 1;
+        vkCmdDrawMeshTasksNV(command_buffer, num_work_groups, 0);
+
+        renderer_->end_swap_chain_render_pass(command_buffer);
+        renderer_->end_frame();
+      }
     }
 
     u_ptr<graphics::window>   window_;
     u_ptr<graphics::device>   device_;
     u_ptr<graphics::renderer> renderer_;
     u_ptr<mesh_pipeline>      pipeline_;
+
+    u_ptr<gui::engine> gui_engine_;
 };
 } // namespace hnll
 
