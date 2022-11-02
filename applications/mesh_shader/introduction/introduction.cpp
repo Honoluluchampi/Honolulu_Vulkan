@@ -18,7 +18,10 @@ class mesh_shader_introduction {
     mesh_shader_introduction() {
       std::vector<const char *> device_extensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        VK_NV_MESH_SHADER_EXTENSION_NAME
+        VK_NV_MESH_SHADER_EXTENSION_NAME,
+        VK_NV_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME,
+        VK_KHR_PIPELINE_EXECUTABLE_PROPERTIES_EXTENSION_NAME,
+        VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME,
       };
 
       window_ = std::make_unique<graphics::window>(960, 840, "mesh shader introduction");
@@ -31,9 +34,46 @@ class mesh_shader_introduction {
       load_VK_EXTENSIONS(device_->get_instance(), vkGetInstanceProcAddr, device_->get_device(), vkGetDeviceProcAddr);
     }
 
+    void run()
+    {
+      init();
+      while (glfwWindowShouldClose(window_->get_glfw_window()) == GLFW_FALSE) {
+        glfwPollEvents();
+        render();
+      }
+      vkDeviceWaitIdle(device_->get_device());
+    }
+
+    void init()
+    {
+      create_layout();
+      create_pipeline();
+    }
+
   private:
+    void create_layout()
+    {
+
+    }
+
+    void create_pipeline()
+    {
+
+    }
+
+    void render()
+    {
+      VkCommandBuffer command;
+      vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, mesh_pipeline_);
+      uint32_t num_work_groups = 1;
+      vkCmdDrawMeshTasksNV(command, num_work_groups, 0);
+      vkCmdDrawMeshTasks
+    }
+
     u_ptr<graphics::window> window_;
     u_ptr<graphics::device> device_;
+
+    VkPipeline mesh_pipeline_;
 };
 } // namespace hnll
 

@@ -36,5 +36,6 @@ target_link_directories(introduction PUBLIC $ENV{VULKAN_DIR}/lib)
 
 target_link_libraries(introduction PUBLIC
         libvulkan.so.1.3.224
+        shaderc_shared
         glfw
         )
