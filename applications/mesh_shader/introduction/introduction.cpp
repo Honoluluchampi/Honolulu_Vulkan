@@ -2,6 +2,7 @@
 #include <graphics/device.hpp>
 #include <graphics/window.hpp>
 #include <graphics/pipeline.hpp>
+#include <graphics/renderer.hpp>
 
 // submodules
 #include <ray_tracing_extensions.hpp>
@@ -20,6 +21,7 @@ class mesh_pipeline : public graphics::pipeline
   public:
     mesh_pipeline(graphics::device& device) : graphics::pipeline(device)
     {
+      create_layout();
       create_pipeline();
     }
     ~mesh_pipeline()
@@ -27,7 +29,29 @@ class mesh_pipeline : public graphics::pipeline
       // vkDestroyShaderModule
       // vkDestroyPipeline(device_.get_device(), graphics_pipeline_, nullptr);
     }
+
+    // getter
+    VkPipelineLayout get_layout() const { return layout_; }
+
   private:
+    void create_layout()
+    {
+      VkPipelineLayoutCreateInfo create_info {
+        VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO
+      };
+      create_info.setLayoutCount = 0;
+      create_info.pushConstantRangeCount = 0;
+      auto result = vkCreatePipelineLayout(
+        device_.get_device(),
+        &create_info,
+        nullptr,
+        &layout_
+      );
+      if (result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create pipeline layout");
+      }
+    }
+
     void create_pipeline()
     {
       // create shader modules
@@ -40,13 +64,75 @@ class mesh_pipeline : public graphics::pipeline
       create_shader_module(frag_shader_code, &frag_shader_module_);
 
       // shader stages consists of mesh and frag shader (TODO : add task)
-      VkPipelineShaderStageCreateInfo shader_stages[2] = {
-
+      std::vector<VkPipelineShaderStageCreateInfo> shader_stages = {
+        create_mesh_shader_stage_info(),
+        create_frag_shader_stage_info(),
       };
+
+      graphics::pipeline_config_info config_info;
+      default_pipeline_config_info(config_info);
+
+      VkGraphicsPipelineCreateInfo create_info {
+        VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO
+      };
+      create_info.stageCount = shader_stages.size();
+      create_info.pStages = shader_stages.data();
+
+      // use config_info if necessary
+      create_info.pInputAssemblyState = &config_info.input_assembly_info;
+      create_info.pViewportState      = &config_info.viewport_info;
+      create_info.pRasterizationState = &config_info.rasterization_info;
+      create_info.pMultisampleState   = &config_info.multi_sample_info;
+      create_info.pColorBlendState    = &config_info.color_blend_info;
+      create_info.pDepthStencilState  = &config_info.depth_stencil_info;
+      create_info.pDynamicState       = &config_info.dynamic_state_info;
+
+      create_info.layout     = layout_;
+      create_info.renderPass = config_info.render_pass;
+      create_info.subpass    = config_info.subpass;
+
+      create_info.basePipelineIndex = -1;
+      create_info.basePipelineHandle = VK_NULL_HANDLE;
+
+      auto result = vkCreateGraphicsPipelines(
+        device_.get_device(),
+        VK_NULL_HANDLE,
+        1,
+        &create_info,
+        nullptr,
+        &graphics_pipeline_
+      );
+      if (result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create graphics pipeline");
+      }
+    }
+
+    VkPipelineShaderStageCreateInfo create_mesh_shader_stage_info()
+    {
+      VkPipelineShaderStageCreateInfo mesh_shader_stage_info {
+        VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO
+      };
+      mesh_shader_stage_info.stage = VK_SHADER_STAGE_MESH_BIT_NV;
+      mesh_shader_stage_info.module = mesh_shader_module_;
+      mesh_shader_stage_info.pName = "main"; // int main() of mesh shader
+      return mesh_shader_stage_info;
+    }
+
+    VkPipelineShaderStageCreateInfo create_frag_shader_stage_info()
+    {
+      VkPipelineShaderStageCreateInfo frag_shader_stage_info {
+        VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO
+      };
+      frag_shader_stage_info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+      frag_shader_stage_info.module = frag_shader_module_;
+      frag_shader_stage_info.pName = "main";
+      return frag_shader_stage_info;
     }
 
     VkShaderModule mesh_shader_module_;
     VkShaderModule frag_shader_module_;
+
+    VkPipelineLayout layout_;
 };
 
 class mesh_shader_introduction {
@@ -68,6 +154,8 @@ class mesh_shader_introduction {
       );
       // load extensions
       load_VK_EXTENSIONS(device_->get_instance(), vkGetInstanceProcAddr, device_->get_device(), vkGetDeviceProcAddr);
+
+      pipeline_ = std::make_unique<mesh_pipeline>(*device_);
     }
 
     void run()
@@ -83,16 +171,10 @@ class mesh_shader_introduction {
     void init()
     {
       create_layout();
-      create_pipeline();
     }
 
   private:
     void create_layout()
-    {
-
-    }
-
-    void create_pipeline()
     {
 
     }
@@ -105,11 +187,10 @@ class mesh_shader_introduction {
 //      vkCmdDrawMeshTasksNV(command, num_work_groups, 0);
     }
 
-    u_ptr<graphics::window> window_;
-    u_ptr<graphics::device> device_;
-
-    u_ptr<mesh_pipeline> pipeline_;
-    VkPipelineLayout pipeline_layout_;
+    u_ptr<graphics::window>   window_;
+    u_ptr<graphics::device>   device_;
+    u_ptr<graphics::renderer> renderer_;
+    u_ptr<mesh_pipeline>      pipeline_;
 };
 } // namespace hnll
 
