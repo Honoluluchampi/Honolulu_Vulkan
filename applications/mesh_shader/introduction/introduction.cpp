@@ -3,6 +3,7 @@
 #include <graphics/window.hpp>
 #include <graphics/pipeline.hpp>
 #include <graphics/renderer.hpp>
+#include <graphics/descriptor_set_layout.hpp>
 #include <gui/engine.hpp>
 
 // submodules
@@ -21,37 +22,87 @@ using vec4 = Eigen::Vector4f;
 
 constexpr uint32_t MAX_VERTEX_PER_MESHLET = 64;
 constexpr uint32_t MAX_PRIMITIVE_PER_MESHLET = 126;
+constexpr uint32_t MAX_MESHLET_COUNT_PER_CALL = 10;
 
-struct vertex
+class mesh
 {
-  vec3 position;
-  vec3 normal;
-  vec3 color;
+  public:
+    struct vertex
+    {
+      vec3 position;
+      vec3 normal;
+      vec3 color;
+    };
+
+    // pass to the mesh shader via descriptor set
+    struct meshlet
+    {
+      uint32_t vertex_indices[MAX_VERTEX_PER_MESHLET]; // indicates position in a vertex buffer
+      uint32_t primitive_indices[MAX_PRIMITIVE_PER_MESHLET];
+      uint32_t vertex_count;
+      uint32_t index_count;
+    };
+
+    mesh(graphics::device& device, std::vector<vertex>&& vertices, std::vector<meshlet>&& meshlets)
+      : device_(device), raw_vertices_(std::move(vertices)), meshlets_(std::move(meshlets))
+    {
+      // buffer creation
+      vertex_buffer_ = create_buffer_with_staging(
+        sizeof(vertex),
+        raw_vertices_.size(),
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+      );
+      meshlet_buffer_ = create_buffer_with_staging(
+        sizeof(meshlet),
+        meshlets_.size(),
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+      );
+    }
+    ~mesh(){}
+
+  private:
+    u_ptr<graphics::buffer> create_buffer_with_staging(
+      uint32_t instance_size,
+      uint32_t instance_count,
+      VkBufferUsageFlagBits usage,
+      VkMemoryPropertyFlagBits memory_props
+      )
+    {
+      graphics::buffer staging_buffer (
+        device_,
+        instance_size,
+        instance_count,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+      );
+
+      staging_buffer.map();
+      staging_buffer.write_to_buffer((void *) raw_vertices_.data());
+
+      auto ret = std::make_unique<graphics::buffer>(
+        device_,
+        instance_size,
+        instance_count,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage,
+        memory_props
+      );
+
+      VkDeviceSize buffer_size = instance_size * instance_count;
+      device_.copy_buffer(staging_buffer.get_buffer(), ret->get_buffer(), buffer_size);
+
+      return ret;
+    }
+
+    graphics::device& device_;
+    u_ptr<graphics::buffer> vertex_buffer_;
+    u_ptr<graphics::buffer> meshlet_buffer_;
+    std::vector<vertex>  raw_vertices_;
+    std::vector<meshlet> meshlets_;
+    uint32_t vertex_count_;
+    uint32_t meshlet_count_;
 };
-
-// pass to the mesh shader via descriptor set
-struct meshlet
-{
-  std::array<uint32_t, MAX_VERTEX_PER_MESHLET>    vertex_indices; // indicates position in a vertex buffer
-  std::array<uint32_t, MAX_PRIMITIVE_PER_MESHLET> primitive_indices;
-  uint32_t vertex_count;
-  uint32_t primitive_count;
-};
-
-void create_split_plane(std::vector<vertex>& vertex_list, meshlet& ml1, meshlet& ml2)
-{
-  // v3 --- v2
-  //  |      |
-  // v0 --- v1
-  vertex v0 = { vec3{-0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 1.f, 0.f} };
-  vertex v1 = { vec3{ 0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{1.f, 0.f, 0.f} };
-  vertex v2 = { vec3{ 0.5f, -0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 1.f, 0.f} };
-  vertex v3 = { vec3{-0.5f, -0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 0.f, 1.f} };
-  vertex_list = { v0, v1, v2, v3 };
-
-  ml1 = { { 0, 1, 2 }, { 0, 1, 2 }, 3, 1 };
-  ml2 = { { 0, 2, 3 }, { 0, 1, 2 }, 3, 1 };
-}
 
 class mesh_pipeline : public graphics::pipeline
 {
@@ -196,10 +247,13 @@ class mesh_shader_introduction {
       load_VK_EXTENSIONS(device_->get_instance(), vkGetInstanceProcAddr, device_->get_device(), vkGetDeviceProcAddr);
 
       renderer_ = std::make_unique<graphics::renderer>(*window_, *device_);
-      pipeline_ = std::make_unique<mesh_pipeline>(*device_, renderer_->get_swap_chain_render_pass(HVE_RENDER_PASS_ID));
-
       gui_engine_ = std::make_unique<gui::engine>(*window_, *device_);
       renderer_->set_next_renderer(gui_engine_->renderer_p());
+
+      pipeline_ = std::make_unique<mesh_pipeline>(*device_,
+        renderer_->get_swap_chain_render_pass(HVE_RENDER_PASS_ID));
+
+      create_descriptor();
     }
 
     ~mesh_shader_introduction()
@@ -231,6 +285,40 @@ class mesh_shader_introduction {
 
     }
 
+    void create_descriptor()
+    {
+      desc_pool_ = graphics::descriptor_pool::builder(*device_)
+        .set_max_sets(graphics::swap_chain::MAX_FRAMES_IN_FLIGHT)
+        .add_pool_size(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, graphics::swap_chain::MAX_FRAMES_IN_FLIGHT)
+        .build();
+//
+//      for (int i = 0; i < desc_buffers_.size(); i++) {
+//        desc_buffers_[i] = std::make_unique<graphics::buffer> (
+//          *device_,
+//          sizeof(mesh),
+//          );
+//      }
+    }
+
+    u_ptr<mesh> create_split_plane()
+    {
+      // v3 --- v2
+      //  |      |
+      // v0 --- v1
+      mesh::vertex v0 = { vec3{-0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 1.f, 0.f} };
+      mesh::vertex v1 = { vec3{ 0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{1.f, 0.f, 0.f} };
+      mesh::vertex v2 = { vec3{ 0.5f, -0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 1.f, 0.f} };
+      mesh::vertex v3 = { vec3{-0.5f, -0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 0.f, 1.f} };
+      std::vector<mesh::vertex> raw_vertices = { v0, v1, v2, v3 };
+
+      std::vector<mesh::meshlet> meshlets = {
+        {{0, 1, 2}, {0, 1, 2}, 3, 3},
+        {{0, 2, 3}, {0, 1, 2}, 3, 3},
+      };
+
+      return std::make_unique<mesh>(*device_, std::move(raw_vertices), std::move(meshlets));
+    }
+
     void render()
     {
       if (auto command_buffer = renderer_->begin_frame()) {
@@ -253,6 +341,12 @@ class mesh_shader_introduction {
     u_ptr<mesh_pipeline>      pipeline_;
 
     u_ptr<gui::engine> gui_engine_;
+
+    // descriptor
+    u_ptr<graphics::descriptor_pool>       desc_pool_;
+    u_ptr<graphics::descriptor_set_layout> desc_layout_;
+    std::vector<VkDescriptorSet>           desc_sets_;
+    std::vector<u_ptr<graphics::buffer>>   desc_buffers_;
 };
 } // namespace hnll
 

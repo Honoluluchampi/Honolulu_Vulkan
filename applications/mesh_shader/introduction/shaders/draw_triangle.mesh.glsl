@@ -31,28 +31,23 @@ layout (location = 0) out PerVertexData {
 //} ubo;
 
 // ------------------------------------------------------------------------
-// vertex buffer
+// meshlet buffer
+
 struct vertex {
   vec3 position;
   vec3 normal;
   vec3 color;
 };
 
-layout(set = 1, binding = 1) uniform vertex_bufer {
-  vertex raw_vertices[MAX_MESHLET_COUNT * MAX_VERTEX_COUNT];
-};
-
-// ------------------------------------------------------------------------
-// meshlet buffer
-
 struct meshlet {
-  uint vertex_count; // < MAX_VERTEX_COUNT
-  uint index_count; // < MAX_PRIMITIVE_INDICES_COUNT
   uint vertex_indices[MAX_VERTEX_COUNT * MAX_MESHLET_COUNT];
   uint primitive_indices[MAX_PRIMITIVE_INDICES_COUNT];
+  uint vertex_count; // < MAX_VERTEX_COUNT
+  uint index_count; // < MAX_PRIMITIVE_INDICES_COUNT
 };
 
-layout(set = 1, binding = 2) uniform _mesh_buffer {
+layout(set = 1, binding = 0) uniform _mesh_buffer {
+  vertex raw_vertices[MAX_MESHLET_COUNT * MAX_VERTEX_COUNT];
   meshlet meshlets[MAX_MESHLET_COUNT];
 };
 
