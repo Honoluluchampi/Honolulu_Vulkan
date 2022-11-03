@@ -25,6 +25,7 @@ renderer::renderer(window& window, device& device, bool recreate_from_scratch)
 renderer::~renderer()
 {
   free_command_buffers();
+  swap_chain_.reset();
 }
 
 void renderer::recreate_swap_chain()

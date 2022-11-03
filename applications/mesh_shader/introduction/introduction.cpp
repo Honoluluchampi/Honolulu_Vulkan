@@ -27,8 +27,12 @@ class mesh_pipeline : public graphics::pipeline
     }
     ~mesh_pipeline()
     {
-      // vkDestroyShaderModule
+      auto device = device_.get_device();
+      vkDestroyShaderModule(device, mesh_shader_module_, nullptr);
+      vkDestroyShaderModule(device, frag_shader_module_, nullptr);
+      vkDestroyPipelineLayout(device, layout_, nullptr);
       // vkDestroyPipeline(device_.get_device(), graphics_pipeline_, nullptr);
+
     }
 
     // getter
@@ -160,6 +164,10 @@ class mesh_shader_introduction {
 
       gui_engine_ = std::make_unique<gui::engine>(*window_, *device_);
       renderer_->set_next_renderer(gui_engine_->renderer_p());
+    }
+
+    ~mesh_shader_introduction()
+    {
     }
 
     void run()
