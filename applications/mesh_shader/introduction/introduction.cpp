@@ -16,6 +16,42 @@ namespace hnll {
 
 template<typename T> using u_ptr = std::unique_ptr<T>;
 template<typename T> using s_ptr = std::shared_ptr<T>;
+using vec3 = Eigen::Vector3f;
+using vec4 = Eigen::Vector4f;
+
+constexpr uint32_t MAX_VERTEX_PER_MESHLET = 64;
+constexpr uint32_t MAX_PRIMITIVE_PER_MESHLET = 126;
+
+struct vertex
+{
+  vec3 position;
+  vec3 normal;
+  vec3 color;
+};
+
+// pass to the mesh shader via descriptor set
+struct meshlet
+{
+  std::array<uint32_t, MAX_VERTEX_PER_MESHLET>    vertex_indices; // indicates position in a vertex buffer
+  std::array<uint32_t, MAX_PRIMITIVE_PER_MESHLET> primitive_indices;
+  uint32_t vertex_count;
+  uint32_t primitive_count;
+};
+
+void create_split_plane(std::vector<vertex>& vertex_list, meshlet& ml1, meshlet& ml2)
+{
+  // v3 --- v2
+  //  |      |
+  // v0 --- v1
+  vertex v0 = { vec3{-0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec4{0.f, 1.f, 0.f, 1.f} };
+  vertex v1 = { vec3{ 0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec4{1.f, 0.f, 0.f, 1.f} };
+  vertex v2 = { vec3{ 0.5f, -0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec4{0.f, 1.f, 0.f, 1.f} };
+  vertex v3 = { vec3{-0.5f, -0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec4{0.f, 0.f, 1.f, 1.f} };
+  vertex_list = { v0, v1, v2, v3 };
+
+  ml1 = { { 0, 1, 2 }, { 0, 1, 2 }, 3, 1 };
+  ml2 = { { 0, 2, 3 }, { 0, 1, 2 }, 3, 1 };
+}
 
 class mesh_pipeline : public graphics::pipeline
 {
@@ -61,8 +97,8 @@ class mesh_pipeline : public graphics::pipeline
     {
       // create shader modules
       auto directory = std::string(std::getenv("HNLL_ENGN")) + "/applications/mesh_shader/introduction/shaders/spv/";
-      auto mesh_shader_path = directory + "draw_triangle.mesh.spv";
-      auto frag_shader_path = directory + "draw_triangle.frag.spv";
+      auto mesh_shader_path = directory + "draw_triangle.mesh.glsl.spv";
+      auto frag_shader_path = directory + "draw_triangle.frag.glsl.spv";
       auto mesh_shader_code = read_file(mesh_shader_path);
       auto frag_shader_code = read_file(frag_shader_path);
       create_shader_module(mesh_shader_code, &mesh_shader_module_);
