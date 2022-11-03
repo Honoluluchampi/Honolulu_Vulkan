@@ -43,10 +43,10 @@ void create_split_plane(std::vector<vertex>& vertex_list, meshlet& ml1, meshlet&
   // v3 --- v2
   //  |      |
   // v0 --- v1
-  vertex v0 = { vec3{-0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec4{0.f, 1.f, 0.f, 1.f} };
-  vertex v1 = { vec3{ 0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec4{1.f, 0.f, 0.f, 1.f} };
-  vertex v2 = { vec3{ 0.5f, -0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec4{0.f, 1.f, 0.f, 1.f} };
-  vertex v3 = { vec3{-0.5f, -0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec4{0.f, 0.f, 1.f, 1.f} };
+  vertex v0 = { vec3{-0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 1.f, 0.f} };
+  vertex v1 = { vec3{ 0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{1.f, 0.f, 0.f} };
+  vertex v2 = { vec3{ 0.5f, -0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 1.f, 0.f} };
+  vertex v3 = { vec3{-0.5f, -0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 0.f, 1.f} };
   vertex_list = { v0, v1, v2, v3 };
 
   ml1 = { { 0, 1, 2 }, { 0, 1, 2 }, 3, 1 };

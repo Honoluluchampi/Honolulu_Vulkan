@@ -38,7 +38,7 @@ struct vertex {
   vec3 color;
 };
 
-layout(set = 1, binding = 0) uniform vertex_bufer {
+layout(set = 1, binding = 1) uniform vertex_bufer {
   vertex raw_vertices[MAX_MESHLET_COUNT * MAX_VERTEX_COUNT];
 };
 
@@ -46,14 +46,14 @@ layout(set = 1, binding = 0) uniform vertex_bufer {
 // meshlet buffer
 
 struct meshlet {
-  uint vertex_indices[MAX_VERTEX_COUNT];
-  uint primitive_indices[MAX_PRIMITIVE_INDICES_COUNT];
   uint vertex_count; // < MAX_VERTEX_COUNT
   uint index_count; // < MAX_PRIMITIVE_INDICES_COUNT
+  uint vertex_indices[MAX_VERTEX_COUNT * MAX_MESHLET_COUNT];
+  uint primitive_indices[MAX_PRIMITIVE_INDICES_COUNT];
 };
 
-layout(set = 1, binding = 2) uniform mesh_buffer {
-  meshlet meshlets[];
+layout(set = 1, binding = 2) uniform _mesh_buffer {
+  meshlet meshlets[MAX_MESHLET_COUNT];
 };
 
 // ------------------------------------------------------------------------
@@ -65,7 +65,9 @@ void main() {
   uint mesh_index = gl_WorkGroupID.x;
   uint thread_id = gl_LocalInvocationID.x;
 
-  for (uint i = 0; i < meshlets[mesh_index].vertex_count; i++) {
+  uint vertex_count = meshlets[mesh_index].vertex_count;
+
+  for (uint i = 0; i < vertex_count; i++) {
     // i indicates gl_~'s index
     // vertex_index indicates the vertex_buffer's index
     uint vertex_index = meshlets[mesh_index].vertex_indices[i];
