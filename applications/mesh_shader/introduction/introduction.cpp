@@ -69,14 +69,14 @@ class mesh
     }
     ~mesh(){}
 
-    static VkDescriptorBufferInfo get_vertex_buffer_info()
+    inline void* get_vertex_data()
     {
-
+      return raw_vertices_.data();
     }
 
-    static VkDescriptorBufferInfo get_meshlet_buffer_info()
+    inline void* get_meshlet_data()
     {
-
+      return meshlets_.data();
     }
 
   private:
@@ -313,44 +313,54 @@ class mesh_shader_introduction {
     {
       // storage buffer for vertex and meshlet buffer
       desc_pool_ = graphics::descriptor_pool::builder(*device_)
-        .set_max_sets(graphics::swap_chain::MAX_FRAMES_IN_FLIGHT)
+        .set_max_sets(DESC_BINDING_COUNT * graphics::swap_chain::MAX_FRAMES_IN_FLIGHT)
         .add_pool_size(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, graphics::swap_chain::MAX_FRAMES_IN_FLIGHT)
         .add_pool_size(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, graphics::swap_chain::MAX_FRAMES_IN_FLIGHT)
         .build();
 
       // create layouts
-      desc_layouts_.resize(1);
-      desc_layouts_[0] = graphics::descriptor_set_layout::builder(*device_)
-        .add_binding(VERTEX_BINDING_ID,  VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_MESH_BIT_NV) // vertex storage buffer
-        .add_binding(MESHLET_BINDING_ID, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_MESH_BIT_NV) // meshlet storage buffer
+      desc_layouts_[VERTEX_BINDING_ID] = graphics::descriptor_set_layout::builder(*device_)
+        .add_binding(0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_MESH_BIT_NV) // vertex storage buffer
+        .build();
+      desc_layouts_[MESHLET_BINDING_ID] = graphics::descriptor_set_layout::builder(*device_)
+        .add_binding(0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_MESH_BIT_NV)
         .build();
 
       // create buffer for meshlet bindings
-      desc_buffers_.resize(DESC_BINDING_COUNT);
-      desc_buffers_[VERTEX_BINDING_ID] = std::make_unique<graphics::buffer> (
+      desc_buffers_[VERTEX_BINDING_ID].resize(graphics::swap_chain::MAX_FRAMES_IN_FLIGHT);
+      desc_buffers_[MESHLET_BINDING_ID].resize(graphics::swap_chain::MAX_FRAMES_IN_FLIGHT);
+      for (int i = 0; i < graphics::swap_chain::MAX_FRAMES_IN_FLIGHT; i++) {
+        desc_buffers_[VERTEX_BINDING_ID][i] = std::make_unique<graphics::buffer>(
           *device_,
           sizeof(mesh::vertex),
           DEFAULT_VERTEX_COUNT,
           VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-      );
-      desc_buffers_[MESHLET_BINDING_ID] = std::make_unique<graphics::buffer> (
-        *device_,
-        sizeof(mesh::meshlet),
-        DEFAULT_MESHLET_COUNT,
-        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-      );
+        );
+        desc_buffers_[VERTEX_BINDING_ID][i]->map();
+        desc_buffers_[MESHLET_BINDING_ID][i] = std::make_unique<graphics::buffer>(
+          *device_,
+          sizeof(mesh::meshlet),
+          DEFAULT_MESHLET_COUNT,
+          VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+        );
+        desc_buffers_[MESHLET_BINDING_ID][i]->map();
+      }
 
-      desc_sets_.resize(1);
-      auto buffer_info = desc_buffers_[VERTEX_BINDING_ID]->descriptor_info();
-      graphics::descriptor_writer(*desc_layouts_[0], *desc_pool_)
-        .write_buffer(VERTEX_BINDING_ID, &buffer_info)
-        .build(desc_sets_[0]);
-      buffer_info = desc_buffers_[MESHLET_BINDING_ID]->descriptor_info();
-      graphics::descriptor_writer(*desc_layouts_[0], *desc_pool_)
-        .write_buffer(MESHLET_BINDING_ID, &buffer_info)
-        .build(desc_sets_[0]);
+      // create descriptor sets
+      desc_sets_[VERTEX_BINDING_ID].resize(graphics::swap_chain::MAX_FRAMES_IN_FLIGHT);
+      desc_sets_[MESHLET_BINDING_ID].resize(graphics::swap_chain::MAX_FRAMES_IN_FLIGHT);
+      for (int i = 0; i < graphics::swap_chain::MAX_FRAMES_IN_FLIGHT; i++) {
+        auto buffer_info = desc_buffers_[VERTEX_BINDING_ID][i]->descriptor_info();
+        graphics::descriptor_writer(*desc_layouts_[VERTEX_BINDING_ID], *desc_pool_)
+          .write_buffer(0, &buffer_info)
+          .build(desc_sets_[VERTEX_BINDING_ID][i]);
+        buffer_info = desc_buffers_[MESHLET_BINDING_ID][i]->descriptor_info();
+        graphics::descriptor_writer(*desc_layouts_[MESHLET_BINDING_ID], *desc_pool_)
+          .write_buffer(0, &buffer_info)
+          .build(desc_sets_[MESHLET_BINDING_ID][i]);
+      }
     }
 
     u_ptr<mesh> create_split_plane()
@@ -381,18 +391,36 @@ class mesh_shader_introduction {
 
         pipeline_->bind(command_buffer);
 
+        VkDescriptorSet current_desc[2] = {
+          desc_sets_[0][frame_index],
+          desc_sets_[1][frame_index],
+        };
+
+        // update
+        desc_buffers_[VERTEX_BINDING_ID][frame_index]->write_to_buffer(
+          plane_->get_vertex_data(),
+          sizeof(mesh::vertex) * 4
+        );
+        desc_buffers_[VERTEX_BINDING_ID][frame_index]->flush();
+        desc_buffers_[MESHLET_BINDING_ID][frame_index]->write_to_buffer(
+          plane_->get_meshlet_data(),
+          sizeof(mesh::meshlet) * 2
+        );
+        desc_buffers_[MESHLET_BINDING_ID][frame_index]->flush();
+
+        // bind vertex storage buffer
         vkCmdBindDescriptorSets(
           command_buffer,
           VK_PIPELINE_BIND_POINT_GRAPHICS,
           pipeline_->get_layout(),
           0,
-          1,
-          &desc_sets_[0],
+          2,
+          current_desc,
           0,
           nullptr
         );
 
-        uint32_t num_work_groups = 1;
+        uint32_t num_work_groups = 2;
         vkCmdDrawMeshTasksNV(command_buffer, num_work_groups, 0);
 
         renderer_->end_swap_chain_render_pass(command_buffer);
@@ -409,9 +437,9 @@ class mesh_shader_introduction {
 
     // descriptor
     u_ptr<graphics::descriptor_pool>       desc_pool_;
-    std::vector<VkDescriptorSet>           desc_sets_;
-    std::vector<u_ptr<graphics::buffer>>   desc_buffers_;
-    std::vector<u_ptr<graphics::descriptor_set_layout>> desc_layouts_;
+    u_ptr<graphics::descriptor_set_layout> desc_layouts_[2];
+    std::vector<VkDescriptorSet>           desc_sets_[2];
+    std::vector<u_ptr<graphics::buffer>>   desc_buffers_[2];
 
     // sample object
     u_ptr<mesh> plane_;

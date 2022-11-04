@@ -51,7 +51,7 @@ struct meshlet {
   uint index_count; // < MAX_PRIMITIVE_INDICES_COUNT
 };
 
-layout(set = 0, binding = 1) buffer _mesh_buffer {
+layout(set = 1, binding = 0) buffer _mesh_buffer {
   meshlet meshlets[];
 };
 
