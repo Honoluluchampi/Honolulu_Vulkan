@@ -32,7 +32,7 @@ layout (location = 0) out PerVertexData {
 
 // ------------------------------------------------------------------------
 // meshlet buffer
-// one storage buffer can have only one flexible length array
+// one storage buffer binding can have only one flexible length array
 
 struct vertex {
   vec3 position;
