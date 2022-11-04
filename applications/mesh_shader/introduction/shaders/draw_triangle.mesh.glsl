@@ -32,6 +32,7 @@ layout (location = 0) out PerVertexData {
 
 // ------------------------------------------------------------------------
 // meshlet buffer
+// one storage buffer can have only one flexible length array
 
 struct vertex {
   vec3 position;
@@ -39,16 +40,19 @@ struct vertex {
   vec3 color;
 };
 
+layout(set = 0, binding = 0) buffer _vertex_buffer {
+  vertex raw_vertices[];
+};
+
 struct meshlet {
-  uint vertex_indices[MAX_VERTEX_COUNT * MAX_MESHLET_COUNT];
+  uint vertex_indices[MAX_VERTEX_COUNT];
   uint primitive_indices[MAX_PRIMITIVE_INDICES_COUNT];
   uint vertex_count; // < MAX_VERTEX_COUNT
   uint index_count; // < MAX_PRIMITIVE_INDICES_COUNT
 };
 
-layout(set = 1, binding = 0) uniform _mesh_buffer {
-  vertex raw_vertices[MAX_MESHLET_COUNT * MAX_VERTEX_COUNT];
-  meshlet meshlets[MAX_MESHLET_COUNT];
+layout(set = 0, binding = 1) buffer _mesh_buffer {
+  meshlet meshlets[];
 };
 
 // ------------------------------------------------------------------------

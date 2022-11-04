@@ -23,6 +23,13 @@ using vec4 = Eigen::Vector4f;
 constexpr uint32_t MAX_VERTEX_PER_MESHLET = 64;
 constexpr uint32_t MAX_PRIMITIVE_PER_MESHLET = 126;
 constexpr uint32_t MAX_MESHLET_COUNT_PER_CALL = 10;
+constexpr uint32_t VERTEX_BINDING_ID  = 0;
+constexpr uint32_t MESHLET_BINDING_ID = 1;
+constexpr size_t   DESC_BINDING_COUNT = 2;
+constexpr uint32_t DEFAULT_VERTEX_COUNT  = 30000;
+constexpr uint32_t DEFAULT_MESHLET_COUNT = 3000;
+constexpr uint32_t SCENE_DESC_LAYOUT_ID = 0;
+constexpr uint32_t MESH_DESC_LAYOUT_ID  = 1;
 
 class mesh
 {
@@ -61,6 +68,16 @@ class mesh
       );
     }
     ~mesh(){}
+
+    static VkDescriptorBufferInfo get_vertex_buffer_info()
+    {
+
+    }
+
+    static VkDescriptorBufferInfo get_meshlet_buffer_info()
+    {
+
+    }
 
   private:
     u_ptr<graphics::buffer> create_buffer_with_staging(
@@ -107,9 +124,12 @@ class mesh
 class mesh_pipeline : public graphics::pipeline
 {
   public:
-    mesh_pipeline(graphics::device& device, VkRenderPass render_pass) : graphics::pipeline(device)
+    mesh_pipeline(
+      graphics::device& device,
+      VkRenderPass render_pass,
+      const std::vector<VkDescriptorSetLayout>& descriptor_set_layouts) : graphics::pipeline(device)
     {
-      create_layout();
+      create_pipeline_layout(descriptor_set_layouts);
       create_pipeline(render_pass);
     }
     ~mesh_pipeline()
@@ -126,12 +146,13 @@ class mesh_pipeline : public graphics::pipeline
     VkPipelineLayout get_layout() const { return layout_; }
 
   private:
-    void create_layout()
+    void create_pipeline_layout(const std::vector<VkDescriptorSetLayout>& descriptor_set_layouts)
     {
       VkPipelineLayoutCreateInfo create_info {
         VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO
       };
-      create_info.setLayoutCount = 0;
+      create_info.setLayoutCount = static_cast<uint32_t>(descriptor_set_layouts.size());
+      create_info.pSetLayouts    = descriptor_set_layouts.data();
       create_info.pushConstantRangeCount = 0;
       auto result = vkCreatePipelineLayout(
         device_.get_device(),
@@ -157,8 +178,8 @@ class mesh_pipeline : public graphics::pipeline
 
       // shader stages consists of mesh and frag shader (TODO : add task)
       std::vector<VkPipelineShaderStageCreateInfo> shader_stages = {
-        create_mesh_shader_stage_info(),
-        create_frag_shader_stage_info(),
+        create_shader_stage_info(VK_SHADER_STAGE_MESH_BIT_NV,  mesh_shader_module_),
+        create_shader_stage_info(VK_SHADER_STAGE_FRAGMENT_BIT, frag_shader_module_),
       };
 
       graphics::pipeline_config_info config_info;
@@ -199,28 +220,22 @@ class mesh_pipeline : public graphics::pipeline
       }
     }
 
-    VkPipelineShaderStageCreateInfo create_mesh_shader_stage_info()
+    VkPipelineShaderStageCreateInfo create_shader_stage_info(
+      VkShaderStageFlagBits stage,
+      VkShaderModule        module,
+      const char*           pName = "main"
+      )
     {
-      VkPipelineShaderStageCreateInfo mesh_shader_stage_info {
+      VkPipelineShaderStageCreateInfo shader_stage_info {
         VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO
       };
-      mesh_shader_stage_info.stage = VK_SHADER_STAGE_MESH_BIT_NV;
-      mesh_shader_stage_info.module = mesh_shader_module_;
-      mesh_shader_stage_info.pName = "main"; // int main() of mesh shader
-      return mesh_shader_stage_info;
+      shader_stage_info.stage  = stage;
+      shader_stage_info.module = module;
+      shader_stage_info.pName  = pName;
+      return shader_stage_info;
     }
 
-    VkPipelineShaderStageCreateInfo create_frag_shader_stage_info()
-    {
-      VkPipelineShaderStageCreateInfo frag_shader_stage_info {
-        VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO
-      };
-      frag_shader_stage_info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-      frag_shader_stage_info.module = frag_shader_module_;
-      frag_shader_stage_info.pName = "main";
-      return frag_shader_stage_info;
-    }
-
+    //----------- variables ----------------------------------------------------
     VkShaderModule mesh_shader_module_;
     VkShaderModule frag_shader_module_;
 
@@ -250,8 +265,16 @@ class mesh_shader_introduction {
       gui_engine_ = std::make_unique<gui::engine>(*window_, *device_);
       renderer_->set_next_renderer(gui_engine_->renderer_p());
 
+      create_descriptor();
+
+      // prepare raw desc layouts
+      std::vector<VkDescriptorSetLayout> desc_layouts;
+      for (auto& desc_layout : desc_layouts_) {
+        desc_layouts.push_back(desc_layout->get_descriptor_set_layout());
+      }
       pipeline_ = std::make_unique<mesh_pipeline>(*device_,
-        renderer_->get_swap_chain_render_pass(HVE_RENDER_PASS_ID));
+        renderer_->get_swap_chain_render_pass(HVE_RENDER_PASS_ID),
+        desc_layouts);
 
       create_descriptor();
     }
@@ -277,6 +300,7 @@ class mesh_shader_introduction {
     void init()
     {
       create_layout();
+      plane_ = create_split_plane();
     }
 
   private:
@@ -287,17 +311,46 @@ class mesh_shader_introduction {
 
     void create_descriptor()
     {
+      // storage buffer for vertex and meshlet buffer
       desc_pool_ = graphics::descriptor_pool::builder(*device_)
         .set_max_sets(graphics::swap_chain::MAX_FRAMES_IN_FLIGHT)
         .add_pool_size(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, graphics::swap_chain::MAX_FRAMES_IN_FLIGHT)
+        .add_pool_size(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, graphics::swap_chain::MAX_FRAMES_IN_FLIGHT)
         .build();
-//
-//      for (int i = 0; i < desc_buffers_.size(); i++) {
-//        desc_buffers_[i] = std::make_unique<graphics::buffer> (
-//          *device_,
-//          sizeof(mesh),
-//          );
-//      }
+
+      // create layouts
+      desc_layouts_.resize(1);
+      desc_layouts_[0] = graphics::descriptor_set_layout::builder(*device_)
+        .add_binding(VERTEX_BINDING_ID,  VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_MESH_BIT_NV) // vertex storage buffer
+        .add_binding(MESHLET_BINDING_ID, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_MESH_BIT_NV) // meshlet storage buffer
+        .build();
+
+      // create buffer for meshlet bindings
+      desc_buffers_.resize(DESC_BINDING_COUNT);
+      desc_buffers_[VERTEX_BINDING_ID] = std::make_unique<graphics::buffer> (
+          *device_,
+          sizeof(mesh::vertex),
+          DEFAULT_VERTEX_COUNT,
+          VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+      );
+      desc_buffers_[MESHLET_BINDING_ID] = std::make_unique<graphics::buffer> (
+        *device_,
+        sizeof(mesh::meshlet),
+        DEFAULT_MESHLET_COUNT,
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+      );
+
+      desc_sets_.resize(1);
+      auto buffer_info = desc_buffers_[VERTEX_BINDING_ID]->descriptor_info();
+      graphics::descriptor_writer(*desc_layouts_[0], *desc_pool_)
+        .write_buffer(VERTEX_BINDING_ID, &buffer_info)
+        .build(desc_sets_[0]);
+      buffer_info = desc_buffers_[MESHLET_BINDING_ID]->descriptor_info();
+      graphics::descriptor_writer(*desc_layouts_[0], *desc_pool_)
+        .write_buffer(MESHLET_BINDING_ID, &buffer_info)
+        .build(desc_sets_[0]);
     }
 
     u_ptr<mesh> create_split_plane()
@@ -327,6 +380,18 @@ class mesh_shader_introduction {
         renderer_->begin_swap_chain_render_pass(command_buffer, HVE_RENDER_PASS_ID);
 
         pipeline_->bind(command_buffer);
+
+        vkCmdBindDescriptorSets(
+          command_buffer,
+          VK_PIPELINE_BIND_POINT_GRAPHICS,
+          pipeline_->get_layout(),
+          0,
+          1,
+          &desc_sets_[0],
+          0,
+          nullptr
+        );
+
         uint32_t num_work_groups = 1;
         vkCmdDrawMeshTasksNV(command_buffer, num_work_groups, 0);
 
@@ -344,9 +409,12 @@ class mesh_shader_introduction {
 
     // descriptor
     u_ptr<graphics::descriptor_pool>       desc_pool_;
-    u_ptr<graphics::descriptor_set_layout> desc_layout_;
     std::vector<VkDescriptorSet>           desc_sets_;
     std::vector<u_ptr<graphics::buffer>>   desc_buffers_;
+    std::vector<u_ptr<graphics::descriptor_set_layout>> desc_layouts_;
+
+    // sample object
+    u_ptr<mesh> plane_;
 };
 } // namespace hnll
 
