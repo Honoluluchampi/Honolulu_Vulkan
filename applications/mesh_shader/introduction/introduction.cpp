@@ -6,6 +6,8 @@
 #include <graphics/descriptor_set_layout.hpp>
 #include <gui/engine.hpp>
 
+#include <graphics/meshlet_model.hpp>
+
 // submodules
 #include <ray_tracing_extensions.hpp>
 

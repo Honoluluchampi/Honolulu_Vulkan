@@ -25,6 +25,30 @@ u_ptr<meshlet_model> meshlet_model::create(
   return ret;
 }
 
+void meshlet_model::bind_and_draw(
+  VkCommandBuffer _command_buffer,
+  VkPipelineLayout _pipeline_layout)
+{
+  // bind descs
+  vkCmdBindDescriptorSets(
+    _command_buffer,
+    VK_PIPELINE_BIND_POINT_GRAPHICS,
+    _pipeline_layout,
+    0,
+    DESC_SET_COUNT,
+    desc_sets_.data(),
+    0,
+    nullptr
+  );
+
+  // draw
+  vkCmdDrawMeshTasksNV(
+    _command_buffer,
+    meshlets_.size(),
+    0
+  );
+}
+
 void meshlet_model::setup_descs(device& _device)
 {
   create_desc_pool(_device);
