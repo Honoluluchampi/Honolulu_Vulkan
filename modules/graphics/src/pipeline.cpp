@@ -132,19 +132,40 @@ pipeline::pipeline(
   const std::string &vertex_file_path,
   const std::string &fragment_file_path,
   const pipeline_config_info &config_info) : device_(device)
-{ create_graphics_pipeline(vertex_file_path, fragment_file_path, config_info); }
+{
+  std::vector<std::string> shader_file_paths { vertex_file_path, fragment_file_path };
+  std::vector<VkShaderStageFlagBits> shader_stage_flags { VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT };
+  create_graphics_pipeline(shader_file_paths, shader_stage_flags, config_info); }
+
+pipeline::pipeline(
+  hnll::graphics::device &_device,
+  const std::vector<std::string>& _shader_filepaths,
+  const std::vector<VkShaderStageFlagBits>& _shader_stage_flags,
+  const hnll::graphics::pipeline_config_info& _config_info) : device_(_device)
+{ create_graphics_pipeline(_shader_filepaths, _shader_stage_flags, _config_info); }
 
 pipeline::~pipeline()
 {
-  vkDestroyShaderModule(device_.get_device(), vertex_shader_module_, nullptr);
-  vkDestroyShaderModule(device_.get_device(), fragment_shader_module_, nullptr);
-  vkDestroyPipeline(device_.get_device(), graphics_pipeline_, nullptr);
+  auto _device = device_.get_device();
+  for (auto& module : shader_modules_) {
+    vkDestroyShaderModule(_device, module, nullptr);
+  }
+  vkDestroyPipeline(_device, graphics_pipeline_, nullptr);
+}
+
+u_ptr<pipeline> pipeline::create(
+  device& _device,
+  const std::vector<std::string>& _shader_filepaths,
+  const std::vector<VkShaderStageFlagBits>& _shader_stage_flags,
+  const pipeline_config_info& _config_info)
+{
+  return std::make_unique<pipeline>(_device, _shader_filepaths, _shader_stage_flags, _config_info);
 }
 
 std::vector<char> pipeline::read_file(const std::string& filepath)
 {
   // construct and open
-  // immidiately read as binary
+  // immediately read as binary
   std::ifstream file(filepath, std::ios::ate | std::ios::binary);
 
   if (!file.is_open())
@@ -161,57 +182,78 @@ std::vector<char> pipeline::read_file(const std::string& filepath)
 }
 
 void pipeline::create_graphics_pipeline(
-    const std::string &vertex_file_path, 
-    const std::string &fragment_file_path, 
-    const pipeline_config_info &config_info)
+  const std::vector<std::string>& _shader_filepaths,
+  const std::vector<VkShaderStageFlagBits>& _shader_stage_flags,
+  const pipeline_config_info& _config_info)
 {
-  auto vertex_code = read_file(vertex_file_path);
-  auto fragment_code = read_file(fragment_file_path);
+  assert(_shader_stage_flags.size() == _shader_filepaths.size());
 
-  create_shader_module(vertex_code, &vertex_shader_module_);
-  create_shader_module(fragment_code, &fragment_shader_module_);
+  // if there is a vertex shader, create vertex input state
+  bool has_vertex_shader = false;
 
-  VkPipelineShaderStageCreateInfo shader_stages[2] =
-    { create_vertex_shader_stage_info(), create_fragment_shader_stage_info() };
+  uint32_t shader_stage_count = _shader_filepaths.size();
 
-  auto vertex_input_info = create_vertex_input_info();
+  // create shader module
+  shader_modules_.resize(shader_stage_count);
+  for (int i = 0; i < shader_stage_count; i++) {
+    auto raw_code = read_file(_shader_filepaths[i]);
+    create_shader_module(raw_code, &shader_modules_[i]);
 
-  // accept vertex data
-  auto& binding_descriptions = config_info.binding_descriptions;
-  auto& attribute_descriptions = config_info.attribute_descriptions; 
-  vertex_input_info.vertexBindingDescriptionCount = static_cast<uint32_t>(binding_descriptions.size());
-  vertex_input_info.pVertexBindingDescriptions = binding_descriptions.data(); //optional
-  vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_descriptions.size());
-  vertex_input_info.pVertexAttributeDescriptions = attribute_descriptions.data(); //optional
+    if (_shader_stage_flags[i] == VK_SHADER_STAGE_VERTEX_BIT)
+      has_vertex_shader = true;
+  }
+
+  // create shader_stage_create_info
+  VkPipelineShaderStageCreateInfo shader_stages[shader_stage_count];
+  for (int i = 0; i < shader_stage_count; i++) {
+    shader_stages[i] = create_shader_stage_info(
+      shader_modules_[i],
+      _shader_stage_flags[i]
+    );
+  }
+
+  VkPipelineVertexInputStateCreateInfo vertex_input_info;
+  if (has_vertex_shader) {
+    vertex_input_info = create_vertex_input_info();
+
+    // accept vertex data
+    auto &binding_descriptions = _config_info.binding_descriptions;
+    auto &attribute_descriptions = _config_info.attribute_descriptions;
+    vertex_input_info.vertexBindingDescriptionCount = static_cast<uint32_t>(binding_descriptions.size());
+    vertex_input_info.pVertexBindingDescriptions = binding_descriptions.data(); //optional
+    vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_descriptions.size());
+    vertex_input_info.pVertexAttributeDescriptions = attribute_descriptions.data(); //optional
+  }
 
   VkGraphicsPipelineCreateInfo pipeline_info{};
   pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-  // programable stage count (in this case vertex and shader stage)
-  pipeline_info.stageCount = 2;
-  pipeline_info.pStages = shader_stages;
-  pipeline_info.pVertexInputState = &vertex_input_info;
-  pipeline_info.pInputAssemblyState = &config_info.input_assembly_info;
-  pipeline_info.pViewportState = &config_info.viewport_info;
-  pipeline_info.pRasterizationState = &config_info.rasterization_info;
-  pipeline_info.pMultisampleState = &config_info.multi_sample_info;
-  pipeline_info.pColorBlendState = &config_info.color_blend_info;
-  pipeline_info.pDepthStencilState = &config_info.depth_stencil_info;
-  pipeline_info.pDynamicState = &config_info.dynamic_state_info;
+  // programmable stage count
+  pipeline_info.stageCount          = shader_stage_count;
+  pipeline_info.pStages             = shader_stages;
+  if (has_vertex_shader)
+    pipeline_info.pVertexInputState = &vertex_input_info;
+  else
+    pipeline_info.pVertexInputState = nullptr;
+  pipeline_info.pInputAssemblyState = &_config_info.input_assembly_info;
+  pipeline_info.pViewportState      = &_config_info.viewport_info;
+  pipeline_info.pRasterizationState = &_config_info.rasterization_info;
+  pipeline_info.pMultisampleState   = &_config_info.multi_sample_info;
+  pipeline_info.pColorBlendState    = &_config_info.color_blend_info;
+  pipeline_info.pDepthStencilState  = &_config_info.depth_stencil_info;
+  pipeline_info.pDynamicState       = &_config_info.dynamic_state_info;
 
-  pipeline_info.layout = config_info.pipeline_layout;
-  pipeline_info.renderPass = config_info.render_pass;
-  pipeline_info.subpass = config_info.subpass;
+  pipeline_info.layout     = _config_info.pipeline_layout;
+  pipeline_info.renderPass = _config_info.render_pass;
+  pipeline_info.subpass    = _config_info.subpass;
 
-  pipeline_info.basePipelineIndex = -1;
+  pipeline_info.basePipelineIndex  = -1;
   pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
 
   // its possible to create multiple VkPipeline objects in a single call
   // second parameter means cache objects enables significantly faster creation
   if (vkCreateGraphicsPipelines(device_.get_device(), VK_NULL_HANDLE, 1,
-    &pipeline_info, nullptr, &graphics_pipeline_) != VK_SUCCESS)
+                                &pipeline_info, nullptr, &graphics_pipeline_) != VK_SUCCESS)
     throw std::runtime_error("failed to create graphics pipeline!");
-
-
 }
 
 void pipeline::create_shader_module(const std::vector<char>& code, VkShaderModule* shader_module)
@@ -226,24 +268,14 @@ void pipeline::create_shader_module(const std::vector<char>& code, VkShaderModul
     throw std::runtime_error("failed to create shader module!");
 } 
 
-
-VkPipelineShaderStageCreateInfo pipeline::create_vertex_shader_stage_info()
-{
-  VkPipelineShaderStageCreateInfo vertex_shader_stage_info{};
-  vertex_shader_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-  vertex_shader_stage_info.stage = VK_SHADER_STAGE_VERTEX_BIT;
-  vertex_shader_stage_info.module = vertex_shader_module_;
-  // the function to invoke
-  vertex_shader_stage_info.pName = "main";
-  return vertex_shader_stage_info;
-}
-
-VkPipelineShaderStageCreateInfo pipeline::create_fragment_shader_stage_info()
+VkPipelineShaderStageCreateInfo pipeline::create_shader_stage_info(
+  VkShaderModule _shader_module,
+  VkShaderStageFlagBits _shader_stage_frag)
 {
   VkPipelineShaderStageCreateInfo fragment_shader_stage_info{};
   fragment_shader_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-  fragment_shader_stage_info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-  fragment_shader_stage_info.module = fragment_shader_module_;
+  fragment_shader_stage_info.stage = _shader_stage_frag;
+  fragment_shader_stage_info.module = _shader_module;
   // the function to invoke
   fragment_shader_stage_info.pName = "main";
   return fragment_shader_stage_info;

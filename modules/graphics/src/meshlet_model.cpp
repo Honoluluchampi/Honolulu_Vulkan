@@ -67,6 +67,8 @@ void meshlet_model::create_desc_pool(hnll::graphics::device &_device)
 
 void meshlet_model::create_desc_buffers(device& _device)
 {
+  desc_buffers_.resize(DESC_SET_COUNT);
+
   desc_buffers_[VERTEX_DESC_ID] = graphics::buffer::create_with_staging(
     _device,
     sizeof(vertex),
@@ -88,6 +90,8 @@ void meshlet_model::create_desc_buffers(device& _device)
 
 void meshlet_model::create_desc_set_layouts(device& _device)
 {
+  desc_set_layouts_.resize(DESC_SET_COUNT);
+
   for (int i = 0; i < DESC_SET_COUNT; i++) {
     desc_set_layouts_[i] = descriptor_set_layout::builder(_device)
       .add_binding(
@@ -100,6 +104,8 @@ void meshlet_model::create_desc_set_layouts(device& _device)
 
 void meshlet_model::create_desc_sets()
 {
+  desc_sets_.resize(DESC_SET_COUNT);
+
   for (int i = 0; i < DESC_SET_COUNT; i++) {
     auto buffer_info = desc_buffers_[i]->descriptor_info();
     descriptor_writer(*desc_set_layouts_[i], *desc_pool_)
@@ -121,6 +127,24 @@ std::vector<VkDescriptorSetLayout> meshlet_model::get_raw_desc_set_layouts() con
   for (int i = 0; i < DESC_SET_COUNT; i++) {
     ret.push_back(desc_set_layouts_[i]->get_descriptor_set_layout());
   }
+  return ret;
+}
+
+std::vector<u_ptr<descriptor_set_layout>> meshlet_model::default_desc_set_layouts(device& _device)
+{
+  std::vector<u_ptr<descriptor_set_layout>> ret;
+
+  ret.resize(DESC_SET_COUNT);
+
+  for (int i = 0; i < DESC_SET_COUNT; i++) {
+    ret[i] = descriptor_set_layout::builder(_device)
+      .add_binding(
+        0,
+        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        VK_SHADER_STAGE_TASK_BIT_NV | VK_SHADER_STAGE_MESH_BIT_NV)
+      .build();
+  }
+
   return ret;
 }
 

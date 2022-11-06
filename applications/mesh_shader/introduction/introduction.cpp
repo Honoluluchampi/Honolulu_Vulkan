@@ -3,7 +3,6 @@
 #include <graphics/window.hpp>
 #include <graphics/pipeline.hpp>
 #include <graphics/renderer.hpp>
-#include <graphics/descriptor_set_layout.hpp>
 #include <gui/engine.hpp>
 
 #include <graphics/meshlet_model.hpp>
@@ -21,137 +20,6 @@ template<typename T> using u_ptr = std::unique_ptr<T>;
 template<typename T> using s_ptr = std::shared_ptr<T>;
 using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
-
-constexpr uint32_t MAX_VERTEX_PER_MESHLET     = 64;
-constexpr uint32_t MAX_INDICES_PER_MESHLET    = 378;
-constexpr uint32_t MAX_MESHLET_COUNT_PER_CALL = 10;
-constexpr uint32_t SCENE_SET_ID   = 2;
-constexpr uint32_t VERTEX_SET_ID  = 0;
-constexpr uint32_t MESHLET_SET_ID = 1;
-constexpr size_t   DESC_SET_COUNT = 2;
-constexpr uint32_t DEFAULT_VERTEX_COUNT  = 30000;
-constexpr uint32_t DEFAULT_MESHLET_COUNT = 3000;
-
-class mesh_pipeline : public graphics::pipeline
-{
-  public:
-    mesh_pipeline(
-      graphics::device& device,
-      VkRenderPass render_pass,
-      const std::vector<VkDescriptorSetLayout>& descriptor_set_layouts) : graphics::pipeline(device)
-    {
-      create_pipeline_layout(descriptor_set_layouts);
-      create_pipeline(render_pass);
-    }
-    ~mesh_pipeline()
-    {
-      auto device = device_.get_device();
-      vkDestroyShaderModule(device, mesh_shader_module_, nullptr);
-      vkDestroyShaderModule(device, frag_shader_module_, nullptr);
-      vkDestroyPipelineLayout(device, layout_, nullptr);
-      // vkDestroyPipeline(device_.get_device(), graphics_pipeline_, nullptr);
-
-    }
-
-    // getter
-    VkPipelineLayout get_layout() const { return layout_; }
-
-  private:
-    void create_pipeline_layout(const std::vector<VkDescriptorSetLayout>& descriptor_set_layouts)
-    {
-      VkPipelineLayoutCreateInfo create_info {
-        VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO
-      };
-      create_info.setLayoutCount = static_cast<uint32_t>(descriptor_set_layouts.size());
-      create_info.pSetLayouts    = descriptor_set_layouts.data();
-      create_info.pushConstantRangeCount = 0;
-      auto result = vkCreatePipelineLayout(
-        device_.get_device(),
-        &create_info,
-        nullptr,
-        &layout_
-      );
-      if (result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create pipeline layout");
-      }
-    }
-
-    void create_pipeline(VkRenderPass render_pass)
-    {
-      // create shader modules
-      auto directory = std::string(std::getenv("HNLL_ENGN")) + "/applications/mesh_shader/introduction/shaders/spv/";
-      auto mesh_shader_path = directory + "draw_triangle.mesh.glsl.spv";
-      auto frag_shader_path = directory + "draw_triangle.frag.glsl.spv";
-      auto mesh_shader_code = read_file(mesh_shader_path);
-      auto frag_shader_code = read_file(frag_shader_path);
-      create_shader_module(mesh_shader_code, &mesh_shader_module_);
-      create_shader_module(frag_shader_code, &frag_shader_module_);
-
-      // shader stages consists of mesh and frag shader (TODO : add task)
-      std::vector<VkPipelineShaderStageCreateInfo> shader_stages = {
-        create_shader_stage_info(VK_SHADER_STAGE_MESH_BIT_NV,  mesh_shader_module_),
-        create_shader_stage_info(VK_SHADER_STAGE_FRAGMENT_BIT, frag_shader_module_),
-      };
-
-      graphics::pipeline_config_info config_info;
-      default_pipeline_config_info(config_info);
-
-      VkGraphicsPipelineCreateInfo create_info {
-        VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO
-      };
-      create_info.stageCount = shader_stages.size();
-      create_info.pStages = shader_stages.data();
-
-      // use config_info if necessary
-      create_info.pInputAssemblyState = &config_info.input_assembly_info;
-      create_info.pViewportState      = &config_info.viewport_info;
-      create_info.pRasterizationState = &config_info.rasterization_info;
-      create_info.pMultisampleState   = &config_info.multi_sample_info;
-      create_info.pColorBlendState    = &config_info.color_blend_info;
-      create_info.pDepthStencilState  = &config_info.depth_stencil_info;
-      create_info.pDynamicState       = &config_info.dynamic_state_info;
-
-      create_info.layout     = layout_;
-      create_info.renderPass = render_pass;
-      create_info.subpass    = config_info.subpass;
-
-      create_info.basePipelineIndex = -1;
-      create_info.basePipelineHandle = VK_NULL_HANDLE;
-
-      auto result = vkCreateGraphicsPipelines(
-        device_.get_device(),
-        VK_NULL_HANDLE,
-        1,
-        &create_info,
-        nullptr,
-        &graphics_pipeline_
-      );
-      if (result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create graphics pipeline");
-      }
-    }
-
-    VkPipelineShaderStageCreateInfo create_shader_stage_info(
-      VkShaderStageFlagBits stage,
-      VkShaderModule        module,
-      const char*           pName = "main"
-      )
-    {
-      VkPipelineShaderStageCreateInfo shader_stage_info {
-        VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO
-      };
-      shader_stage_info.stage  = stage;
-      shader_stage_info.module = module;
-      shader_stage_info.pName  = pName;
-      return shader_stage_info;
-    }
-
-    //----------- variables ----------------------------------------------------
-    VkShaderModule mesh_shader_module_;
-    VkShaderModule frag_shader_module_;
-
-    VkPipelineLayout layout_;
-};
 
 class mesh_shader_introduction {
   public:
@@ -177,15 +45,12 @@ class mesh_shader_introduction {
       renderer_->set_next_renderer(gui_engine_->renderer_p());
 
       plane_ = create_split_plane();
-
-      pipeline_ = std::make_unique<mesh_pipeline>(*device_,
-        renderer_->get_swap_chain_render_pass(HVE_RENDER_PASS_ID),
-        plane_->get_raw_desc_set_layouts()
-      );
+      create_pipeline();
     }
 
     ~mesh_shader_introduction()
     {
+      vkDestroyPipelineLayout(device_->get_device(), pipeline_layout_, nullptr);
     }
 
     void run()
@@ -202,6 +67,63 @@ class mesh_shader_introduction {
     }
 
   private:
+    // following two functions will be migrated into mesh_rendering_system
+    void create_pipeline()
+    {
+      // create shader modules
+      auto directory = std::string(std::getenv("HNLL_ENGN")) + "/applications/mesh_shader/introduction/shaders/spv/";
+      std::vector<std::string> shader_paths = {
+        directory + "draw_triangle.mesh.glsl.spv",
+        directory + "draw_triangle.frag.glsl.spv"
+      };
+      std::vector<VkShaderStageFlagBits> shader_stage_flags = {
+        VK_SHADER_STAGE_MESH_BIT_NV,
+        VK_SHADER_STAGE_FRAGMENT_BIT,
+      };
+
+      // init pipeline_layout
+      create_pipeline_layout();
+      // configure pipeline config info
+      graphics::pipeline_config_info config_info;
+      graphics::pipeline::default_pipeline_config_info(config_info);
+      config_info.pipeline_layout = pipeline_layout_;
+      config_info.render_pass = renderer_->get_swap_chain_render_pass(HVE_RENDER_PASS_ID);
+
+      pipeline_ = graphics::pipeline::create(
+        *device_,
+        shader_paths,
+        shader_stage_flags,
+        config_info
+      );
+    }
+
+    void create_pipeline_layout()
+    {
+      auto desc_set_layouts = graphics::meshlet_model::default_desc_set_layouts(*device_);
+      std::vector<VkDescriptorSetLayout> raw_desc_set_layouts(desc_set_layouts.size());
+
+      // copy
+      for (int i = 0; i < desc_set_layouts.size(); i++) {
+        raw_desc_set_layouts[i] = desc_set_layouts[i]->get_descriptor_set_layout();
+      }
+
+      VkPipelineLayoutCreateInfo create_info {
+        VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO
+      };
+      create_info.setLayoutCount = static_cast<uint32_t>(desc_set_layouts.size());
+      create_info.pSetLayouts    = raw_desc_set_layouts.data();
+      create_info.pushConstantRangeCount = 0;
+      auto result = vkCreatePipelineLayout(
+        device_->get_device(),
+        &create_info,
+        nullptr,
+        &pipeline_layout_
+      );
+      if (result != VK_SUCCESS) {
+        throw std::runtime_error("failed to create pipeline layout");
+      }
+    }
+
     u_ptr<graphics::meshlet_model> create_split_plane()
     {
       // v3 --- v2
@@ -231,7 +153,7 @@ class mesh_shader_introduction {
         pipeline_->bind(command_buffer);
 
         // bind vertex storage buffer
-        plane_->bind_and_draw(command_buffer, pipeline_->get_layout());
+        plane_->bind_and_draw(command_buffer, pipeline_layout_);
 
         renderer_->end_swap_chain_render_pass(command_buffer);
         renderer_->end_frame();
@@ -241,7 +163,8 @@ class mesh_shader_introduction {
     u_ptr<graphics::window>   window_;
     u_ptr<graphics::device>   device_;
     u_ptr<graphics::renderer> renderer_;
-    u_ptr<mesh_pipeline>      pipeline_;
+    u_ptr<graphics::pipeline> pipeline_;
+    VkPipelineLayout          pipeline_layout_;
 
     u_ptr<gui::engine> gui_engine_;
 
