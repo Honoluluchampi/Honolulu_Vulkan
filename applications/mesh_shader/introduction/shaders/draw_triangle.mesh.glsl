@@ -57,11 +57,25 @@ layout(set = 1, binding = 0) buffer _mesh_buffer {
 
 // ------------------------------------------------------------------------
 
+#define COLOR_COUNT 10
+vec3 meshlet_colors[COLOR_COUNT] = {
+  vec3(1,0,0),
+  vec3(0,1,0),
+  vec3(0,0,1),
+  vec3(1,1,0),
+  vec3(1,0,1),
+  vec3(0,1,1),
+  vec3(1,0.5,0),
+  vec3(0.5,1,0),
+  vec3(0,0.5,1),
+  vec3(1,1,1)
+};
+
 void main() {
 
   // following three gl_~NV variables are built in variables for mesh shading
-
-  meshlet current_meshlet = meshlets[gl_WorkGroupID.x];
+  uint meshlet_index = gl_WorkGroupID.x;
+  meshlet current_meshlet = meshlets[meshlet_index];
 
   //------- vertex processing ---------------------------------------------
   uint vertex_count = current_meshlet.vertex_count;
@@ -72,7 +86,7 @@ void main() {
     uint vertex_index = current_meshlet.vertex_indices[i];
 
     gl_MeshVerticesNV[i].gl_Position = vec4(raw_vertices[vertex_index].position, 1.f);
-    v_out[i].color = vec4(raw_vertices[vertex_index].color, 1.f);
+    v_out[i].color = vec4(meshlet_colors[meshlet_index %COLOR_COUNT], 1.f);
   }
 
   //------- index processing ----------------------------------------------

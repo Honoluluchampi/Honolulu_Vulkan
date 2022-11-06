@@ -47,6 +47,59 @@ buffer::~buffer()
   vkFreeMemory(device_.get_device(), memory_, nullptr);
 }
 
+u_ptr<buffer> buffer::create(
+  hnll::graphics::device &device,
+  VkDeviceSize instance_size,
+  uint32_t instance_count,
+  VkBufferUsageFlags usage_flags,
+  VkMemoryPropertyFlags memory_property_flags,
+  void* writing_data,
+  VkDeviceSize min_offset_alignment)
+{
+  auto ret = std::make_unique<buffer>(device, instance_size, instance_count, usage_flags, memory_property_flags, min_offset_alignment);
+
+  ret->map();
+  ret->write_to_buffer(writing_data);
+
+  return ret;
+}
+
+u_ptr<buffer> buffer::create_with_staging(
+  hnll::graphics::device &device,
+  VkDeviceSize instance_size,
+  uint32_t instance_count,
+  VkBufferUsageFlags usage_flags,
+  VkMemoryPropertyFlags memory_property_flags,
+  void* writing_data,
+  VkDeviceSize min_offset_alignment)
+{
+  auto staging = std::make_unique<buffer>(
+    device,
+    instance_size,
+    instance_count,
+    VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+    min_offset_alignment
+  );
+
+  staging->map();
+  staging->write_to_buffer(writing_data);
+
+  auto ret = std::make_unique<graphics::buffer>(
+    device,
+    instance_size,
+    instance_count,
+    VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage_flags,
+    memory_property_flags,
+    min_offset_alignment
+  );
+
+  VkDeviceSize buffer_size = instance_size * instance_count;
+  device.copy_buffer(staging->get_buffer(), ret->get_buffer(), buffer_size);
+
+  return ret;
+}
+
 VkResult buffer::map(VkDeviceSize size, VkDeviceSize offset) 
 {
   assert(buffer_ && memory_ && "Called map on buffer before create");

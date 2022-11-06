@@ -53,17 +53,21 @@ class mesh
       : device_(device), raw_vertices_(std::move(vertices)), meshlets_(std::move(meshlets))
     {
       // buffer creation
-      vertex_buffer_ = create_buffer_with_staging(
+      vertex_buffer_ = graphics::buffer::create_with_staging(
+        device_,
         sizeof(vertex),
         raw_vertices_.size(),
         VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        raw_vertices_.data()
       );
-      meshlet_buffer_ = create_buffer_with_staging(
+      meshlet_buffer_ = graphics::buffer::create_with_staging(
+        device_,
         sizeof(meshlet),
         meshlets_.size(),
         VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        meshlets_.data()
       );
     }
     ~mesh(){}
@@ -79,38 +83,6 @@ class mesh
     }
 
   private:
-    u_ptr<graphics::buffer> create_buffer_with_staging(
-      uint32_t instance_size,
-      uint32_t instance_count,
-      VkBufferUsageFlagBits usage,
-      VkMemoryPropertyFlagBits memory_props
-      )
-    {
-      graphics::buffer staging_buffer (
-        device_,
-        instance_size,
-        instance_count,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-      );
-
-      staging_buffer.map();
-      staging_buffer.write_to_buffer((void *) raw_vertices_.data());
-
-      auto ret = std::make_unique<graphics::buffer>(
-        device_,
-        instance_size,
-        instance_count,
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage,
-        memory_props
-      );
-
-      VkDeviceSize buffer_size = instance_size * instance_count;
-      device_.copy_buffer(staging_buffer.get_buffer(), ret->get_buffer(), buffer_size);
-
-      return ret;
-    }
-
     graphics::device& device_;
     u_ptr<graphics::buffer> vertex_buffer_;
     u_ptr<graphics::buffer> meshlet_buffer_;
