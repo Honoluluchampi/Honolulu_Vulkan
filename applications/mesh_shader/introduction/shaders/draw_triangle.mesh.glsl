@@ -2,7 +2,7 @@
 #extension GL_NV_mesh_shader : require
 
 // the second variable of vkCmdDrawMeshTasksNV()
-layout(local_size_x = 1) in;
+layout(local_size_x = 2) in;
 
 const uint MAX_VERTEX_COUNT = 64;
 const uint MAX_PRIMITIVE_INDICES_COUNT = 378;
@@ -10,7 +10,7 @@ const uint MAX_MESHLET_COUNT = 10;
 
 // identifier "triangles" indicates this shader outputs trianlges (other candidates : point, line)
 // gl_MeshVerticesNV and glPrimitiveIndicesNV is resized according to these values
-layout(triangles, max_vertices = MAX_VERTEX_COUNT, max_primitives = MAX_PRIMITIVE_INDICES_COUNT) out;
+layout(triangles, max_vertices = MAX_VERTEX_COUNT, max_primitives = MAX_PRIMITIVE_INDICES_COUNT / 3) out;
 
 // pass to fragment shader
 layout (location = 0) out PerVertexData {
@@ -45,7 +45,7 @@ layout(set = 0, binding = 0) buffer _vertex_buffer {
 };
 
 struct meshlet {
-  uint vertex_indices[MAX_VERTEX_COUNT];
+  uint vertex_indices   [MAX_VERTEX_COUNT];
   uint primitive_indices[MAX_PRIMITIVE_INDICES_COUNT];
   uint vertex_count; // < MAX_VERTEX_COUNT
   uint index_count; // < MAX_PRIMITIVE_INDICES_COUNT
@@ -61,24 +61,27 @@ void main() {
 
   // following three gl_~NV variables are built in variables for mesh shading
 
-  uint mesh_index = gl_WorkGroupID.x;
-  uint thread_id = gl_LocalInvocationID.x;
+  meshlet current_meshlet = meshlets[gl_WorkGroupID.x];
 
-  uint vertex_count = meshlets[mesh_index].vertex_count;
+  //------- vertex processing ---------------------------------------------
+  uint vertex_count = current_meshlet.vertex_count;
 
   for (uint i = 0; i < vertex_count; i++) {
     // i indicates gl_~'s index
     // vertex_index indicates the vertex_buffer's index
-    uint vertex_index = meshlets[mesh_index].vertex_indices[i];
+    uint vertex_index = current_meshlet.vertex_indices[i];
 
     gl_MeshVerticesNV[i].gl_Position = vec4(raw_vertices[vertex_index].position, 1.f);
-    v_out[i].color = vec4(raw_vertices[vertex_index].color, 1);
+    v_out[i].color = vec4(raw_vertices[vertex_index].color, 1.f);
   }
 
-  uint index_count = meshlets[mesh_index].index_count;
+  //------- index processing ----------------------------------------------
+  uint index_count = current_meshlet.index_count;
   gl_PrimitiveCountNV = uint(index_count) / 3;
 
   for (uint i = 0; i < index_count; i++) {
-    gl_PrimitiveIndicesNV[i] = uint(meshlets[mesh_index].primitive_indices[i]);
+    uint relative_index = current_meshlet.primitive_indices[i];
+    uint absolute_index = current_meshlet.vertex_indices[relative_index];
+    gl_PrimitiveIndicesNV[i] = relative_index;
   }
 }

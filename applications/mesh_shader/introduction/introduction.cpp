@@ -35,15 +35,15 @@ class mesh
   public:
     struct vertex
     {
-      vec3 position;
-      vec3 normal;
-      vec3 color;
+      alignas(16) vec3 position;
+      alignas(16) vec3 normal;
+      alignas(16) vec3 color;
     };
 
     // pass to the mesh shader via descriptor set
     struct meshlet
     {
-      uint32_t vertex_indices[MAX_VERTEX_PER_MESHLET]; // indicates position in a vertex buffer
+      uint32_t vertex_indices   [MAX_VERTEX_PER_MESHLET]; // indicates position in a vertex buffer
       uint32_t primitive_indices[MAX_INDICES_PER_MESHLET];
       uint32_t vertex_count;
       uint32_t index_count;
