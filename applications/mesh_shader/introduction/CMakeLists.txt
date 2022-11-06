@@ -20,6 +20,7 @@ set(TARGETS
         $ENV{HNLL_ENGN}/modules/graphics/src/swap_chain.cpp
         $ENV{HNLL_ENGN}/modules/graphics/src/window.cpp
         $ENV{HNLL_ENGN}/modules/graphics/src/acceleration_structure.cpp
+        $ENV{HNLL_ENGN}/modules/graphics/src/meshlet_model.cpp
         # gui
         $ENV{HNLL_ENGN}/modules/gui/src/engine.cpp
         $ENV{HNLL_ENGN}/modules/gui/src/renderer.cpp

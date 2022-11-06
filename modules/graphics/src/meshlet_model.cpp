@@ -115,4 +115,13 @@ const buffer& meshlet_model::get_vertex_buffer()  const
 const buffer& meshlet_model::get_meshlet_buffer() const
 { return *desc_buffers_[MESHLET_DESC_ID]; }
 
+std::vector<VkDescriptorSetLayout> meshlet_model::get_raw_desc_set_layouts() const
+{
+  std::vector<VkDescriptorSetLayout> ret;
+  for (int i = 0; i < DESC_SET_COUNT; i++) {
+    ret.push_back(desc_set_layouts_[i]->get_descriptor_set_layout());
+  }
+  return ret;
+}
+
 } // namespace hnll::graphics
