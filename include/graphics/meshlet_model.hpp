@@ -7,6 +7,7 @@
 
 // lib
 #include <eigen3/Eigen/Dense>
+#include <vulkan/vulkan.h>
 
 namespace hnll {
 
@@ -17,8 +18,14 @@ namespace graphics {
 // forward declaration
 class device;
 class buffer;
+class descriptor_pool;
+class descriptor_set_layout;
 template<typename T> using u_ptr = std::unique_ptr<T>;
 template<typename T> using s_ptr = std::shared_ptr<T>;
+
+constexpr uint32_t VERTEX_DESC_ID  = 0;
+constexpr uint32_t MESHLET_DESC_ID = 1;
+constexpr uint32_t DESC_SET_COUNT  = 2;
 
 template<uint32_t MAX_VERTEX_PER_MESHLET = 64, uint32_t MAX_INDICES_PER_MESHLET = 378>
 struct meshlet
@@ -43,23 +50,34 @@ class meshlet_model
 
     static u_ptr<meshlet_model> create(
       device& _device,
-      std::vector<vertex>&& raw_vertices,
-      std::vector<meshlet<>>&& meshlets
+      std::vector<vertex>&&    _raw_vertices,
+      std::vector<meshlet<>>&& _meshlets
     );
 
+    void bind_and_draw(
+      VkCommandBuffer  _command_buffer,
+      VkPipelineLayout _pipeline_layout
+    );
+
+    // getter
     const buffer& get_vertex_buffer()  const;
     const buffer& get_meshlet_buffer() const;
     inline void* get_raw_vertices_data() { return raw_vertices_.data(); }
     inline void* get_meshlets_data()     { return meshlets_.data(); }
 
   private:
-    void create_vertex_buffer(device& _device);
-    void create_meshlet_buffer(device& _device);
+    void setup_descs(device& _device);
+    void create_desc_pool(device& _device);
+    void create_desc_buffers(device& _device);
+    void create_desc_set_layouts(device& _device);
+    void create_desc_sets();
 
     std::vector<vertex>    raw_vertices_;
     std::vector<meshlet<>> meshlets_;
-    u_ptr<buffer> vertex_buffer_;
-    u_ptr<buffer> meshlet_buffer_;
+    u_ptr<descriptor_pool>                      desc_pool_;
+    std::array<u_ptr<buffer>, 2>                desc_buffers_;
+    std::array<u_ptr<descriptor_set_layout>, 2> desc_set_layouts_;
+    std::array<VkDescriptorSet, 2>              desc_sets_;
 };
 
 }} // namespace hnll::graphics
