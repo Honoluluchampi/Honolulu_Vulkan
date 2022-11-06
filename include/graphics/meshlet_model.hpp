@@ -10,12 +10,12 @@
 
 namespace hnll {
 
-
 using vec3 = Eigen::Vector3f;
 
 namespace graphics {
 
 // forward declaration
+class device;
 class buffer;
 template<typename T> using u_ptr = std::unique_ptr<T>;
 template<typename T> using s_ptr = std::shared_ptr<T>;
@@ -41,18 +41,25 @@ class meshlet_model
 
     meshlet_model(std::vector<vertex>&& raw_vertices, std::vector<meshlet<>>&& meshlets);
 
-    static u_ptr<meshlet_model> create(std::vector<vertex>&& raw_vertices, std::vector<meshlet<>>&& meshlets);
+    static u_ptr<meshlet_model> create(
+      device& _device,
+      std::vector<vertex>&& raw_vertices,
+      std::vector<meshlet<>>&& meshlets
+    );
 
+    const buffer& get_vertex_buffer()  const;
+    const buffer& get_meshlet_buffer() const;
     inline void* get_raw_vertices_data() { return raw_vertices_.data(); }
     inline void* get_meshlets_data()     { return meshlets_.data(); }
 
-    void create_desc_buffer();
-
   private:
+    void create_vertex_buffer(device& _device);
+    void create_meshlet_buffer(device& _device);
+
     std::vector<vertex>    raw_vertices_;
     std::vector<meshlet<>> meshlets_;
-    u_ptr<graphics::buffer> vertex_buffer_;
-    u_ptr<graphics::buffer> meshlet_buffer_;
+    u_ptr<buffer> vertex_buffer_;
+    u_ptr<buffer> meshlet_buffer_;
 };
 
 }} // namespace hnll::graphics
