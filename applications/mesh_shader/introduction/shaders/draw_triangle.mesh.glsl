@@ -80,8 +80,6 @@ void main() {
   gl_PrimitiveCountNV = uint(index_count) / 3;
 
   for (uint i = 0; i < index_count; i++) {
-    uint relative_index = current_meshlet.primitive_indices[i];
-    uint absolute_index = current_meshlet.vertex_indices[relative_index];
-    gl_PrimitiveIndicesNV[i] = relative_index;
+    gl_PrimitiveIndicesNV[i] = current_meshlet.primitive_indices[i];
   }
 }
