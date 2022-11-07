@@ -4,13 +4,15 @@
 #include <graphics/descriptor_set_layout.hpp>
 #include <graphics/mesh_model.hpp>
 #include <graphics/utils.hpp>
+#include <geometry/mesh_separation.hpp>
+#include <geometry/mesh_model.hpp>
 
 // std
 #include <iostream>
 
 namespace hnll::graphics {
 
-meshlet_model::meshlet_model(std::vector<vertex> &&raw_vertices, std::vector<meshlet<>> &&meshlets)
+meshlet_model::meshlet_model(std::vector<vertex> &&raw_vertices, std::vector<meshlet> &&meshlets)
 {
   raw_vertices_ = std::move(raw_vertices);
   meshlets_     = std::move(meshlets);
@@ -18,7 +20,7 @@ meshlet_model::meshlet_model(std::vector<vertex> &&raw_vertices, std::vector<mes
 
 u_ptr<meshlet_model> meshlet_model::create(
   device& _device,
-  std::vector<vertex>&& _raw_vertices, std::vector<meshlet<>>&& _meshlets)
+  std::vector<vertex>&& _raw_vertices, std::vector<meshlet>&& _meshlets)
 {
   auto ret = std::make_unique<meshlet_model>(
     std::move(_raw_vertices),
@@ -36,6 +38,8 @@ u_ptr<meshlet_model> meshlet_model::create_from_file(hnll::graphics::device &_de
   builder.load_model(_filename);
   std::cout << _filename << " vertex count: " << builder.vertices.size() << "\n";
 
+  auto geometry_model = geometry::mesh_model::create_from_mesh_builder(std::move(builder));
+  auto meshlets = geometry::mesh_separation::separate(geometry_model);
 }
 
 void meshlet_model::bind_and_draw(
@@ -93,7 +97,7 @@ void meshlet_model::create_desc_buffers(device& _device)
 
   desc_buffers_[MESHLET_DESC_ID] = graphics::buffer::create_with_staging(
     _device,
-    sizeof(meshlet<>),
+    sizeof(meshlet),
     meshlets_.size(),
     VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,

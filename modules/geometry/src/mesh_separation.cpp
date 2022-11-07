@@ -3,6 +3,8 @@
 #include <geometry/half_edge.hpp>
 #include <geometry/mesh_model.hpp>
 #include <geometry/bounding_volume.hpp>
+#include <graphics/meshlet_model.hpp>
+#include <graphics/utils.hpp>
 
 #include <iostream>
 
@@ -172,7 +174,7 @@ s_ptr<face> choose_the_best_face_for_sphere(const face_map& adjoining_face_map, 
   return res;
 }
 
-void add_face_to_meshlet(const s_ptr<face>& fc, s_ptr<meshlet>& ml)
+void add_face_to_meshlet(const s_ptr<face>& fc, s_ptr<mesh_model>& ml)
 {
   auto he = fc->half_edge_;
   auto v0 = he->get_vertex();
@@ -276,31 +278,26 @@ s_ptr<vertex> duplicate_vertex(const s_ptr<vertex>& old_vertex)
   return new_vertex;
 }
 
-s_ptr<meshlet> recreate_meshlet(const s_ptr<meshlet>& old_mesh)
+graphics::meshlet translate_meshlet(const s_ptr<mesh_model>& old_mesh)
 {
-  auto new_mesh = mesh_model::create();
+  graphics::meshlet ret{};
 
-  for (const auto& f_kv : old_mesh->get_face_map()) {
-    auto he = f_kv.second->half_edge_;
-    auto v0 = duplicate_vertex(he->get_vertex());
-    auto v1 = duplicate_vertex(he->get_next()->get_vertex());
-    auto v2 = duplicate_vertex(he->get_next()->get_next()->get_vertex());
-    new_mesh->add_face(v0, v1, v2);
+  for (const auto& v_kv : old_mesh->get_vertex_map()) {
+
   }
-  auto bv = old_mesh->get_ownership_of_bounding_volume();
-  new_mesh->set_bounding_volume(std::move(bv));
-  return new_mesh;
+
+  return ret;
 }
 
-std::vector<s_ptr<meshlet>> separate_greedy(const s_ptr<mesh_separation_helper>& helper, mesh_separation::criterion crtr)
+std::vector<graphics::meshlet> separate_greedy(const s_ptr<mesh_separation_helper>& helper, mesh_separation::criterion crtr)
 {
-  std::vector<s_ptr<meshlet>> meshlets;
+  std::vector<graphics::meshlet> meshlets;
   s_ptr<face> current_face = helper->get_random_remaining_face();
 
   while (!helper->all_face_is_registered()) {
     // compute each meshlet
     // init objects
-    s_ptr<meshlet> ml = mesh_model::create();
+    s_ptr<mesh_model> ml = mesh_model::create();
 
     // change functions depending on the criterion
     u_ptr<bounding_volume> bv;
@@ -329,7 +326,7 @@ std::vector<s_ptr<meshlet>> separate_greedy(const s_ptr<mesh_separation_helper>&
       helper->remove_face(current_face->id_);
     }
     ml->set_bounding_volume(std::move(bv));
-    meshlets.emplace_back(recreate_meshlet(ml));
+    meshlets.emplace_back(translate_meshlet(ml));
     current_face = choose_random_face_from_map(adjoining_face_map);
     if (current_face == nullptr)
       current_face = helper->get_random_remaining_face();
@@ -338,51 +335,10 @@ std::vector<s_ptr<meshlet>> separate_greedy(const s_ptr<mesh_separation_helper>&
   return meshlets;
 }
 
-void colorize_meshlet(const s_ptr<meshlet>& ml)
-{
-  std::vector<bool> color_flag(mesh_colors.size(), true);
-  // search adjoining faces of all faces
-  for (const auto& face_kv : ml->get_face_map()) {
-    auto first_he = face_kv.second->half_edge_;
-    auto current_he = first_he;
-    // search all faces adjoining to this face
-    while(current_he != first_he) {
-      // check all colors
-      auto opposite_face = current_he->get_pair()->get_face();
-      for (int i = 0; i < mesh_colors.size(); i++) {
-        //
-        if (mesh_colors[i] == opposite_face->color_)
-          color_flag[i] = false;
-      }
-      current_he = current_he->get_next();
-    }
-  }
-
-  // extract valid color
-  vec3 color;
-  for (int i = 0; i < color_flag.size(); i++) {
-    if (color_flag[i]) { color = mesh_colors[i]; break; }
-  }
-
-  static int i = 0;
-  auto new_color = convert_color_255_to_1(mesh_colors[i++ % mesh_colors.size()]);
-  // assign color to vertices and faces
-  for (const auto& vert_kv : ml->get_vertex_map())
-    vert_kv.second->color_ = new_color;
-  for (const auto& face_kv : ml->get_face_map())
-    face_kv.second->color_ = new_color;
-}
-
-std::vector<s_ptr<mesh_model>> mesh_separation::separate(const s_ptr<mesh_model>& model, criterion crtr)
+std::vector<graphics::meshlet> mesh_separation::separate(const s_ptr<mesh_model>& model, criterion crtr)
 {
   auto helper = mesh_separation_helper::create(model);
 
-  std::vector<s_ptr<meshlet>> mesh_lets = separate_greedy(helper, crtr);
-
-  // colorization
-  for (const auto& ml : mesh_lets)
-    colorize_meshlet(ml);
-
-  return mesh_lets;
+  return separate_greedy(helper, crtr);
 }
 } // namespace hnll::geometry

@@ -12,7 +12,7 @@
 #include <eigen3/Eigen/Dense>
 
 // forward declaration
-namespace hnll::graphics { class mesh_model; struct builder; }
+namespace hnll::graphics { class mesh_model; struct mesh_builder; }
 namespace hnll::geometry {
 
 // forward declaration
@@ -38,6 +38,7 @@ class mesh_model
   public:
     static s_ptr<mesh_model> create();
     static s_ptr<mesh_model> create_from_obj_file(const std::string& filename);
+    static s_ptr<mesh_model> create_from_mesh_builder(graphics::mesh_builder&& builder);
 
     mesh_model();
     void align_vertex_id();

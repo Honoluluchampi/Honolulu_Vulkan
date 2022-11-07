@@ -28,12 +28,13 @@ template<typename T> using s_ptr = std::shared_ptr<T>;
 constexpr uint32_t VERTEX_DESC_ID  = 0;
 constexpr uint32_t MESHLET_DESC_ID = 1;
 constexpr uint32_t DESC_SET_COUNT  = 2;
+constexpr uint32_t MAX_VERTEX_PER_MESHLET = 64;
+constexpr uint32_t MAX_INDEX_PER_MESHLET  = 378;
 
-template<uint32_t MAX_VERTEX_PER_MESHLET = 64, uint32_t MAX_INDICES_PER_MESHLET = 378>
 struct meshlet
 {
   uint32_t vertex_indices   [MAX_VERTEX_PER_MESHLET]; // indicates position in a vertex buffer
-  uint32_t primitive_indices[MAX_INDICES_PER_MESHLET];
+  uint32_t primitive_indices[MAX_INDEX_PER_MESHLET];
   uint32_t vertex_count;
   uint32_t index_count;
 };
@@ -42,12 +43,12 @@ class meshlet_model
 {
   public:
 
-    meshlet_model(std::vector<vertex>&& raw_vertices, std::vector<meshlet<>>&& meshlets);
+    meshlet_model(std::vector<vertex>&& raw_vertices, std::vector<meshlet>&& meshlets);
 
     static u_ptr<meshlet_model> create(
       device& _device,
       std::vector<vertex>&&    _raw_vertices,
-      std::vector<meshlet<>>&& _meshlets
+      std::vector<meshlet>&& _meshlets
     );
 
     static u_ptr<meshlet_model> create_from_file(device& _device, std::string _filename);
@@ -74,7 +75,7 @@ class meshlet_model
     void create_desc_sets();
 
     std::vector<vertex>    raw_vertices_;
-    std::vector<meshlet<>> meshlets_;
+    std::vector<meshlet> meshlets_;
     u_ptr<descriptor_pool>                    desc_pool_;
     std::vector<u_ptr<buffer>>                desc_buffers_;
     std::vector<u_ptr<descriptor_set_layout>> desc_set_layouts_;
