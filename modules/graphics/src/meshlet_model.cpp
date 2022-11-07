@@ -2,6 +2,11 @@
 #include <graphics/meshlet_model.hpp>
 #include <graphics/buffer.hpp>
 #include <graphics/descriptor_set_layout.hpp>
+#include <graphics/mesh_model.hpp>
+#include <graphics/utils.hpp>
+
+// std
+#include <iostream>
 
 namespace hnll::graphics {
 
@@ -23,6 +28,14 @@ u_ptr<meshlet_model> meshlet_model::create(
   ret->setup_descs(_device);
 
   return ret;
+}
+
+u_ptr<meshlet_model> meshlet_model::create_from_file(hnll::graphics::device &_device, std::string _filename)
+{
+  mesh_builder builder;
+  builder.load_model(_filename);
+  std::cout << _filename << " vertex count: " << builder.vertices.size() << "\n";
+
 }
 
 void meshlet_model::bind_and_draw(

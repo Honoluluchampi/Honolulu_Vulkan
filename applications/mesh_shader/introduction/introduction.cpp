@@ -4,7 +4,7 @@
 #include <graphics/pipeline.hpp>
 #include <graphics/renderer.hpp>
 #include <gui/engine.hpp>
-
+#include <graphics/utils.hpp>
 #include <graphics/meshlet_model.hpp>
 
 // submodules
@@ -18,6 +18,7 @@ namespace hnll {
 
 template<typename T> using u_ptr = std::unique_ptr<T>;
 template<typename T> using s_ptr = std::shared_ptr<T>;
+using vec2 = Eigen::Vector2f;
 using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
 
@@ -129,11 +130,11 @@ class mesh_shader_introduction {
       // v3 --- v2
       //  |  /  |
       // v0 --- v1
-      graphics::meshlet_model::vertex v0 = { vec3{-0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 1.f, 0.f} };
-      graphics::meshlet_model::vertex v1 = { vec3{ 0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{1.f, 0.f, 0.f} };
-      graphics::meshlet_model::vertex v2 = { vec3{ 0.5f, -0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 1.f, 0.f} };
-      graphics::meshlet_model::vertex v3 = { vec3{-0.5f, -0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 0.f, 1.f} };
-      std::vector<graphics::meshlet_model::vertex> raw_vertices = { v0, v1, v2, v3 };
+      graphics::vertex v0 = { vec3{-0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 1.f, 0.f}, vec2{0.f, 0.f} };
+      graphics::vertex v1 = { vec3{ 0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{1.f, 0.f, 0.f}, vec2{0.f, 0.f} };
+      graphics::vertex v2 = { vec3{ 0.5f, -0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 1.f, 0.f}, vec2{0.f, 0.f} };
+      graphics::vertex v3 = { vec3{-0.5f, -0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 0.f, 1.f}, vec2{0.f, 0.f} };
+      std::vector<graphics::vertex> raw_vertices = { v0, v1, v2, v3 };
 
       std::vector<graphics::meshlet<>> meshlets = {
         {{0, 1, 2}, {0, 1, 2}, 3, 3},

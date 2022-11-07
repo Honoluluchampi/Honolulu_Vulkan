@@ -20,6 +20,8 @@ class device;
 class buffer;
 class descriptor_pool;
 class descriptor_set_layout;
+struct vertex;
+struct mesh_builder;
 template<typename T> using u_ptr = std::unique_ptr<T>;
 template<typename T> using s_ptr = std::shared_ptr<T>;
 
@@ -39,12 +41,6 @@ struct meshlet
 class meshlet_model
 {
   public:
-    struct vertex
-    {
-      alignas(16) vec3 position;
-      alignas(16) vec3 normal;
-      alignas(16) vec3 color;
-    };
 
     meshlet_model(std::vector<vertex>&& raw_vertices, std::vector<meshlet<>>&& meshlets);
 
@@ -53,6 +49,8 @@ class meshlet_model
       std::vector<vertex>&&    _raw_vertices,
       std::vector<meshlet<>>&& _meshlets
     );
+
+    static u_ptr<meshlet_model> create_from_file(device& _device, std::string _filename);
 
     void bind_and_draw(
       VkCommandBuffer  _command_buffer,

@@ -1,5 +1,6 @@
 // hnll
 #include <graphics/mesh_model.hpp>
+#include <graphics/utils.hpp>
 #include <geometry/mesh_model.hpp>
 #include <geometry/half_edge.hpp>
 
@@ -17,9 +18,9 @@
 namespace std {
 
 template <>
-struct hash<hnll::graphics::mesh_model::vertex>
+struct hash<hnll::graphics::vertex>
 {
-  size_t operator() (hnll::graphics::mesh_model::vertex const &vertex) const
+  size_t operator() (hnll::graphics::vertex const &vertex) const
   {
     // stores final hash value
     size_t seed = 0;
@@ -45,7 +46,7 @@ struct hash<Eigen::Matrix<Scalar, Rows, Cols>> {
 
 namespace hnll::graphics {
 
-mesh_model::mesh_model(device& device, const mesh_model::builder &builder) : device_{device}
+mesh_model::mesh_model(device& device, const mesh_builder &builder) : device_{device}
 {
   create_vertex_buffers(builder.vertices);
   create_index_buffers(builder.indices);
@@ -60,7 +61,7 @@ mesh_model::~mesh_model()
 
 std::shared_ptr<mesh_model> mesh_model::create_model_from_file(device &device, const std::string &filename)
 {
-  builder builder;
+  mesh_builder builder;
   builder.load_model(filename);
   std::cout << filename << " vertex count: " << builder.vertices.size() << "\n";
   return std::make_shared<mesh_model>(device, builder);
@@ -152,32 +153,7 @@ void mesh_model::bind(VkCommandBuffer command_buffer)
     vkCmdBindIndexBuffer(command_buffer, index_buffer_->get_buffer(), 0, VK_INDEX_TYPE_UINT32);
 }
 
-std::vector<VkVertexInputBindingDescription> mesh_model::vertex::get_binding_descriptions()
-{
-  std::vector<VkVertexInputBindingDescription> binding_descriptions(1);
-  // per-vertex data is packed together in one array, so the index of the 
-  // binding in the array is always 0
-  binding_descriptions[0].binding   = 0;
-  // number of bytes from one entry to the next
-  binding_descriptions[0].stride    = sizeof(vertex);
-  binding_descriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-  return binding_descriptions;
-}
-std::vector<VkVertexInputAttributeDescription> mesh_model::vertex::get_attribute_descriptions()
-{
-  // how to extract a vertex attribute from a chunk of vertex data
-  std::vector<VkVertexInputAttributeDescription> attribute_descriptions{};
-
-  // location, binding, format, offset
-  attribute_descriptions.push_back({0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(vertex, position)});
-  attribute_descriptions.push_back({1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(vertex, color)});
-  attribute_descriptions.push_back({2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(vertex, normal)});
-  attribute_descriptions.push_back({3, 0, VK_FORMAT_R32G32_SFLOAT,    offsetof(vertex, uv)});
-
-  return attribute_descriptions;
-}
-
-void mesh_model::builder::load_model(const std::string& filename)
+void mesh_builder::load_model(const std::string& filename)
 {
   // loader
   tinyobj::attrib_t attrib;
@@ -246,9 +222,9 @@ std::vector<Eigen::Vector3d> mesh_model::get_vertex_position_list() const
   return vertex_position_list;
 }
 
-graphics::mesh_model::vertex convert_geometry_to_graphics_vertex(const s_ptr<geometry::vertex>& gv)
+graphics::vertex convert_geometry_to_graphics_vertex(const s_ptr<geometry::vertex>& gv)
 {
-  graphics::mesh_model::vertex res;
+  graphics::vertex res;
   res.position = gv->position_.cast<float>();
   res.color    = gv->color_.cast<float>();
   res.normal   = gv->normal_.cast<float>();
@@ -258,10 +234,10 @@ graphics::mesh_model::vertex convert_geometry_to_graphics_vertex(const s_ptr<geo
 
 s_ptr<mesh_model> mesh_model::create_from_geometry_mesh_model(device& device, const s_ptr<geometry::mesh_model> &gm)
 {
-  graphics::mesh_model::builder builder;
+  graphics::mesh_builder builder;
 
   gm->align_vertex_id();
-  std::vector<graphics::mesh_model::vertex> vertices(gm->get_vertex_count());
+  std::vector<graphics::vertex> vertices(gm->get_vertex_count());
   std::vector<uint32_t> indices;
   // vertex_id is aligned to zero
   for (const auto& v : gm->get_vertex_map()) {

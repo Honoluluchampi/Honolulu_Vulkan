@@ -1,6 +1,7 @@
 // hnll
 #include <graphics/pipeline.hpp>
 #include <graphics/mesh_model.hpp>
+#include <graphics/utils.hpp>
 
 // std
 #include <iostream>
@@ -313,8 +314,8 @@ void pipeline::default_pipeline_config_info(pipeline_config_info &config_info)
   config_info.create_depth_stencil_state();
   config_info.create_dynamic_state();
 
-  config_info.binding_descriptions = mesh_model::vertex::get_binding_descriptions();
-  config_info.attribute_descriptions = mesh_model::vertex::get_attribute_descriptions();
+  config_info.binding_descriptions = vertex::get_binding_descriptions();
+  config_info.attribute_descriptions = vertex::get_attribute_descriptions();
 }
 
 void pipeline::enable_alpha_blending(pipeline_config_info &config_info)
