@@ -1,5 +1,6 @@
-#version 450
+#version 460
 #extension GL_NV_mesh_shader : require
+#extension GL_EXT_shader_explicit_arithmetic_types : require
 
 // the second variable of vkCmdDrawMeshTasksNV()
 layout(local_size_x = 2) in;
@@ -7,10 +8,20 @@ layout(local_size_x = 2) in;
 const uint MAX_VERTEX_COUNT = 64;
 const uint MAX_PRIMITIVE_INDICES_COUNT = 378;
 const uint MAX_MESHLET_COUNT = 10;
+const uint MESHLET_PER_TASK = 32;
 
 // identifier "triangles" indicates this shader outputs trianlges (other candidates : point, line)
 // gl_MeshVerticesNV and glPrimitiveIndicesNV is resized according to these values
 layout(triangles, max_vertices = MAX_VERTEX_COUNT, max_primitives = MAX_PRIMITIVE_INDICES_COUNT / 3) out;
+
+// inputs from task shader
+//taskNV in Task {
+taskNV in task {
+  uint    baseID;
+  uint8_t deltaIDs[MESHLET_PER_TASK];
+} IN;
+// gl_WorkGroupID.x runs from [0 .. parentTask.gl_TaskCountNV - 1]
+uint meshletID = IN.baseID + IN.deltaIDs[gl_WorkGroupID.x];
 
 // pass to fragment shader
 layout (location = 0) out PerVertexData {

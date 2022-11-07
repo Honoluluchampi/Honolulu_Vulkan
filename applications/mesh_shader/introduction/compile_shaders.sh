@@ -5,7 +5,7 @@ SHADERDIR=shaders
 OUTPUTDIR=shaders/spv
 mkdir -p ${OUTPUTDIR}
 
-extensions=("mesh" "frag")
+extensions=("mesh" "frag" "task")
 
 for extension in ${extensions[@]}
   do

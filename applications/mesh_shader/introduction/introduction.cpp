@@ -73,8 +73,8 @@ class mesh_shader_introduction {
       // create shader modules
       auto directory = std::string(std::getenv("HNLL_ENGN")) + "/applications/mesh_shader/introduction/shaders/spv/";
       std::vector<std::string> shader_paths = {
-        directory + "draw_triangle.mesh.glsl.spv",
-        directory + "draw_triangle.frag.glsl.spv"
+        directory + "simple_meshlet.mesh.glsl.spv",
+        directory + "simple_meshlet.frag.glsl.spv"
       };
       std::vector<VkShaderStageFlagBits> shader_stage_flags = {
         VK_SHADER_STAGE_MESH_BIT_NV,
@@ -127,7 +127,7 @@ class mesh_shader_introduction {
     u_ptr<graphics::meshlet_model> create_split_plane()
     {
       // v3 --- v2
-      //  |      |
+      //  |  /  |
       // v0 --- v1
       graphics::meshlet_model::vertex v0 = { vec3{-0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 1.f, 0.f} };
       graphics::meshlet_model::vertex v1 = { vec3{ 0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{1.f, 0.f, 0.f} };
