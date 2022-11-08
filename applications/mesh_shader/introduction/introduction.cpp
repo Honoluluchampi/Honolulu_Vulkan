@@ -7,9 +7,6 @@
 #include <graphics/utils.hpp>
 #include <graphics/meshlet_model.hpp>
 
-// submodules
-#include <ray_tracing_extensions.hpp>
-
 // std
 #include <memory>
 #include <iostream>
@@ -31,8 +28,6 @@ class mesh_shader_introduction {
         *window_,
         graphics::rendering_type::MESH_SHADING
       );
-      // load extensions
-      load_VK_EXTENSIONS(device_->get_instance(), vkGetInstanceProcAddr, device_->get_device(), vkGetDeviceProcAddr);
 
       renderer_ = std::make_unique<graphics::renderer>(*window_, *device_);
       gui_engine_ = std::make_unique<gui::engine>(*window_, *device_);

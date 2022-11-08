@@ -16,21 +16,13 @@
 
 namespace hnll::graphics {
 
-engine::engine(const char* window_name)
+engine::engine(const char* window_name, graphics::rendering_type rendering_type)
 {
   window_ = std::make_unique<window>(WIDTH, HEIGHT, window_name);
 
-  std::vector<const char *> device_extensions = {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-    VK_NV_MESH_SHADER_EXTENSION_NAME,
-    VK_NV_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME,
-    VK_KHR_MAINTENANCE_4_EXTENSION_NAME,
-  };
-
   device_ = std::make_unique<graphics::device>(
     *window_,
-    graphics::rendering_type::MESH_SHADING,
-    std::move(device_extensions)
+    rendering_type
   );
 
   renderer_ = std::make_unique<renderer>(*window_, *device_);

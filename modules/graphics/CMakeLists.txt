@@ -9,18 +9,23 @@ set(TARGETS
         src/device.cpp
         src/engine.cpp
         src/mesh_model.cpp
+        src/meshlet_model.cpp
         src/pipeline.cpp
         src/renderer.cpp
         src/swap_chain.cpp
         src/window.cpp
-        src/utils.cpp)
+        src/utils.cpp
+        $ENV{HNLL_ENGN}/submodules/extensions/ray_tracing_extensions.cpp
+        )
 
 add_library(hnll_graphics STATIC ${TARGETS})
 
 target_include_directories(hnll_graphics PUBLIC
     ${PROJECT_SOURCE_DIR}/include
     $ENV{VULKAN_DIR}/include/
-    ${PROJECT_SOURCE_DIR}/submodules/tiny_obj_loader)
+    ${PROJECT_SOURCE_DIR}/submodules/tiny_obj_loader
+    $ENV{HNLL_ENGN}/submodules/extensions
+    )
 
 
 # RAY TRACING SAMPLE
@@ -42,7 +47,9 @@ set(TARGETS
         src/renderer.cpp
         src/swap_chain.cpp
         src/window.cpp
-        ../../submodules/extensions/ray_tracing_extensions.cpp src/acceleration_structure.cpp)
+        src/acceleration_structure.cpp
+        src/meshlet_model.cpp
+        ../../submodules/extensions/ray_tracing_extensions.cpp)
 
 add_executable(introduce_ray_tracing ${TARGETS})
 
@@ -50,7 +57,7 @@ target_include_directories(introduce_ray_tracing PUBLIC
         $ENV{HNLL_ENGN}/include
         $ENV{HNLL_ENGN}/submodules/tiny_obj_loader
         $ENV{HNLL_ENGN}/submodules/glfw
-        $ENV{HNLL_ENGN}/submodules/nvvk_extensions
+        $ENV{HNLL_ENGN}/submodules/extensions
         )
 
 target_link_directories(introduce_ray_tracing PUBLIC $ENV{VULKAN_DIR}/lib)

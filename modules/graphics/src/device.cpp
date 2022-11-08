@@ -348,6 +348,10 @@ void device::create_logical_device()
   // simply use index 0, because were only creating a single queue from  this family
   vkGetDeviceQueue(device_, indices.graphics_family_.value(), 0, &graphics_queue_);
   vkGetDeviceQueue(device_, indices.present_family_.value(), 0, &present_queue_);
+
+  if (rendering_type_ == rendering_type::MESH_SHADING || rendering_type_ == rendering_type::RAY_TRACING) {
+    load_VK_EXTENSIONS(instance_, vkGetInstanceProcAddr, device_, vkGetDeviceProcAddr);
+  }
 }
 
 // Command pools manage the memory that is used to store the buffers 

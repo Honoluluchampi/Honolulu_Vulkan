@@ -3,6 +3,7 @@
 // hnll
 #include <graphics/device.hpp>
 #include <graphics/buffer.hpp>
+#include <graphics/utils.hpp>
 
 // lib
 #define GLM_FORCE_RADIANS
@@ -23,9 +24,6 @@ namespace hnll::graphics {
 
 template<typename T> using u_ptr = std::unique_ptr<T>;
 template<typename T> using s_ptr = std::shared_ptr<T>;
-
-struct vertex;
-struct mesh_builder;
 
 // https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x/57595105#57595105
 template <typename T, typename... Rest>

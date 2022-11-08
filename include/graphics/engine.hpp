@@ -29,7 +29,7 @@ class engine
     static constexpr int HEIGHT = 820;
     static constexpr float MAX_FRAME_TIME = 0.05;
 
-    engine(const char* window_name = "honolulu engine");
+    engine(const char* window_name = "honolulu engine", graphics::rendering_type rendering_type = rendering_type::MESH_SHADING);
     ~engine();
 
     engine(const engine &) = delete;
@@ -50,10 +50,10 @@ class engine
 
     inline void wait_idle() { vkDeviceWaitIdle(device_->get_device()); }
 
-    inline device& get_device() { return *device_; }
-    inline renderer& get_renderer() { return *renderer_; }
+    inline device&     get_device()     { return *device_; }
+    inline renderer&   get_renderer()   { return *renderer_; }
     inline swap_chain& get_swap_chain() { return renderer_->get_swap_chain(); }
-    inline window& get_window() { return *window_; }
+    inline window&     get_window()     { return *window_; }
     inline global_ubo& get_global_ubo() { return ubo_; }
 
     inline GLFWwindow* get_glfw_window() const { return window_->get_glfw_window(); }
@@ -63,18 +63,16 @@ class engine
 
     // construct in impl
     u_ptr<window>   window_;
-
     u_ptr<device>   device_;
     u_ptr<renderer> renderer_;
 
     // shared between multiple system
-    u_ptr<descriptor_pool> global_pool_;
-
-    std::vector<u_ptr<buffer>> ubo_buffers_ {swap_chain::MAX_FRAMES_IN_FLIGHT};
+    u_ptr<descriptor_pool>       global_pool_;
+    std::vector<u_ptr<buffer>>   ubo_buffers_ {swap_chain::MAX_FRAMES_IN_FLIGHT};
     u_ptr<descriptor_set_layout> global_set_layout_;
     std::vector<VkDescriptorSet> global_descriptor_sets_ {swap_chain::MAX_FRAMES_IN_FLIGHT};
-    // ptrlize to make it later init 
 
+    // ptrlize to make it later init
     rendering_system_map rendering_systems_;
     global_ubo ubo_{};
 };

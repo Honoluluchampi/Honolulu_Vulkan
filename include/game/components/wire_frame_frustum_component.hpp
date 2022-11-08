@@ -3,6 +3,7 @@
 // hnll
 #include <game/components/renderable_component.hpp>
 #include <graphics/mesh_model.hpp>
+#include <graphics/utils.hpp>
 #include <utils/utils.hpp>
 
 // TODO : make graphics::device static
@@ -50,8 +51,8 @@ class wire_frame_frustum_component : public renderable_component
       auto far  = frustum_->get_far_z();
 
       // register vertices
-      std::vector<graphics::mesh_model::vertex> vertices;
-      graphics::mesh_model::vertex vertex;
+      std::vector<graphics::vertex> vertices;
+      graphics::vertex vertex;
       vertex.color    = color_.cast<float>();
       vertex.position = near * default_points[0].cast<float>();
       vertex.uv = {0, 0};
@@ -99,7 +100,7 @@ class wire_frame_frustum_component : public renderable_component
           7, 6, 3,
       };
 
-      graphics::mesh_model::builder builder;
+      graphics::mesh_builder builder;
       builder.vertices = std::move(vertices);
       builder.indices  = std::move(indices);
       frustum_mesh_ = std::make_shared<graphics::mesh_model>(device, builder);

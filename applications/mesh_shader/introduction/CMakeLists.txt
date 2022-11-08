@@ -7,51 +7,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "-g3 -O0")
 
-set(TARGETS
-        # graphics
-        introduction.cpp
-        $ENV{HNLL_ENGN}/modules/graphics/src/buffer.cpp
-        $ENV{HNLL_ENGN}/modules/graphics/src/camera.cpp
-        $ENV{HNLL_ENGN}/modules/graphics/src/descriptor_set_layout.cpp
-        $ENV{HNLL_ENGN}/modules/graphics/src/device.cpp
-        $ENV{HNLL_ENGN}/modules/graphics/src/mesh_model.cpp
-        $ENV{HNLL_ENGN}/modules/graphics/src/pipeline.cpp
-        $ENV{HNLL_ENGN}/modules/graphics/src/renderer.cpp
-        $ENV{HNLL_ENGN}/modules/graphics/src/swap_chain.cpp
-        $ENV{HNLL_ENGN}/modules/graphics/src/window.cpp
-        $ENV{HNLL_ENGN}/modules/graphics/src/acceleration_structure.cpp
-        $ENV{HNLL_ENGN}/modules/graphics/src/meshlet_model.cpp
-        $ENV{HNLL_ENGN}/modules/graphics/src/utils.cpp
-        # geometry
-        $ENV{HNLL_ENGN}/modules/geometry/src/mesh_separation.cpp
-        $ENV{HNLL_ENGN}/modules/geometry/src/mesh_model.cpp
-        $ENV{HNLL_ENGN}/modules/geometry/src/bounding_volume.cpp
-        # utils
-        $ENV{HNLL_ENGN}/modules/utils/src/utils.cpp
-        # gui
-        $ENV{HNLL_ENGN}/modules/gui/src/engine.cpp
-        $ENV{HNLL_ENGN}/modules/gui/src/renderer.cpp
-        $ENV{HNLL_ENGN}/modules/gui/src/imgui_build.cpp
-        # extensions
-        $ENV{HNLL_ENGN}/submodules/extensions/ray_tracing_extensions.cpp
-        $ENV{HNLL_ENGN}/submodules/extensions/mesh_shader_extensions.cpp
-        )
-
-add_executable(introduction ${TARGETS})
-
+add_subdirectory($ENV{HNLL_ENGN}/ $ENV{HNLL_ENGN}/build)
+set(SOURCES introduction.cpp)
+add_executable(introduction ${SOURCES})
 target_include_directories(introduction PUBLIC
         $ENV{HNLL_ENGN}/include
-        $ENV{HNLL_ENGN}/submodules/tiny_obj_loader
-        $ENV{HNLL_ENGN}/submodules/glfw
-        $ENV{HNLL_ENGN}/submodules/extensions
-        $ENV{HNLL_ENGN}/submodules/imgui
-        $ENV{VULKAN_DIR}/include
-        )
-
-target_link_directories(introduction PUBLIC $ENV{VULKAN_DIR}/lib)
-
-target_link_libraries(introduction PUBLIC
-        libvulkan.so.1.3.224
-        shaderc_shared
-        glfw
-        )
+        include
+        $ENV{HNLL_ENGN}/submodules/extensions)
+target_link_libraries(introduction PUBLIC hnll_engine)
