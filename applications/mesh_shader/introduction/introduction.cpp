@@ -25,8 +25,10 @@ class plane : public game::actor
     static s_ptr<plane> create(graphics::device& _device)
     {
       auto ret = std::make_shared<plane>();
-      auto raw_meshlets = create_raw_meshlets(_device);
-      ret->meshlet_comp_ = game::meshlet_component::create(ret, std::move(raw_meshlets));
+      std::string filename = "/home/honolulu/models/primitives/sphere.obj";
+      auto raw_meshlet_model = graphics::meshlet_model::create_from_file(_device, filename);
+//      auto raw_meshlet_model = create_raw_meshlets(_device);
+      ret->meshlet_comp_ = game::meshlet_component::create(ret, std::move(raw_meshlet_model));
       ret->set_translation({0.f, -1.f, 0.f});
       game::engine::add_actor(ret);
       return ret;

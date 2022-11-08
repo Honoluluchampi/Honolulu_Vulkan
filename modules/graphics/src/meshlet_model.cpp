@@ -38,8 +38,12 @@ u_ptr<meshlet_model> meshlet_model::create_from_file(hnll::graphics::device &_de
   builder.load_model(_filename);
   std::cout << _filename << " vertex count: " << builder.vertices.size() << "\n";
 
+  // copy vertices
+  auto raw_vertices = builder.vertices;
   auto geometry_model = geometry::mesh_model::create_from_mesh_builder(std::move(builder));
   auto meshlets = geometry::mesh_separation::separate(geometry_model);
+
+  return create(_device, std::move(raw_vertices), std::move(meshlets));
 }
 
 void meshlet_model::bind(

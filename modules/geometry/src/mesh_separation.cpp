@@ -282,9 +282,30 @@ graphics::meshlet translate_meshlet(const s_ptr<mesh_model>& old_mesh)
 {
   graphics::meshlet ret{};
 
-  for (const auto& v_kv : old_mesh->get_vertex_map()) {
+  std::unordered_map<uint32_t, uint32_t> id_map;
+  uint32_t current_id = 0;
 
+  // fill vertex info
+  for (const auto& v_kv : old_mesh->get_vertex_map()) {
+    auto& v = v_kv.second;
+    // register to id_map
+    id_map[v->id_] = current_id;
+    // add to meshlet
+    ret.vertex_indices[current_id++] = v->id_;
   }
+  ret.vertex_count = current_id;
+
+  current_id = 0;
+  // fill primitive index info
+  for (const auto& f_kv : old_mesh->get_face_map()) {
+    auto& f = f_kv.second;
+    auto& he = f->half_edge_;
+    for (int i = 0; i < 3; i++) {
+      ret.primitive_indices[current_id++] = id_map[he->get_vertex()->id_];
+      he = he->get_next();
+    }
+  }
+  ret.index_count = current_id;
 
   return ret;
 }
