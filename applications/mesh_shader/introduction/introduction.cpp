@@ -1,8 +1,11 @@
 // hnll
 #include <graphics/engine.hpp>
-#include <gui/engine.hpp>
 #include <graphics/utils.hpp>
 #include <graphics/meshlet_model.hpp>
+#include <game/actor.hpp>
+#include <game/engine.hpp>
+#include <game/components/meshlet_component.hpp>
+#include <physics/engine.hpp>
 
 // std
 #include <memory>
@@ -16,39 +19,20 @@ using vec2 = Eigen::Vector2f;
 using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
 
-class mesh_shader_introduction {
+class plane : public game::actor
+{
   public:
-    mesh_shader_introduction() {
-      graphics_engine_ = std::make_unique<graphics::engine>(
-        "mesh shader introduction",
-        graphics::rendering_type::MESH_SHADING
-      );
-
-      gui_engine_ = std::make_unique<gui::engine>(graphics_engine_->get_window(), graphics_engine_->get_device());
-      graphics_engine_->get_renderer().set_next_renderer(gui_engine_->renderer_p());
-
-      plane_ = create_split_plane();
-    }
-
-    ~mesh_shader_introduction()
+    static s_ptr<plane> create(graphics::device& _device)
     {
+      auto ret = std::make_shared<plane>();
+      auto raw_meshlets = create_raw_meshlets(_device);
+      ret->meshlet_comp_ = game::meshlet_component::create(ret, std::move(raw_meshlets));
+      game::engine::add_actor(ret);
+      return ret;
     }
-
-    void run()
-    {
-      while (glfwWindowShouldClose(graphics_engine_->get_glfw_window()) == GLFW_FALSE) {
-        glfwPollEvents();
-        render();
-        if (!hnll::graphics::renderer::swap_chain_recreated_) {
-          gui_engine_->begin_imgui();
-          gui_engine_->render();
-        }
-      }
-      graphics_engine_->wait_idle();
-    }
-
+    plane(){}
   private:
-    u_ptr<graphics::meshlet_model> create_split_plane()
+    static s_ptr<graphics::meshlet_model> create_raw_meshlets(graphics::device& _device)
     {
       // v3 --- v2
       //  |  /  |
@@ -64,21 +48,24 @@ class mesh_shader_introduction {
         {{0, 2, 3}, {0, 1, 2}, 3, 3},
       };
 
-      return graphics::meshlet_model::create(graphics_engine_->get_device(), std::move(raw_vertices), std::move(meshlets));
+      return graphics::meshlet_model::create(_device, std::move(raw_vertices), std::move(meshlets));
     }
+    s_ptr<game::meshlet_component> meshlet_comp_;
+};
 
-    void render()
+class mesh_shader_introduction : public game::engine
+{
+  public:
+    mesh_shader_introduction() : game::engine("mesh shader introduction")
     {
-      utils::viewer_info vi{};
-      graphics_engine_->render(std::move(vi));
+      plane_ = plane::create(get_graphics_device());
     }
 
-    VkPipelineLayout          pipeline_layout_;
-    u_ptr<graphics::engine>   graphics_engine_;
-    u_ptr<gui::engine> gui_engine_;
+    ~mesh_shader_introduction() override = default;
 
+  private:
     // sample object
-    u_ptr<graphics::meshlet_model> plane_;
+    s_ptr<plane> plane_;
 };
 } // namespace hnll
 

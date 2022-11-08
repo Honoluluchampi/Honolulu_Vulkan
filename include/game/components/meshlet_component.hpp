@@ -20,7 +20,7 @@ class meshlet_component : public renderable_component
     static s_ptr<meshlet_component> create(s_ptr<A>& owner_sp, s_ptr<hnll::graphics::meshlet_model>&& model_sp)
     {
       auto mesh = std::make_shared<meshlet_component>(owner_sp);
-      mesh->set_mesh_model(std::move(model_sp));
+      mesh->set_meshlet_model(std::move(model_sp));
       owner_sp->set_renderable_component(mesh);
       return mesh;
     }
