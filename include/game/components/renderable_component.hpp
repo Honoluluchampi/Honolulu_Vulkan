@@ -10,6 +10,7 @@ namespace hnll::game {
 enum class render_type 
 {
   MESH,
+  MESHLET,
   POINT_LIGHT,
   LINE,
   WIRE_FRUSTUM,

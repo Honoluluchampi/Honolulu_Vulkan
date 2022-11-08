@@ -13,13 +13,14 @@ class meshlet_rendering_system : public rendering_system
     meshlet_rendering_system(
       device& _device,
       VkRenderPass _render_pass,
-      std::vector<VkDescriptorSetLayout> _desc_layouts
+      VkDescriptorSetLayout _global_set_layouts
     );
 
     void render(frame_info _frame_info) override;
 
   private:
-    void create_pipeline_layout(const std::vector<VkDescriptorSetLayout>& _desc_layouts);
+    std::vector<VkDescriptorSetLayout> create_desc_layout(VkDescriptorSetLayout _global_set_layout);
+    void create_pipeline_layout(VkDescriptorSetLayout _global_layouts);
     void create_pipeline(
       VkRenderPass _render_pass,
       std::vector<std::string> _shader_paths,
