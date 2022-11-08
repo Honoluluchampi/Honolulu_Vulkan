@@ -25,18 +25,11 @@ using vec4 = Eigen::Vector4f;
 class mesh_shader_introduction {
   public:
     mesh_shader_introduction() {
-      std::vector<const char *> device_extensions = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        VK_NV_MESH_SHADER_EXTENSION_NAME,
-        VK_NV_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME,
-        VK_KHR_MAINTENANCE_4_EXTENSION_NAME,
-      };
 
       window_ = std::make_unique<graphics::window>(960, 840, "mesh shader introduction");
       device_ = std::make_unique<graphics::device>(
         *window_,
-        graphics::rendering_type::MESH_SHADING,
-        std::move(device_extensions)
+        graphics::rendering_type::MESH_SHADING
       );
       // load extensions
       load_VK_EXTENSIONS(device_->get_instance(), vkGetInstanceProcAddr, device_->get_device(), vkGetDeviceProcAddr);
@@ -166,7 +159,7 @@ class mesh_shader_introduction {
     u_ptr<graphics::renderer> renderer_;
     u_ptr<graphics::pipeline> pipeline_;
     VkPipelineLayout          pipeline_layout_;
-
+//    u_ptr<graphics::engine> graphics_engine_;
     u_ptr<gui::engine> gui_engine_;
 
     // sample object

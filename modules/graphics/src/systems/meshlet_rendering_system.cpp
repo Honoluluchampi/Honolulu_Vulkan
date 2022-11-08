@@ -2,6 +2,7 @@
 #include <graphics/systems/meshlet_rendering_system.hpp>
 #include <graphics/meshlet_model.hpp>
 #include <graphics/descriptor_set_layout.hpp>
+#include <game/components/meshlet_component.hpp>
 
 namespace hnll::graphics {
 

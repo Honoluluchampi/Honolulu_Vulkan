@@ -3,7 +3,7 @@
 #include <graphics/engine.hpp>
 #include <graphics/systems/point_light.hpp>
 #include <graphics/systems/mesh_rendering_system.hpp>
-#include <graphics/systems/line_rendering_system.hpp>
+#include <graphics/systems/meshlet_rendering_system.hpp>
 #include <graphics/systems/wire_frustum_rendering_system.hpp>
 #include <graphics/systems/grid_rendering_system.hpp>
 //std
@@ -16,8 +16,27 @@
 
 namespace hnll::graphics {
 
-engine::engine(const char* window_name) : window_{WIDTH, HEIGHT, window_name}
-{ init(); }
+engine::engine(const char* window_name)
+{
+  window_ = std::make_unique<window>(WIDTH, HEIGHT, window_name);
+
+  std::vector<const char *> device_extensions = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+    VK_NV_MESH_SHADER_EXTENSION_NAME,
+    VK_NV_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME,
+    VK_KHR_MAINTENANCE_4_EXTENSION_NAME,
+  };
+
+  device_ = std::make_unique<graphics::device>(
+    *window_,
+    graphics::rendering_type::MESH_SHADING,
+    std::move(device_extensions)
+  );
+
+  renderer_ = std::make_unique<renderer>(*window_, *device_);
+
+  init();
+}
 
 engine::~engine()
 { }
@@ -26,7 +45,7 @@ engine::~engine()
 void engine::init()
 {
   // // 2 uniform buffer descriptor
-  global_pool_ = descriptor_pool::builder(device_)
+  global_pool_ = descriptor_pool::builder(*device_)
     .set_max_sets(swap_chain::MAX_FRAMES_IN_FLIGHT)
     .add_pool_size(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, swap_chain::MAX_FRAMES_IN_FLIGHT)
     .build();
@@ -34,7 +53,7 @@ void engine::init()
   // creating ubo for each frames version
   for (int i = 0; i < ubo_buffers_.size(); i++) {
     ubo_buffers_[i] = std::make_unique<buffer>(
-      device_,
+      *device_,
       sizeof(global_ubo),
       1,
       VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -45,7 +64,7 @@ void engine::init()
 
   // this is set layout of master system
   // enable ubo to be referenced by oall stages of a graphics pipeline
-  global_set_layout_ = descriptor_set_layout::builder(device_)
+  global_set_layout_ = descriptor_set_layout::builder(*device_)
     .add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
     .build();
   // may add additional layout of child system
@@ -59,29 +78,37 @@ void engine::init()
 
   // create renderer system as local variable
   auto mesh_renderer = std::make_unique<mesh_rendering_system>(
-    device_, 
-    renderer_.get_swap_chain_render_pass(HVE_RENDER_PASS_ID),
+    *device_,
+    renderer_->get_swap_chain_render_pass(HVE_RENDER_PASS_ID),
+    global_set_layout_->get_descriptor_set_layout()
+  );
+
+  auto meshlet_renderer = std::make_unique<meshlet_rendering_system>(
+    *device_,
+    renderer_->get_swap_chain_render_pass(HVE_RENDER_PASS_ID),
     global_set_layout_->get_descriptor_set_layout()
   );
 
   auto point_light_renderer = std::make_unique<point_light_rendering_system>(
-    device_, 
-    renderer_.get_swap_chain_render_pass(HVE_RENDER_PASS_ID),
+    *device_,
+    renderer_->get_swap_chain_render_pass(HVE_RENDER_PASS_ID),
     global_set_layout_->get_descriptor_set_layout()
   );
 
   auto wire_frustum_renderer = std::make_unique<wire_frustum_rendering_system>(
-    device_,
-    renderer_.get_swap_chain_render_pass(HVE_RENDER_PASS_ID),
+    *device_,
+    renderer_->get_swap_chain_render_pass(HVE_RENDER_PASS_ID),
     global_set_layout_->get_descriptor_set_layout()
   );
 
   auto grid_renderer = std::make_unique<grid_rendering_system>(
-    device_,
-    renderer_.get_swap_chain_render_pass(HVE_RENDER_PASS_ID),
+    *device_,
+    renderer_->get_swap_chain_render_pass(HVE_RENDER_PASS_ID),
     global_set_layout_->get_descriptor_set_layout()
   );
 
+  rendering_systems_.emplace
+    (mesh_renderer->get_render_type(), std::move(mesh_renderer));
   rendering_systems_.emplace
     (mesh_renderer->get_render_type(), std::move(mesh_renderer));
   rendering_systems_.emplace
@@ -96,8 +123,8 @@ void engine::init()
 void engine::render(utils::viewer_info&& viewer_info)
 {
   // returns nullptr if the swap chain is need to be recreated
-  if (auto command_buffer = renderer_.begin_frame()) {
-    int frame_index = renderer_.get_frame_index();
+  if (auto command_buffer = renderer_->begin_frame()) {
+    int frame_index = renderer_->get_frame_index();
 
     frame_info frame_info{
         frame_index, 
@@ -115,19 +142,20 @@ void engine::render(utils::viewer_info&& viewer_info)
     // rendering
     // TODO : configure hve_render_pass_id as the 
     // member and detect it in begin_swap_chain_render_pass func
-    renderer_.begin_swap_chain_render_pass(command_buffer, HVE_RENDER_PASS_ID);
+    renderer_->begin_swap_chain_render_pass(command_buffer, HVE_RENDER_PASS_ID);
     // programmable stage of rendering
     // system can now access game objects via frame_info
 
     // rendering order matters for alpha blending
     // solid object should be drawn first, then transparent object should be drawn after that
     rendering_systems_[game::render_type::MESH]->render(frame_info);
+    rendering_systems_[game::render_type::MESHLET]->render(frame_info);
     rendering_systems_[game::render_type::WIRE_FRUSTUM]->render(frame_info);
     rendering_systems_[game::render_type::POINT_LIGHT]->render(frame_info);
     rendering_systems_[game::render_type::GRID]->render(frame_info);
 
-    renderer_.end_swap_chain_render_pass(command_buffer);
-    renderer_.end_frame();
+    renderer_->end_swap_chain_render_pass(command_buffer);
+    renderer_->end_frame();
   }
 }
 

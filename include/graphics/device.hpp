@@ -45,8 +45,7 @@ class device
 
     // default device extension is VK_KHR_SWAPCHAIN_EXTENSION_NAME
     device(window &window,
-           rendering_type type = rendering_type::RASTERIZE,
-           std::vector<const char*>&& device_extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME }
+           rendering_type type = rendering_type::RASTERIZE
     );
     ~device();
 

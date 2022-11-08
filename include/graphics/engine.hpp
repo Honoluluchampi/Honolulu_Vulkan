@@ -25,8 +25,8 @@ using rendering_system_map = std::unordered_map<hnll::game::render_type, std::un
 class engine
 {
   public:
-    static constexpr int WIDTH = 800;
-    static constexpr int HEIGHT = 600;
+    static constexpr int WIDTH = 960;
+    static constexpr int HEIGHT = 820;
     static constexpr float MAX_FRAME_TIME = 0.05;
 
     engine(const char* window_name = "honolulu engine");
@@ -48,24 +48,24 @@ class engine
 
     void remove_renderable_component_without_owner(hnll::game::render_type type, hnll::game::component_id id);
 
-    inline void wait_idle() { vkDeviceWaitIdle(device_.get_device()); }
+    inline void wait_idle() { vkDeviceWaitIdle(device_->get_device()); }
 
-    inline device& get_device() { return device_; }
-    inline renderer& get_renderer() { return renderer_; }
-    inline swap_chain& get_swap_chain() { return renderer_.get_swap_chain(); }
-    inline window& get_window() { return window_; }
+    inline device& get_device() { return *device_; }
+    inline renderer& get_renderer() { return *renderer_; }
+    inline swap_chain& get_swap_chain() { return renderer_->get_swap_chain(); }
+    inline window& get_window() { return *window_; }
     inline global_ubo& get_global_ubo() { return ubo_; }
 
-    inline GLFWwindow* get_glfw_window() const { return window_.get_glfw_window(); } 
+    inline GLFWwindow* get_glfw_window() const { return window_->get_glfw_window(); }
     
   private:
     void init();
 
     // construct in impl
-    window window_;
+    u_ptr<window>   window_;
 
-    device device_ {window_};
-    renderer renderer_ {window_, device_};
+    u_ptr<device>   device_;
+    u_ptr<renderer> renderer_;
 
     // shared between multiple system
     u_ptr<descriptor_pool> global_pool_;

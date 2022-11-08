@@ -60,9 +60,8 @@ void DestroyDebugUtilsMessengerEXT(
 // class member functions
 device::device(
   window &window,
-  rendering_type type,
-  std::vector<const char*>&& device_extensions
-) : window_{window}, rendering_type_(type), device_extensions_(std::move(device_extensions))
+  rendering_type type
+) : window_{window}, rendering_type_(type)
 {
   create_instance();
   // window surface should be created right after the instance creation, 
@@ -99,6 +98,29 @@ void device::setup_device_extensions()
   std::unordered_set<std::string> available;
   for (const auto &extension : extensions) {
     available.insert(extension.extensionName);
+  }
+
+  if (rendering_type_ == rendering_type::RASTERIZE) {
+    device_extensions_ = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  }
+
+  if (rendering_type_ == rendering_type::RAY_TRACING) {
+    device_extensions_ = {
+      VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+      VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+      VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+      VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+      VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+    };
+  }
+
+  if (rendering_type_ == rendering_type::MESH_SHADING) {
+    device_extensions_ = {
+      VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+      VK_NV_MESH_SHADER_EXTENSION_NAME,
+      VK_NV_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME,
+      VK_KHR_MAINTENANCE_4_EXTENSION_NAME,
+    };
   }
 
   std::cout << "enabled device extensions:" << std::endl;
@@ -274,6 +296,7 @@ void device::create_logical_device()
 
   // for mesh shader
   if (rendering_type_ == rendering_type::MESH_SHADING) {
+    // enable extensions
     VkPhysicalDeviceMaintenance4Features maintenance4_features {
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES
     };
