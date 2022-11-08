@@ -102,7 +102,7 @@ void engine::init()
   rendering_systems_.emplace
     (mesh_renderer->get_render_type(), std::move(mesh_renderer));
   rendering_systems_.emplace
-    (mesh_renderer->get_render_type(), std::move(mesh_renderer));
+    (meshlet_renderer->get_render_type(), std::move(meshlet_renderer));
   rendering_systems_.emplace
     (point_light_renderer->get_render_type(), std::move(point_light_renderer));
   rendering_systems_.emplace

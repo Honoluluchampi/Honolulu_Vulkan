@@ -44,7 +44,7 @@ void meshlet_rendering_system::create_pipeline_layout(VkDescriptorSetLayout _glo
   VkPipelineLayoutCreateInfo create_info {
     VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO
   };
-  create_info.setLayoutCount = static_cast<uint32_t>(desc_set_layouts.size());
+  create_info.setLayoutCount = static_cast<uint32_t>(raw_desc_set_layouts.size());
   create_info.pSetLayouts    = raw_desc_set_layouts.data();
   create_info.pushConstantRangeCount = 0;
   auto result = vkCreatePipelineLayout(

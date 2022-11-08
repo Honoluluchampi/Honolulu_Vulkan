@@ -31,15 +31,22 @@ layout (location = 0) out PerVertexData {
 // bindings
 // ------------------------------------------------------------------------
 // scene info
-//layout(set = 0, binding = 0) uniform GlobalUbo
-//{
-//  mat4 projection;
-//  mat4 view;
-//  mat4 inv_view;
-//  vec4 ambient_light_color;
-//  PointLight point_lights[20];
-//  int num_lights;
-//} ubo;
+
+struct PointLight
+{
+  vec4 position;
+  vec4 color;
+};
+
+layout(set = 0, binding = 0) uniform GlobalUbo
+{
+  mat4 projection;
+  mat4 view;
+  mat4 inv_view;
+  vec4 ambient_light_color;
+  PointLight point_lights[20];
+  int num_lights;
+} ubo;
 
 // ------------------------------------------------------------------------
 // meshlet buffer
@@ -52,7 +59,7 @@ struct vertex {
   vec2 uv;
 };
 
-layout(set = 0, binding = 0) buffer _vertex_buffer {
+layout(set = 1, binding = 0) buffer _vertex_buffer {
   vertex raw_vertices[];
 };
 
@@ -63,7 +70,7 @@ struct meshlet {
   uint index_count; // < MAX_PRIMITIVE_INDICES_COUNT
 };
 
-layout(set = 1, binding = 0) buffer _mesh_buffer {
+layout(set = 2, binding = 0) buffer _mesh_buffer {
   meshlet meshlets[];
 };
 
