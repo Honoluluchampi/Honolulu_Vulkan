@@ -18,7 +18,7 @@ set(TARGETS
         $ENV{HNLL_ENGN}/modules/graphics/src/renderer.cpp
         $ENV{HNLL_ENGN}/modules/graphics/src/swap_chain.cpp
         $ENV{HNLL_ENGN}/modules/graphics/src/window.cpp
-        ../../../submodules/nvvk_extensions/extensions_vk.cpp
+        ../../../submodules/extensions/ray_tracing_extensions.cpp
         $ENV{HNLL_ENGN}/modules/graphics/src/acceleration_structure.cpp)
 
 add_executable(introduce_ray_tracing ${TARGETS})
@@ -27,7 +27,7 @@ target_include_directories(introduce_ray_tracing PUBLIC
         $ENV{HNLL_ENGN}/include
         $ENV{HNLL_ENGN}/submodules/tiny_obj_loader
         $ENV{HNLL_ENGN}/submodules/glfw
-        $ENV{HNLL_ENGN}/submodules/nvvk_extensions
+        $ENV{HNLL_ENGN}/submodules/extensions
         )
 
 target_link_directories(introduce_ray_tracing PUBLIC $ENV{VULKAN_DIR}/lib)

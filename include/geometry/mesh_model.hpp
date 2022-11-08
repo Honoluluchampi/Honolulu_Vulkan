@@ -1,5 +1,8 @@
 #pragma once
 
+// hnll
+#include <geometry/half_edge.hpp>
+
 // std
 #include <memory>
 #include <unordered_map>
@@ -9,13 +12,10 @@
 #include <eigen3/Eigen/Dense>
 
 // forward declaration
-namespace hnll::graphics { class mesh_model; struct builder; }
+namespace hnll::graphics { class mesh_model; struct mesh_builder; }
 namespace hnll::geometry {
 
 // forward declaration
-struct vertex;
-struct face;
-class  half_edge;
 class  bounding_volume;
 enum class bv_type;
 
@@ -38,6 +38,7 @@ class mesh_model
   public:
     static s_ptr<mesh_model> create();
     static s_ptr<mesh_model> create_from_obj_file(const std::string& filename);
+    static s_ptr<mesh_model> create_from_mesh_builder(graphics::mesh_builder&& builder);
 
     mesh_model();
     void align_vertex_id();
@@ -74,5 +75,7 @@ class mesh_model
     vertex_map    vertex_map_;
     u_ptr<bounding_volume> bounding_volume_;
 };
+
+
 
 } // namespace hnll::geometry

@@ -3,6 +3,8 @@
 
 // ray tracing
 #include <vulkan/vulkan_core.h>
+#include <ray_tracing_extensions.hpp>
+#include <mesh_shader_extensions.h>
 
 // std headers
 #include <cstring>
@@ -56,7 +58,10 @@ void DestroyDebugUtilsMessengerEXT(
 }
 
 // class member functions
-device::device(window &window, rendering_type type) : window_{window}, rendering_type_(type)
+device::device(
+  window &window,
+  rendering_type type
+) : window_{window}, rendering_type_(type)
 {
   create_instance();
   // window surface should be created right after the instance creation, 
@@ -85,28 +90,6 @@ device::~device()
 
 void device::setup_device_extensions()
 {
-  // for rasterize
-  if (rendering_type_ == rendering_type::RASTERIZE) {
-    device_extensions_ = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-    };
-  }
-
-  // for ray tracing
-  if (rendering_type_ == rendering_type::RAY_TRACING) {
-    device_extensions_ = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        VK_KHR_MAINTENANCE_3_EXTENSION_NAME,
-        VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
-        // RAY TRACING
-        VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
-        VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
-        VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
-        // DESCRIPTOR INDEXING
-        VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
-    };
-  }
-
   uint32_t extension_count = 0;
   vkEnumerateDeviceExtensionProperties(physical_device_, nullptr, &extension_count, nullptr);
   std::vector<VkExtensionProperties> extensions(extension_count);
@@ -115,6 +98,29 @@ void device::setup_device_extensions()
   std::unordered_set<std::string> available;
   for (const auto &extension : extensions) {
     available.insert(extension.extensionName);
+  }
+
+  if (rendering_type_ == rendering_type::RASTERIZE) {
+    device_extensions_ = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  }
+
+  if (rendering_type_ == rendering_type::RAY_TRACING) {
+    device_extensions_ = {
+      VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+      VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+      VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+      VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+      VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+    };
+  }
+
+  if (rendering_type_ == rendering_type::MESH_SHADING) {
+    device_extensions_ = {
+      VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+      VK_NV_MESH_SHADER_EXTENSION_NAME,
+      VK_NV_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME,
+      VK_KHR_MAINTENANCE_4_EXTENSION_NAME,
+    };
   }
 
   std::cout << "enabled device extensions:" << std::endl;
@@ -178,7 +184,7 @@ void device::create_instance()
 
 void device::pick_physical_device() 
 {
-  // rate device suitability if its nesessary
+  // rate device suitability if its necessary
   uint32_t device_count = 0;
   vkEnumeratePhysicalDevices(instance_, &device_count, nullptr);
   if (device_count == 0) {
@@ -288,6 +294,38 @@ void device::create_logical_device()
     create_info.pEnabledFeatures = nullptr;
   }
 
+  // for mesh shader
+  if (rendering_type_ == rendering_type::MESH_SHADING) {
+    // enable extensions
+    VkPhysicalDeviceMaintenance4Features maintenance4_features {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES
+    };
+    maintenance4_features.maintenance4 = VK_TRUE;
+
+    VkPhysicalDeviceMeshShaderFeaturesNV mesh_features = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_NV
+    };
+    mesh_features.meshShader = VK_TRUE;
+    mesh_features.taskShader = VK_TRUE;
+    mesh_features.pNext = &maintenance4_features;
+
+    VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV baryFeatures = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_NV
+    };
+    baryFeatures.fragmentShaderBarycentric = VK_TRUE;
+    baryFeatures.pNext = &mesh_features;
+
+    VkPhysicalDeviceFeatures features{};
+    vkGetPhysicalDeviceFeatures(physical_device_, &features);
+    VkPhysicalDeviceFeatures2 features2 {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, nullptr
+    };
+    features2.pNext = &baryFeatures;
+
+    create_info.pNext = &features2;
+    create_info.pEnabledFeatures = nullptr;
+  }
+
   // enable device extension
   create_info.enabledExtensionCount = static_cast<uint32_t>(device_extensions_.size());
   create_info.ppEnabledExtensionNames = device_extensions_.data();
@@ -310,6 +348,10 @@ void device::create_logical_device()
   // simply use index 0, because were only creating a single queue from  this family
   vkGetDeviceQueue(device_, indices.graphics_family_.value(), 0, &graphics_queue_);
   vkGetDeviceQueue(device_, indices.present_family_.value(), 0, &present_queue_);
+
+  if (rendering_type_ == rendering_type::MESH_SHADING || rendering_type_ == rendering_type::RAY_TRACING) {
+    load_VK_EXTENSIONS(instance_, vkGetInstanceProcAddr, device_, vkGetDeviceProcAddr);
+  }
 }
 
 // Command pools manage the memory that is used to store the buffers 
@@ -418,7 +460,7 @@ std::vector<const char *> device::get_required_extensions()
   }
 
   // ray tracing
-  if (rendering_type_ == rendering_type::RAY_TRACING) {
+  if (rendering_type_ != rendering_type::RASTERIZE) {
     extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
   }
   return extensions;
@@ -460,13 +502,12 @@ bool device::check_device_extension_support(VkPhysicalDevice device)
       available_extensions.data());
 
   std::set<std::string> required_extensions(device_extensions_.begin(), device_extensions_.end());
-
   for (const auto &extension : available_extensions) {
     required_extensions.erase(extension.extensionName);
   }
 
   return required_extensions.empty();
-  // check wheather all glfw_extensions are supported
+  // check whether all glfw_extensions are supported
 }
 
 queue_family_indices device::find_queue_families(VkPhysicalDevice device) 

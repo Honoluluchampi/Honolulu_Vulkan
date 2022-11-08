@@ -3,6 +3,7 @@
 // hnll
 #include <graphics/device.hpp>
 #include <graphics/buffer.hpp>
+#include <graphics/utils.hpp>
 
 // lib
 #define GLM_FORCE_RADIANS
@@ -36,31 +37,8 @@ class mesh_model
 {
   public:
     // compatible with wavefront obj. file
-    struct vertex
-    {
-      Eigen::Vector3f position{};
-      Eigen::Vector3f color{};
-      Eigen::Vector3f normal{};
-      // texture coordinates
-      Eigen::Vector2f uv{};
-      // return a description compatible with the shader
-      static std::vector<VkVertexInputBindingDescription> get_binding_descriptions();
-      static std::vector<VkVertexInputAttributeDescription> get_attribute_descriptions();
 
-      bool operator==(const vertex& other) const
-      { return position == other.position && color == other.color && normal == other.normal && uv == other.uv; }
-    };
-
-    struct builder
-    {
-      // copied to the vertex buffer and index buffer
-      std::vector<vertex> vertices{};
-      std::vector<uint32_t> indices{};
-
-      void load_model(const std::string& filename);
-    };
-
-    mesh_model(device& device, const mesh_model::builder &builder);
+    mesh_model(device& device, const mesh_builder &builder);
     ~mesh_model();
 
     mesh_model(const mesh_model &) = delete;

@@ -20,8 +20,10 @@ namespace utils {
 
 static std::vector<std::string> loading_directories {
   "/home/honolulu/models/primitives",
-  "/home/honolulu/models/objects"
+  "/home/honolulu/models/characters"
 };
+
+std::string get_full_path(const std::string& _filename);
 
 // 3d transformation
 struct transform

@@ -6,83 +6,113 @@
 // std
 #include <vector>
 #include <string>
+#include <memory>
 
-namespace hnll::graphics {
+namespace hnll{
 
-struct pipeline_config_info 
-{
-  pipeline_config_info() = default;
-  pipeline_config_info(const pipeline_config_info&) = delete;
-  pipeline_config_info& operator=(const pipeline_config_info&) = delete;
-  // for pipeline config info
-  void create_input_assembly_info();
-  // viewport and scissor
-  void create_viewport_info();
-  // rasterizer
-  void create_rasterization_info();
-  // multisampling used for anti-aliasing
-  void create_multi_sample_state();
-  // color blending for alpha blending
-  void create_color_blend_attachment();
-  void create_color_blend_state();
-  void create_depth_stencil_state();
-  // dynamic state
-  void create_dynamic_state();
+template<class T> using u_ptr = std::unique_ptr<T>;
+template<class T> using s_ptr = std::shared_ptr<T>;
 
-  // member variables
-  std::vector<VkVertexInputBindingDescription> binding_descriptions{};
-  std::vector<VkVertexInputAttributeDescription> attribute_descriptions{};
-  VkPipelineInputAssemblyStateCreateInfo input_assembly_info{};
-  VkPipelineViewportStateCreateInfo viewport_info{};
-  VkPipelineRasterizationStateCreateInfo rasterization_info{};
-  VkPipelineMultisampleStateCreateInfo multi_sample_info{};
-  VkPipelineColorBlendAttachmentState color_blend_attachment{};
-  VkPipelineColorBlendStateCreateInfo color_blend_info{};
-  VkPipelineDepthStencilStateCreateInfo depth_stencil_info{};
-  std::vector<VkDynamicState> dynamic_state_enables;
-  VkPipelineDynamicStateCreateInfo dynamic_state_info{};
-  VkPipelineLayout pipeline_layout = nullptr;
-  VkRenderPass render_pass = nullptr;
-  uint32_t subpass = 0;
-};
+namespace graphics {
 
-class pipeline
-{
-  public:
-    pipeline(
-        device &device,
-        const std::string &vert_filepath,
-        const std::string &frag_filepath,
-        const pipeline_config_info &config_info);
-    ~pipeline();
+  struct pipeline_config_info
+    {
+    pipeline_config_info() = default;
+    pipeline_config_info(const pipeline_config_info&) = delete;
+    pipeline_config_info& operator=(const pipeline_config_info&) = delete;
+    // for pipeline config info
+    void create_input_assembly_info();
+    // viewport and scissor
+    void create_viewport_info();
+    // rasterizer
+    void create_rasterization_info();
+    // multisampling used for anti-aliasing
+    void create_multi_sample_state();
+    // color blending for alpha blending
+    void create_color_blend_attachment();
+    void create_color_blend_state();
+    void create_depth_stencil_state();
+    // dynamic state
+    void create_dynamic_state();
 
-    // uncopyable
-    pipeline(const pipeline &) = delete;
-    pipeline& operator=(const pipeline &) = delete;
+    // member variables
+    std::vector<VkVertexInputBindingDescription>   binding_descriptions{};
+    std::vector<VkVertexInputAttributeDescription> attribute_descriptions{};
+    VkPipelineInputAssemblyStateCreateInfo         input_assembly_info{};
+    VkPipelineViewportStateCreateInfo              viewport_info{};
+    VkPipelineRasterizationStateCreateInfo         rasterization_info{};
+    VkPipelineMultisampleStateCreateInfo           multi_sample_info{};
+    VkPipelineColorBlendAttachmentState            color_blend_attachment{};
+    VkPipelineColorBlendStateCreateInfo            color_blend_info{};
+    VkPipelineDepthStencilStateCreateInfo          depth_stencil_info{};
+    std::vector<VkDynamicState>                    dynamic_state_enables;
+    VkPipelineDynamicStateCreateInfo               dynamic_state_info{};
+    VkPipelineLayout                               pipeline_layout = nullptr;
+    VkRenderPass                                   render_pass = nullptr;
+    uint32_t                                       subpass = 0;
+    };
 
-    void bind(VkCommandBuffer command_buffer);
+  class pipeline
+    {
+      public:
+        pipeline(
+          device &device,
+          const std::string &vert_filepath,
+          const std::string &frag_filepath,
+          const pipeline_config_info &config_info);
+        pipeline(
+          device& _device,
+          const std::vector<std::string>& _shader_filepaths,
+          const std::vector<VkShaderStageFlagBits>& _shader_stage_flags,
+          const pipeline_config_info& _config_info);
+        // for mesh shader and ray tracing pipeline
+        pipeline(device &device) : device_(device){}
+        ~pipeline();
 
-    static void default_pipeline_config_info(pipeline_config_info &config_info);
-    static void enable_alpha_blending(pipeline_config_info& config_info);
-    // fstream can only output char not std::string
-    static std::vector<char> read_file(const std::string &filepath);
+        static u_ptr<pipeline> create(
+          device& _device,
+          const std::vector<std::string>& _shader_filepaths,
+          const std::vector<VkShaderStageFlagBits>& _shader_stage_frags,
+          const pipeline_config_info& _config_info);
 
-  private:
-    void create_graphics_pipeline(
-      const std::string &vert_filepath, 
-      const std::string &frag_filepath, 
-      const pipeline_config_info &config_info);
+        // uncopyable
+        pipeline(const pipeline &) = delete;
+        pipeline& operator=(const pipeline &) = delete;
 
-    void create_shader_module(const std::vector<char>& code, VkShaderModule* shader_module);
+        void bind(VkCommandBuffer command_buffer);
 
-    VkPipelineShaderStageCreateInfo create_vertex_shader_stage_info();
-    VkPipelineShaderStageCreateInfo create_fragment_shader_stage_info();
-    VkPipelineVertexInputStateCreateInfo create_vertex_input_info();
-    // 
-    device& device_;
-    VkPipeline graphics_pipeline_;
-    VkShaderModule vertex_shader_module_;
-    VkShaderModule fragment_shader_module_;
-};
+        static void default_pipeline_config_info(pipeline_config_info &config_info);
+        static void enable_alpha_blending(pipeline_config_info& config_info);
+        // fstream can only output char not std::string
+        static std::vector<char> read_file(const std::string &filepath);
 
-} // namespace hnll::graphics
+        // getter
+        VkPipeline get_pipeline() const { return graphics_pipeline_; }
+
+      protected:
+        void create_shader_module(const std::vector<char>& code, VkShaderModule* shader_module);
+
+        device& device_;
+        VkPipeline graphics_pipeline_;
+
+      private:
+        void create_graphics_pipeline(
+          const std::string &vert_filepath,
+          const std::string &frag_filepath,
+          const pipeline_config_info &config_info);
+        void create_graphics_pipeline(
+          const std::vector<std::string>& _shader_filepaths,
+          const std::vector<VkShaderStageFlagBits>& _shader_stage_flags,
+          const pipeline_config_info& _config_info);
+
+        VkPipelineShaderStageCreateInfo create_shader_stage_info(
+          VkShaderModule _shader_module,
+          VkShaderStageFlagBits _shader_stage_flag);
+
+        VkPipelineVertexInputStateCreateInfo create_vertex_input_info();
+        //
+        std::vector<VkShaderModule> shader_modules_;
+    };
+
+
+}} // namespace hnll::graphics

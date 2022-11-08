@@ -1,7 +1,25 @@
 // hnll
 #include <utils/utils.hpp>
 
+// std
+#include <filesystem>
+
 namespace hnll::utils {
+
+std::string get_full_path(const std::string& _filename)
+{
+  std::string filepath = "";
+  for (const auto& directory : utils::loading_directories) {
+    if (std::filesystem::exists(directory + "/" + _filename)) {
+      filepath = directory + "/" + _filename;
+      break;
+    }
+  }
+  if (filepath == "")
+    std::runtime_error(_filename + " doesn't exist!");
+
+  return filepath;
+}
 
 Eigen::Matrix4d transform::mat4() const
 {

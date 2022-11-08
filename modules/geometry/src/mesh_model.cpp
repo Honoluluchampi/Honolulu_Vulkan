@@ -2,6 +2,7 @@
 #include <geometry/mesh_model.hpp>
 #include <geometry/half_edge.hpp>
 #include <geometry/bounding_volume.hpp>
+#include <graphics/utils.hpp>
 #include <utils/utils.hpp>
 
 // std
@@ -66,7 +67,7 @@ s_ptr<mesh_model> mesh_model::create()
 
 mesh_model::mesh_model() { bounding_volume_ = bounding_volume::create_blank_aabb(); }
 
-s_ptr<vertex> create_vertex_from_pseudo(vertex&& pseudo)
+s_ptr<vertex> create_vertex_from_pseudo(geometry::vertex&& pseudo)
 {
   auto vertex_sp = vertex::create(pseudo.position_);
   vertex_sp->color_    = std::move(pseudo.color_);
@@ -75,17 +76,18 @@ s_ptr<vertex> create_vertex_from_pseudo(vertex&& pseudo)
   return vertex_sp;
 }
 
+s_ptr<vertex> create_vertex_from_pseudo(graphics::vertex&& pseudo)
+{
+  auto vertex_sp = vertex::create(pseudo.position.cast<double>());
+  vertex_sp->color_    = std::move(pseudo.color.cast<double>());
+  vertex_sp->normal_   = std::move(pseudo.normal.cast<double>());
+  vertex_sp->uv_       = std::move(pseudo.uv.cast<double>());
+  return vertex_sp;
+}
+
 s_ptr<mesh_model> mesh_model::create_from_obj_file(const std::string& filename)
 {
-  // get full path
-  std::string filepath = "";
-  for (const auto& directory : utils::loading_directories) {
-    if (std::filesystem::exists(directory + "/" + filename))
-      filepath = directory + "/" + filename;
-  }
-  if (filepath == "")
-    std::runtime_error(filename + " doesn't exist!");
-
+  auto filepath = utils::get_full_path(filename);
   tinyobj::attrib_t attrib;
   std::vector<tinyobj::shape_t> shapes;
   std::vector<tinyobj::material_t> materials;
@@ -171,6 +173,36 @@ void mesh_model::align_vertex_id()
     new_map[new_id++] = kv.second;
   }
   vertex_map_ = new_map;
+}
+
+s_ptr<mesh_model> mesh_model::create_from_mesh_builder(graphics::mesh_builder &&builder)
+{
+  if (builder.indices.size() % 3 != 0)
+    throw std::runtime_error("vertex count is not multiple of 3");
+
+  auto mesh_model = mesh_model::create();
+
+  vertex_id id = 0;
+  for (auto& v : builder.vertices) {
+    auto new_vertex = create_vertex_from_pseudo(std::move(v));
+    new_vertex->id_ = id++;
+    mesh_model->add_vertex(new_vertex);
+  }
+
+  // recreate all faces
+  for (int i = 0; i < builder.indices.size(); i += 3) {
+    auto v0 = mesh_model->get_vertex(builder.indices[i]);
+    auto v1 = mesh_model->get_vertex(builder.indices[i + 1]);
+    auto v2 = mesh_model->get_vertex(builder.indices[i + 2]);
+    auto normal = (v0->normal_ + v1->normal_ + v2->normal_) / 3.f;
+    auto cross = (v1->position_ - v0->position_).cross(v2->position_ - v0->position_);
+    if (cross.dot(normal) >= 0)
+      mesh_model->add_face(v0, v1, v2);
+    else
+      mesh_model->add_face(v0, v2, v1);
+  }
+
+  return mesh_model;
 }
 
 void mesh_model::colorize_whole_mesh(const vec3& color)
