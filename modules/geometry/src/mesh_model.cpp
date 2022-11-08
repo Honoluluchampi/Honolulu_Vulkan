@@ -87,15 +87,7 @@ s_ptr<vertex> create_vertex_from_pseudo(graphics::vertex&& pseudo)
 
 s_ptr<mesh_model> mesh_model::create_from_obj_file(const std::string& filename)
 {
-  // get full path
-  std::string filepath = "";
-  for (const auto& directory : utils::loading_directories) {
-    if (std::filesystem::exists(directory + "/" + filename))
-      filepath = directory + "/" + filename;
-  }
-  if (filepath == "")
-    std::runtime_error(filename + " doesn't exist!");
-
+  auto filepath = utils::get_full_path(filename);
   tinyobj::attrib_t attrib;
   std::vector<tinyobj::shape_t> shapes;
   std::vector<tinyobj::material_t> materials;

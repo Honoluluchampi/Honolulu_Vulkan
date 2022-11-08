@@ -78,10 +78,10 @@ mesh_separation_helper::mesh_separation_helper(const s_ptr<mesh_model> &model)
       absent_pair_count++;
     }
   }
-  std::cout << absent_pair_count << std::endl;
-  std::cout << vertex_map_.size() << std::endl;
-  std::cout << face_map_.size() << std::endl;
-  std::cout << model_->get_half_edge_map().size() << std::endl;
+  std::cout << "odd h-edge count : " << absent_pair_count << std::endl;
+  std::cout << "vertex count : " << vertex_map_.size() << std::endl;
+  std::cout << "face count : " << face_map_.size() << std::endl;
+  std::cout << "h-edge count : " << model_->get_half_edge_map().size() << std::endl;
 }
 
 u_ptr<geometry::bounding_volume> create_aabb_from_single_face(const s_ptr<face>& fc)

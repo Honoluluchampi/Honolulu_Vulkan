@@ -6,6 +6,7 @@
 #include <graphics/utils.hpp>
 #include <geometry/mesh_separation.hpp>
 #include <geometry/mesh_model.hpp>
+#include <utils/utils.hpp>
 
 // std
 #include <iostream>
@@ -35,7 +36,7 @@ u_ptr<meshlet_model> meshlet_model::create(
 u_ptr<meshlet_model> meshlet_model::create_from_file(hnll::graphics::device &_device, std::string _filename)
 {
   mesh_builder builder;
-  builder.load_model(_filename);
+  builder.load_model(utils::get_full_path(_filename));
   std::cout << _filename << " vertex count: " << builder.vertices.size() << "\n";
 
   // copy vertices
@@ -43,6 +44,7 @@ u_ptr<meshlet_model> meshlet_model::create_from_file(hnll::graphics::device &_de
   auto geometry_model = geometry::mesh_model::create_from_mesh_builder(std::move(builder));
   auto meshlets = geometry::mesh_separation::separate(geometry_model);
 
+  std::cout << "meshlet count : " << meshlets.size() << std::endl;
   return create(_device, std::move(raw_vertices), std::move(meshlets));
 }
 
