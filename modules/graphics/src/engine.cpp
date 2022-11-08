@@ -57,7 +57,7 @@ void engine::init()
   // this is set layout of master system
   // enable ubo to be referenced by oall stages of a graphics pipeline
   global_set_layout_ = descriptor_set_layout::builder(*device_)
-    .add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
+    .add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS | VK_SHADER_STAGE_MESH_BIT_NV)
     .build();
   // may add additional layout of child system
 

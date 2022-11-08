@@ -7,6 +7,12 @@
 
 namespace hnll::graphics {
 
+struct meshlet_push_constant
+{
+  Eigen::Matrix4f model_matrix  = Eigen::Matrix4f::Identity();
+  Eigen::Matrix4f normal_matrix = Eigen::Matrix4f::Identity();
+};
+
 meshlet_rendering_system::meshlet_rendering_system(
   hnll::graphics::device &_device,
   VkRenderPass _render_pass,
@@ -17,23 +23,9 @@ meshlet_rendering_system::meshlet_rendering_system(
   create_pipeline(_render_pass, {"k"});
 }
 
-void meshlet_rendering_system::render(hnll::graphics::frame_info _frame_info) {
-  auto command_buffer = _frame_info.command_buffer;
-
-  pipeline_->bind(command_buffer);
-
-  for (auto &target: render_target_map_) {
-
-    auto obj = dynamic_cast<hnll::game::meshlet_component *>(target.second.get());
-
-    // bind vertex storage buffer
-    obj->get_model_sp()->bind(command_buffer, _frame_info.global_descriptor_set, pipeline_layout_);
-    obj->get_model_sp()->draw(command_buffer);
-  }
-}
-
 void meshlet_rendering_system::create_pipeline_layout(VkDescriptorSetLayout _global_set_layout)
 {
+  // desc sets
   auto desc_set_layouts = graphics::meshlet_model::default_desc_set_layouts(device_);
   std::vector<VkDescriptorSetLayout> raw_desc_set_layouts;
 
@@ -43,12 +35,20 @@ void meshlet_rendering_system::create_pipeline_layout(VkDescriptorSetLayout _glo
     raw_desc_set_layouts.push_back(desc_set_layouts[i]->get_descriptor_set_layout());
   }
 
+  // push constant
+  VkPushConstantRange push_constant_range{};
+  push_constant_range.stageFlags = VK_SHADER_STAGE_TASK_BIT_NV | VK_SHADER_STAGE_MESH_BIT_NV | VK_SHADER_STAGE_FRAGMENT_BIT;
+  push_constant_range.offset = 0;
+  push_constant_range.size = sizeof(meshlet_push_constant);
+
   VkPipelineLayoutCreateInfo create_info {
     VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO
   };
   create_info.setLayoutCount = static_cast<uint32_t>(raw_desc_set_layouts.size());
   create_info.pSetLayouts    = raw_desc_set_layouts.data();
-  create_info.pushConstantRangeCount = 0;
+  create_info.pushConstantRangeCount = 1;
+  create_info.pPushConstantRanges = &push_constant_range;
+
   auto result = vkCreatePipelineLayout(
     device_.get_device(),
     &create_info,
@@ -90,4 +90,31 @@ void meshlet_rendering_system::create_pipeline(
   );
 }
 
+void meshlet_rendering_system::render(hnll::graphics::frame_info _frame_info) {
+  auto command_buffer = _frame_info.command_buffer;
+
+  pipeline_->bind(command_buffer);
+
+  for (auto &target: render_target_map_) {
+
+    auto obj = dynamic_cast<hnll::game::meshlet_component *>(target.second.get());
+
+    // prepare push constant
+    meshlet_push_constant push{};
+    push.model_matrix = obj->get_transform().mat4().cast<float>();
+    push.normal_matrix = obj->get_transform().normal_matrix().cast<float>();
+
+    vkCmdPushConstants(
+      command_buffer,
+      pipeline_layout_,
+      VK_SHADER_STAGE_TASK_BIT_NV | VK_SHADER_STAGE_MESH_BIT_NV | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(meshlet_push_constant),
+      &push
+    );
+    // bind vertex storage buffer
+    obj->get_model_sp()->bind(command_buffer, _frame_info.global_descriptor_set, pipeline_layout_);
+    obj->get_model_sp()->draw(command_buffer);
+  }
+}
 } // namespace hnll::graphics

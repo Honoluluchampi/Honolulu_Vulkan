@@ -76,6 +76,11 @@ layout(set = 2, binding = 0) buffer _mesh_buffer {
 
 // ------------------------------------------------------------------------
 
+layout(push_constant) uniform Push {
+  mat4 model_matrix;
+  mat4 normal_matrix;
+} push;
+
 #define COLOR_COUNT 10
 vec3 meshlet_colors[COLOR_COUNT] = {
   vec3(1,0,0),
@@ -104,7 +109,8 @@ void main() {
     // vertex_index indicates the vertex_buffer's index
     uint vertex_index = current_meshlet.vertex_indices[i];
 
-    gl_MeshVerticesNV[i].gl_Position = vec4(raw_vertices[vertex_index].position, 1.f);
+    vec4 position_world = push.model_matrix * vec4(raw_vertices[vertex_index].position, 1.0);
+    gl_MeshVerticesNV[i].gl_Position = ubo.projection * ubo.view * position_world;
     v_out[i].color = vec4(meshlet_colors[meshlet_index %COLOR_COUNT], 1.f);
   }
 

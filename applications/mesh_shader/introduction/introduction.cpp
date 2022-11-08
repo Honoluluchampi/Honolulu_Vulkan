@@ -27,6 +27,7 @@ class plane : public game::actor
       auto ret = std::make_shared<plane>();
       auto raw_meshlets = create_raw_meshlets(_device);
       ret->meshlet_comp_ = game::meshlet_component::create(ret, std::move(raw_meshlets));
+      ret->set_translation({0.f, -1.f, 0.f});
       game::engine::add_actor(ret);
       return ret;
     }
