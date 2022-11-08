@@ -25,6 +25,9 @@ set(TARGETS
         # geometry
         $ENV{HNLL_ENGN}/modules/geometry/src/mesh_separation.cpp
         $ENV{HNLL_ENGN}/modules/geometry/src/mesh_model.cpp
+        $ENV{HNLL_ENGN}/modules/geometry/src/bounding_volume.cpp
+        # utils
+        $ENV{HNLL_ENGN}/modules/utils/src/utils.cpp
         # gui
         $ENV{HNLL_ENGN}/modules/gui/src/engine.cpp
         $ENV{HNLL_ENGN}/modules/gui/src/renderer.cpp

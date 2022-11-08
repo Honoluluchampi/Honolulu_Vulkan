@@ -136,7 +136,7 @@ class mesh_shader_introduction {
       graphics::vertex v3 = { vec3{-0.5f, -0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 0.f, 1.f}, vec2{0.f, 0.f} };
       std::vector<graphics::vertex> raw_vertices = { v0, v1, v2, v3 };
 
-      std::vector<graphics::meshlet<>> meshlets = {
+      std::vector<graphics::meshlet> meshlets = {
         {{0, 1, 2}, {0, 1, 2}, 3, 3},
         {{0, 2, 3}, {0, 1, 2}, 3, 3},
       };

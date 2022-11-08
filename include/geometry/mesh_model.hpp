@@ -76,15 +76,6 @@ class mesh_model
     u_ptr<bounding_volume> bounding_volume_;
 };
 
-void mesh_model::align_vertex_id()
-{
-  vertex_map new_map;
-  vertex_id new_id = 0;
-  for (const auto& kv : vertex_map_) {
-    kv.second->id_ = new_id;
-    new_map[new_id++] = kv.second;
-  }
-  vertex_map_ = new_map;
-}
+
 
 } // namespace hnll::geometry

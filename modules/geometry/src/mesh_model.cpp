@@ -172,6 +172,17 @@ s_ptr<mesh_model> mesh_model::create_from_obj_file(const std::string& filename)
   return mesh_model;
 }
 
+void mesh_model::align_vertex_id()
+{
+  vertex_map new_map;
+  vertex_id new_id = 0;
+  for (const auto& kv : vertex_map_) {
+    kv.second->id_ = new_id;
+    new_map[new_id++] = kv.second;
+  }
+  vertex_map_ = new_map;
+}
+
 s_ptr<mesh_model> mesh_model::create_from_mesh_builder(graphics::mesh_builder &&builder)
 {
   if (builder.indices.size() % 3 != 0)
@@ -179,8 +190,10 @@ s_ptr<mesh_model> mesh_model::create_from_mesh_builder(graphics::mesh_builder &&
 
   auto mesh_model = mesh_model::create();
 
+  vertex_id id = 0;
   for (auto& v : builder.vertices) {
     auto new_vertex = create_vertex_from_pseudo(std::move(v));
+    new_vertex->id_ = id++;
     mesh_model->add_vertex(new_vertex);
   }
 
