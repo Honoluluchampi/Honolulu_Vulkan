@@ -20,6 +20,7 @@ class device;
 class buffer;
 class descriptor_pool;
 class descriptor_set_layout;
+struct frame_info;
 struct vertex;
 struct mesh_builder;
 template<typename T> using u_ptr = std::unique_ptr<T>;
@@ -47,16 +48,17 @@ class meshlet_model
 
     static u_ptr<meshlet_model> create(
       device& _device,
-      std::vector<vertex>&&    _raw_vertices,
+      std::vector<vertex>&&  _raw_vertices,
       std::vector<meshlet>&& _meshlets
     );
 
     static u_ptr<meshlet_model> create_from_file(device& _device, std::string _filename);
 
-    void bind_and_draw(
+    void bind(
       VkCommandBuffer  _command_buffer,
-      VkPipelineLayout _pipeline_layout
-    );
+      VkDescriptorSet  _global_desc_set,
+      VkPipelineLayout _pipeline_layout);
+    void draw(VkCommandBuffer  _command_buffer);
 
     // getter
     const buffer& get_vertex_buffer()  const;

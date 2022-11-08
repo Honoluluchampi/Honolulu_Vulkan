@@ -42,22 +42,32 @@ u_ptr<meshlet_model> meshlet_model::create_from_file(hnll::graphics::device &_de
   auto meshlets = geometry::mesh_separation::separate(geometry_model);
 }
 
-void meshlet_model::bind_and_draw(
-  VkCommandBuffer _command_buffer,
+void meshlet_model::bind(
+  VkCommandBuffer  _command_buffer,
+  VkDescriptorSet  _global_desc_set,
   VkPipelineLayout _pipeline_layout)
 {
-  // bind descs
+  // prepare desc sets
+  std::vector<VkDescriptorSet> desc_sets;
+  desc_sets.push_back(_global_desc_set);
+  for (const auto& set : desc_sets_) {
+    desc_sets.push_back(set);
+  }
+
   vkCmdBindDescriptorSets(
     _command_buffer,
     VK_PIPELINE_BIND_POINT_GRAPHICS,
     _pipeline_layout,
     0,
-    DESC_SET_COUNT,
-    desc_sets_.data(),
+    static_cast<uint32_t>(desc_sets.size()),
+    desc_sets.data(),
     0,
     nullptr
   );
+}
 
+void meshlet_model::draw(VkCommandBuffer _command_buffer)
+{
   // draw
   vkCmdDrawMeshTasksNV(
     _command_buffer,

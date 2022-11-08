@@ -3,6 +3,7 @@
 #include <graphics/meshlet_model.hpp>
 #include <graphics/descriptor_set_layout.hpp>
 #include <game/components/meshlet_component.hpp>
+#include <graphics/frame_info.hpp>
 
 namespace hnll::graphics {
 
@@ -26,7 +27,8 @@ void meshlet_rendering_system::render(hnll::graphics::frame_info _frame_info) {
     auto obj = dynamic_cast<hnll::game::meshlet_component *>(target.second.get());
 
     // bind vertex storage buffer
-    obj->get_model_sp()->bind_and_draw(command_buffer, pipeline_layout_);
+    obj->get_model_sp()->bind(command_buffer, _frame_info.global_descriptor_set, pipeline_layout_);
+    obj->get_model_sp()->draw(command_buffer);
   }
 }
 
