@@ -6,19 +6,15 @@
 #include <graphics/meshlet_model.hpp>
 #include <graphics/utils.hpp>
 
+// std
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sys/stat.h>
 
 namespace hnll::geometry {
 
 std::vector<vec3> mesh_colors {
-  // universal
-//    { 255, 75, 0 },
-//    { 0, 90, 255 },
-//    { 3, 175, 122 },
-//    { 77, 196, 255 },
-//    { 246, 170, 0 },
-//    { 255, 241, 0 },
-//    { 153, 0, 153 },
   // yumekawa
     { 191,255,127 },
     { 255,191,127 },
@@ -27,14 +23,6 @@ std::vector<vec3> mesh_colors {
     { 255,127,191 },
     { 191,127,255 },
     { 127,127,255 },
-    // vivid
-//    { 0,255,0 },
-//    { 0,255,255 },
-//    { 255,255,0 },
-//    { 255,35,35 },
-//    { 35,35,255 },
-//    { 255,35,255 },
-//    { 255,145,35 },
 };
 
 auto convert_color_255_to_1 (vec3& color)
@@ -362,4 +350,21 @@ std::vector<graphics::meshlet> mesh_separation::separate(const s_ptr<mesh_model>
 
   return separate_greedy(helper, crtr);
 }
+
+void mesh_separation::write_meshlet_cache(const std::string& _filename, const std::vector<graphics::meshlet> &_meshlets)
+{
+  std::ofstream writing_file;
+  writing_file.open(_filename + ".ml", std::ios::out);
+
+  // write contents
+  writing_file << _filename << std::endl;
+
+  writing_file.close();
+}
+
+void mesh_separation::load_meshlet_cache(const std::string &_filename)
+{
+
+}
+
 } // namespace hnll::geometry
