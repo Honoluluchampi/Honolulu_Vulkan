@@ -24,6 +24,11 @@ static std::vector<std::string> loading_directories {
 };
 
 std::string get_full_path(const std::string& _filename);
+void mkdir_p(const std::string& _dir_name);
+// returns cache directory
+std::string create_cache_directory();
+// returns sub cache directory
+std::string create_sub_cache_directory(const std::string& _dir_name);
 
 // 3d transformation
 struct transform

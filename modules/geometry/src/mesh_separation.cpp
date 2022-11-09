@@ -5,11 +5,13 @@
 #include <geometry/bounding_volume.hpp>
 #include <graphics/meshlet_model.hpp>
 #include <graphics/utils.hpp>
+#include <utils/utils.hpp>
 
 // std
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <dirent.h>
 #include <sys/stat.h>
 
 namespace hnll::geometry {
@@ -348,13 +350,20 @@ std::vector<graphics::meshlet> mesh_separation::separate(const s_ptr<mesh_model>
 {
   auto helper = mesh_separation_helper::create(model);
 
-  return separate_greedy(helper, crtr);
+  auto meshlets = separate_greedy(helper, crtr);
+
+  write_meshlet_cache("test", meshlets);
+
+  return meshlets;
 }
 
 void mesh_separation::write_meshlet_cache(const std::string& _filename, const std::vector<graphics::meshlet> &_meshlets)
 {
+  auto directory = utils::create_sub_cache_directory("meshlets");
+
   std::ofstream writing_file;
-  writing_file.open(_filename + ".ml", std::ios::out);
+  std::string filepath = directory + "/" + _filename + ".ml";
+  writing_file.open(filepath, std::ios::out);
 
   // write contents
   writing_file << _filename << std::endl;
