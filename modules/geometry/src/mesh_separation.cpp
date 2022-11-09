@@ -49,9 +49,14 @@ s_ptr<face> mesh_separation_helper::get_random_remaining_face()
   return nullptr;
 }
 
-s_ptr<mesh_separation_helper> mesh_separation_helper::create(const s_ptr<mesh_model> &model)
+s_ptr<mesh_separation_helper> mesh_separation_helper::create(
+  const s_ptr<mesh_model> &model,
+  const std::string& _model_name,
+  mesh_separation::criterion _crtr)
 {
   auto helper_sp = std::make_shared<mesh_separation_helper>(model);
+  helper_sp->set_model_name(_model_name);
+  helper_sp->set_criterion(_crtr);
   return helper_sp;
 }
 
@@ -300,9 +305,10 @@ graphics::meshlet translate_meshlet(const s_ptr<mesh_model>& old_mesh)
   return ret;
 }
 
-std::vector<graphics::meshlet> separate_greedy(const s_ptr<mesh_separation_helper>& helper, mesh_separation::criterion crtr)
+std::vector<graphics::meshlet> separate_greedy(const s_ptr<mesh_separation_helper>& helper)
 {
   std::vector<graphics::meshlet> meshlets;
+  auto crtr = helper->get_criterion();
   s_ptr<face> current_face = helper->get_random_remaining_face();
 
   while (!helper->all_face_is_registered()) {
@@ -312,7 +318,7 @@ std::vector<graphics::meshlet> separate_greedy(const s_ptr<mesh_separation_helpe
 
     // change functions depending on the criterion
     u_ptr<bounding_volume> bv;
-    if (crtr == mesh_separation::criterion::MINIMIZE_VARIATION) bv = create_aabb_from_single_face(current_face);
+    if (crtr == mesh_separation::criterion::MINIMIZE_AABB) bv = create_aabb_from_single_face(current_face);
     if (crtr == mesh_separation::criterion::MINIMIZE_BOUNDING_SPHERE) bv = create_b_sphere_from_single_face(current_face);
 
     face_map adjoining_face_map {{current_face->id_ ,current_face}};
@@ -323,13 +329,13 @@ std::vector<graphics::meshlet> separate_greedy(const s_ptr<mesh_separation_helpe
         && adjoining_face_map.size() != 0) {
 
       // algorithm dependent part
-      if (crtr == mesh_separation::criterion::MINIMIZE_VARIATION)
+      if (crtr == mesh_separation::criterion::MINIMIZE_AABB)
         current_face = choose_the_best_face(adjoining_face_map, *bv);
       if (crtr == mesh_separation::criterion::MINIMIZE_BOUNDING_SPHERE)
         current_face = choose_the_best_face_for_sphere(adjoining_face_map, *bv);
       // update each object
       add_face_to_meshlet(current_face, ml);
-      if (crtr == mesh_separation::criterion::MINIMIZE_VARIATION)
+      if (crtr == mesh_separation::criterion::MINIMIZE_AABB)
         update_aabb(*bv, current_face);
       if (crtr == mesh_separation::criterion::MINIMIZE_BOUNDING_SPHERE)
         update_sphere(*bv, current_face);
@@ -346,18 +352,24 @@ std::vector<graphics::meshlet> separate_greedy(const s_ptr<mesh_separation_helpe
   return meshlets;
 }
 
-std::vector<graphics::meshlet> mesh_separation::separate(const s_ptr<mesh_model>& model, criterion crtr)
+std::vector<graphics::meshlet> mesh_separation::separate(
+  const s_ptr<mesh_model>& _model,
+  const std::string& _model_name,
+  criterion _crtr)
 {
-  auto helper = mesh_separation_helper::create(model);
+  auto helper = mesh_separation_helper::create(_model, _model_name, _crtr);
 
-  auto meshlets = separate_greedy(helper, crtr);
+  auto meshlets = separate_greedy(helper);
 
-  write_meshlet_cache("test", meshlets);
+  write_meshlet_cache(meshlets, helper->get_model_name(), helper->get_criterion());
 
   return meshlets;
 }
 
-void mesh_separation::write_meshlet_cache(const std::string& _filename, const std::vector<graphics::meshlet> &_meshlets)
+void mesh_separation::write_meshlet_cache(
+  const std::vector<graphics::meshlet> &_meshlets,
+  const std::string& _filename,
+  criterion _crtr)
 {
   auto directory = utils::create_sub_cache_directory("meshlets");
 
@@ -366,8 +378,34 @@ void mesh_separation::write_meshlet_cache(const std::string& _filename, const st
   writing_file.open(filepath, std::ios::out);
 
   // write contents
-  writing_file << _filename << std::endl;
+  writing_file << filepath << std::endl;
+  writing_file << "greedy" << std::endl;
+  switch (_crtr) {
+    case criterion::MINIMIZE_BOUNDING_SPHERE :
+      writing_file << "MINIMIZE_BOUNDING_SPHERE" << std::endl;
+    case criterion::MINIMIZE_AABB :
+      writing_file << "MINIMIZE_AABB" << std::endl;
+    default :
+      ;
+  }
 
+  auto meshlet_count = _meshlets.size();
+  writing_file << meshlet_count << std::endl;
+  for (int i = 0; i < meshlet_count; i++) {
+    auto current_ml = _meshlets[i];
+    // vertex info
+    writing_file << current_ml.vertex_count << std::endl;
+    for (const auto& v_id : current_ml.vertex_indices) {
+      writing_file << v_id << ",";
+    }
+    writing_file << std::endl;
+    // face info
+    writing_file << current_ml.index_count << std::endl;
+    for (const auto& i_id : current_ml.primitive_indices) {
+      writing_file << i_id << ",";
+    }
+    writing_file << std::endl;
+  }
   writing_file.close();
 }
 
