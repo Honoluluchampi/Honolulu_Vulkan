@@ -11,8 +11,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <dirent.h>
-#include <sys/stat.h>
+#include <filesystem>
 
 namespace hnll::geometry {
 
@@ -26,20 +25,6 @@ std::vector<vec3> mesh_colors {
     { 191,127,255 },
     { 127,127,255 },
 };
-
-auto convert_color_255_to_1 (vec3& color)
-{
-  return color / 255.f;
-}
-
-auto convert_colors_255_to_1 (std::vector<vec3>& colors)
-{
-  std::vector<vec3> res;
-  for (const auto& color : colors) {
-    res.emplace_back(color / 255.f);
-  }
-  return res;
-}
 
 s_ptr<face> mesh_separation_helper::get_random_remaining_face()
 {
@@ -357,9 +342,11 @@ std::vector<graphics::meshlet> mesh_separation::separate(
   const std::string& _model_name,
   criterion _crtr)
 {
+  std::vector<graphics::meshlet> meshlets;
+
   auto helper = mesh_separation_helper::create(_model, _model_name, _crtr);
 
-  auto meshlets = separate_greedy(helper);
+  meshlets = separate_greedy(helper);
 
   write_meshlet_cache(meshlets, helper->get_model_name(), helper->get_criterion());
 
@@ -383,8 +370,10 @@ void mesh_separation::write_meshlet_cache(
   switch (_crtr) {
     case criterion::MINIMIZE_BOUNDING_SPHERE :
       writing_file << "MINIMIZE_BOUNDING_SPHERE" << std::endl;
+      break;
     case criterion::MINIMIZE_AABB :
       writing_file << "MINIMIZE_AABB" << std::endl;
+      break;
     default :
       ;
   }
@@ -409,9 +398,55 @@ void mesh_separation::write_meshlet_cache(
   writing_file.close();
 }
 
-void mesh_separation::load_meshlet_cache(const std::string &_filename)
+bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vector<graphics::meshlet>& meshlets)
 {
+  std::string cache_dir = std::string(getenv("HNLL_ENGN")) + "/cache/meshlets/";
+  std::string file_path = cache_dir + _filename + ".ml";
 
+  // cache does not exist
+  if (!std::filesystem::exists(file_path)) {
+    return false;
+  }
+
+  std::ifstream reading_file(file_path);
+  std::string buffer;
+
+  if (reading_file.fail()) {
+    throw std::runtime_error("failed to open file" + file_path);
+  }
+
+  // ignore first three lines
+  for (int i = 0; i < 4; i++) {
+    getline(reading_file, buffer);
+  }
+
+  // 4th line indicates the meshlet count
+  uint32_t meshlet_count = std::stoi(buffer);
+  meshlets.resize(meshlet_count);
+
+  // read info
+  for (int i = 0; i < meshlet_count; i++) {
+    // vertex count
+    getline(reading_file, buffer);
+    meshlets[i].vertex_count = std::stoi(buffer);
+    // vertex indices array
+    for (int j = 0; j < graphics::MAX_VERTEX_PER_MESHLET; j++) {
+      getline(reading_file, buffer, ',');
+      meshlets[i].vertex_indices[j] = std::stoi(buffer);
+    }
+    getline(reading_file, buffer);
+    // index count
+    getline(reading_file, buffer);
+    meshlets[i].index_count = std::stoi(buffer);
+    // primitive indices array
+    for (int j = 0; j < graphics::MAX_INDEX_PER_MESHLET; j++) {
+      getline(reading_file, buffer, ',');
+      meshlets[i].primitive_indices[j] = std::stoi(buffer);
+    }
+    getline(reading_file, buffer);
+  }
+
+  return true;
 }
 
 } // namespace hnll::geometry

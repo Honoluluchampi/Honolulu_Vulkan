@@ -67,7 +67,8 @@ void write_meshlet_cache(
   const std::string& _filename,
   criterion _crtr);
 
-void load_meshlet_cache(const std::string& _filename);
+// returns true if the cache exists
+bool load_meshlet_cache(const std::string& _filename, std::vector<graphics::meshlet>& meshlets);
 
 } // namespace mesh_separation
 

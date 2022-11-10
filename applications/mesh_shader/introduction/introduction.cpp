@@ -25,9 +25,8 @@ class plane : public game::actor
     static s_ptr<plane> create(graphics::device& _device)
     {
       auto ret = std::make_shared<plane>();
-      std::string filename = "smooth_sphere.obj";
+      std::string filename = "bunny.obj";
       auto raw_meshlet_model = graphics::meshlet_model::create_from_file(_device, filename);
-//      auto raw_meshlet_model = create_raw_meshlets(_device);
       ret->meshlet_comp_ = game::meshlet_component::create(ret, std::move(raw_meshlet_model));
       ret->set_rotation({M_PI, 0.f, 0.f});
       game::engine::add_actor(ret);
@@ -35,24 +34,6 @@ class plane : public game::actor
     }
     plane(){}
   private:
-    static s_ptr<graphics::meshlet_model> create_raw_meshlets(graphics::device& _device)
-    {
-      // v3 --- v2
-      //  |  /  |
-      // v0 --- v1
-      graphics::vertex v0 = { vec3{-0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 1.f, 0.f}, vec2{0.f, 0.f} };
-      graphics::vertex v1 = { vec3{ 0.5f,  0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{1.f, 0.f, 0.f}, vec2{0.f, 0.f} };
-      graphics::vertex v2 = { vec3{ 0.5f, -0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 1.f, 0.f}, vec2{0.f, 0.f} };
-      graphics::vertex v3 = { vec3{-0.5f, -0.5f, 0.f}, vec3{0.f, -1.f, 0.f}, vec3{0.f, 0.f, 1.f}, vec2{0.f, 0.f} };
-      std::vector<graphics::vertex> raw_vertices = { v0, v1, v2, v3 };
-
-      std::vector<graphics::meshlet> meshlets = {
-        {{0, 1, 2}, {0, 1, 2}, 3, 3},
-        {{0, 2, 3}, {0, 1, 2}, 3, 3},
-      };
-
-      return graphics::meshlet_model::create(_device, std::move(raw_vertices), std::move(meshlets));
-    }
     s_ptr<game::meshlet_component> meshlet_comp_;
 };
 
