@@ -13,13 +13,6 @@
 
 namespace hnll::geometry {
 
-template <typename T, typename... Rest>
-void hash_combine(std::size_t& seed, const T& v, const Rest&... rest)
-{
-  seed ^= std::hash<T>{}(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-  (hash_combine(seed, rest), ...);
-}
-
 bool operator==(const vertex& rhs, const vertex& lhs)
 {
   return (rhs.position_ == lhs.position_)
@@ -32,20 +25,7 @@ bool operator==(const vertex& rhs, const vertex& lhs)
 
 namespace std {
 
-template <typename Scalar, int Rows, int Cols>
-struct hash<Eigen::Matrix<Scalar, Rows, Cols>> {
-  // https://wjngkoh.wordpress.com/2015/03/04/c-hash-function-for-eigen-matrix-and-vector/
-  size_t operator()(const Eigen::Matrix<Scalar, Rows, Cols>& matrix) const
-  {
-    size_t seed = 0;
-    for (size_t i = 0; i < matrix.size(); ++i) {
-      Scalar elem = *(matrix.data() + i);
-      seed ^=
-          std::hash<Scalar>()(elem) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    }
-    return seed;
-  }
-};
+
 
 template<>
 struct hash<hnll::geometry::vertex>
@@ -54,7 +34,7 @@ struct hash<hnll::geometry::vertex>
   {
     // stores final hash value
     size_t seed = 0;
-    hnll::geometry::hash_combine(seed, vertex.position_); //, vertex.color_, vertex.normal_, vertex.uv_);
+    hnll::geometry::hash_combine(seed, vertex.position_);
     return seed;
   }
 };
@@ -208,30 +188,10 @@ s_ptr<mesh_model> mesh_model::create_from_mesh_builder(graphics::mesh_builder &&
 void mesh_model::colorize_whole_mesh(const vec3& color)
 { for (const auto& kv : vertex_map_) kv.second->color_ = color; }
 
-half_edge_key calc_half_edge_key(const s_ptr<vertex>& v0, const s_ptr<vertex>& v1)
-{
-  half_edge_key id0 = v0->id_, id1 = v1->id_;
-  return (id0 | (id1 << 32));
-}
-
-half_edge_key calc_pair_half_edge_key(const s_ptr<vertex>& v0, const s_ptr<vertex>& v1)
-{
-  half_edge_key id0 = v0->id_, id1 = v1->id_;
-  return (id1 | (id0 << 32));
-}
-
-s_ptr<half_edge> mesh_model::get_half_edge(const s_ptr<vertex> &v0, const s_ptr<vertex> &v1)
-{
-  auto hash_key = calc_half_edge_key(v0, v1);
-  if (half_edge_map_.find(hash_key) != half_edge_map_.end())
-    return half_edge_map_[hash_key];
-  return nullptr;
-}
-
 bool mesh_model::associate_half_edge_pair(const s_ptr<half_edge> &he)
 {
-  auto hash_key = calc_half_edge_key(he->get_vertex(), he->get_next()->get_vertex());
-  auto pair_hash_key = calc_pair_half_edge_key(he->get_vertex(), he->get_next()->get_vertex());
+  half_edge_key hash_key = { *he->get_vertex(), *he->get_next()->get_vertex() };
+  half_edge_key pair_hash_key = { *he->get_next()->get_vertex(), *he->get_vertex() };
 
   half_edge_map_[hash_key] = he;
   // check if those hash_key already have a value
@@ -241,11 +201,7 @@ bool mesh_model::associate_half_edge_pair(const s_ptr<half_edge> &he)
     half_edge_map_[pair_hash_key]->set_pair(he);
     return true;
     }
-//  } else {
-    // if the pair has not added to the map
-//    half_edge_map_[hash_key] = he;
     return false;
-//  }
 }
 
 vertex_id mesh_model::add_vertex(const s_ptr<vertex> &v)

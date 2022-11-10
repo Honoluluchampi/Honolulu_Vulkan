@@ -11,6 +11,46 @@
 //lib
 #include <eigen3/Eigen/Dense>
 
+// hash functions
+namespace hnll::geometry {
+template<typename T, typename... Rest>
+void hash_combine(std::size_t &seed, const T &v, const Rest &... rest) {
+  seed ^= std::hash<T>{}(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+  (hash_combine(seed, rest), ...);
+}
+} // namespace hnll::geometry
+
+namespace std {
+template <typename Scalar, int Rows, int Cols>
+struct hash<Eigen::Matrix<Scalar, Rows, Cols>> {
+  // https://wjngkoh.wordpress.com/2015/03/04/c-hash-function-for-eigen-matrix-and-vector/
+  size_t operator()(const Eigen::Matrix<Scalar, Rows, Cols>& matrix) const
+  {
+    size_t seed = 0;
+    for (size_t i = 0; i < matrix.size(); ++i) {
+      Scalar elem = *(matrix.data() + i);
+      seed ^=
+        std::hash<Scalar>()(elem) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+    return seed;
+  }
+};
+
+// hash for half edge map
+template<>
+struct hash<std::pair<hnll::geometry::vertex, hnll::geometry::vertex>>
+{
+  size_t operator() (const std::pair<hnll::geometry::vertex, hnll::geometry::vertex>& vertex_pair) const
+  {
+    size_t seed = 0;
+    // only positions of vertex matter for half edge
+    hnll::geometry::hash_combine(seed, vertex_pair.first.position_, vertex_pair.second.position_);
+    return seed;
+  }
+};
+
+} // namespace std
+
 // forward declaration
 namespace hnll::graphics { class mesh_model; struct mesh_builder; }
 namespace hnll::geometry {
@@ -30,7 +70,7 @@ using vertex_id     = uint32_t;
 using vertex_map    = std::unordered_map<vertex_id, s_ptr<vertex>>;
 using face_id       = uint32_t;
 using face_map      = std::unordered_map<face_id, s_ptr<face>>;
-using half_edge_key = uint64_t; // consists of two vertex_ids
+using half_edge_key = std::pair<vertex, vertex>;
 using half_edge_map = std::unordered_map<half_edge_key, s_ptr<half_edge>>;
 
 class mesh_model
@@ -46,7 +86,7 @@ class mesh_model
     // vertices are assumed to be in a counter-clockwise order
     vertex_id add_vertex(const s_ptr<vertex>& v);
     face_id   add_face(s_ptr<vertex>& v0, s_ptr<vertex>& v1, s_ptr<vertex>& v2,
-                       geometry::auto_vertex_normal_calculation avnc= geometry::auto_vertex_normal_calculation::OFF);
+      geometry::auto_vertex_normal_calculation avnc = geometry::auto_vertex_normal_calculation::OFF);
 
     // getter
     vertex_map       get_vertex_map() const         { return vertex_map_; }
@@ -57,7 +97,6 @@ class mesh_model
     size_t           get_half_edge_count() const    { return half_edge_map_.size(); }
     s_ptr<face>      get_face(const face_id id)     { return face_map_[id]; }
     s_ptr<vertex>    get_vertex(const vertex_id id) { return vertex_map_[id]; }
-    s_ptr<half_edge> get_half_edge(const s_ptr<vertex>& v0, const s_ptr<vertex>& v1);
     const bounding_volume& get_bounding_volume() const;
     u_ptr<bounding_volume> get_bounding_volume_copy() const;
     u_ptr<bounding_volume> get_ownership_of_bounding_volume();

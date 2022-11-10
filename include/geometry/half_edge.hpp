@@ -22,7 +22,7 @@ using vertex_id     = uint32_t;
 using vertex_map    = std::unordered_map<vertex_id, s_ptr<vertex>>;
 using face_id       = uint32_t;
 using face_map      = std::unordered_map<face_id, s_ptr<face>>;
-using half_edge_key = uint64_t; // consists of two vertex_ids
+using half_edge_key = std::pair<vertex, vertex>; // consists of two vertex_ids
 
 struct vertex
 {
