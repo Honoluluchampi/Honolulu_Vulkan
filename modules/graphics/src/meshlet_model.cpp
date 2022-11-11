@@ -35,21 +35,20 @@ u_ptr<meshlet_model> meshlet_model::create(
 
 u_ptr<meshlet_model> meshlet_model::create_from_file(hnll::graphics::device &_device, std::string _filename)
 {
-  mesh_builder builder;
-  builder.load_model(utils::get_full_path(_filename));
-  std::cout << _filename << " vertex count: " << builder.vertices.size() << "\n";
-
   std::vector<meshlet> meshlets;
 
-  // if model's cache exists
-  if (geometry::mesh_separation::load_meshlet_cache(_filename, meshlets)) {
-    return create(_device, std::move(builder.vertices), std::move(meshlets));
-  }
+//  // if model's cache exists
+//  if (geometry::mesh_separation::load_meshlet_cache(_filename, meshlets)) {
+//    return create(_device, std::move(builder.vertices), std::move(meshlets));
+//  }
 
-  // copy vertices
-  auto raw_vertices = builder.vertices;
-  auto geometry_model = geometry::mesh_model::create_from_mesh_builder(std::move(builder));
+  mesh_builder builder;
+  builder.load_model(utils::get_full_path(_filename));
+
+  // prepare required data
+  auto geometry_model = geometry::mesh_model::create_from_obj_file(_filename);
   meshlets = geometry::mesh_separation::separate(geometry_model, _filename);
+  auto raw_vertices = geometry_model->move_raw_vertices();
 
   std::cout << "meshlet count : " << meshlets.size() << std::endl;
   return create(_device, std::move(raw_vertices), std::move(meshlets));

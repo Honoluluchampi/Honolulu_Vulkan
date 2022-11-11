@@ -2,6 +2,7 @@
 
 // hnll
 #include <geometry/half_edge.hpp>
+#include <graphics/utils.hpp>
 
 // std
 #include <memory>
@@ -12,31 +13,10 @@
 #include <eigen3/Eigen/Dense>
 
 // hash functions
-namespace hnll::geometry {
-template<typename T, typename... Rest>
-void hash_combine(std::size_t &seed, const T &v, const Rest &... rest) {
-  seed ^= std::hash<T>{}(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-  (hash_combine(seed, rest), ...);
-}
-} // namespace hnll::geometry
 
-namespace std {
-template <typename Scalar, int Rows, int Cols>
-struct hash<Eigen::Matrix<Scalar, Rows, Cols>> {
-  // https://wjngkoh.wordpress.com/2015/03/04/c-hash-function-for-eigen-matrix-and-vector/
-  size_t operator()(const Eigen::Matrix<Scalar, Rows, Cols>& matrix) const
-  {
-    size_t seed = 0;
-    for (size_t i = 0; i < matrix.size(); ++i) {
-      Scalar elem = *(matrix.data() + i);
-      seed ^=
-        std::hash<Scalar>()(elem) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    }
-    return seed;
-  }
-};
 
 // hash for half edge map
+namespace std {
 template<>
 struct hash<std::pair<hnll::geometry::vertex, hnll::geometry::vertex>>
 {
@@ -44,7 +24,7 @@ struct hash<std::pair<hnll::geometry::vertex, hnll::geometry::vertex>>
   {
     size_t seed = 0;
     // only positions of vertex matter for half edge
-    hnll::geometry::hash_combine(seed, vertex_pair.first.position_, vertex_pair.second.position_);
+    hnll::graphics::hash_combine(seed, vertex_pair.first.position_, vertex_pair.second.position_);
     return seed;
   }
 };
@@ -52,7 +32,13 @@ struct hash<std::pair<hnll::geometry::vertex, hnll::geometry::vertex>>
 } // namespace std
 
 // forward declaration
-namespace hnll::graphics { class mesh_model; struct mesh_builder; }
+namespace hnll::graphics
+{
+class mesh_model;
+struct vertex;
+struct mesh_builder;
+}
+
 namespace hnll::geometry {
 
 // forward declaration
@@ -78,7 +64,6 @@ class mesh_model
   public:
     static s_ptr<mesh_model> create();
     static s_ptr<mesh_model> create_from_obj_file(const std::string& filename);
-    static s_ptr<mesh_model> create_from_mesh_builder(graphics::mesh_builder&& builder);
 
     mesh_model();
     void align_vertex_id();
@@ -101,6 +86,8 @@ class mesh_model
     u_ptr<bounding_volume> get_bounding_volume_copy() const;
     u_ptr<bounding_volume> get_ownership_of_bounding_volume();
 
+    std::vector<graphics::vertex> move_raw_vertices() { return std::move(raw_vertices_); }
+
     // setter
     void set_bounding_volume(u_ptr<bounding_volume>&& bv);
     void colorize_whole_mesh(const vec3& color);
@@ -113,6 +100,8 @@ class mesh_model
     face_map      face_map_;
     vertex_map    vertex_map_;
     u_ptr<bounding_volume> bounding_volume_;
+    // move to graphics::meshlet_model
+    std::vector<graphics::vertex> raw_vertices_;
 };
 
 
