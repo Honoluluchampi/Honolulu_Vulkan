@@ -168,7 +168,7 @@ void engine::init_actors()
 void engine::load_data()
 {
   // load raw mesh data
-  load_mesh_models("/home/honolulu/models/primitives");
+  // load_mesh_models("/home/honolulu/models/primitives");
   // load_actor();
 }
 

@@ -37,19 +37,19 @@ s_ptr<vertex> translate_vertex_graphics_to_geometry(const graphics::vertex& pseu
 
 s_ptr<mesh_model> mesh_model::create_from_obj_file(const std::string& filename)
 {
-  auto filepath = utils::get_full_path(filename);
   tinyobj::attrib_t attrib;
   std::vector<tinyobj::shape_t> shapes;
   std::vector<tinyobj::material_t> materials;
   std::string warn, err;
 
-  if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str()))
+  if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filename.c_str()))
     throw std::runtime_error(warn + err);
 
   auto mesh_model = mesh_model::create();
 
   std::unordered_map<graphics::vertex, vertex_id> unique_vertices{};
-  std::vector<vertex_id> indices;
+  mesh_model->raw_vertices_.clear();
+  std::vector<vertex_id> indices{};
 
   for (const auto& shape : shapes) {
     for (const auto& index : shape.mesh.indices) {
@@ -85,8 +85,8 @@ s_ptr<mesh_model> mesh_model::create_from_obj_file(const std::string& filename)
         };
       }
       // if vertex is a new vertex
-      if (unique_vertices.find(vertex) == unique_vertices.end()) {
-        auto new_vertex = translate_vertex_graphics_to_geometry(std::move(vertex));
+      if (unique_vertices.count(vertex) == 0) {
+        auto new_vertex = translate_vertex_graphics_to_geometry(vertex);
         auto new_id = mesh_model->add_vertex(new_vertex);
         unique_vertices[vertex] = new_id;
         mesh_model->raw_vertices_.emplace_back(std::move(vertex));
@@ -152,12 +152,13 @@ graphics::vertex convert_vertex_geometry_to_graphics(const geometry::vertex& ver
   ret.normal   = vert.normal_.cast<float>();
   ret.color    = vert.color_.cast<float>();
   ret.uv       = vert.uv_.cast<float>();
+  return ret;
 }
 
 vertex_id mesh_model::add_vertex(const s_ptr<vertex> &v)
 {
   // if the vertex has not been involved
-  if (vertex_map_.find(v->id_) == vertex_map_.end()) {
+  if (vertex_map_.count(v->id_) == 0) {
     vertex_map_[v->id_] = v;
   }
   return v->id_;
