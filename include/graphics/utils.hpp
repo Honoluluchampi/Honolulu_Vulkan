@@ -34,3 +34,45 @@ struct mesh_builder
 };
 
 } // namespace hnll::graphics
+
+namespace std {
+
+template<typename Scalar, int Rows, int Cols>
+struct hash<Eigen::Matrix<Scalar, Rows, Cols>> {
+  // https://wjngkoh.wordpress.com/2015/03/04/c-hash-function-for-eigen-matrix-and-vector/
+  size_t operator()(const Eigen::Matrix<Scalar, Rows, Cols> &matrix) const {
+    size_t seed = 0;
+    for (size_t i = 0; i < matrix.size(); ++i) {
+      Scalar elem = *(matrix.data() + i);
+      seed ^=
+        std::hash<Scalar>()(elem) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+    return seed;
+  }
+};
+} // namespace std
+
+namespace hnll::graphics {
+// https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x/57595105#57595105
+template<typename T, typename... Rest>
+void hash_combine(std::size_t &seed, const T &v, const Rest &... rest) {
+  seed ^= std::hash<T>{}(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+  (hash_combine(seed, rest), ...);
+}
+} // namespace hnll::graphics
+
+namespace std {
+
+template <>
+struct hash<hnll::graphics::vertex>
+{
+  size_t operator() (hnll::graphics::vertex const &vertex) const
+  {
+    // stores final hash value
+    size_t seed = 0;
+    hnll::graphics::hash_combine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
+    return seed;
+  }
+};
+
+} // namespace std

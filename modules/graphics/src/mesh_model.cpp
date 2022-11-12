@@ -15,22 +15,6 @@
 #include <iostream>
 #include <unordered_map>
 
-namespace std {
-
-template <>
-struct hash<hnll::graphics::vertex>
-{
-  size_t operator() (hnll::graphics::vertex const &vertex) const
-  {
-    // stores final hash value
-    size_t seed = 0;
-    hnll::graphics::hash_combine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
-    return seed;
-  }
-};
-
-} // namespace std
-
 namespace hnll::graphics {
 
 mesh_model::mesh_model(device& device, const mesh_builder &builder) : device_{device}

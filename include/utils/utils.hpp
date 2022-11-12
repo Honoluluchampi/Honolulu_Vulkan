@@ -19,8 +19,8 @@ template<class S> using s_ptr = std::shared_ptr<S>;
 namespace utils {
 
 static std::vector<std::string> loading_directories {
+  "/home/honolulu/models/characters",
   "/home/honolulu/models/primitives",
-  "/home/honolulu/models/characters"
 };
 
 std::string get_full_path(const std::string& _filename);
