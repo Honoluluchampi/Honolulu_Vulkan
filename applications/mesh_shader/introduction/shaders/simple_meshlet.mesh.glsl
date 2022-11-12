@@ -7,19 +7,18 @@ layout(local_size_x = 2) in;
 
 const uint MAX_VERTEX_COUNT = 64;
 const uint MAX_PRIMITIVE_INDICES_COUNT = 378;
-const uint MAX_MESHLET_COUNT = 10;
 const uint MESHLET_PER_TASK = 32;
 
 // identifier "triangles" indicates this shader outputs trianlges (other candidates : point, line)
 // gl_MeshVerticesNV and glPrimitiveIndicesNV is resized according to these values
 layout(triangles, max_vertices = MAX_VERTEX_COUNT, max_primitives = MAX_PRIMITIVE_INDICES_COUNT / 3) out;
 
-// // inputs from task shader
-// //taskNV in Task {
-// taskNV in task {
-//   uint    baseID;
-//   uint8_t deltaIDs[MESHLET_PER_TASK];
-// } IN;
+// inputs from task shader
+//taskNV in Task {
+taskNV in task {
+  uint    base_id;
+  uint8_t sub_ids[MESHLET_PER_TASK];
+} IN;
 // // gl_WorkGroupID.x runs from [0 .. parentTask.gl_TaskCountNV - 1]
 // uint meshletID = IN.baseID + IN.deltaIDs[gl_WorkGroupID.x];
 
@@ -98,7 +97,7 @@ vec3 meshlet_colors[COLOR_COUNT] = {
 void main() {
 
   // following three gl_~NV variables are built in variables for mesh shading
-  uint meshlet_index = gl_WorkGroupID.x;
+  uint meshlet_index = IN.base_id + IN.sub_ids[gl_WorkGroupID.x];
   meshlet current_meshlet = meshlets[meshlet_index];
 
   //------- vertex processing ---------------------------------------------

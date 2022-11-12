@@ -68,10 +68,12 @@ void meshlet_rendering_system::create_pipeline(
   // create shader modules
   auto directory = std::string(std::getenv("HNLL_ENGN")) + "/applications/mesh_shader/introduction/shaders/spv/";
   std::vector<std::string> shader_paths = {
+    directory + "simple_meshlet.task.glsl.spv",
     directory + "simple_meshlet.mesh.glsl.spv",
-    directory + "simple_meshlet.frag.glsl.spv"
+    directory + "simple_meshlet.frag.glsl.spv",
   };
   std::vector<VkShaderStageFlagBits> shader_stage_flags = {
+    VK_SHADER_STAGE_TASK_BIT_NV,
     VK_SHADER_STAGE_MESH_BIT_NV,
     VK_SHADER_STAGE_FRAGMENT_BIT,
   };
