@@ -160,6 +160,10 @@ class engine {
 
     std::chrono::system_clock::time_point current_time_;
 
+    // for rendering systems
+    utils::viewer_info  viewer_info_;
+    utils::frustum_info frustum_info_;
+
     // glfw
     static std::vector<u_ptr<std::function<void(GLFWwindow *, int, int, int)>>>
         glfw_mouse_button_callbacks_;

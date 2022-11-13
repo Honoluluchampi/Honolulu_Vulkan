@@ -24,11 +24,13 @@ public:
   default_camera(default_camera &&) = default;
   default_camera& operator=(default_camera &&) = default;
 
+  void update_frustum() { viewer_comp_sp_->update_frustum(); }
   // getter
-  utils::viewer_info get_viewer_info() const { return {viewer_comp_sp_->get_projection_ref(), viewer_comp_sp_->get_view_ref(), viewer_comp_sp_->get_inverse_view_ref()}; }
-  bool is_movement_updating() const { return key_comp_sp_->is_updating(); }
-  inline hnll::utils::transform& get_transform() { return transform_; }
-  inline s_ptr<viewer_component> get_viewer_component_sp() const { return viewer_comp_sp_; }  
+  utils::viewer_info  get_viewer_info()  const { return {viewer_comp_sp_->get_projection_ref(), viewer_comp_sp_->get_view_ref(), viewer_comp_sp_->get_inverse_view_ref()}; }
+  utils::frustum_info get_frustum_info() const;
+  bool is_movement_updating()                              const { return key_comp_sp_->is_updating(); }
+  inline hnll::utils::transform& get_transform()                 { return transform_; }
+  inline s_ptr<viewer_component> get_viewer_component_sp() const { return viewer_comp_sp_; }
   // setter
   void set_movement_updating_on()  { key_comp_sp_->set_updating_on(); }
   void set_movement_updating_off() { key_comp_sp_->set_updating_off(); }

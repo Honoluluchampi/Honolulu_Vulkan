@@ -28,6 +28,8 @@ class viewer_component : public component
 
     void update_component(float dt) override;
 
+    void update_frustum();
+
     // getter
     static float get_near_distance() { return near_distance_; }
     static float get_fov_y()         { return fov_y_; }
