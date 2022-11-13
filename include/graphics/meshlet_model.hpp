@@ -39,8 +39,10 @@ struct meshlet
   uint32_t vertex_count;
   uint32_t index_count;
   // for frustum culling (for bounding sphere)
-  alignas(16) vec3  center;
-  float radius;
+  alignas(16) vec3 center;
+  float            radius;
+  // for aabb
+  // alignas(16) vec3 radius;
 };
 
 class meshlet_model

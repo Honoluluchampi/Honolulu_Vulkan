@@ -60,23 +60,66 @@ layout(set = 2, binding = 0) buffer _mesh_buffer {
 // ------------------------------------------------------
 // frustum info
 
-// layout(set = 3, binding = 0) uniform _frustum_info {
+struct plane {
+  vec3 position;
+  vec3 normal;
+};
 
-// }
+// top, bottom, right, left have same position (camera position)
+struct frustum_info {
+  vec3 camera_position;
+  vec3 top_n;
+  vec3 bottom_n;
+  vec3 right_n;
+  vec3 left_n;
+  plane near;
+  plane far;
+};
+
+layout(set = 3, binding = 0) uniform _frustum_info {
+  frustum_info frustum;
+};
 
 // ------------------------------------------------------
+
+layout(push_constant) uniform Push {
+  mat4 model_matrix;
+  mat4 normal_matrix;
+} push;
+
+// ------------------------------------------------------
+
+// signed distance
+double distance_point_to_plane(vec3 point, vec3 plane_position, vec3 plane_normal) {
+  return dot(plane_normal, point - plane_position);
+}
+
+// returns true if an object is (partly) included by the frustum
+bool sphere_frustum_intersection(vec3 world_center, float radius) {
+  bool top    = distance_point_to_plane(world_center, frustum.camera_position, frustum.top_n)    > -radius;
+  bool bottom = distance_point_to_plane(world_center, frustum.camera_position, frustum.bottom_n) > -radius;
+  bool right  = distance_point_to_plane(world_center, frustum.camera_position, frustum.right_n)  > -radius;
+  bool left   = distance_point_to_plane(world_center, frustum.camera_position, frustum.left_n)   > -radius;
+  bool near   = distance_point_to_plane(world_center, frustum.near.position,   frustum.near.normal) > -radius;
+  bool far    = distance_point_to_plane(world_center, frustum.far.position,    frustum.far.normal)  > -radius;
+  return top && bottom && right && left && near && far; 
+}
 
 void main() {
     uint out_meshlet_count = 0;
     uint meshlet_count = meshlets.length();
 
     for (uint i = 0; i < MESHLET_PER_TASK; i++) {
-        if (i % 2 == 1) {
-          uint meshlet_local = lane_id + i;
+      uint meshlet_local = lane_id + i;
+      uint current_meshlet_index = base_id + meshlet_local;
+      meshlet current_meshlet = meshlets[current_meshlet_index];
 
-          OUT.sub_ids[out_meshlet_count] = uint8_t(meshlet_local);
-          out_meshlet_count += 1;
-        }
+      vec4 world_center = push.model_matrix * vec4(current_meshlet.center, 1.0);
+
+      if (sphere_frustum_intersection(world_center.xyz, current_meshlet.radius)) {
+        OUT.sub_ids[out_meshlet_count] = uint8_t(meshlet_local);
+        out_meshlet_count += 1;
+      }
     }
 
     if (lane_id == 0) {
