@@ -7,6 +7,13 @@
 
 namespace hnll::graphics {
 
+// data for cluster culling
+struct task_push_constant
+{
+  Eigen::Matrix4f model_matrix = Eigen::Matrix4f::Identity();
+
+};
+
 struct meshlet_push_constant
 {
   Eigen::Matrix4f model_matrix  = Eigen::Matrix4f::Identity();

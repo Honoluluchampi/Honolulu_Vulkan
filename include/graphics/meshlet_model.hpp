@@ -38,6 +38,9 @@ struct meshlet
   uint32_t primitive_indices[MAX_INDEX_PER_MESHLET];
   uint32_t vertex_count;
   uint32_t index_count;
+  // for frustum culling (for bounding sphere)
+  alignas(16) vec3  center;
+  float radius;
 };
 
 class meshlet_model
@@ -76,7 +79,7 @@ class meshlet_model
     void create_desc_set_layouts(device& _device);
     void create_desc_sets();
 
-    std::vector<vertex>    raw_vertices_;
+    std::vector<vertex>  raw_vertices_;
     std::vector<meshlet> meshlets_;
     u_ptr<descriptor_pool>                    desc_pool_;
     std::vector<u_ptr<buffer>>                desc_buffers_;

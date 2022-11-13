@@ -287,6 +287,10 @@ graphics::meshlet translate_meshlet(const s_ptr<mesh_model>& old_mesh)
   }
   ret.index_count = current_id;
 
+  // fill bounding volume info
+  ret.center = old_mesh->get_bounding_volume().get_local_center_point().cast<float>();
+  ret.radius = old_mesh->get_bounding_volume().get_sphere_radius();
+
   return ret;
 }
 

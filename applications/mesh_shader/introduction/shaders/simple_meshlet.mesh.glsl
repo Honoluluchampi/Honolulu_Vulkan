@@ -3,7 +3,7 @@
 #extension GL_EXT_shader_explicit_arithmetic_types : require
 
 // the second variable of vkCmdDrawMeshTasksNV()
-layout(local_size_x = 2) in;
+layout(local_size_x = 32) in;
 
 const uint MAX_VERTEX_COUNT = 64;
 const uint MAX_PRIMITIVE_INDICES_COUNT = 378;
@@ -67,6 +67,9 @@ struct meshlet {
   uint primitive_indices[MAX_PRIMITIVE_INDICES_COUNT];
   uint vertex_count; // < MAX_VERTEX_COUNT
   uint index_count; // < MAX_PRIMITIVE_INDICES_COUNT
+  // for frustum culling
+  vec3 center;
+  float radius;
 };
 
 layout(set = 2, binding = 0) buffer _mesh_buffer {
