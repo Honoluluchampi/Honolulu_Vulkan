@@ -34,7 +34,7 @@ class engine
     engine(const engine &) = delete;
     engine &operator= (const engine &) = delete;
 
-    void render(const utils::viewer_info& _viewer_info, const utils::frustum_info& _frustum_info);
+    void render(const utils::viewer_info& _viewer_info, utils::frustum_info& _frustum_info);
 
     // takes s_ptr<RenderableComponent>
     template<class RC>

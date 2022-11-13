@@ -1,7 +1,7 @@
 #pragma once 
 
 // hnll
-#include <graphics/camera.hpp>
+#include <utils/utils.hpp>
 
 // libs
 #include <eigen3/Eigen/Dense>
@@ -36,5 +36,6 @@ struct frame_info
   int frame_index;
   VkCommandBuffer command_buffer;
   VkDescriptorSet global_descriptor_set;
+  utils::frustum_info* frustum_info;
 };
 } // namespace hnll::graphics

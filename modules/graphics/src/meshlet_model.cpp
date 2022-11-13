@@ -55,13 +55,15 @@ u_ptr<meshlet_model> meshlet_model::create_from_file(hnll::graphics::device &_de
 }
 
 void meshlet_model::bind(
-  VkCommandBuffer  _command_buffer,
-  VkDescriptorSet  _global_desc_set,
-  VkPipelineLayout _pipeline_layout)
+  VkCommandBuffer              _command_buffer,
+  std::vector<VkDescriptorSet> _external_desc_set,
+  VkPipelineLayout             _pipeline_layout)
 {
   // prepare desc sets
   std::vector<VkDescriptorSet> desc_sets;
-  desc_sets.push_back(_global_desc_set);
+  for (const auto& set : _external_desc_set) {
+    desc_sets.push_back(set);
+  }
   for (const auto& set : desc_sets_) {
     desc_sets.push_back(set);
   }

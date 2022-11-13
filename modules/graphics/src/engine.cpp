@@ -42,7 +42,7 @@ void engine::init()
     .add_pool_size(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, swap_chain::MAX_FRAMES_IN_FLIGHT)
     .build();
 
-  // creating ubo for each frames version
+  // creating ubo for each frame version
   for (int i = 0; i < ubo_buffers_.size(); i++) {
     ubo_buffers_[i] = std::make_unique<buffer>(
       *device_,
@@ -112,7 +112,7 @@ void engine::init()
 }
 
 // each render systems automatically detect render target components
-void engine::render(utils::viewer_info&& viewer_info)
+void engine::render(const utils::viewer_info& _viewer_info, utils::frustum_info& _frustum_info)
 {
   // returns nullptr if the swap chain is need to be recreated
   if (auto command_buffer = renderer_->begin_frame()) {
@@ -121,13 +121,14 @@ void engine::render(utils::viewer_info&& viewer_info)
     frame_info frame_info{
         frame_index, 
         command_buffer, 
-        global_descriptor_sets_[frame_index]
+        global_descriptor_sets_[frame_index],
+        &_frustum_info
     };
 
     // update 
-    ubo_.projection   = viewer_info.projection;
-    ubo_.view         = viewer_info.view;
-    ubo_.inverse_view = viewer_info.inverse_view;
+    ubo_.projection   = _viewer_info.projection;
+    ubo_.view         = _viewer_info.view;
+    ubo_.inverse_view = _viewer_info.inverse_view;
     ubo_buffers_[frame_index]->write_to_buffer(&ubo_);
     ubo_buffers_[frame_index]->flush();
 

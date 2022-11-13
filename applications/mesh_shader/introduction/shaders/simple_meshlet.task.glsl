@@ -87,7 +87,7 @@ layout(push_constant) uniform Push {
 // ------------------------------------------------------
 
 // signed distance
-double distance_point_to_plane(vec3 point, vec3 plane_position, vec3 plane_normal) {
+float distance_point_to_plane(vec3 point, vec3 plane_position, vec3 plane_normal) {
   return dot(plane_normal, point - plane_position);
 }
 

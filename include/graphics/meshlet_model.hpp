@@ -60,9 +60,9 @@ class meshlet_model
     static u_ptr<meshlet_model> create_from_file(device& _device, std::string _filename);
 
     void bind(
-      VkCommandBuffer  _command_buffer,
-      VkDescriptorSet  _global_desc_set,
-      VkPipelineLayout _pipeline_layout);
+      VkCommandBuffer               _command_buffer,
+      std::vector<VkDescriptorSet>  _external_desc_set,
+      VkPipelineLayout              _pipeline_layout);
     void draw(VkCommandBuffer  _command_buffer);
 
     // getter
