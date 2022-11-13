@@ -72,5 +72,18 @@ struct viewer_info
   Eigen::Matrix4f inverse_view = Eigen::Matrix4f::Identity();
 };
 
+struct frustum_info
+{
+  Eigen::Vector3f camera_position;
+  Eigen::Vector3f near_position;
+  Eigen::Vector3f far_position;
+  Eigen::Vector3f top_n;
+  Eigen::Vector3f bottom_n;
+  Eigen::Vector3f right_n;
+  Eigen::Vector3f left_n;
+  Eigen::Vector3f near_n;
+  Eigen::Vector3f far_n;
+};
+
 } // namespace utils
 } // namespace hnll
