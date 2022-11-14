@@ -461,6 +461,7 @@ bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vect
     meshlets[i].center.y() = std::stof(buffer);
     getline(reading_file, buffer);
     meshlets[i].center.z() = std::stof(buffer);
+    // radius
     getline(reading_file, buffer);
     meshlets[i].radius = std::stof(buffer);
   }

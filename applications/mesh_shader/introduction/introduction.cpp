@@ -4,6 +4,8 @@
 #include <graphics/meshlet_model.hpp>
 #include <game/actor.hpp>
 #include <game/engine.hpp>
+#include <game/actors/default_camera.hpp>
+#include <game/actors/virtual_camera.hpp>
 #include <game/components/meshlet_component.hpp>
 #include <physics/engine.hpp>
 
@@ -19,12 +21,12 @@ using vec2 = Eigen::Vector2f;
 using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
 
-class plane : public game::actor
+class ml_actor : public game::actor
 {
   public:
-    static s_ptr<plane> create(graphics::device& _device)
+    static s_ptr<ml_actor> create(graphics::device& _device)
     {
-      auto ret = std::make_shared<plane>();
+      auto ret = std::make_shared<ml_actor>();
       std::string filename = "bunny.obj";
       auto raw_meshlet_model = graphics::meshlet_model::create_from_file(_device, filename);
       ret->meshlet_comp_ = game::meshlet_component::create(ret, std::move(raw_meshlet_model));
@@ -32,7 +34,7 @@ class plane : public game::actor
       game::engine::add_actor(ret);
       return ret;
     }
-    plane(){}
+    ml_actor(){}
   private:
     s_ptr<game::meshlet_component> meshlet_comp_;
 };
@@ -42,14 +44,41 @@ class mesh_shader_introduction : public game::engine
   public:
     mesh_shader_introduction() : game::engine("mesh shader introduction")
     {
-      plane_ = plane::create(get_graphics_device());
+      ml_actor_ = ml_actor::create(get_graphics_device());
+      add_virtual_camera();
     }
 
     ~mesh_shader_introduction() override = default;
 
   private:
+    void add_virtual_camera()
+    {
+      virtual_camera_ = game::virtual_camera::create(get_graphics_engine());
+      add_actor(virtual_camera_);
+    }
+
+    void update_game_gui() override
+    {
+      ImGui::Begin("stats");
+
+      if (ImGui::Button("change key move target")) {
+        if (camera_up_->is_movement_updating()) {
+          camera_up_->set_movement_updating_off();
+          virtual_camera_->set_movement_updating_on();
+        }
+        else {
+          camera_up_->set_movement_updating_on();
+          virtual_camera_->set_movement_updating_off();
+        }
+      }
+
+      ImGui::End();
+    }
     // sample object
-    s_ptr<plane> plane_;
+    s_ptr<ml_actor> ml_actor_;
+    s_ptr<game::virtual_camera> virtual_camera_;
+    // frustum culling is organized based on this frustum;
+    s_ptr<geometry::perspective_frustum> active_frustum_;
 };
 } // namespace hnll
 
