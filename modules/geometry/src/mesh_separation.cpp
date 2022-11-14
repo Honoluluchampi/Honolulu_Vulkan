@@ -398,6 +398,11 @@ void mesh_separation::write_meshlet_cache(
       writing_file << i_id << ",";
     }
     writing_file << std::endl;
+    // bonding volume info
+    writing_file << current_ml.center.x() << ',' <<
+      current_ml.center.y() << ',' <<
+      current_ml.center.z() << std::endl;
+    writing_file << current_ml.radius << std::endl;
   }
   writing_file.close();
 }
@@ -448,6 +453,16 @@ bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vect
       meshlets[i].primitive_indices[j] = std::stoi(buffer);
     }
     getline(reading_file, buffer);
+    // bounding volume
+    // center
+    getline(reading_file, buffer, ',');
+    meshlets[i].center.x() = std::stof(buffer);
+    getline(reading_file, buffer, ',');
+    meshlets[i].center.y() = std::stof(buffer);
+    getline(reading_file, buffer);
+    meshlets[i].center.z() = std::stof(buffer);
+    getline(reading_file, buffer);
+    meshlets[i].radius = std::stof(buffer);
   }
 
   return true;
