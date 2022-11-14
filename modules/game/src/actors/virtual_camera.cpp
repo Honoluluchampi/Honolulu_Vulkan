@@ -21,6 +21,23 @@ s_ptr<virtual_camera> virtual_camera::create(hnll::graphics::engine& _engine)
   return camera;
 }
 
+utils::frustum_info virtual_camera::get_frustum_info()
+{
+  auto& frustum = get_perspective_frustum();
+  const auto& transform = get_transform_sp();
+  return {
+    { transform->translation.x, transform->translation.y, transform->translation.z},
+    frustum.get_near_p().cast<float>(),
+    frustum.get_far_p().cast<float>(),
+    frustum.get_top_n().cast<float>(),
+    frustum.get_bottom_n().cast<float>(),
+    frustum.get_right_n().cast<float>(),
+    frustum.get_left_n().cast<float>(),
+    frustum.get_near_n().cast<float>(),
+    frustum.get_far_n().cast<float>(),
+  };
+}
+
 void virtual_camera::update_frustum_planes()
 {
   wire_frustum_comp_->update_frustum_planes(*get_transform_sp());

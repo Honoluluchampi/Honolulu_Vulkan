@@ -59,6 +59,10 @@ class mesh_shader_introduction : public game::engine
 
     void update_game_gui() override
     {
+      // this part should be contained in update_game()...
+      virtual_camera_->update_frustum_planes();
+      set_frustum_info(virtual_camera_->get_frustum_info());
+
       ImGui::Begin("stats");
 
       if (ImGui::Button("change key move target")) {

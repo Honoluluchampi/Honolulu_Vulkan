@@ -132,10 +132,7 @@ void engine::re_update_actors()
 
 void engine::render()
 {
-  // update culling frustum
-//  camera_up_->update_frustum();
   viewer_info_  = camera_up_->get_viewer_info();
-//  frustum_info_ = camera_up_->get_frustum_info();
   graphics_engine_->render(viewer_info_, frustum_info_);
 #ifndef IMGUI_DISABLED
   if (!hnll::graphics::renderer::swap_chain_recreated_){
@@ -292,4 +289,8 @@ void engine::glfw_mouse_button_callback(GLFWwindow* window, int button, int acti
 #endif
 }
 
+void engine::set_frustum_info(utils::frustum_info &&_frustum_info)
+{
+  frustum_info_ = std::move(_frustum_info);
+}
 } // namespace hnll::game

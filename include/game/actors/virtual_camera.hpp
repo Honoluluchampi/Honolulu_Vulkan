@@ -27,6 +27,7 @@ class virtual_camera : public actor {
 
     // getter
     const geometry::perspective_frustum& get_perspective_frustum() const;
+    utils::frustum_info get_frustum_info();
 
     // setter
     void set_movement_updating_on();

@@ -79,6 +79,9 @@ class engine {
     static s_ptr<hnll::graphics::mesh_model>
     get_mesh_model_sp(std::string model_name) { return mesh_model_map_[model_name]; }
 
+    // setter
+    void set_frustum_info(utils::frustum_info&& _frustum_info);
+
 #ifndef IMGUI_DISABLED
 
     u_ptr<hnll::gui::engine> &get_gui_engine_up() { return gui_engine_; }
