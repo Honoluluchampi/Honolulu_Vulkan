@@ -7,6 +7,7 @@
 #include <physics/collision_info.hpp>
 #include <physics/collision_detector.hpp>
 #include <physics/engine.hpp>
+#include <graphics/meshlet_model.hpp>
 
 // lib
 #include <imgui.h>
@@ -26,6 +27,8 @@ actor_map             engine::active_actor_map_{};
 actor_map             engine::pending_actor_map_{};
 std::vector<actor_id> engine::dead_actor_ids_{};
 mesh_model_map        engine::mesh_model_map_;
+meshlet_model_map     engine::meshlet_model_map_;
+
 
 // glfw
 GLFWwindow* engine::glfw_window_;
@@ -170,6 +173,7 @@ void engine::load_data()
 {
   // load raw mesh data
   // load_mesh_models("/home/honolulu/models/primitives");
+  load_meshlet_models();
   // load_actor();
 }
 
@@ -185,6 +189,20 @@ void engine::load_mesh_models(const std::string& model_directory)
     auto key = filename.substr(path.size() + 1, length);
     auto mesh_model = hnll::graphics::mesh_model::create_model_from_file(graphics_engine_->get_device(), filename);
     mesh_model_map_.emplace(key, std::move(mesh_model));
+  }
+}
+
+void engine::load_meshlet_models()
+{
+  for (const auto& path : utils::loading_directories) {
+    for (const auto& file : std::filesystem::directory_iterator(path)) {
+      auto filename = std::string(file.path());
+      auto length = filename.size() - path.size();
+      auto key = filename.substr(path.size() + 1, length);
+      auto meshlet_model = hnll::graphics::meshlet_model::create_from_file(get_graphics_device(), key);
+      std::cout << key << " :" << std::endl << "\tmeshlet count : " << meshlet_model->get_meshlets_count() << std::endl;
+      meshlet_model_map_.emplace(key, std::move(meshlet_model));
+    }
   }
 }
 
@@ -264,6 +282,7 @@ void engine::cleanup()
   pending_actor_map_.clear();
   dead_actor_ids_.clear();
   mesh_model_map_.clear();
+  meshlet_model_map_.clear();
   hnll::graphics::renderer::cleanup_swap_chain();
 }
 
@@ -293,4 +312,8 @@ void engine::set_frustum_info(utils::frustum_info &&_frustum_info)
 {
   frustum_info_ = std::move(_frustum_info);
 }
+
+graphics::meshlet_model& engine::get_meshlet_model(std::string model_name)
+{ return *meshlet_model_map_[model_name]; }
+
 } // namespace hnll::game

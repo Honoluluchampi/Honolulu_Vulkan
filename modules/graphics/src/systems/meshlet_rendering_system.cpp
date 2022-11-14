@@ -167,11 +167,11 @@ void meshlet_rendering_system::render(hnll::graphics::frame_info _frame_info) {
       &push
     );
     // bind vertex storage buffer
-    obj->get_model_sp()->bind(
+    obj->get_model().bind(
       command_buffer,
       {_frame_info.global_descriptor_set, task_desc_sets_[_frame_info.frame_index]},
       pipeline_layout_);
-    obj->get_model_sp()->draw(command_buffer);
+    obj->get_model().draw(command_buffer);
   }
 }
 } // namespace hnll::graphics

@@ -28,8 +28,7 @@ class ml_actor : public game::actor
     {
       auto ret = std::make_shared<ml_actor>();
       std::string filename = "bunny.obj";
-      auto raw_meshlet_model = graphics::meshlet_model::create_from_file(_device, filename);
-      ret->meshlet_comp_ = game::meshlet_component::create(ret, std::move(raw_meshlet_model));
+      ret->meshlet_comp_ = game::meshlet_component::create(ret, "bunny.obj");
       ret->set_rotation({M_PI, 0.f, 0.f});
       game::engine::add_actor(ret);
       return ret;

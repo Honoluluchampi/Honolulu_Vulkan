@@ -70,6 +70,7 @@ class meshlet_model
     const buffer& get_meshlet_buffer() const;
     inline void* get_raw_vertices_data() { return raw_vertices_.data(); }
     inline void* get_meshlets_data()     { return meshlets_.data(); }
+    inline uint32_t get_meshlets_count() { return meshlets_.size(); }
     std::vector<VkDescriptorSetLayout> get_raw_desc_set_layouts() const;
 
     static std::vector<u_ptr<descriptor_set_layout>> default_desc_set_layouts(device& _device);

@@ -2,6 +2,7 @@
 
 // hnll
 #include <graphics/meshlet_model.hpp>
+#include <game/engine.hpp>
 #include <game/component.hpp>
 #include <game/components/renderable_component.hpp>
 
@@ -17,26 +18,26 @@ class meshlet_component : public renderable_component
 {
   public:
     template <Actor A>
-    static s_ptr<meshlet_component> create(s_ptr<A>& owner_sp, s_ptr<hnll::graphics::meshlet_model>&& model_sp)
+    static s_ptr<meshlet_component> create(s_ptr<A>& owner_sp, const std::string& model_name)
     {
-      auto mesh = std::make_shared<meshlet_component>(owner_sp);
-      mesh->set_meshlet_model(std::move(model_sp));
+      auto& meshlet_model = engine::get_meshlet_model(model_name);
+      auto mesh = std::make_shared<meshlet_component>(owner_sp, meshlet_model);
       owner_sp->set_renderable_component(mesh);
       return mesh;
     }
     template <Actor A>
-    meshlet_component(s_ptr<A>& owner_sp) : renderable_component(owner_sp, render_type::MESHLET) {}
+    meshlet_component(s_ptr<A>& owner_sp, graphics::meshlet_model& model)
+      : renderable_component(owner_sp, render_type::MESHLET), model_(model) {}
     ~meshlet_component() override = default;
 
     // getter
-    s_ptr<hnll::graphics::meshlet_model>& get_model_sp() { return model_sp_; }
-    // setter
-    void set_meshlet_model(s_ptr<hnll::graphics::meshlet_model>&& model) { model_sp_ = std::move(model); }
+    graphics::meshlet_model& get_model() { return model_; }
+
   private:
     // hnll::graphics::mesh_model can be shared all over a game
-    s_ptr<hnll::graphics::meshlet_model> model_sp_ = nullptr;
+    graphics::meshlet_model& model_;
 };
 
-using mesh_component_map = std::unordered_map<game::component_id, s_ptr<game::meshlet_component>>;
+using meshlet_component_map = std::unordered_map<game::component_id, u_ptr<game::meshlet_component>>;
 
 } // namespace hnll::game

@@ -11,8 +11,8 @@ if (APPLE)
     )
 elseif (UNIX)
     target_include_directories(hnll_game PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
+        $ENV{HNLL_ENGN}/include
         $ENV{VULKAN_DIR}/include
-        ${PROJECT_SOURCE_DIR}/submodules/imgui
+        $ENV{HNLL_ENGN}/submodules/imgui
     )
 endif (APPLE)
