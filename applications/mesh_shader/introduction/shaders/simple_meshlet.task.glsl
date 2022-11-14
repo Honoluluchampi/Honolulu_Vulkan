@@ -41,23 +41,6 @@ layout(set = 0, binding = 0) uniform _global_ubo {
 } ubo;
 
 // ------------------------------------------------------
-// meshlet info
-
-struct meshlet {
-  uint vertex_indices   [MAX_VERTEX_COUNT];
-  uint primitive_indices[MAX_PRIMITIVE_INDICES_COUNT];
-  uint vertex_count; // < MAX_VERTEX_COUNT
-  uint index_count; // < MAX_PRIMITIVE_INDICES_COUNT
-  // for frustum culling
-  vec3 center;
-  float radius;
-};
-
-layout(set = 2, binding = 0) buffer _mesh_buffer {
-  meshlet meshlets[];
-};
-
-// ------------------------------------------------------
 // frustum info
 
 // top, bottom, right, left have same position (camera position)
@@ -73,8 +56,25 @@ struct frustum_info {
   vec3 far_n;
 };
 
-layout(set = 3, binding = 0) uniform _frustum_info {
+layout(set = 1, binding = 0) uniform _frustum_info {
   frustum_info frustum;
+};
+
+// ------------------------------------------------------
+// meshlet info
+
+struct meshlet {
+  uint vertex_indices   [MAX_VERTEX_COUNT];
+  uint primitive_indices[MAX_PRIMITIVE_INDICES_COUNT];
+  uint vertex_count; // < MAX_VERTEX_COUNT
+  uint index_count; // < MAX_PRIMITIVE_INDICES_COUNT
+  // for frustum culling
+  vec3 center;
+  float radius;
+};
+
+layout(set = 3, binding = 0) buffer _mesh_buffer {
+  meshlet meshlets[];
 };
 
 // ------------------------------------------------------
@@ -113,7 +113,8 @@ void main() {
 
       vec4 world_center = push.model_matrix * vec4(current_meshlet.center, 1.0);
 
-      if (sphere_frustum_intersection(world_center.xyz, current_meshlet.radius)) {
+      if (true) {
+      // if (sphere_frustum_intersection(world_center.xyz, current_meshlet.radius)) {
         OUT.sub_ids[out_meshlet_count] = uint8_t(meshlet_local);
         out_meshlet_count += 1;
       }

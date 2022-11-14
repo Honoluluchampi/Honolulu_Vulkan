@@ -58,7 +58,7 @@ struct vertex {
   vec2 uv;
 };
 
-layout(set = 1, binding = 0) buffer _vertex_buffer {
+layout(set = 2, binding = 0) buffer _vertex_buffer {
   vertex raw_vertices[];
 };
 
@@ -72,7 +72,7 @@ struct meshlet {
   float radius;
 };
 
-layout(set = 2, binding = 0) buffer _mesh_buffer {
+layout(set = 3, binding = 0) buffer _mesh_buffer {
   meshlet meshlets[];
 };
 

@@ -74,12 +74,14 @@ void meshlet_rendering_system::create_pipeline_layout(VkDescriptorSetLayout _glo
 
   // ubo set layout
   raw_desc_set_layouts.push_back(_global_set_layout);
+
+  // task desc set layout
+  raw_desc_set_layouts.push_back(task_desc_layout_->get_descriptor_set_layout());
+
   // copy meshlet desc layouts
   for (int i = 0; i < desc_set_layouts.size(); i++) {
     raw_desc_set_layouts.push_back(desc_set_layouts[i]->get_descriptor_set_layout());
   }
-  // task desc set layout
-  raw_desc_set_layouts.push_back(task_desc_layout_->get_descriptor_set_layout());
 
   // push constant
   VkPushConstantRange push_constant_range{};
