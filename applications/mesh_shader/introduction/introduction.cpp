@@ -28,7 +28,7 @@ class ml_actor : public game::actor
     {
       auto ret = std::make_shared<ml_actor>();
       std::string filename = "bunny.obj";
-      ret->meshlet_comp_ = game::meshlet_component::create(ret, "bunny.obj");
+      ret->meshlet_comp_ = game::meshlet_component::create(ret, "plane.obj");
       ret->set_rotation({M_PI, 0.f, 0.f});
       game::engine::add_actor(ret);
       return ret;

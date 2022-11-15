@@ -141,10 +141,10 @@ void engine::render(const utils::viewer_info& _viewer_info, utils::frustum_info&
 
     // rendering order matters for alpha blending
     // solid object should be drawn first, then transparent object should be drawn after that
-    rendering_systems_[game::render_type::MESH]->render(frame_info);
+//    rendering_systems_[game::render_type::MESH]->render(frame_info);
     rendering_systems_[game::render_type::MESHLET]->render(frame_info);
     rendering_systems_[game::render_type::WIRE_FRUSTUM]->render(frame_info);
-    rendering_systems_[game::render_type::POINT_LIGHT]->render(frame_info);
+//    rendering_systems_[game::render_type::POINT_LIGHT]->render(frame_info);
     rendering_systems_[game::render_type::GRID]->render(frame_info);
 
     renderer_->end_swap_chain_render_pass(command_buffer);
