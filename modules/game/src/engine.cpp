@@ -80,11 +80,11 @@ void engine::update()
   float dt;
   std::chrono::system_clock::time_point new_time;
   // calc dt
-  do {
+//  do {
   new_time = std::chrono::system_clock::now();
 
   dt = std::chrono::duration<float, std::chrono::seconds::period>(new_time - current_time_).count();
-  } while(dt < 1.0f / MAX_FPS);
+//  } while(dt < 1.0f / MAX_FPS);
 
   dt = std::min(dt, MAX_DT);
 

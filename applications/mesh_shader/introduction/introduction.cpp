@@ -28,7 +28,7 @@ class ml_actor : public game::actor
     {
       auto ret = std::make_shared<ml_actor>();
       std::string filename = "bunny.obj";
-      ret->meshlet_comp_ = game::meshlet_component::create(ret, "plane.obj");
+      ret->meshlet_comp_ = game::meshlet_component::create(ret, "bunny.obj");
       ret->set_rotation({M_PI, 0.f, 0.f});
       game::engine::add_actor(ret);
       return ret;
@@ -60,9 +60,9 @@ class mesh_shader_introduction : public game::engine
 
     void create_bunny_wall()
     {
-      uint32_t x_count = 6;
-      uint32_t y_count = 6;
-      uint32_t z_count = 6;
+      uint32_t x_count = 4;
+      uint32_t y_count = 4;
+      uint32_t z_count = 4;
       float space = 4.f;
       std::vector<vec3> positions;
 
