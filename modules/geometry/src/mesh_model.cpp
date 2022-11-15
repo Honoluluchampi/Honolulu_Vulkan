@@ -159,6 +159,8 @@ vertex_id mesh_model::add_vertex(const s_ptr<vertex> &v)
 {
   // if the vertex has not been involved
   if (vertex_map_.count(v->id_) == 0) {
+    if (v->id_ == -1)
+      v->id_ = raw_vertices_.size();
     vertex_map_[v->id_] = v;
   }
   return v->id_;

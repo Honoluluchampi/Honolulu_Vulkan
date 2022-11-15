@@ -113,7 +113,8 @@ void main() {
 
       vec4 world_center = push.model_matrix * vec4(current_meshlet.center, 1.0);
 
-      if (!sphere_frustum_intersection(world_center.xyz, current_meshlet.radius)) {
+      // if (sphere_frustum_intersection(world_center.xyz, current_meshlet.radius)) {
+      if (true) {
         OUT.sub_ids[out_meshlet_count] = uint8_t(meshlet_local);
         out_meshlet_count += 1;
       }

@@ -31,8 +31,7 @@ struct vertex
     auto vertex_sp = std::make_shared<vertex>();
     vertex_sp->position_ = position; vertex_sp->half_edge_ = he;
     // identical id for each vertex object
-    static vertex_id id = 0;
-    vertex_sp->id_ = id++;
+    vertex_sp->id_ = -1;
     return vertex_sp;
   }
 

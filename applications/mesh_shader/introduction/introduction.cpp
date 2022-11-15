@@ -28,7 +28,7 @@ class ml_actor : public game::actor
     {
       auto ret = std::make_shared<ml_actor>();
       std::string filename = "bunny.obj";
-      ret->meshlet_comp_ = game::meshlet_component::create(ret, "bunny.obj");
+      ret->meshlet_comp_ = game::meshlet_component::create(ret, "plane.obj");
       ret->set_rotation({M_PI, 0.f, 0.f});
       game::engine::add_actor(ret);
       return ret;
@@ -43,7 +43,7 @@ class mesh_shader_introduction : public game::engine
   public:
     mesh_shader_introduction() : game::engine("mesh shader introduction")
     {
-      ml_actor_ = ml_actor::create(get_graphics_device());
+      create_bunny_wall();
       add_virtual_camera();
     }
 
@@ -56,6 +56,34 @@ class mesh_shader_introduction : public game::engine
       add_actor(virtual_camera_);
     }
 
+    void update_game(float dt) { fps_ = 1.0f / dt; }
+
+    void create_bunny_wall()
+    {
+      uint32_t x_count = 6;
+      uint32_t y_count = 6;
+      uint32_t z_count = 6;
+      float space = 4.f;
+      std::vector<vec3> positions;
+
+      for (int i = 0; i < x_count; i++) {
+        for (int j = 0; j < y_count; j++) {
+          for (int k = 0; k < z_count; k++) {
+            if (i != 0 && i != x_count - 1 && j != 0 && j != y_count - 1 && k != 0 && k != z_count - 1)
+              continue;
+            glm::vec3 position = {
+              (i - (x_count / 2.f)) * space,
+              (j - (y_count / 2.f)) * space,
+              (k - (z_count / 2.f)) * space
+            };
+            auto object = ml_actor::create(get_graphics_device());
+            object->set_translation(position);
+            ml_actors_.emplace_back(std::move(object));
+          }
+        }
+      }
+    }
+
     void update_game_gui() override
     {
       // this part should be contained in update_game()...
@@ -63,6 +91,8 @@ class mesh_shader_introduction : public game::engine
       set_frustum_info(virtual_camera_->get_frustum_info());
 
       ImGui::Begin("stats");
+
+      ImGui::Text("fps : %.f", fps_);
 
       if (ImGui::Button("change key move target")) {
         if (camera_up_->is_movement_updating()) {
@@ -78,10 +108,11 @@ class mesh_shader_introduction : public game::engine
       ImGui::End();
     }
     // sample object
-    s_ptr<ml_actor> ml_actor_;
+    std::vector<s_ptr<ml_actor>> ml_actors_;
     s_ptr<game::virtual_camera> virtual_camera_;
     // frustum culling is organized based on this frustum;
     s_ptr<geometry::perspective_frustum> active_frustum_;
+    float fps_;
 };
 } // namespace hnll
 
