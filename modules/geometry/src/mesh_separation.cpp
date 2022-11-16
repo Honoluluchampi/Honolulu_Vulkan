@@ -15,17 +15,6 @@
 
 namespace hnll::geometry {
 
-std::vector<vec3> mesh_colors {
-  // yumekawa
-    { 191,255,127 },
-    { 255,191,127 },
-    { 255,255,127 },
-    { 127,255,255 },
-    { 255,127,191 },
-    { 191,127,255 },
-    { 127,127,255 },
-};
-
 s_ptr<face> mesh_separation_helper::get_random_remaining_face()
 {
   for (const auto& id : remaining_face_id_set_) {
@@ -244,18 +233,6 @@ s_ptr<face> choose_random_face_from_map(const face_map& fc_map)
     return fc_kv.second;
   }
   return nullptr;
-}
-
-s_ptr<vertex> duplicate_vertex(const s_ptr<vertex>& old_vertex)
-{
-  auto new_vertex = vertex::create(old_vertex->position_);
-  new_vertex->position_ = old_vertex->position_;
-  new_vertex->normal_ = old_vertex->normal_;
-  new_vertex->color_ = old_vertex->color_;
-  new_vertex->uv_ = old_vertex->uv_;
-  new_vertex->half_edge_ = old_vertex->half_edge_;
-  new_vertex->face_count_ = old_vertex->face_count_;
-  return new_vertex;
 }
 
 graphics::meshlet translate_meshlet(const s_ptr<mesh_model>& old_mesh)

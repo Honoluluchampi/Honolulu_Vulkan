@@ -145,16 +145,6 @@ bool mesh_model::associate_half_edge_pair(const s_ptr<half_edge> &he)
     return false;
 }
 
-graphics::vertex convert_vertex_geometry_to_graphics(const geometry::vertex& vert)
-{
-  graphics::vertex ret;
-  ret.position = vert.position_.cast<float>();
-  ret.normal   = vert.normal_.cast<float>();
-  ret.color    = vert.color_.cast<float>();
-  ret.uv       = vert.uv_.cast<float>();
-  return ret;
-}
-
 vertex_id mesh_model::add_vertex(const s_ptr<vertex> &v)
 {
   // if the vertex has not been involved
