@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <memory>
 
 namespace hnll {
@@ -11,7 +12,18 @@ namespace physics {
 
 class fdtd_solver
 {
+  public:
+    fdtd_solver() = default;
 
+  private:
+    // stable restriction dx_ / dt_ > sqrt(stiffness_ / density_)
+    double dx_;
+    double dt_;
+    double stiffness_;
+    double density_;
+    std::vector<double> input_;
+    std::vector<double> stress_;
+    std::vector<double> particle_velocity_;
 };
 
 }} // namespace hnll::physics
