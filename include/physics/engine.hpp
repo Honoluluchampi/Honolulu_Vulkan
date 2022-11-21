@@ -15,10 +15,11 @@ class collision_detector;
 class engine
 {
   public:
-    engine(){}
-    ~engine(){}
+    engine()  = default;
+    ~engine() = default;
 
-    static void re_update();
+    void re_update();
+    void adjust_intersection();
 
   private:
     static u_ptr<collision_detector> collision_detector_;

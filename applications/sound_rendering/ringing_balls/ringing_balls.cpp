@@ -22,7 +22,7 @@ class rigid_ball : public hnll::game::actor
       {
           // create ball actor and its mesh
           auto ball = std::make_shared<rigid_ball>();
-          auto ball_mesh = hnll::game::engine::get_mesh_model_sp("sphere");
+          auto ball_mesh = hnll::game::engine::get_mesh_model_sp("smooth_sphere");
           auto ball_mesh_vertex_position_list = ball_mesh->get_vertex_position_list();
           auto ball_mesh_comp = hnll::game::mesh_component::create(ball, std::move(ball_mesh));
 
@@ -132,7 +132,7 @@ class falling_ball_app : public hnll::game::engine
        880.f,
    };
    std::vector<double> restitution_list = {
-       0.2f,
+       0.3f,
        0.5f,
        0.8f,
    };
