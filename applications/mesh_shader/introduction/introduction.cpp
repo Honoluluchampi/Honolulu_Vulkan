@@ -6,6 +6,7 @@
 #include <game/engine.hpp>
 #include <game/actors/default_camera.hpp>
 #include <game/actors/virtual_camera.hpp>
+#include <game/components/mesh_component.hpp>
 #include <game/components/meshlet_component.hpp>
 #include <physics/engine.hpp>
 
@@ -21,14 +22,15 @@ using vec2 = Eigen::Vector2f;
 using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
 
+std::string FILENAME = "light_bunny.obj";
+
 class ml_actor : public game::actor
 {
   public:
     static s_ptr<ml_actor> create(graphics::device& _device)
     {
       auto ret = std::make_shared<ml_actor>();
-      std::string filename = "bunny.obj";
-      ret->meshlet_comp_ = game::meshlet_component::create(ret, "bunny.obj");
+      ret->meshlet_comp_ = game::meshlet_component::create(ret, FILENAME);
       ret->set_rotation({M_PI, 0.f, 0.f});
       game::engine::add_actor(ret);
       return ret;
@@ -38,12 +40,27 @@ class ml_actor : public game::actor
     s_ptr<game::meshlet_component> meshlet_comp_;
 };
 
+class mesh_actor : public game::actor
+{
+  public:
+    static s_ptr<mesh_actor> create(graphics::device& _device)
+    {
+      auto ret = std::make_shared<mesh_actor>();
+      ret->mesh_comp_ = game::mesh_component::create(ret, FILENAME);
+      ret->set_rotation({M_PI, 0.f, 0.f});
+      game::engine::add_actor(ret);
+      return ret;
+    }
+  private:
+    s_ptr<game::mesh_component> mesh_comp_;
+};
+
 class mesh_shader_introduction : public game::engine
 {
   public:
     mesh_shader_introduction() : game::engine("mesh shader introduction")
     {
-      create_bunny_wall();
+      create_bunny_wall<mesh_actor>();
       add_virtual_camera();
     }
 
@@ -58,6 +75,7 @@ class mesh_shader_introduction : public game::engine
 
     void update_game(float dt) { fps_ = 1.0f / dt; }
 
+    template <class T>
     void create_bunny_wall()
     {
       uint32_t x_count = 4;
@@ -76,9 +94,8 @@ class mesh_shader_introduction : public game::engine
               (j - (y_count / 2.f)) * space,
               (k - (z_count / 2.f)) * space
             };
-            auto object = ml_actor::create(get_graphics_device());
+            auto object = T::create(get_graphics_device());
             object->set_translation(position);
-            ml_actors_.emplace_back(std::move(object));
           }
         }
       }
@@ -109,6 +126,7 @@ class mesh_shader_introduction : public game::engine
     }
     // sample object
     std::vector<s_ptr<ml_actor>> ml_actors_;
+
     s_ptr<game::virtual_camera> virtual_camera_;
     // frustum culling is organized based on this frustum;
     s_ptr<geometry::perspective_frustum> active_frustum_;

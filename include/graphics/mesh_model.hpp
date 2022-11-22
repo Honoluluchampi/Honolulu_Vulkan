@@ -36,7 +36,7 @@ class mesh_model
     mesh_model(const mesh_model &) = delete;
     mesh_model& operator=(const mesh_model &) = delete;
 
-    static s_ptr<mesh_model> create_model_from_file(device &device, const std::string &filename);
+    static s_ptr<mesh_model> create_from_file(device &device, const std::string &filename);
     static s_ptr<mesh_model> create_from_geometry_mesh_model(device &device, const s_ptr<geometry::mesh_model>& gm);
 
     void bind(VkCommandBuffer command_buffer);
