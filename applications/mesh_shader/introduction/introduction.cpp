@@ -60,7 +60,7 @@ class mesh_shader_introduction : public game::engine
   public:
     mesh_shader_introduction() : game::engine("mesh shader introduction")
     {
-      create_bunny_wall<mesh_actor>();
+      create_bunny_wall<ml_actor>();
       add_virtual_camera();
     }
 
