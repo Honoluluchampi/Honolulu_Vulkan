@@ -1,14 +1,13 @@
 #version 460
 
-#extension GL_NV_mesh_shader : require
+#extension GL_NV_mesh_shader          : require
 #extension GL_EXT_shader_8bit_storage : require
 
-const uint MAX_VERTEX_COUNT = 64;
+const uint MAX_VERTEX_COUNT            = 64;
 const uint MAX_PRIMITIVE_INDICES_COUNT = 378;
-const uint WORKGROUP_SIZE   = 32;
+const uint WORKGROUP_SIZE   = 1;
 const uint MESHLET_PER_TASK = 32;
-const uint TASK_MESHLET_ITERATION =
-  (MESHLET_PER_TASK + WORKGROUP_SIZE - 1) / WORKGROUP_SIZE;
+const uint TASK_MESHLET_ITERATION = (MESHLET_PER_TASK + WORKGROUP_SIZE - 1) / WORKGROUP_SIZE;
 
 uint base_id = gl_WorkGroupID.x * MESHLET_PER_TASK;
 uint lane_id = gl_LocalInvocationID.x;
@@ -105,7 +104,6 @@ bool sphere_frustum_intersection(vec3 world_center, float radius) {
 
 void main() {
     uint out_meshlet_count = 0;
-    uint meshlet_count = meshlets.length();
 
     for (uint i = 0; i < MESHLET_PER_TASK; i++) {
       uint meshlet_local = lane_id + i;

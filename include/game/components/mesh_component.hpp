@@ -2,6 +2,7 @@
 
 // hnll
 #include <graphics/mesh_model.hpp>
+#include <game/engine.hpp>
 #include <game/component.hpp>
 #include <game/components/renderable_component.hpp>
 
@@ -16,29 +17,31 @@ template<class S> using s_ptr = std::shared_ptr<S>;
 class mesh_component : public renderable_component
 {
   public:
+
     template <Actor A>
-    static s_ptr<mesh_component> create(s_ptr<A>& owner_sp, s_ptr<hnll::graphics::mesh_model>&& model_sp)
+    static s_ptr<mesh_component> create(s_ptr<A>& owner_sp, const std::string& model_name)
     {
-      auto mesh = std::make_shared<mesh_component>(owner_sp);
-      mesh->set_mesh_model(std::move(model_sp));
+      auto& mesh_model = engine::get_mesh_model(model_name);
+      auto mesh = std::make_shared<mesh_component>(owner_sp, mesh_model);
       owner_sp->set_renderable_component(mesh);
       return mesh;
     }
+
     template <Actor A>
-    mesh_component(s_ptr<A>& owner_sp) : renderable_component(owner_sp, render_type::MESH) {}
+    mesh_component(s_ptr<A>& owner_sp, graphics::mesh_model& _model)
+    : renderable_component(owner_sp, render_type::MESH), model_(_model) {}
     ~mesh_component() override = default;
 
     // getter
-    s_ptr<hnll::graphics::mesh_model>& get_model_sp() { return model_sp_; }
+    graphics::mesh_model& get_model() { return model_; }
     bool get_should_be_drawn() const                  { return should_be_drawn_; }
-    unsigned get_face_count() const                   { return model_sp_->get_face_count(); }
+    unsigned get_face_count() const                   { return model_.get_face_count(); }
     // setter
-    void set_mesh_model(s_ptr<hnll::graphics::mesh_model>&& model) { model_sp_ = std::move(model); }
     void set_should_be_drawn()     { should_be_drawn_ = true; }
     void set_should_not_be_drawn() { should_be_drawn_ = false;}
   private:
     // hnll::graphics::mesh_model can be shared all over a game
-    s_ptr<hnll::graphics::mesh_model> model_sp_ = nullptr;
+    graphics::mesh_model& model_;
     // represents weather its model should be drawn
     bool should_be_drawn_ = true;
 };

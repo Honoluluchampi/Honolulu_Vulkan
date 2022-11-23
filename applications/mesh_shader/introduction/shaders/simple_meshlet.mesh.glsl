@@ -106,13 +106,14 @@ void main() {
   //------- vertex processing ---------------------------------------------
   uint vertex_count = current_meshlet.vertex_count;
 
+  mat4 pvw_mat = ubo.projection * ubo.view * push.model_matrix;
+
   for (uint i = 0; i < vertex_count; i++) {
     // i indicates gl_~'s index
     // vertex_index indicates the vertex_buffer's index
     uint vertex_index = current_meshlet.vertex_indices[i];
 
-    vec4 position_world = push.model_matrix * vec4(raw_vertices[vertex_index].position, 1.0);
-    gl_MeshVerticesNV[i].gl_Position = ubo.projection * ubo.view * position_world;
+    gl_MeshVerticesNV[i].gl_Position = pvw_mat * vec4(raw_vertices[vertex_index].position, 1.0);
     v_out[i].color = vec4(meshlet_colors[meshlet_index %COLOR_COUNT], 1.f);
   }
 

@@ -172,23 +172,23 @@ void engine::init_actors()
 void engine::load_data()
 {
   // load raw mesh data
-  load_mesh_models("/home/honolulu/models/primitives");
+  load_mesh_models();
   load_meshlet_models();
   // load_actor();
 }
 
 // use filenames as the key of the map
 // TODO : add models by adding folders or files
-void engine::load_mesh_models(const std::string& model_directory)
+void engine::load_mesh_models()
 {
-  // auto path = std::string(std::getenv("HNLL_ENGN")) + model_directory;
-  auto path = model_directory;
-  for (const auto & file : std::filesystem::directory_iterator(path)) {
-    auto filename = std::string(file.path());
-    auto length = filename.size() - path.size() - 5;
-    auto key = filename.substr(path.size() + 1, length);
-    auto mesh_model = hnll::graphics::mesh_model::create_model_from_file(graphics_engine_->get_device(), filename);
-    mesh_model_map_.emplace(key, std::move(mesh_model));
+  for (const auto& path : utils::loading_directories) {
+    for (const auto& file : std::filesystem::directory_iterator(path)) {
+      auto filename = std::string(file.path());
+      auto length = filename.size() - path.size();
+      auto key = filename.substr(path.size() + 1, length);
+      auto mesh_model = hnll::graphics::mesh_model::create_from_file(get_graphics_device(), key);
+      mesh_model_map_.emplace(key, std::move(mesh_model));
+    }
   }
 }
 
@@ -219,19 +219,16 @@ void engine::remove_actor(id_t id)
 void engine::load_actor()
 {
   auto smooth_vase = actor::create();
-  auto smooth_vase_mesh_model = mesh_model_map_["sphere"];
-  auto smooth_vase_model_comp = mesh_component::create(smooth_vase, std::move(smooth_vase_mesh_model));
+  auto smooth_vase_model_comp = mesh_component::create(smooth_vase, "smooth_sphere.obj");
   smooth_vase->set_translation(glm::vec3{0.f, 0.f, 3.f});
 
   auto flat_vase = actor::create();
-  auto flat_vase_mesh_model = mesh_model_map_["flat_vase"];
-  auto flat_vase_model_comp = mesh_component::create(flat_vase, std::move(flat_vase_mesh_model));
+  auto flat_vase_model_comp = mesh_component::create(flat_vase, "light_bunny.obj");
   flat_vase->set_translation(glm::vec3{0.5f, 0.5f, 0.f});
   flat_vase->set_scale(glm::vec3{3.f, 1.5f, 3.f});
   
   auto floor = actor::create();
-  auto floor_mesh_comp = mesh_model_map_["quad"];
-  auto floor_model_comp = mesh_component::create(floor, std::move(floor_mesh_comp));
+  auto floor_model_comp = mesh_component::create(floor, "plane.obj");
   floor->set_translation(glm::vec3{0.f, 0.5f, 0.f});
   floor->set_scale(glm::vec3{3.f, 1.5f, 3.f});
 

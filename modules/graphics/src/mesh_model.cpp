@@ -3,6 +3,7 @@
 #include <graphics/utils.hpp>
 #include <geometry/mesh_model.hpp>
 #include <geometry/half_edge.hpp>
+#include <utils/utils.hpp>
 
 // libs
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -30,10 +31,11 @@ mesh_model::~mesh_model()
   // buffers will be freed in dtor of hnll::graphics::buffer
 }
 
-std::shared_ptr<mesh_model> mesh_model::create_model_from_file(device &device, const std::string &filename)
+std::shared_ptr<mesh_model> mesh_model::create_from_file(device &device, const std::string &filename)
 {
+  auto filepath = utils::get_full_path(filename);
   mesh_builder builder;
-  builder.load_model(filename);
+  builder.load_model(filepath);
   std::cout << filename << " vertex count: " << builder.vertices.size() << "\n";
   return std::make_shared<mesh_model>(device, builder);
 }
