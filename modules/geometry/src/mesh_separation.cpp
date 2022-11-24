@@ -15,6 +15,19 @@
 
 namespace hnll::geometry {
 
+void mesh_separation_helper::compute_shape_diameter()
+{
+  for (auto& f : face_map_) {
+    // compute shape diameter
+
+  }
+}
+
+std::vector<mesh_model> mesh_separation_helper::separate_using_sdf()
+{
+
+}
+
 s_ptr<face> mesh_separation_helper::get_random_remaining_face()
 {
   for (const auto& id : remaining_face_id_set_) {

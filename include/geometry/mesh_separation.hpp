@@ -85,6 +85,10 @@ class mesh_separation_helper
       );
     explicit mesh_separation_helper(const s_ptr<mesh_model>& model);
 
+    void compute_shape_diameter();
+
+    std::vector<mesh_model> separate_using_sdf();
+
     // getter
     vertex_map  get_vertex_map()         const { return vertex_map_; }
     face_map    get_face_map()           const { return face_map_; }
