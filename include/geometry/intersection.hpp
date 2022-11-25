@@ -18,6 +18,8 @@ namespace geometry {
 // forward declaration
 class bounding_volume;
 class perspective_frustum;
+struct ray;
+struct face;
 struct plane;
 
 namespace intersection {
@@ -28,9 +30,10 @@ double test_bounding_volumes(const bounding_volume& a, const bounding_volume& b)
 // testing functions for culling algorithms
 double test_sphere_frustum(const geometry::bounding_volume& sphere, const perspective_frustum& frustum);
 
-double test_aabb_aabb      (const bounding_volume& aabb_a, const bounding_volume& aabb_b);
-double test_aabb_sphere    (const bounding_volume& aabb, const bounding_volume& sphere);
-double test_sphere_sphere  (const bounding_volume& sphere_a, const bounding_volume& sphere_b);
+double test_aabb_aabb     (const bounding_volume& aabb_a, const bounding_volume& aabb_b);
+double test_aabb_sphere   (const bounding_volume& aabb, const bounding_volume& sphere);
+double test_sphere_sphere (const bounding_volume& sphere_a, const bounding_volume& sphere_b);
+double test_ray_triangle  (const ray& _ray, const face& _face);
 }; // namespace intersection
 
 // helper functions

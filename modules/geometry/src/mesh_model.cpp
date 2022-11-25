@@ -1,6 +1,6 @@
 // hnll
 #include <geometry/mesh_model.hpp>
-#include <geometry/half_edge.hpp>
+#include <geometry/primitives.hpp>
 #include <geometry/bounding_volume.hpp>
 #include <graphics/utils.hpp>
 #include <utils/utils.hpp>

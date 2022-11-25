@@ -1,5 +1,5 @@
 // hnll
-#include <geometry/half_edge.hpp>
+#include <geometry/primitives.hpp>
 #include <geometry/mesh_model.hpp>
 
 // lib

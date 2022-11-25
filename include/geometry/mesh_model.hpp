@@ -1,7 +1,7 @@
 #pragma once
 
 // hnll
-#include <geometry/half_edge.hpp>
+#include <geometry/primitives.hpp>
 #include <graphics/utils.hpp>
 
 // std

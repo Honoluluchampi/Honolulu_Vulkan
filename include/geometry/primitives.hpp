@@ -17,7 +17,7 @@ class  half_edge;
 template<typename T> using u_ptr = std::unique_ptr<T>;
 template<typename T> using s_ptr = std::shared_ptr<T>;
 using vec2          = Eigen::Vector2d;
-using vec3          = Eigen::Vector3d;
+using vec3d         = Eigen::Vector3d;
 using vertex_id     = uint32_t;
 using vertex_map    = std::unordered_map<vertex_id, s_ptr<vertex>>;
 using face_id       = uint32_t;
@@ -26,7 +26,7 @@ using half_edge_key = std::pair<vertex, vertex>; // consists of two vertex_ids
 
 struct vertex
 {
-  static s_ptr<vertex> create(const vec3& position, const s_ptr<half_edge>& he = nullptr)
+  static s_ptr<vertex> create(const vec3d& position, const s_ptr<half_edge>& he = nullptr)
   {
     auto vertex_sp = std::make_shared<vertex>();
     vertex_sp->position_ = position; vertex_sp->half_edge_ = he;
@@ -35,16 +35,16 @@ struct vertex
     return vertex_sp;
   }
 
-  void update_normal(const vec3& new_face_normal)
+  void update_normal(const vec3d& new_face_normal)
   {
     auto tmp = normal_ * face_count_ + new_face_normal;
     normal_ = (tmp / ++face_count_).normalized();
   }
 
   vertex_id id_; // for half-edge hash table
-  vec3 position_{0.f, 0.f, 0.f};
-  vec3 color_{1.f, 1.f, 1.f};
-  vec3 normal_{0.f, 0.f, 0.f};
+  vec3d position_{0.f, 0.f, 0.f};
+  vec3d color_{1.f, 1.f, 1.f};
+  vec3d normal_{0.f, 0.f, 0.f};
   vec2 uv_;
   unsigned face_count_ = 0;
   s_ptr<half_edge> half_edge_ = nullptr;
@@ -61,8 +61,8 @@ struct face
     return face_sp;
   }
   face_id id_;
-  vec3 normal_;
-  vec3 color_;
+  vec3d normal_;
+  vec3d color_;
   s_ptr<half_edge> half_edge_ = nullptr;
 };
 
@@ -94,6 +94,13 @@ class half_edge
     s_ptr<half_edge> next_   = nullptr, prev_ = nullptr, pair_ = nullptr;
     s_ptr<vertex>    vertex_ = nullptr; // start point of this half_edge
     s_ptr<face>      face_   = nullptr; // half_edges run in a counterclockwise direction around this face
+};
+
+// for shape diameter function
+struct ray
+{
+  vec3d origin;
+  vec3d direction;
 };
 
 } // namespace hnll::geometry

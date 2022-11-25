@@ -3,6 +3,7 @@
 #include <geometry/intersection.hpp>
 #include <geometry/bounding_volume.hpp>
 #include <geometry/perspective_frustum.hpp>
+#include <geometry/primitives.hpp>
 
 // lib
 #include <eigen3/Eigen/Dense>
@@ -103,6 +104,42 @@ double intersection::test_sphere_frustum(const geometry::bounding_volume &sphere
   if (distance_point_to_plane(center, frustum.get_bottom_ref()) < -radius) return false;
 
   return true;
+}
+
+double intersection::test_ray_triangle(const hnll::geometry::ray &_ray, const hnll::geometry::face &_face)
+{
+  _ray.direction.normalized();
+  // moeller's method
+  constexpr double eps = 1e-6f;
+  auto& he = _face.half_edge_;
+  auto& v0 = he->get_vertex()->position_;
+  auto& v1 = he->get_next()->get_vertex()->position_;
+  auto& v2 = he->get_next()->get_next()->get_vertex()->position_;
+
+  vec3d e1 = v1 - v0;
+  vec3d e2 = v2 - v0;
+
+  vec3d r = _ray.origin - v0;
+  vec3d alpha = _ray.direction.cross(e2);
+  vec3d beta  = r.cross(e1);
+
+  double det = e1.dot(alpha);
+  float inv_det = 1.f / det;
+
+  // the ray and the triangle are parallel
+  if (std::abs(det) < eps) {
+    return false;
+  }
+
+  // check barycentric parameters of the triangle
+  double u = alpha.dot(r) * inv_det;
+  if (u < 0.f || u > 1.f) return false;
+  double v = beta.dot(_ray.direction) * inv_det;
+  if (v < 0.f || u + v > 1.f) return false;
+  double t = e2.dot(beta) * inv_det;
+  if (t < 0.f) return false;
+
+  return t;
 }
 
 } // namespace hnll::physics

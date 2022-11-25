@@ -2,7 +2,7 @@
 #include <graphics/mesh_model.hpp>
 #include <graphics/utils.hpp>
 #include <geometry/mesh_model.hpp>
-#include <geometry/half_edge.hpp>
+#include <geometry/primitives.hpp>
 #include <utils/utils.hpp>
 
 // libs
