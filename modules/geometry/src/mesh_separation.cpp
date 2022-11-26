@@ -15,6 +15,29 @@
 
 namespace hnll::geometry {
 
+std::vector<ray> create_sampling_rays(const face &_face, uint32_t sampling_count)
+{
+  std::vector<ray> sampling_rays;
+
+  // returns no ray
+  if (sampling_count <= 0) return sampling_rays;
+
+  auto& v0 = _face.half_edge_->get_vertex()->position_;
+  auto& v1 = _face.half_edge_->get_next()->get_vertex()->position_;
+  auto& v2 = _face.half_edge_->get_next()->get_next()->get_vertex()->position_;
+
+  auto  origin = (v0 + v1 + v2) / 3.f;
+
+  // default ray
+  sampling_rays.emplace_back(ray{origin, _face.normal_});
+
+  for (int i = 0; i < sampling_count - 1; i++) {
+
+  }
+
+  return sampling_rays;
+}
+
 void mesh_separation_helper::compute_shape_diameter()
 {
   for (auto& f : face_map_) {
