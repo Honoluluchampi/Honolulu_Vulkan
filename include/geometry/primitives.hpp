@@ -64,6 +64,8 @@ struct face
   vec3d normal_;
   vec3d color_;
   s_ptr<half_edge> half_edge_ = nullptr;
+  // for sdf separation
+  double shape_diameter_ = -1;
 };
 
 class half_edge

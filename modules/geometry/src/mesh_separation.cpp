@@ -15,12 +15,12 @@
 
 namespace hnll::geometry {
 
-std::vector<ray> create_sampling_rays(const face &_face, uint32_t sampling_count)
+std::vector<ray> create_sampling_rays(const face &_face, uint32_t _sampling_count)
 {
   std::vector<ray> sampling_rays;
 
   // returns no ray
-  if (sampling_count <= 0) return sampling_rays;
+  if (_sampling_count <= 0) return sampling_rays;
 
   auto& v0 = _face.half_edge_->get_vertex()->position_;
   auto& v1 = _face.half_edge_->get_next()->get_vertex()->position_;
@@ -31,7 +31,7 @@ std::vector<ray> create_sampling_rays(const face &_face, uint32_t sampling_count
   // default ray
   sampling_rays.emplace_back(ray{origin, _face.normal_});
 
-  for (int i = 0; i < sampling_count - 1; i++) {
+  for (int i = 0; i < _sampling_count - 1; i++) {
 
   }
 
@@ -40,9 +40,22 @@ std::vector<ray> create_sampling_rays(const face &_face, uint32_t sampling_count
 
 void mesh_separation_helper::compute_shape_diameter()
 {
-  for (auto& f : face_map_) {
-    // compute shape diameter
+  for (auto& f_kv : face_map_) {
+    auto& f = *f_kv.second;
 
+    // compute shape diameter
+    auto sampling_rays = create_sampling_rays(f, 1);
+
+    double sdf_mean = 0.f;
+
+    // compute values for each sampling rays
+    for (const auto& r : sampling_rays) {
+
+    }
+
+    sdf_mean /= sampling_rays.size();
+
+    f.shape_diameter_ = sdf_mean;
   }
 }
 
