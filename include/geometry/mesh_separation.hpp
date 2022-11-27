@@ -23,6 +23,7 @@ template<typename T> using s_ptr = std::shared_ptr<T>;
 class mesh_model;
 class vertex;
 class face;
+struct ray;
 using vertex_id  = uint32_t;
 using vertex_map = std::unordered_map<vertex_id, s_ptr<vertex>>;
 using face_id    = uint32_t;
@@ -85,7 +86,8 @@ class mesh_separation_helper
       );
     explicit mesh_separation_helper(const s_ptr<mesh_model>& model);
 
-    void compute_shape_diameter();
+    double compute_shape_diameter(const ray& _ray);
+    void   compute_whole_shape_diameters();
 
     std::vector<mesh_model> separate_using_sdf();
 

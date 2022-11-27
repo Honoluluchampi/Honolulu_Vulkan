@@ -38,7 +38,13 @@ std::vector<ray> create_sampling_rays(const face &_face, uint32_t _sampling_coun
   return sampling_rays;
 }
 
-void mesh_separation_helper::compute_shape_diameter()
+// returns -1 if the ray doesn't intersect with any triangle
+double mesh_separation_helper::compute_shape_diameter(const ray& _ray)
+{
+  return -1;
+}
+
+void mesh_separation_helper::compute_whole_shape_diameters()
 {
   for (auto& f_kv : face_map_) {
     auto& f = *f_kv.second;
@@ -50,7 +56,8 @@ void mesh_separation_helper::compute_shape_diameter()
 
     // compute values for each sampling rays
     for (const auto& r : sampling_rays) {
-
+      if (auto tmp = compute_shape_diameter(r); tmp != -1)
+        sdf_mean += compute_shape_diameter(r);
     }
 
     sdf_mean /= sampling_rays.size();
