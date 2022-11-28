@@ -313,4 +313,8 @@ void engine::set_frustum_info(utils::frustum_info &&_frustum_info)
 graphics::meshlet_model& engine::get_meshlet_model(std::string model_name)
 { return *meshlet_model_map_[model_name]; }
 
+//actor& engine::get_active_actor(actor_id id)
+//{ return *active_actor_map_[id]; }
+
+
 } // namespace hnll::game

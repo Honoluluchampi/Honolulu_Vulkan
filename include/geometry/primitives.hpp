@@ -26,12 +26,12 @@ using half_edge_key = std::pair<vertex, vertex>; // consists of two vertex_ids
 
 struct vertex
 {
-  static s_ptr<vertex> create(const vec3d& position, const s_ptr<half_edge>& he = nullptr)
+  static s_ptr<vertex> create(const vec3d& position, const vertex_id v_id = -1)
   {
     auto vertex_sp = std::make_shared<vertex>();
-    vertex_sp->position_ = position; vertex_sp->half_edge_ = he;
+    vertex_sp->position_ = position;
     // identical id for each vertex object
-    vertex_sp->id_ = -1;
+    vertex_sp->id_ = v_id;
     return vertex_sp;
   }
 

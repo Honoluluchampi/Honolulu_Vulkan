@@ -26,6 +26,12 @@ s_ptr<mesh_model> mesh_model::create()
 
 mesh_model::mesh_model() { bounding_volume_ = bounding_volume::create_blank_aabb(); }
 
+s_ptr<half_edge> mesh_model::get_half_edge(const s_ptr<hnll::geometry::vertex> &v0, const s_ptr<hnll::geometry::vertex> &v1)
+{
+  half_edge_key hash_key = { *v0, *v1 };
+  return half_edge_map_[hash_key];
+}
+
 s_ptr<vertex> translate_vertex_graphics_to_geometry(const graphics::vertex& pseudo)
 {
   auto vertex_sp = vertex::create(pseudo.position.cast<double>());

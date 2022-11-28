@@ -76,7 +76,8 @@ class engine {
     // getter
     hnll::graphics::engine &get_graphics_engine() { return *graphics_engine_; }
     hnll::graphics::device &get_graphics_device() { return graphics_engine_->get_device(); }
-    static actor& get_active_actor(actor_id id)   { return *active_actor_map_[id]; }
+    static actor& get_active_actor(actor_id id) { return *active_actor_map_[id]; }
+
     static actor& get_pending_actor(actor_id id)  { return *pending_actor_map_[id]; }
     static graphics::mesh_model&    get_mesh_model(std::string model_name) { return *mesh_model_map_[model_name]; }
     static graphics::meshlet_model& get_meshlet_model(std::string model_name);

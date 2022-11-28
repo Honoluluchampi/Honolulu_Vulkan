@@ -20,8 +20,6 @@ TEST(vertex, ctor) {
   auto he = half_edge::create(v);
   EXPECT_EQ(v->half_edge_, he);
   auto v1 = vertex::create({0.f, 0.f, 0.f});
-  EXPECT_EQ(v->id_, 0);
-  EXPECT_EQ(v1->id_, 1);
 }
 
 TEST(common, id) {
@@ -48,10 +46,10 @@ TEST(mesh_model, add_face) {
    *   | /  |
    *  v1 - v3
    */
-  auto v0 = vertex::create({ 0.f, 0.f, 0.f });
-  auto v1 = vertex::create({ 0.f, 1.f, 0.f});
-  auto v2 = vertex::create({ 1.f, 0.f, 0.f });
-  auto v3 = vertex::create({ 1.f, 1.f, 0.f});
+  auto v0 = vertex::create({ 0.f, 0.f, 0.f }, 0);
+  auto v1 = vertex::create({ 0.f, 1.f, 0.f}, 1);
+  auto v2 = vertex::create({ 1.f, 0.f, 0.f }, 2);
+  auto v3 = vertex::create({ 1.f, 1.f, 0.f}, 3);
   auto fc_id0 = model->add_face(v0, v1, v2, hnll::geometry::auto_vertex_normal_calculation::ON);
   EXPECT_EQ(model->get_half_edge_count(), 3);
   EXPECT_EQ(model->get_face_count(), 1);

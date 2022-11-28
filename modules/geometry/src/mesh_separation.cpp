@@ -3,6 +3,7 @@
 #include <geometry/primitives.hpp>
 #include <geometry/mesh_model.hpp>
 #include <geometry/bounding_volume.hpp>
+#include <geometry/intersection.hpp>
 #include <graphics/meshlet_model.hpp>
 #include <graphics/utils.hpp>
 #include <utils/utils.hpp>
@@ -41,6 +42,16 @@ std::vector<ray> create_sampling_rays(const face &_face, uint32_t _sampling_coun
 // returns -1 if the ray doesn't intersect with any triangle
 double mesh_separation_helper::compute_shape_diameter(const ray& _ray)
 {
+  for (const auto& f_kv : face_map_) {
+    auto& he = f_kv.second->half_edge_;
+    std::vector<vec3d> vertices = {
+      he->get_vertex()->position_,
+      he->get_next()->get_vertex()->position_,
+      he->get_next()->get_next()->get_vertex()->position_,
+    };
+
+    intersection::test_ray_triangle(_ray, vertices);
+  }
   return -1;
 }
 

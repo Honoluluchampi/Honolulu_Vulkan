@@ -40,20 +40,20 @@ double intersection::test_sphere_sphere(const bounding_volume &sphere_a, const b
 
 // support functions for test_aabb_sphere
 // prefix 'cp' is abbreviation of 'closest point'
-vec3 cp_point_to_plane(const vec3& q, const plane& p)
+vec3 cp_point_to_plane(const vec3d& q, const plane& p)
 {
   // plane's normal must be normalized before this test
   float t = p.normal.dot(q - p.point);
   return q - t * p.normal;
 }
 
-double distance_point_to_plane(const vec3& q, const plane& p)
+double distance_point_to_plane(const vec3d& q, const plane& p)
 {
   return p.normal.dot(q - p.point);
 }
 
 // caller of this function is responsible for insuring that the bounding_volume is aabb
-vec3 cp_point_to_aabb(const vec3& p, const bounding_volume& aabb)
+vec3 cp_point_to_aabb(const vec3d& p, const bounding_volume& aabb)
 {
   vec3 q;
   // TODO : simdlize
@@ -67,7 +67,7 @@ vec3 cp_point_to_aabb(const vec3& p, const bounding_volume& aabb)
 }
 
 // sq_dist is abbreviation of 'squared distance'
-double sq_dist_point_to_aabb(const vec3& p, const bounding_volume& aabb)
+double sq_dist_point_to_aabb(const vec3d& p, const bounding_volume& aabb)
 {
   double result = 0.0f;
   for (int i = 0; i < 3; i++) {
@@ -106,15 +106,14 @@ double intersection::test_sphere_frustum(const geometry::bounding_volume &sphere
   return true;
 }
 
-double intersection::test_ray_triangle(const hnll::geometry::ray &_ray, const hnll::geometry::face &_face)
+double intersection::test_ray_triangle(const ray &_ray, const std::vector<vec3d>& _vertices)
 {
   _ray.direction.normalized();
   // moeller's method
   constexpr double eps = 1e-6f;
-  auto& he = _face.half_edge_;
-  auto& v0 = he->get_vertex()->position_;
-  auto& v1 = he->get_next()->get_vertex()->position_;
-  auto& v2 = he->get_next()->get_next()->get_vertex()->position_;
+  const auto& v0 = _vertices[0];
+  const auto& v1 = _vertices[1];
+  const auto& v2 = _vertices[2];
 
   vec3d e1 = v1 - v0;
   vec3d e2 = v2 - v0;
