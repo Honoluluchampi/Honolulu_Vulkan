@@ -103,11 +103,11 @@ TEST(intersection, ray_triangle)
 
   // intersects at the back of the ray origin
   r = {
-    {0.f, 0.f, 0.f},
+    {3.f, 0.f, 0.f},
     {-1.f, 0.f, 0.f}
   };
 
-  EXPECT_DOUBLE_EQ(test_ray_triangle(r, vertices), 1.f);
+  EXPECT_DOUBLE_EQ(test_ray_triangle(r, vertices), 2.f);
 
   // no intersection
   r = {
