@@ -81,16 +81,43 @@ TEST(intersection, sphere_frustum)
 
 TEST(intersection, ray_triangle)
 {
+  // intersects at the middle of the triangle
   std::vector<vec3d> vertices = {
     {1.f, 1.f, 0.f},
     {1.f, 0.f, 0.5f},
     {1.f, 0.f, -0.5f},
   };
-
   ray r = {
     {0.f, 0.f, 0.f},
     {1.f, 0.f, 0.f}
   };
-
   EXPECT_DOUBLE_EQ(test_ray_triangle(r, vertices), 1.f);
+
+  // intersects at the edge of the triangle
+  vertices = {
+    {1.f, 1.f, 0.f},
+    {1.f, 0.f, 0.f},
+    {1.f, 0.f, -0.5f},
+  };
+  EXPECT_DOUBLE_EQ(test_ray_triangle(r, vertices), 1.f);
+
+  // intersects at the back of the ray origin
+  r = {
+    {3.f, 0.f, 0.f},
+    {-1.f, 0.f, 0.f}
+  };
+
+  EXPECT_DOUBLE_EQ(test_ray_triangle(r, vertices), 2.f);
+
+  // no intersection
+  r = {
+    {2.f, 0.f, 0.f},
+    {1.f, 0.f, 0.f}
+  };
+  EXPECT_DOUBLE_EQ(test_ray_triangle(r, vertices), 0.f);
+  r = {
+    {0.f, 0.f, 0.f},
+    {0.f, 1.f, 0.f}
+  };
+  EXPECT_DOUBLE_EQ(test_ray_triangle(r, vertices), 0.f);
 }
