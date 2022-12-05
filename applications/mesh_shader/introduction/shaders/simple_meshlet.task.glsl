@@ -5,16 +5,14 @@
 
 const uint MAX_VERTEX_COUNT            = 64;
 const uint MAX_PRIMITIVE_INDICES_COUNT = 378;
-const uint WORKGROUP_SIZE   = 1;
 const uint MESHLET_PER_TASK = 32;
-const uint TASK_MESHLET_ITERATION = (MESHLET_PER_TASK + WORKGROUP_SIZE - 1) / WORKGROUP_SIZE;
 
 uint base_id = gl_WorkGroupID.x * MESHLET_PER_TASK;
 uint lane_id = gl_LocalInvocationID.x;
 
 // -------------------------------------------------------
 
-layout(local_size_x = WORKGROUP_SIZE) in;
+layout(local_size_x = 1) in;
 
 taskNV out task {
     uint base_id;
@@ -112,10 +110,10 @@ void main() {
 
       vec4 world_center = push.model_matrix * vec4(current_meshlet.center, 1.0);
 
-      if (sphere_frustum_intersection(world_center.xyz, current_meshlet.radius)) {
+      //if (sphere_frustum_intersection(world_center.xyz, current_meshlet.radius)) {
         OUT.sub_ids[out_meshlet_count] = uint8_t(meshlet_local);
         out_meshlet_count += 1;
-      }
+      //}
     }
 
     if (lane_id == 0) {

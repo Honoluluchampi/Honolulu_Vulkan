@@ -3,7 +3,7 @@
 #extension GL_EXT_shader_explicit_arithmetic_types : require
 
 // the second variable of vkCmdDrawMeshTasksNV()
-layout(local_size_x = 32) in;
+layout(local_size_x = 1) in;
 
 const uint MAX_VERTEX_COUNT = 64;
 const uint MAX_PRIMITIVE_INDICES_COUNT = 378;

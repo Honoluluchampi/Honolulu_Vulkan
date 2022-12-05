@@ -43,8 +43,8 @@ struct vertex
 
   vertex_id id_; // for half-edge hash table
   vec3d position_{0.f, 0.f, 0.f};
-  vec3d color_{1.f, 1.f, 1.f};
-  vec3d normal_{0.f, 0.f, 0.f};
+  vec3d color_   {1.f, 1.f, 1.f};
+  vec3d normal_  {0.f, 0.f, 0.f};
   vec2 uv_;
   unsigned face_count_ = 0;
   s_ptr<half_edge> half_edge_ = nullptr;
