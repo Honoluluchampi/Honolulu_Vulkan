@@ -12,7 +12,7 @@ uint lane_id = gl_LocalInvocationID.x;
 
 // -------------------------------------------------------
 
-layout(local_size_x = 1) in;
+layout(local_size_x = MESHLET_PER_TASK) in;
 
 taskNV out task {
     uint base_id;

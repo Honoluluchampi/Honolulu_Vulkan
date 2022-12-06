@@ -61,7 +61,7 @@ class mesh_shader_introduction : public game::engine
     mesh_shader_introduction() : game::engine("mesh shader introduction")
     {
       // mesh_actor or ml_actor
-      create_bunny_wall<mesh_actor>();
+      create_bunny_wall<ml_actor>();
       add_virtual_camera();
     }
 
@@ -79,8 +79,8 @@ class mesh_shader_introduction : public game::engine
     template <class T>
     void create_bunny_wall()
     {
-      uint32_t x_count = 1;
-      uint32_t y_count = 1;
+      uint32_t x_count = 4;
+      uint32_t y_count = 4;
       uint32_t z_count = 2;
       float space = 4.f;
       std::vector<vec3> positions;

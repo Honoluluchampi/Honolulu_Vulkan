@@ -2,12 +2,12 @@
 #extension GL_NV_mesh_shader : require
 #extension GL_EXT_shader_explicit_arithmetic_types : require
 
-// the second variable of vkCmdDrawMeshTasksNV()
-layout(local_size_x = 1) in;
-
 const uint MAX_VERTEX_COUNT = 64;
 const uint MAX_PRIMITIVE_INDICES_COUNT = 378;
 const uint MESHLET_PER_TASK = 32;
+const uint GROUP_SIZE = 32;
+
+layout(local_size_x = 32) in;
 
 // identifier "triangles" indicates this shader outputs trianlges (other candidates : point, line)
 // gl_MeshVerticesNV and glPrimitiveIndicesNV is resized according to these values
@@ -100,21 +100,28 @@ vec3 meshlet_colors[COLOR_COUNT] = {
 void main() {
 
   // following three gl_~NV variables are built in variables for mesh shading
+  // detect current meshlet
   uint meshlet_index = IN.base_id + IN.sub_ids[gl_WorkGroupID.x];
   meshlet current_meshlet = meshlets[meshlet_index];
 
   //------- vertex processing ---------------------------------------------
+  const uint vertex_loops = (MAX_VERTEX_COUNT + GROUP_SIZE - 1) / GROUP_SIZE;
+  
   uint vertex_count = current_meshlet.vertex_count;
 
   mat4 pvw_mat = ubo.projection * ubo.view * push.model_matrix;
 
-  for (uint i = 0; i < vertex_count; i++) {
-    // i indicates gl_~'s index
-    // vertex_index indicates the vertex_buffer's index
-    uint vertex_index = current_meshlet.vertex_indices[i];
+  for (uint loop = 0; loop < vertex_loops; loop++) {
+    // distibute execution across threads
+    uint v = gl_LocalInvocationID.x + loop * GROUP_SIZE;
+    v = min(v, vertex_count - 1);
+    {
+      // vertex_index indicates the vertex_buffer's index
+      uint vertex_index = current_meshlet.vertex_indices[v];
 
-    gl_MeshVerticesNV[i].gl_Position = pvw_mat * vec4(raw_vertices[vertex_index].position, 1.0);
-    v_out[i].color = vec4(meshlet_colors[meshlet_index %COLOR_COUNT], 1.f);
+      gl_MeshVerticesNV[v].gl_Position = pvw_mat * vec4(raw_vertices[vertex_index].position, 1.0);
+      v_out[v].color = vec4(meshlet_colors[meshlet_index %COLOR_COUNT], 1.f);
+    }
   }
 
   //------- index processing ----------------------------------------------
