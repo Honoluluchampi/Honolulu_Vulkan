@@ -2,7 +2,8 @@
 #include <graphics/mesh_model.hpp>
 #include <graphics/utils.hpp>
 #include <geometry/mesh_model.hpp>
-#include <geometry/half_edge.hpp>
+#include <geometry/primitives.hpp>
+#include <utils/utils.hpp>
 
 // libs
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -14,35 +15,6 @@
 #include <cstring>
 #include <iostream>
 #include <unordered_map>
-
-namespace std {
-
-template <>
-struct hash<hnll::graphics::vertex>
-{
-  size_t operator() (hnll::graphics::vertex const &vertex) const
-  {
-    // stores final hash value
-    size_t seed = 0;
-    hnll::graphics::hash_combine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
-    return seed;
-  }
-};
-
-template <typename Scalar, int Rows, int Cols>
-struct hash<Eigen::Matrix<Scalar, Rows, Cols>> {
-  // https://wjngkoh.wordpress.com/2015/03/04/c-hash-function-for-eigen-matrix-and-vector/
-  size_t operator()(const Eigen::Matrix<Scalar, Rows, Cols>& matrix) const {
-    size_t seed = 0;
-    for (size_t i = 0; i < static_cast<size_t>(matrix.size()); ++i) {
-      Scalar elem = *(matrix.data() + i);
-      seed ^=
-          std::hash<Scalar>()(elem) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    }
-    return seed;
-  }
-};
-} // namespace std
 
 namespace hnll::graphics {
 
@@ -59,10 +31,11 @@ mesh_model::~mesh_model()
   // buffers will be freed in dtor of hnll::graphics::buffer
 }
 
-std::shared_ptr<mesh_model> mesh_model::create_model_from_file(device &device, const std::string &filename)
+std::shared_ptr<mesh_model> mesh_model::create_from_file(device &device, const std::string &filename)
 {
+  auto filepath = utils::get_full_path(filename);
   mesh_builder builder;
-  builder.load_model(filename);
+  builder.load_model(filepath);
   std::cout << filename << " vertex count: " << builder.vertices.size() << "\n";
   return std::make_shared<mesh_model>(device, builder);
 }

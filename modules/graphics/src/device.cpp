@@ -297,10 +297,17 @@ void device::create_logical_device()
   // for mesh shader
   if (rendering_type_ == rendering_type::MESH_SHADING) {
     // enable extensions
-    VkPhysicalDeviceMaintenance4Features maintenance4_features {
+    // for uint8_t in taskNV
+    VkPhysicalDeviceVulkan12Features vulkan12_features {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES
+    };
+    vulkan12_features.shaderInt8 = VK_TRUE;
+
+      VkPhysicalDeviceMaintenance4Features maintenance4_features {
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES
     };
     maintenance4_features.maintenance4 = VK_TRUE;
+    maintenance4_features.pNext = &vulkan12_features;
 
     VkPhysicalDeviceMeshShaderFeaturesNV mesh_features = {
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_NV

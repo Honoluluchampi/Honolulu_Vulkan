@@ -1,7 +1,8 @@
 #pragma once
 
 // hnll
-#include <geometry/half_edge.hpp>
+#include <geometry/primitives.hpp>
+#include <graphics/utils.hpp>
 
 // std
 #include <memory>
@@ -11,8 +12,33 @@
 //lib
 #include <eigen3/Eigen/Dense>
 
+// hash functions
+
+
+// hash for half edge map
+namespace std {
+template<>
+struct hash<std::pair<hnll::geometry::vertex, hnll::geometry::vertex>>
+{
+  size_t operator() (const std::pair<hnll::geometry::vertex, hnll::geometry::vertex>& vertex_pair) const
+  {
+    size_t seed = 0;
+    // only positions of vertex matter for half edge
+    hnll::graphics::hash_combine(seed, vertex_pair.first.position_, vertex_pair.second.position_);
+    return seed;
+  }
+};
+
+} // namespace std
+
 // forward declaration
-namespace hnll::graphics { class mesh_model; struct mesh_builder; }
+namespace hnll::graphics
+{
+class mesh_model;
+struct vertex;
+struct mesh_builder;
+}
+
 namespace hnll::geometry {
 
 // forward declaration
@@ -30,7 +56,7 @@ using vertex_id     = uint32_t;
 using vertex_map    = std::unordered_map<vertex_id, s_ptr<vertex>>;
 using face_id       = uint32_t;
 using face_map      = std::unordered_map<face_id, s_ptr<face>>;
-using half_edge_key = uint64_t; // consists of two vertex_ids
+using half_edge_key = std::pair<vertex, vertex>;
 using half_edge_map = std::unordered_map<half_edge_key, s_ptr<half_edge>>;
 
 class mesh_model
@@ -38,7 +64,6 @@ class mesh_model
   public:
     static s_ptr<mesh_model> create();
     static s_ptr<mesh_model> create_from_obj_file(const std::string& filename);
-    static s_ptr<mesh_model> create_from_mesh_builder(graphics::mesh_builder&& builder);
 
     mesh_model();
     void align_vertex_id();
@@ -46,7 +71,7 @@ class mesh_model
     // vertices are assumed to be in a counter-clockwise order
     vertex_id add_vertex(const s_ptr<vertex>& v);
     face_id   add_face(s_ptr<vertex>& v0, s_ptr<vertex>& v1, s_ptr<vertex>& v2,
-                       geometry::auto_vertex_normal_calculation avnc= geometry::auto_vertex_normal_calculation::OFF);
+      geometry::auto_vertex_normal_calculation avnc = geometry::auto_vertex_normal_calculation::OFF);
 
     // getter
     vertex_map       get_vertex_map() const         { return vertex_map_; }
@@ -62,6 +87,8 @@ class mesh_model
     u_ptr<bounding_volume> get_bounding_volume_copy() const;
     u_ptr<bounding_volume> get_ownership_of_bounding_volume();
 
+    std::vector<graphics::vertex> move_raw_vertices() { return std::move(raw_vertices_); }
+
     // setter
     void set_bounding_volume(u_ptr<bounding_volume>&& bv);
     void colorize_whole_mesh(const vec3& color);
@@ -74,6 +101,8 @@ class mesh_model
     face_map      face_map_;
     vertex_map    vertex_map_;
     u_ptr<bounding_volume> bounding_volume_;
+    // move to graphics::meshlet_model
+    std::vector<graphics::vertex> raw_vertices_;
 };
 
 

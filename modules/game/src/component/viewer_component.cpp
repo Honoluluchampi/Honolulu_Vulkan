@@ -38,6 +38,8 @@ void viewer_component::set_orthogonal_projection(float left, float right, float 
     0.f,                  0.f,                  1.f / (far - near), -near / (far - near),
     0.f,                  0.f,                  0.f,                1.f;
 }
+
+void viewer_component::update_frustum() { perspective_frustum_->update_planes(transform_); }
  
 void viewer_component::set_perspective_projection(float fov_y, float aspect, float near, float far)
 {

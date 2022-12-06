@@ -19,11 +19,16 @@ template<class S> using s_ptr = std::shared_ptr<S>;
 namespace utils {
 
 static std::vector<std::string> loading_directories {
+  "/home/honolulu/models/characters",
   "/home/honolulu/models/primitives",
-  "/home/honolulu/models/characters"
 };
 
 std::string get_full_path(const std::string& _filename);
+void mkdir_p(const std::string& _dir_name);
+// returns cache directory
+std::string create_cache_directory();
+// returns sub cache directory
+std::string create_sub_cache_directory(const std::string& _dir_name);
 
 // 3d transformation
 struct transform
@@ -65,6 +70,19 @@ struct viewer_info
   Eigen::Matrix4f projection   = Eigen::Matrix4f::Identity();
   Eigen::Matrix4f view         = Eigen::Matrix4f::Identity();
   Eigen::Matrix4f inverse_view = Eigen::Matrix4f::Identity();
+};
+
+struct frustum_info
+{
+  Eigen::Vector3f camera_position;
+  Eigen::Vector3f near_position;
+  Eigen::Vector3f far_position;
+  Eigen::Vector3f top_n;
+  Eigen::Vector3f bottom_n;
+  Eigen::Vector3f right_n;
+  Eigen::Vector3f left_n;
+  Eigen::Vector3f near_n;
+  Eigen::Vector3f far_n;
 };
 
 } // namespace utils

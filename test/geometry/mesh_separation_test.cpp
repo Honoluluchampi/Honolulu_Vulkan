@@ -1,6 +1,6 @@
 // hnll
 #include <geometry/mesh_separation.hpp>
-#include <geometry/half_edge.hpp>
+#include <geometry/primitives.hpp>
 
 // lib
 #include <gtest/gtest.h>

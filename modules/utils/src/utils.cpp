@@ -3,6 +3,8 @@
 
 // std
 #include <filesystem>
+#include <sys/stat.h>
+#include <dirent.h>
 
 namespace hnll::utils {
 
@@ -19,6 +21,35 @@ std::string get_full_path(const std::string& _filename)
     std::runtime_error(_filename + " doesn't exist!");
 
   return filepath;
+}
+
+void mkdir_p(const std::string& _dir_name)
+{
+  struct stat buffer;
+  // if the directory exists
+  if (stat(_dir_name.c_str(), &buffer) == 0)
+    return;
+  else {
+    if (mkdir(_dir_name.c_str(), 0777) != 0)
+      throw std::runtime_error("failed to make directory : " + _dir_name);
+  }
+}
+
+std::string create_cache_directory()
+{
+  auto cache_directory = std::string(getenv("HNLL_ENGN")) + "/cache";
+  mkdir_p(cache_directory);
+
+  return cache_directory;
+}
+
+std::string create_sub_cache_directory(const std::string& _dir_name)
+{
+  auto cache_directory = create_cache_directory();
+  cache_directory += "/" + _dir_name;
+  mkdir_p(cache_directory);
+
+  return cache_directory;
 }
 
 Eigen::Matrix4d transform::mat4() const

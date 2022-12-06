@@ -1,6 +1,6 @@
 // hnll
 #include <geometry/mesh_model.hpp>
-#include <geometry/half_edge.hpp>
+#include <geometry/primitives.hpp>
 #include <geometry/bounding_volume.hpp>
 #include <graphics/utils.hpp>
 #include <utils/utils.hpp>
@@ -13,13 +13,6 @@
 
 namespace hnll::geometry {
 
-template <typename T, typename... Rest>
-void hash_combine(std::size_t& seed, const T& v, const Rest&... rest)
-{
-  seed ^= std::hash<T>{}(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-  (hash_combine(seed, rest), ...);
-}
-
 bool operator==(const vertex& rhs, const vertex& lhs)
 {
   return (rhs.position_ == lhs.position_)
@@ -28,92 +21,55 @@ bool operator==(const vertex& rhs, const vertex& lhs)
       && (rhs.uv_       == lhs.uv_);
 }
 
-} // namespace hnll::geometry
-
-namespace std {
-
-template <typename Scalar, int Rows, int Cols>
-struct hash<Eigen::Matrix<Scalar, Rows, Cols>> {
-  // https://wjngkoh.wordpress.com/2015/03/04/c-hash-function-for-eigen-matrix-and-vector/
-  size_t operator()(const Eigen::Matrix<Scalar, Rows, Cols>& matrix) const
-  {
-    size_t seed = 0;
-    for (size_t i = 0; i < matrix.size(); ++i) {
-      Scalar elem = *(matrix.data() + i);
-      seed ^=
-          std::hash<Scalar>()(elem) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    }
-    return seed;
-  }
-};
-
-template<>
-struct hash<hnll::geometry::vertex>
-{
-  size_t operator() (hnll::geometry::vertex const& vertex) const
-  {
-    // stores final hash value
-    size_t seed = 0;
-    hnll::geometry::hash_combine(seed, vertex.position_); //, vertex.color_, vertex.normal_, vertex.uv_);
-    return seed;
-  }
-};
-} // namespace std
-
-namespace hnll::geometry {
-
 s_ptr<mesh_model> mesh_model::create()
 { return std::make_shared<mesh_model>(); }
 
 mesh_model::mesh_model() { bounding_volume_ = bounding_volume::create_blank_aabb(); }
 
-s_ptr<vertex> create_vertex_from_pseudo(geometry::vertex&& pseudo)
+s_ptr<half_edge> mesh_model::get_half_edge(const s_ptr<hnll::geometry::vertex> &v0, const s_ptr<hnll::geometry::vertex> &v1)
 {
-  auto vertex_sp = vertex::create(pseudo.position_);
-  vertex_sp->color_    = std::move(pseudo.color_);
-  vertex_sp->normal_   = std::move(pseudo.normal_);
-  vertex_sp->uv_       = std::move(pseudo.uv_);
-  return vertex_sp;
+  half_edge_key hash_key = { *v0, *v1 };
+  return half_edge_map_[hash_key];
 }
 
-s_ptr<vertex> create_vertex_from_pseudo(graphics::vertex&& pseudo)
+s_ptr<vertex> translate_vertex_graphics_to_geometry(const graphics::vertex& pseudo)
 {
   auto vertex_sp = vertex::create(pseudo.position.cast<double>());
-  vertex_sp->color_    = std::move(pseudo.color.cast<double>());
-  vertex_sp->normal_   = std::move(pseudo.normal.cast<double>());
-  vertex_sp->uv_       = std::move(pseudo.uv.cast<double>());
+  vertex_sp->color_    = pseudo.color.cast<double>();
+  vertex_sp->normal_   = pseudo.normal.cast<double>();
+  vertex_sp->uv_       = pseudo.uv.cast<double>();
   return vertex_sp;
 }
 
 s_ptr<mesh_model> mesh_model::create_from_obj_file(const std::string& filename)
 {
-  auto filepath = utils::get_full_path(filename);
   tinyobj::attrib_t attrib;
   std::vector<tinyobj::shape_t> shapes;
   std::vector<tinyobj::material_t> materials;
   std::string warn, err;
 
-  if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str()))
+  if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filename.c_str()))
     throw std::runtime_error(warn + err);
 
   auto mesh_model = mesh_model::create();
 
-  std::unordered_map<vec3, vertex_id> unique_vertices_position{};
-  std::vector<vertex_id> indices;
+  std::unordered_map<graphics::vertex, vertex_id> unique_vertices{};
+  mesh_model->raw_vertices_.clear();
+  std::vector<vertex_id> indices{};
 
   for (const auto& shape : shapes) {
     for (const auto& index : shape.mesh.indices) {
       // does not have id_
-      vertex vertex{};
+      graphics::vertex vertex{};
       // copy the vertex
       if (index.vertex_index >= 0) {
-        vertex.position_ = {
+        vertex.position = {
           attrib.vertices[3 * index.vertex_index + 0],
           attrib.vertices[3 * index.vertex_index + 1],
           attrib.vertices[3 * index.vertex_index + 2]
         };
         // color support
-        vertex.color_ = {
+        vertex.color = {
           attrib.colors[3 * index.vertex_index + 0],
           attrib.colors[3 * index.vertex_index + 1],
           attrib.colors[3 * index.vertex_index + 2]
@@ -121,7 +77,7 @@ s_ptr<mesh_model> mesh_model::create_from_obj_file(const std::string& filename)
       }
       // copy the normal
       if (index.vertex_index >= 0) {
-        vertex.normal_ = {
+        vertex.normal = {
           attrib.normals[3 * index.normal_index + 0],
           attrib.normals[3 * index.normal_index + 1],
           attrib.normals[3 * index.normal_index + 2]
@@ -129,20 +85,21 @@ s_ptr<mesh_model> mesh_model::create_from_obj_file(const std::string& filename)
       }
       // copy the texture coordinate
       if (index.vertex_index >= 0) {
-        vertex.uv_ = {
+        vertex.uv = {
           attrib.vertices[2 * index.texcoord_index + 0],
           attrib.vertices[2 * index.texcoord_index + 1]
         };
       }
       // if vertex is a new vertex
-      if (unique_vertices_position.find(vertex.position_) == unique_vertices_position.end()) {
-        auto new_vertex = create_vertex_from_pseudo(std::move(vertex));
+      if (unique_vertices.count(vertex) == 0) {
+        auto new_vertex = translate_vertex_graphics_to_geometry(vertex);
         auto new_id = mesh_model->add_vertex(new_vertex);
-        unique_vertices_position[new_vertex->position_] = new_id;
+        unique_vertices[vertex] = new_id;
+        mesh_model->raw_vertices_.emplace_back(std::move(vertex));
         indices.push_back(new_id);
       }
       else
-        indices.push_back(unique_vertices_position[vertex.position_]);
+        indices.push_back(unique_vertices[vertex]);
     }
   }
 
@@ -175,63 +132,13 @@ void mesh_model::align_vertex_id()
   vertex_map_ = new_map;
 }
 
-s_ptr<mesh_model> mesh_model::create_from_mesh_builder(graphics::mesh_builder &&builder)
-{
-  if (builder.indices.size() % 3 != 0)
-    throw std::runtime_error("vertex count is not multiple of 3");
-
-  auto mesh_model = mesh_model::create();
-
-  vertex_id id = 0;
-  for (auto& v : builder.vertices) {
-    auto new_vertex = create_vertex_from_pseudo(std::move(v));
-    new_vertex->id_ = id++;
-    mesh_model->add_vertex(new_vertex);
-  }
-
-  // recreate all faces
-  for (int i = 0; i < builder.indices.size(); i += 3) {
-    auto v0 = mesh_model->get_vertex(builder.indices[i]);
-    auto v1 = mesh_model->get_vertex(builder.indices[i + 1]);
-    auto v2 = mesh_model->get_vertex(builder.indices[i + 2]);
-    auto normal = (v0->normal_ + v1->normal_ + v2->normal_) / 3.f;
-    auto cross = (v1->position_ - v0->position_).cross(v2->position_ - v0->position_);
-    if (cross.dot(normal) >= 0)
-      mesh_model->add_face(v0, v1, v2);
-    else
-      mesh_model->add_face(v0, v2, v1);
-  }
-
-  return mesh_model;
-}
-
 void mesh_model::colorize_whole_mesh(const vec3& color)
 { for (const auto& kv : vertex_map_) kv.second->color_ = color; }
 
-half_edge_key calc_half_edge_key(const s_ptr<vertex>& v0, const s_ptr<vertex>& v1)
-{
-  half_edge_key id0 = v0->id_, id1 = v1->id_;
-  return (id0 | (id1 << 32));
-}
-
-half_edge_key calc_pair_half_edge_key(const s_ptr<vertex>& v0, const s_ptr<vertex>& v1)
-{
-  half_edge_key id0 = v0->id_, id1 = v1->id_;
-  return (id1 | (id0 << 32));
-}
-
-s_ptr<half_edge> mesh_model::get_half_edge(const s_ptr<vertex> &v0, const s_ptr<vertex> &v1)
-{
-  auto hash_key = calc_half_edge_key(v0, v1);
-  if (half_edge_map_.find(hash_key) != half_edge_map_.end())
-    return half_edge_map_[hash_key];
-  return nullptr;
-}
-
 bool mesh_model::associate_half_edge_pair(const s_ptr<half_edge> &he)
 {
-  auto hash_key = calc_half_edge_key(he->get_vertex(), he->get_next()->get_vertex());
-  auto pair_hash_key = calc_pair_half_edge_key(he->get_vertex(), he->get_next()->get_vertex());
+  half_edge_key hash_key = { *he->get_vertex(), *he->get_next()->get_vertex() };
+  half_edge_key pair_hash_key = { *he->get_next()->get_vertex(), *he->get_vertex() };
 
   half_edge_map_[hash_key] = he;
   // check if those hash_key already have a value
@@ -241,18 +148,17 @@ bool mesh_model::associate_half_edge_pair(const s_ptr<half_edge> &he)
     half_edge_map_[pair_hash_key]->set_pair(he);
     return true;
     }
-//  } else {
-    // if the pair has not added to the map
-//    half_edge_map_[hash_key] = he;
     return false;
-//  }
 }
 
 vertex_id mesh_model::add_vertex(const s_ptr<vertex> &v)
 {
   // if the vertex has not been involved
-  if (vertex_map_.find(v->id_) == vertex_map_.end())
+  if (vertex_map_.count(v->id_) == 0) {
+    if (v->id_ == -1)
+      v->id_ = raw_vertices_.size();
     vertex_map_[v->id_] = v;
+  }
   return v->id_;
 }
 

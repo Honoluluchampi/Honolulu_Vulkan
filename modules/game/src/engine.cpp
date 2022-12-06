@@ -7,6 +7,7 @@
 #include <physics/collision_info.hpp>
 #include <physics/collision_detector.hpp>
 #include <physics/engine.hpp>
+#include <graphics/meshlet_model.hpp>
 
 // lib
 #include <imgui.h>
@@ -26,6 +27,8 @@ actor_map             engine::active_actor_map_{};
 actor_map             engine::pending_actor_map_{};
 std::vector<actor_id> engine::dead_actor_ids_{};
 mesh_model_map        engine::mesh_model_map_;
+meshlet_model_map     engine::meshlet_model_map_;
+
 
 // glfw
 GLFWwindow* engine::glfw_window_;
@@ -77,11 +80,11 @@ void engine::update()
   float dt;
   std::chrono::system_clock::time_point new_time;
   // calc dt
-  do {
+//  do {
   new_time = std::chrono::system_clock::now();
 
   dt = std::chrono::duration<float, std::chrono::seconds::period>(new_time - current_time_).count();
-  } while(dt < 1.0f / MAX_FPS);
+//  } while(dt < 1.0f / MAX_FPS);
 
   dt = std::min(dt, MAX_DT);
 
@@ -132,7 +135,8 @@ void engine::re_update_actors()
 
 void engine::render()
 {
-  graphics_engine_->render(camera_up_->get_viewer_info());
+  viewer_info_  = camera_up_->get_viewer_info();
+  graphics_engine_->render(viewer_info_, frustum_info_);
 #ifndef IMGUI_DISABLED
   if (!hnll::graphics::renderer::swap_chain_recreated_){
     gui_engine_->begin_imgui();
@@ -168,22 +172,37 @@ void engine::init_actors()
 void engine::load_data()
 {
   // load raw mesh data
-  load_mesh_models("/home/honolulu/models/primitives");
+  load_mesh_models();
+  load_meshlet_models();
   // load_actor();
 }
 
 // use filenames as the key of the map
 // TODO : add models by adding folders or files
-void engine::load_mesh_models(const std::string& model_directory)
+void engine::load_mesh_models()
 {
-  // auto path = std::string(std::getenv("HNLL_ENGN")) + model_directory;
-  auto path = model_directory;
-  for (const auto & file : std::filesystem::directory_iterator(path)) {
-    auto filename = std::string(file.path());
-    auto length = filename.size() - path.size() - 5;
-    auto key = filename.substr(path.size() + 1, length);
-    auto mesh_model = hnll::graphics::mesh_model::create_model_from_file(graphics_engine_->get_device(), filename);
-    mesh_model_map_.emplace(key, std::move(mesh_model));
+  for (const auto& path : utils::loading_directories) {
+    for (const auto& file : std::filesystem::directory_iterator(path)) {
+      auto filename = std::string(file.path());
+      auto length = filename.size() - path.size();
+      auto key = filename.substr(path.size() + 1, length);
+      auto mesh_model = hnll::graphics::mesh_model::create_from_file(get_graphics_device(), key);
+      mesh_model_map_.emplace(key, std::move(mesh_model));
+    }
+  }
+}
+
+void engine::load_meshlet_models()
+{
+  for (const auto& path : utils::loading_directories) {
+    for (const auto& file : std::filesystem::directory_iterator(path)) {
+      auto filename = std::string(file.path());
+      auto length = filename.size() - path.size();
+      auto key = filename.substr(path.size() + 1, length);
+      auto meshlet_model = hnll::graphics::meshlet_model::create_from_file(get_graphics_device(), key);
+      std::cout << key << " :" << std::endl << "\tmeshlet count : " << meshlet_model->get_meshlets_count() << std::endl;
+      meshlet_model_map_.emplace(key, std::move(meshlet_model));
+    }
   }
 }
 
@@ -200,19 +219,16 @@ void engine::remove_actor(id_t id)
 void engine::load_actor()
 {
   auto smooth_vase = actor::create();
-  auto smooth_vase_mesh_model = mesh_model_map_["sphere"];
-  auto smooth_vase_model_comp = mesh_component::create(smooth_vase, std::move(smooth_vase_mesh_model));
+  auto smooth_vase_model_comp = mesh_component::create(smooth_vase, "smooth_sphere.obj");
   smooth_vase->set_translation(glm::vec3{0.f, 0.f, 3.f});
 
   auto flat_vase = actor::create();
-  auto flat_vase_mesh_model = mesh_model_map_["flat_vase"];
-  auto flat_vase_model_comp = mesh_component::create(flat_vase, std::move(flat_vase_mesh_model));
+  auto flat_vase_model_comp = mesh_component::create(flat_vase, "light_bunny.obj");
   flat_vase->set_translation(glm::vec3{0.5f, 0.5f, 0.f});
   flat_vase->set_scale(glm::vec3{3.f, 1.5f, 3.f});
   
   auto floor = actor::create();
-  auto floor_mesh_comp = mesh_model_map_["quad"];
-  auto floor_model_comp = mesh_component::create(floor, std::move(floor_mesh_comp));
+  auto floor_model_comp = mesh_component::create(floor, "plane.obj");
   floor->set_translation(glm::vec3{0.f, 0.5f, 0.f});
   floor->set_scale(glm::vec3{3.f, 1.5f, 3.f});
 
@@ -263,6 +279,7 @@ void engine::cleanup()
   pending_actor_map_.clear();
   dead_actor_ids_.clear();
   mesh_model_map_.clear();
+  meshlet_model_map_.clear();
   hnll::graphics::renderer::cleanup_swap_chain();
 }
 
@@ -287,5 +304,17 @@ void engine::glfw_mouse_button_callback(GLFWwindow* window, int button, int acti
   ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
 #endif
 }
+
+void engine::set_frustum_info(utils::frustum_info &&_frustum_info)
+{
+  frustum_info_ = std::move(_frustum_info);
+}
+
+graphics::meshlet_model& engine::get_meshlet_model(std::string model_name)
+{ return *meshlet_model_map_[model_name]; }
+
+//actor& engine::get_active_actor(actor_id id)
+//{ return *active_actor_map_[id]; }
+
 
 } // namespace hnll::game

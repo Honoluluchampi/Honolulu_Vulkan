@@ -5,7 +5,6 @@
 #include <graphics/device.hpp>
 #include <graphics/renderer.hpp>
 #include <graphics/descriptor_set_layout.hpp>
-#include <graphics/camera.hpp>
 #include <graphics/buffer.hpp>
 #include <graphics/rendering_system.hpp>
 
@@ -35,7 +34,7 @@ class engine
     engine(const engine &) = delete;
     engine &operator= (const engine &) = delete;
 
-    void render(utils::viewer_info&& viewer_comp);
+    void render(const utils::viewer_info& _viewer_info, utils::frustum_info& _frustum_info);
 
     // takes s_ptr<RenderableComponent>
     template<class RC>

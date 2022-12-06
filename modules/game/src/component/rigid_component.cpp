@@ -8,7 +8,7 @@ namespace hnll::game {
 
 s_ptr<rigid_component> rigid_component::create_with_aabb(actor& owner, const s_ptr<hnll::game::mesh_component>& mesh_component)
 {
-  auto mesh_vertices = mesh_component->get_model_sp()->get_vertex_position_list();
+  auto mesh_vertices = mesh_component->get_model().get_vertex_position_list();
   auto bv = geometry::bounding_volume::create_aabb(mesh_vertices);
   bv->set_transform(owner.get_transform_sp());
 
@@ -21,7 +21,7 @@ s_ptr<rigid_component> rigid_component::create_with_aabb(actor& owner, const s_p
 
 s_ptr<rigid_component> rigid_component::create_with_b_sphere(actor& owner, const s_ptr<game::mesh_component>& mesh_component)
 {
-  auto mesh_vertices = mesh_component->get_model_sp()->get_vertex_position_list();
+  auto mesh_vertices = mesh_component->get_model().get_vertex_position_list();
   auto bv = geometry::bounding_volume::create_bounding_sphere(geometry::bv_ctor_type::RITTER, mesh_vertices);
   bv->set_transform(owner.get_transform_sp());
 

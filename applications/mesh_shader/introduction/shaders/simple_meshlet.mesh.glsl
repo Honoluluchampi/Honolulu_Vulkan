@@ -2,24 +2,23 @@
 #extension GL_NV_mesh_shader : require
 #extension GL_EXT_shader_explicit_arithmetic_types : require
 
-// the second variable of vkCmdDrawMeshTasksNV()
-layout(local_size_x = 2) in;
-
 const uint MAX_VERTEX_COUNT = 64;
 const uint MAX_PRIMITIVE_INDICES_COUNT = 378;
-const uint MAX_MESHLET_COUNT = 10;
 const uint MESHLET_PER_TASK = 32;
+const uint GROUP_SIZE = 32;
+
+layout(local_size_x = 32) in;
 
 // identifier "triangles" indicates this shader outputs trianlges (other candidates : point, line)
 // gl_MeshVerticesNV and glPrimitiveIndicesNV is resized according to these values
 layout(triangles, max_vertices = MAX_VERTEX_COUNT, max_primitives = MAX_PRIMITIVE_INDICES_COUNT / 3) out;
 
-// // inputs from task shader
-// //taskNV in Task {
-// taskNV in task {
-//   uint    baseID;
-//   uint8_t deltaIDs[MESHLET_PER_TASK];
-// } IN;
+// inputs from task shader
+//taskNV in Task {
+taskNV in task {
+  uint    base_id;
+  uint8_t sub_ids[MESHLET_PER_TASK];
+} IN;
 // // gl_WorkGroupID.x runs from [0 .. parentTask.gl_TaskCountNV - 1]
 // uint meshletID = IN.baseID + IN.deltaIDs[gl_WorkGroupID.x];
 
@@ -59,7 +58,7 @@ struct vertex {
   vec2 uv;
 };
 
-layout(set = 1, binding = 0) buffer _vertex_buffer {
+layout(set = 2, binding = 0) buffer _vertex_buffer {
   vertex raw_vertices[];
 };
 
@@ -68,9 +67,12 @@ struct meshlet {
   uint primitive_indices[MAX_PRIMITIVE_INDICES_COUNT];
   uint vertex_count; // < MAX_VERTEX_COUNT
   uint index_count; // < MAX_PRIMITIVE_INDICES_COUNT
+  // for frustum culling
+  vec3 center;
+  float radius;
 };
 
-layout(set = 2, binding = 0) buffer _mesh_buffer {
+layout(set = 3, binding = 0) buffer _mesh_buffer {
   meshlet meshlets[];
 };
 
@@ -98,20 +100,28 @@ vec3 meshlet_colors[COLOR_COUNT] = {
 void main() {
 
   // following three gl_~NV variables are built in variables for mesh shading
-  uint meshlet_index = gl_WorkGroupID.x;
+  // detect current meshlet
+  uint meshlet_index = IN.base_id + IN.sub_ids[gl_WorkGroupID.x];
   meshlet current_meshlet = meshlets[meshlet_index];
 
   //------- vertex processing ---------------------------------------------
+  const uint vertex_loops = (MAX_VERTEX_COUNT + GROUP_SIZE - 1) / GROUP_SIZE;
+  
   uint vertex_count = current_meshlet.vertex_count;
 
-  for (uint i = 0; i < vertex_count; i++) {
-    // i indicates gl_~'s index
-    // vertex_index indicates the vertex_buffer's index
-    uint vertex_index = current_meshlet.vertex_indices[i];
+  mat4 pvw_mat = ubo.projection * ubo.view * push.model_matrix;
 
-    vec4 position_world = push.model_matrix * vec4(raw_vertices[vertex_index].position, 1.0);
-    gl_MeshVerticesNV[i].gl_Position = ubo.projection * ubo.view * position_world;
-    v_out[i].color = vec4(meshlet_colors[meshlet_index %COLOR_COUNT], 1.f);
+  for (uint loop = 0; loop < vertex_loops; loop++) {
+    // distibute execution across threads
+    uint v = gl_LocalInvocationID.x + loop * GROUP_SIZE;
+    v = min(v, vertex_count - 1);
+    {
+      // vertex_index indicates the vertex_buffer's index
+      uint vertex_index = current_meshlet.vertex_indices[v];
+
+      gl_MeshVerticesNV[v].gl_Position = pvw_mat * vec4(raw_vertices[vertex_index].position, 1.0);
+      v_out[v].color = vec4(meshlet_colors[meshlet_index %COLOR_COUNT], 1.f);
+    }
   }
 
   //------- index processing ----------------------------------------------

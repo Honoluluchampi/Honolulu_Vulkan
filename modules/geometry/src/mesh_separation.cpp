@@ -1,54 +1,85 @@
 // hnll
 #include <geometry/mesh_separation.hpp>
-#include <geometry/half_edge.hpp>
+#include <geometry/primitives.hpp>
 #include <geometry/mesh_model.hpp>
 #include <geometry/bounding_volume.hpp>
+#include <geometry/intersection.hpp>
 #include <graphics/meshlet_model.hpp>
 #include <graphics/utils.hpp>
+#include <utils/utils.hpp>
 
+// std
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <filesystem>
 
 namespace hnll::geometry {
 
-std::vector<vec3> mesh_colors {
-  // universal
-//    { 255, 75, 0 },
-//    { 0, 90, 255 },
-//    { 3, 175, 122 },
-//    { 77, 196, 255 },
-//    { 246, 170, 0 },
-//    { 255, 241, 0 },
-//    { 153, 0, 153 },
-  // yumekawa
-    { 191,255,127 },
-    { 255,191,127 },
-    { 255,255,127 },
-    { 127,255,255 },
-    { 255,127,191 },
-    { 191,127,255 },
-    { 127,127,255 },
-    // vivid
-//    { 0,255,0 },
-//    { 0,255,255 },
-//    { 255,255,0 },
-//    { 255,35,35 },
-//    { 35,35,255 },
-//    { 255,35,255 },
-//    { 255,145,35 },
-};
-
-auto convert_color_255_to_1 (vec3& color)
+std::vector<ray> create_sampling_rays(const face &_face, uint32_t _sampling_count)
 {
-  return color / 255.f;
+  std::vector<ray> sampling_rays;
+
+  // returns no ray
+  if (_sampling_count <= 0) return sampling_rays;
+
+  auto& v0 = _face.half_edge_->get_vertex()->position_;
+  auto& v1 = _face.half_edge_->get_next()->get_vertex()->position_;
+  auto& v2 = _face.half_edge_->get_next()->get_next()->get_vertex()->position_;
+
+  auto  origin = (v0 + v1 + v2) / 3.f;
+
+  // default ray
+  sampling_rays.emplace_back(ray{origin, _face.normal_});
+
+  for (int i = 0; i < _sampling_count - 1; i++) {
+
+  }
+
+  return sampling_rays;
 }
 
-auto convert_colors_255_to_1 (std::vector<vec3>& colors)
+// returns -1 if the ray doesn't intersect with any triangle
+double mesh_separation_helper::compute_shape_diameter(const ray& _ray)
 {
-  std::vector<vec3> res;
-  for (const auto& color : colors) {
-    res.emplace_back(color / 255.f);
+  for (const auto& f_kv : face_map_) {
+    auto& he = f_kv.second->half_edge_;
+    std::vector<vec3d> vertices = {
+      he->get_vertex()->position_,
+      he->get_next()->get_vertex()->position_,
+      he->get_next()->get_next()->get_vertex()->position_,
+    };
+
+    intersection::test_ray_triangle(_ray, vertices);
   }
-  return res;
+  return -1;
+}
+
+void mesh_separation_helper::compute_whole_shape_diameters()
+{
+  for (auto& f_kv : face_map_) {
+    auto& f = *f_kv.second;
+
+    // compute shape diameter
+    auto sampling_rays = create_sampling_rays(f, 1);
+
+    double sdf_mean = 0.f;
+
+    // compute values for each sampling rays
+    for (const auto& r : sampling_rays) {
+      if (auto tmp = compute_shape_diameter(r); tmp != -1)
+        sdf_mean += compute_shape_diameter(r);
+    }
+
+    sdf_mean /= sampling_rays.size();
+
+    f.shape_diameter_ = sdf_mean;
+  }
+}
+
+std::vector<mesh_model> mesh_separation_helper::separate_using_sdf()
+{
+
 }
 
 s_ptr<face> mesh_separation_helper::get_random_remaining_face()
@@ -59,9 +90,14 @@ s_ptr<face> mesh_separation_helper::get_random_remaining_face()
   return nullptr;
 }
 
-s_ptr<mesh_separation_helper> mesh_separation_helper::create(const s_ptr<mesh_model> &model)
+s_ptr<mesh_separation_helper> mesh_separation_helper::create(
+  const s_ptr<mesh_model> &model,
+  const std::string& _model_name,
+  mesh_separation::criterion _crtr)
 {
   auto helper_sp = std::make_shared<mesh_separation_helper>(model);
+  helper_sp->set_model_name(_model_name);
+  helper_sp->set_criterion(_crtr);
   return helper_sp;
 }
 
@@ -266,18 +302,6 @@ s_ptr<face> choose_random_face_from_map(const face_map& fc_map)
   return nullptr;
 }
 
-s_ptr<vertex> duplicate_vertex(const s_ptr<vertex>& old_vertex)
-{
-  auto new_vertex = vertex::create(old_vertex->position_);
-  new_vertex->position_ = old_vertex->position_;
-  new_vertex->normal_ = old_vertex->normal_;
-  new_vertex->color_ = old_vertex->color_;
-  new_vertex->uv_ = old_vertex->uv_;
-  new_vertex->half_edge_ = old_vertex->half_edge_;
-  new_vertex->face_count_ = old_vertex->face_count_;
-  return new_vertex;
-}
-
 graphics::meshlet translate_meshlet(const s_ptr<mesh_model>& old_mesh)
 {
   graphics::meshlet ret{};
@@ -307,12 +331,17 @@ graphics::meshlet translate_meshlet(const s_ptr<mesh_model>& old_mesh)
   }
   ret.index_count = current_id;
 
+  // fill bounding volume info
+  ret.center = old_mesh->get_bounding_volume().get_local_center_point().cast<float>();
+  ret.radius = old_mesh->get_bounding_volume().get_sphere_radius();
+
   return ret;
 }
 
-std::vector<graphics::meshlet> separate_greedy(const s_ptr<mesh_separation_helper>& helper, mesh_separation::criterion crtr)
+std::vector<graphics::meshlet> separate_greedy(const s_ptr<mesh_separation_helper>& helper)
 {
   std::vector<graphics::meshlet> meshlets;
+  auto crtr = helper->get_criterion();
   s_ptr<face> current_face = helper->get_random_remaining_face();
 
   while (!helper->all_face_is_registered()) {
@@ -322,7 +351,7 @@ std::vector<graphics::meshlet> separate_greedy(const s_ptr<mesh_separation_helpe
 
     // change functions depending on the criterion
     u_ptr<bounding_volume> bv;
-    if (crtr == mesh_separation::criterion::MINIMIZE_VARIATION) bv = create_aabb_from_single_face(current_face);
+    if (crtr == mesh_separation::criterion::MINIMIZE_AABB) bv = create_aabb_from_single_face(current_face);
     if (crtr == mesh_separation::criterion::MINIMIZE_BOUNDING_SPHERE) bv = create_b_sphere_from_single_face(current_face);
 
     face_map adjoining_face_map {{current_face->id_ ,current_face}};
@@ -333,13 +362,13 @@ std::vector<graphics::meshlet> separate_greedy(const s_ptr<mesh_separation_helpe
         && adjoining_face_map.size() != 0) {
 
       // algorithm dependent part
-      if (crtr == mesh_separation::criterion::MINIMIZE_VARIATION)
+      if (crtr == mesh_separation::criterion::MINIMIZE_AABB)
         current_face = choose_the_best_face(adjoining_face_map, *bv);
       if (crtr == mesh_separation::criterion::MINIMIZE_BOUNDING_SPHERE)
         current_face = choose_the_best_face_for_sphere(adjoining_face_map, *bv);
       // update each object
       add_face_to_meshlet(current_face, ml);
-      if (crtr == mesh_separation::criterion::MINIMIZE_VARIATION)
+      if (crtr == mesh_separation::criterion::MINIMIZE_AABB)
         update_aabb(*bv, current_face);
       if (crtr == mesh_separation::criterion::MINIMIZE_BOUNDING_SPHERE)
         update_sphere(*bv, current_face);
@@ -356,10 +385,132 @@ std::vector<graphics::meshlet> separate_greedy(const s_ptr<mesh_separation_helpe
   return meshlets;
 }
 
-std::vector<graphics::meshlet> mesh_separation::separate(const s_ptr<mesh_model>& model, criterion crtr)
+std::vector<graphics::meshlet> mesh_separation::separate(
+  const s_ptr<mesh_model>& _model,
+  const std::string& _model_name,
+  criterion _crtr)
 {
-  auto helper = mesh_separation_helper::create(model);
+  std::vector<graphics::meshlet> meshlets;
 
-  return separate_greedy(helper, crtr);
+  auto helper = mesh_separation_helper::create(_model, _model_name, _crtr);
+
+  meshlets = separate_greedy(helper);
+
+  write_meshlet_cache(meshlets, helper->get_model_name(), helper->get_criterion());
+
+  return meshlets;
 }
+
+void mesh_separation::write_meshlet_cache(
+  const std::vector<graphics::meshlet> &_meshlets,
+  const std::string& _filename,
+  criterion _crtr)
+{
+  auto directory = utils::create_sub_cache_directory("meshlets");
+
+  std::ofstream writing_file;
+  std::string filepath = directory + "/" + _filename + ".ml";
+  writing_file.open(filepath, std::ios::out);
+
+  // write contents
+  writing_file << filepath << std::endl;
+  writing_file << "greedy" << std::endl;
+  switch (_crtr) {
+    case criterion::MINIMIZE_BOUNDING_SPHERE :
+      writing_file << "MINIMIZE_BOUNDING_SPHERE" << std::endl;
+      break;
+    case criterion::MINIMIZE_AABB :
+      writing_file << "MINIMIZE_AABB" << std::endl;
+      break;
+    default :
+      ;
+  }
+
+  auto meshlet_count = _meshlets.size();
+  writing_file << meshlet_count << std::endl;
+  for (int i = 0; i < meshlet_count; i++) {
+    auto current_ml = _meshlets[i];
+    // vertex info
+    writing_file << current_ml.vertex_count << std::endl;
+    for (const auto& v_id : current_ml.vertex_indices) {
+      writing_file << v_id << ",";
+    }
+    writing_file << std::endl;
+    // face info
+    writing_file << current_ml.index_count << std::endl;
+    for (const auto& i_id : current_ml.primitive_indices) {
+      writing_file << i_id << ",";
+    }
+    writing_file << std::endl;
+    // bonding volume info
+    writing_file << current_ml.center.x() << ',' <<
+      current_ml.center.y() << ',' <<
+      current_ml.center.z() << std::endl;
+    writing_file << current_ml.radius << std::endl;
+  }
+  writing_file.close();
+}
+
+bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vector<graphics::meshlet>& meshlets)
+{
+  std::string cache_dir = std::string(getenv("HNLL_ENGN")) + "/cache/meshlets/";
+  std::string file_path = cache_dir + _filename + ".ml";
+
+  // cache does not exist
+  if (!std::filesystem::exists(file_path)) {
+    return false;
+  }
+
+  std::ifstream reading_file(file_path);
+  std::string buffer;
+
+  if (reading_file.fail()) {
+    throw std::runtime_error("failed to open file" + file_path);
+  }
+
+  // ignore first three lines
+  for (int i = 0; i < 4; i++) {
+    getline(reading_file, buffer);
+  }
+
+  // 4th line indicates the meshlet count
+  uint32_t meshlet_count = std::stoi(buffer);
+  meshlets.resize(meshlet_count);
+
+  // read info
+  for (int i = 0; i < meshlet_count; i++) {
+    // vertex count
+    getline(reading_file, buffer);
+    meshlets[i].vertex_count = std::stoi(buffer);
+    // vertex indices array
+    for (int j = 0; j < graphics::MAX_VERTEX_PER_MESHLET; j++) {
+      getline(reading_file, buffer, ',');
+      meshlets[i].vertex_indices[j] = std::stoi(buffer);
+    }
+    getline(reading_file, buffer);
+    // index count
+    getline(reading_file, buffer);
+    meshlets[i].index_count = std::stoi(buffer);
+    // primitive indices array
+    for (int j = 0; j < graphics::MAX_INDEX_PER_MESHLET; j++) {
+      getline(reading_file, buffer, ',');
+      meshlets[i].primitive_indices[j] = std::stoi(buffer);
+    }
+    getline(reading_file, buffer);
+    // bounding volume
+    // center
+    getline(reading_file, buffer, ',');
+    meshlets[i].center.x() = std::stof(buffer);
+    getline(reading_file, buffer, ',');
+    meshlets[i].center.y() = std::stof(buffer);
+    getline(reading_file, buffer);
+    meshlets[i].center.z() = std::stof(buffer);
+    // radius
+    getline(reading_file, buffer);
+    meshlets[i].radius = std::stof(buffer);
+  }
+
+  return true;
+}
+
 } // namespace hnll::geometry

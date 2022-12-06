@@ -4,7 +4,7 @@
 #include <game/components/point_light_component.hpp>
 #include <game/components/mesh_component.hpp>
 #include <geometry/mesh_model.hpp>
-#include <geometry/half_edge.hpp>
+#include <geometry/primitives.hpp>
 #include <geometry/mesh_separation.hpp>
 
 using namespace hnll;

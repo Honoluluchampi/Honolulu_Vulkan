@@ -17,7 +17,8 @@
 
 namespace hnll {
 
-namespace physics { class engine; }
+namespace physics  { class engine; }
+namespace graphics { class meshlet_model; }
 
 namespace game {
 
@@ -30,6 +31,7 @@ class point_light_component;
 using actor_id = unsigned int;
 using actor_map = std::unordered_map<actor_id, s_ptr<actor>>;
 using mesh_model_map = std::unordered_map<std::string, s_ptr<hnll::graphics::mesh_model>>;
+using meshlet_model_map = std::unordered_map<std::string, u_ptr<hnll::graphics::meshlet_model>>;
 
 class engine {
   public:
@@ -74,10 +76,13 @@ class engine {
     // getter
     hnll::graphics::engine &get_graphics_engine() { return *graphics_engine_; }
     hnll::graphics::device &get_graphics_device() { return graphics_engine_->get_device(); }
-    static actor& get_active_actor(actor_id id)   { return *active_actor_map_[id]; }
+    static actor& get_active_actor(actor_id id) { return *active_actor_map_[id]; }
+
     static actor& get_pending_actor(actor_id id)  { return *pending_actor_map_[id]; }
-    static s_ptr<hnll::graphics::mesh_model>
-    get_mesh_model_sp(std::string model_name) { return mesh_model_map_[model_name]; }
+    static graphics::mesh_model&    get_mesh_model(std::string model_name) { return *mesh_model_map_[model_name]; }
+    static graphics::meshlet_model& get_meshlet_model(std::string model_name);
+    // setter
+    void set_frustum_info(utils::frustum_info&& _frustum_info);
 
 #ifndef IMGUI_DISABLED
 
@@ -131,7 +136,8 @@ class engine {
 
     // load all models in modleDir
     // use filenames as the key of the map
-    void load_mesh_models(const std::string &modelDir = "/models");
+    void load_mesh_models();
+    void load_meshlet_models();
 
     // glfw
     static void set_glfw_mouse_button_callbacks();
@@ -152,13 +158,18 @@ class engine {
     // map of mesh_model contains raw vulkan buffer of its model
     // shared by engine and some modelComponents
     // pool all models which could be necessary
-    static mesh_model_map mesh_model_map_;
+    static mesh_model_map    mesh_model_map_;
+    static meshlet_model_map meshlet_model_map_;
     // map of mesh_model_info contains
 
     bool is_updating_ = false; // for update
     bool is_running_ = false; // for run loop
 
     std::chrono::system_clock::time_point current_time_;
+
+    // for rendering systems
+    utils::viewer_info  viewer_info_;
+    utils::frustum_info frustum_info_;
 
     // glfw
     static std::vector<u_ptr<std::function<void(GLFWwindow *, int, int, int)>>>

@@ -100,7 +100,6 @@ void mesh_rendering_system::render(frame_info frame_info)
       obj->set_should_be_drawn();
       continue;
     }
-    if (obj->get_model_sp() == nullptr) continue;
 
     mesh_push_constant push{};
     // camera projection
@@ -115,8 +114,8 @@ void mesh_rendering_system::render(frame_info frame_info)
         0, 
         sizeof(mesh_push_constant), 
         &push);
-    obj->get_model_sp()->bind(frame_info.command_buffer);
-    obj->get_model_sp()->draw(frame_info.command_buffer);
+    obj->get_model().bind(frame_info.command_buffer);
+    obj->get_model().draw(frame_info.command_buffer);
   }
 }
 

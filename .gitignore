@@ -1,4 +1,3 @@
-lib/
 *.spv
 .vscode/
 .env
@@ -8,3 +7,5 @@ build/
 roboto_regular.embed
 imgui.ini
 .idea
+cache/
+*.ml

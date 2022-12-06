@@ -35,27 +35,35 @@ u_ptr<meshlet_model> meshlet_model::create(
 
 u_ptr<meshlet_model> meshlet_model::create_from_file(hnll::graphics::device &_device, std::string _filename)
 {
-  mesh_builder builder;
-  builder.load_model(utils::get_full_path(_filename));
-  std::cout << _filename << " vertex count: " << builder.vertices.size() << "\n";
+  std::vector<meshlet> meshlets;
 
-  // copy vertices
-  auto raw_vertices = builder.vertices;
-  auto geometry_model = geometry::mesh_model::create_from_mesh_builder(std::move(builder));
-  auto meshlets = geometry::mesh_separation::separate(geometry_model);
+  auto filepath = utils::get_full_path(_filename);
+  // if model's cache exists
+  if (geometry::mesh_separation::load_meshlet_cache(_filename, meshlets)) {
+    mesh_builder builder;
+    builder.load_model(filepath);
+    return create(_device, std::move(builder.vertices), std::move(meshlets));
+  }
+
+  // prepare required data
+  auto geometry_model = geometry::mesh_model::create_from_obj_file(filepath);
+  meshlets = geometry::mesh_separation::separate(geometry_model, _filename);
+  auto raw_vertices = geometry_model->move_raw_vertices();
 
   std::cout << "meshlet count : " << meshlets.size() << std::endl;
   return create(_device, std::move(raw_vertices), std::move(meshlets));
 }
 
 void meshlet_model::bind(
-  VkCommandBuffer  _command_buffer,
-  VkDescriptorSet  _global_desc_set,
-  VkPipelineLayout _pipeline_layout)
+  VkCommandBuffer              _command_buffer,
+  std::vector<VkDescriptorSet> _external_desc_set,
+  VkPipelineLayout             _pipeline_layout)
 {
   // prepare desc sets
   std::vector<VkDescriptorSet> desc_sets;
-  desc_sets.push_back(_global_desc_set);
+  for (const auto& set : _external_desc_set) {
+    desc_sets.push_back(set);
+  }
   for (const auto& set : desc_sets_) {
     desc_sets.push_back(set);
   }
