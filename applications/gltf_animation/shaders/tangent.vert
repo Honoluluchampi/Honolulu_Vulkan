@@ -1,3 +1,6 @@
+#version 450
+
+#extension GL_GOOGLE_include_directive     : enable
 #extension GL_ARB_separate_shader_objects  : enable
 #extension GL_ARB_shading_language_420pack : enable
 
@@ -7,13 +10,13 @@ layout (location = 1) in vec3 input_normal;
 layout (location = 2) in vec4 input_tangent;
 layout (location = 3) in vec2 input_texcoord0;
 
-#include "push_constants.glsl"
+#include "include/push_constants.h.glsl"
 
 // OUTPUT
 layout (location = 0) out vec4 output_position;
 layout (location = 1) out vec3 output_normal;
 layout (location = 2) out vec3 output_tangent;
-layout (location = 3) out vec2 output_tex_corrd;
+layout (location = 3) out vec2 output_tex_coord;
 
 out gl_PerVertex {
   vec4 gl_Position;

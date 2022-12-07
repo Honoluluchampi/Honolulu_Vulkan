@@ -16,4 +16,4 @@ layout (binding = 0) uniform Material {
   float metalness;
   float normal_scale;
   float occlusion_strength;
-} material;
+} materials;
