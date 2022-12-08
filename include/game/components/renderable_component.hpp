@@ -34,16 +34,16 @@ class renderable_component : public hnll::game::component
     // setter
     // basically called by game::actor
     void set_transform_sp(const s_ptr<hnll::utils::transform>& ptr) { transform_sp_ = ptr; }
-    template<class V> void set_transform(V&& vec) { transform_sp_ = std::make_unique<hnll::utils::transform>(vec); }
+    template<class V> void set_transform(V&& vec)   { transform_sp_ = std::make_unique<hnll::utils::transform>(vec); }
     template<class V> void set_translation(V&& vec) { transform_sp_->translation = std::forward<V>(vec); }
-    template<class V> void set_scale(V&& vec) { transform_sp_->scale = std::forward<V>(vec); }
-    template<class V> void set_rotation(V&& vec) { transform_sp_->rotation = std::forward<V>(vec); }
+    template<class V> void set_scale(V&& vec)       { transform_sp_->scale = std::forward<V>(vec); }
+    template<class V> void set_rotation(V&& vec)    { transform_sp_->rotation = std::forward<V>(vec); }
 
     void update_component(float dt) override {}
 
   protected:
     s_ptr<hnll::utils::transform> transform_sp_;
-    utils::rendering_type rendering_type_;
+    utils::rendering_type         rendering_type_;
 };
 
 } // namespace hnll::game

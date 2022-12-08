@@ -13,7 +13,9 @@ namespace game {
 class shading_system
 {
   public:
-    void build();
+    virtual void render(const graphics::frame_info& frame_info) = 0;
+    virtual void create_pipeline_layout() = 0;
+    virtual void create_pipeline() = 0;
 
     // getter
     graphics::rendering_system& get_rendering_system() { return *rendering_system_; }

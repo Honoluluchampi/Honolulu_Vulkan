@@ -24,7 +24,7 @@ namespace game {
 
 // forward declaration
 class actor;
-class shader;
+class shading_system;
 class default_camera;
 class point_light_manager;
 class point_light_component;
@@ -33,6 +33,7 @@ using actor_id = unsigned int;
 using actor_map = std::unordered_map<actor_id, s_ptr<actor>>;
 using mesh_model_map = std::unordered_map<std::string, s_ptr<hnll::graphics::mesh_model>>;
 using meshlet_model_map = std::unordered_map<std::string, u_ptr<hnll::graphics::meshlet_model>>;
+using shading_system_map = std::map<uint32_t, u_ptr<shading_system>>;
 
 class engine {
   public:
@@ -50,7 +51,7 @@ class engine {
     void run();
 
     static void add_actor(const s_ptr<actor> &actor);
-    static void add_shader(const s_ptr<shader> &shader);
+    static void add_shading_system(const s_ptr<shading_system> &shading_system);
 
     // void add_actor(s_ptr<actor>&& actor);
     void remove_actor(actor_id id);
@@ -64,7 +65,7 @@ class engine {
       graphics_engine_->replace_renderable_component(std::forward<S>(comp));
     }
 
-    void remove_renderable_component(render_type type, component_id id) {
+    void remove_renderable_component(utils::rendering_type type, component_id id) {
       graphics_engine_->remove_renderable_component_without_owner(type, id);
     }
 
@@ -150,8 +151,11 @@ class engine {
     static actor_map pending_actor_map_;
     static std::vector<actor_id> dead_actor_ids_;
 
-    // each engines
+    // rendering --------------------------------------
     u_ptr<hnll::graphics::engine> graphics_engine_;
+    shading_system_map shading_system_map_;
+
+    // physics ----------------------------------------
     u_ptr<hnll::physics::engine>  physics_engine_;
 #ifndef IMGUI_DISABLED
     u_ptr<hnll::gui::engine>      gui_engine_;

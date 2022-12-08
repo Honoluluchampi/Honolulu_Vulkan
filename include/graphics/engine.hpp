@@ -20,7 +20,7 @@ namespace hnll::graphics {
 
 template<class U> using u_ptr = std::unique_ptr<U>;
 template<class S> using s_ptr = std::shared_ptr<S>;
-using rendering_system_map = std::map<uint32_t, rendering_system&>;
+using rendering_system_map = std::map<uint32_t, u_ptr<rendering_system>>;
 
 class engine
 {
@@ -38,8 +38,8 @@ class engine
     void render(const utils::viewer_info& _viewer_info, utils::frustum_info& _frustum_info);
 
     // fluent api
-    engine& add_rendering_system(rendering_system& system)
-    { rendering_systems_.insert({static_cast<uint32_t>(system.get_render_type()), system}); }
+    engine& add_rendering_system(u_ptr<rendering_system>&& system)
+    { rendering_systems_.insert({static_cast<uint32_t>(system->get_render_type()), std::move(system)}); }
 
     // takes s_ptr<RenderableComponent>
     template<class RC>
@@ -53,12 +53,16 @@ class engine
     void remove_renderable_component_without_owner(hnll::utils::rendering_type type, hnll::game::component_id id);
 
     inline void wait_idle() { vkDeviceWaitIdle(device_->get_device()); }
+    void update_ubo(int frame_index)
+    { ubo_buffers_[frame_index]->write_to_buffer(&ubo_); ubo_buffers_[frame_index]->flush(); }
 
     inline device&     get_device()     { return *device_; }
     inline renderer&   get_renderer()   { return *renderer_; }
     inline swap_chain& get_swap_chain() { return renderer_->get_swap_chain(); }
     inline window&     get_window()     { return *window_; }
     inline global_ubo& get_global_ubo() { return ubo_; }
+
+    inline VkDescriptorSet get_global_descriptor_set(int frame_index) { return global_descriptor_sets_[frame_index]; }
 
     inline GLFWwindow* get_glfw_window() const { return window_->get_glfw_window(); }
     

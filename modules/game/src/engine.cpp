@@ -138,13 +138,46 @@ void engine::render()
 {
   viewer_info_  = camera_up_->get_viewer_info();
   graphics_engine_->render(viewer_info_, frustum_info_);
-#ifndef IMGUI_DISABLED
+
+  auto& renderer = graphics_engine_->get_renderer();
+  // execute shading_systems
+  {
+    if (auto command_buffer = renderer.begin_frame()) {
+      int frame_index = renderer.get_frame_index();
+
+      graphics::frame_info frame_info {
+        frame_index,
+        command_buffer,
+        graphics_engine_->get_global_descriptor_set(frame_index),
+        &frustum_info_
+      };
+
+      // update ubo
+      auto& ubo = graphics_engine_->get_global_ubo();
+      ubo.projection   = viewer_info_.projection;
+      ubo.view         = viewer_info_.view;
+      ubo.inverse_view = viewer_info_.inverse_view;
+      graphics_engine_->update_ubo(frame_index);
+
+      // rendering
+      renderer.begin_swap_chain_render_pass(command_buffer, HVE_RENDER_PASS_ID);
+
+      for (auto& system : shading_system_map_) {
+        system.second->render(frame_info);
+      }
+
+      renderer.end_swap_chain_render_pass(command_buffer);
+      renderer.end_frame();
+    }
+  }
+
+  #ifndef IMGUI_DISABLED
   if (!hnll::graphics::renderer::swap_chain_recreated_){
     gui_engine_->begin_imgui();
     update_gui();
     gui_engine_->render();
   }
-#endif
+  #endif
 }
 
 #ifndef IMGUI_DISABLED

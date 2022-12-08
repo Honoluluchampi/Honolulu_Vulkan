@@ -99,11 +99,11 @@ void engine::init()
     global_set_layout_->get_descriptor_set_layout()
   );
 
-  add_rendering_system(*mesh_renderer);
-  add_rendering_system(*meshlet_renderer);
-  add_rendering_system(*point_light_renderer);
-  add_rendering_system(*wire_frustum_renderer);
-  add_rendering_system(*grid_renderer);
+  add_rendering_system(std::move(mesh_renderer));
+  add_rendering_system(std::move(meshlet_renderer));
+  add_rendering_system(std::move(point_light_renderer));
+  add_rendering_system(std::move(wire_frustum_renderer));
+  add_rendering_system(std::move(grid_renderer));
 }
 
 // each render systems automatically detect render target components
@@ -124,8 +124,7 @@ void engine::render(const utils::viewer_info& _viewer_info, utils::frustum_info&
     ubo_.projection   = _viewer_info.projection;
     ubo_.view         = _viewer_info.view;
     ubo_.inverse_view = _viewer_info.inverse_view;
-    ubo_buffers_[frame_index]->write_to_buffer(&ubo_);
-    ubo_buffers_[frame_index]->flush();
+    update_ubo(frame_index);
 
     // rendering
     // TODO : configure hve_render_pass_id as the 
@@ -135,7 +134,7 @@ void engine::render(const utils::viewer_info& _viewer_info, utils::frustum_info&
     // system can now access game objects via frame_info
 
     for (auto& system : rendering_systems_) {
-      system.second.render(frame_info);
+      system.second->render(frame_info);
     }
 
     renderer_->end_swap_chain_render_pass(command_buffer);
@@ -145,7 +144,7 @@ void engine::render(const utils::viewer_info& _viewer_info, utils::frustum_info&
 
 void engine::remove_renderable_component_without_owner(utils::rendering_type type, hnll::game::component_id id)
 {
-  rendering_systems_.at(static_cast<uint32_t>(type)).remove_render_target(id);
+  rendering_systems_.at(static_cast<uint32_t>(type))->remove_render_target(id);
 }
 
 } // namespace hnll::graphics
