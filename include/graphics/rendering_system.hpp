@@ -5,6 +5,7 @@
 #include <graphics/pipeline.hpp>
 #include <graphics/frame_info.hpp>
 #include <game/components/renderable_component.hpp>
+#include <utils/rendering_type.hpp>
 
 // lib
 #include <vulkan/vulkan.h>
@@ -25,7 +26,7 @@ class rendering_system
   using map = std::unordered_map<hnll::game::component_id, std::shared_ptr<hnll::game::renderable_component>>;
 
 public:
-  rendering_system(device& device, hnll::game::render_type type) : device_(device), render_type_(type) {}
+  rendering_system(device& device, hnll::utils::rendering_type type) : device_(device), render_type_(type) {}
   virtual ~rendering_system() { vkDestroyPipelineLayout(device_.get_device(), pipeline_layout_, nullptr); };
   
   rendering_system(const rendering_system &) = delete;
@@ -47,13 +48,14 @@ public:
   void remove_render_target(hnll::game::component_id id)
   { render_target_map_.erase(id); }
 
-  hnll::game::render_type get_render_type() const { return render_type_; }
+  // getter
+  hnll::utils::rendering_type get_render_type() const { return render_type_; }
 
 protected:
   device& device_;
   u_ptr<pipeline> pipeline_ = nullptr;
   VkPipelineLayout pipeline_layout_;
-  hnll::game::render_type render_type_;
+  hnll::utils::rendering_type render_type_;
 
   // derived classes must use renderTarget by down-cast values of this map
   // ex) auto modelComp = dynamic_cast<ModelComponent*>(render_target_map_[1].get());

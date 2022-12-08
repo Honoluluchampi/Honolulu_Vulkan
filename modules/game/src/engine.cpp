@@ -1,6 +1,7 @@
 // hnll
 #include <game/engine.hpp>
 #include <game/actor.hpp>
+#include <game/shading_system.hpp>
 #include <game/actors/point_light_manager.hpp>
 #include <game/actors/default_camera.hpp>
 #include <game/components/mesh_component.hpp>
@@ -209,6 +210,9 @@ void engine::load_meshlet_models()
 // actors should be created as shared_ptr
 void engine::add_actor(const s_ptr<actor>& actor)
 { pending_actor_map_.emplace(actor->get_id(), actor); }
+
+void engine::add_shader(const s_ptr<shader>& shader)
+{}
 
 void engine::remove_actor(id_t id)
 {

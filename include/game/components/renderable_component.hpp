@@ -3,19 +3,10 @@
 // hnll
 #include <game/component.hpp>
 #include <utils/utils.hpp>
+#include <utils/rendering_type.hpp>
 #include <game/actor.hpp>
 
 namespace hnll::game {
-
-enum class render_type 
-{
-  MESH,
-  MESHLET,
-  POINT_LIGHT,
-  LINE,
-  WIRE_FRUSTUM,
-  GRID
-};
 
 template <class A>
 concept Actor = requires (A& at) {
@@ -26,7 +17,7 @@ class renderable_component : public hnll::game::component
 {
   public:
     template <Actor A>
-    renderable_component(s_ptr<A>& owner, render_type type) : component(), render_type_(type)
+    renderable_component(s_ptr<A>& owner, utils::rendering_type type) : component(), rendering_type_(type)
     { transform_sp_ = owner->get_transform_sp(); }
     ~renderable_component() override = default;
 
@@ -38,7 +29,7 @@ class renderable_component : public hnll::game::component
     // getter
     inline hnll::utils::transform        get_transform() { return *transform_sp_; }
     inline s_ptr<hnll::utils::transform> get_transform_sp() { return transform_sp_; }
-    const render_type                    get_render_type() const { return render_type_; }
+    const  utils::rendering_type         get_render_type() const { return rendering_type_; }
 
     // setter
     // basically called by game::actor
@@ -52,7 +43,7 @@ class renderable_component : public hnll::game::component
 
   protected:
     s_ptr<hnll::utils::transform> transform_sp_;
-    render_type render_type_;
+    utils::rendering_type rendering_type_;
 };
 
 } // namespace hnll::game

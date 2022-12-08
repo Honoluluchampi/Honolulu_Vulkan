@@ -99,16 +99,11 @@ void engine::init()
     global_set_layout_->get_descriptor_set_layout()
   );
 
-  rendering_systems_.emplace
-    (mesh_renderer->get_render_type(), std::move(mesh_renderer));
-  rendering_systems_.emplace
-    (meshlet_renderer->get_render_type(), std::move(meshlet_renderer));
-  rendering_systems_.emplace
-    (point_light_renderer->get_render_type(), std::move(point_light_renderer));
-  rendering_systems_.emplace
-    (wire_frustum_renderer->get_render_type(), std::move(wire_frustum_renderer));
-  rendering_systems_.emplace
-    (grid_renderer->get_render_type(), std::move(grid_renderer));
+  add_rendering_system(*mesh_renderer);
+  add_rendering_system(*meshlet_renderer);
+  add_rendering_system(*point_light_renderer);
+  add_rendering_system(*wire_frustum_renderer);
+  add_rendering_system(*grid_renderer);
 }
 
 // each render systems automatically detect render target components
@@ -139,22 +134,18 @@ void engine::render(const utils::viewer_info& _viewer_info, utils::frustum_info&
     // programmable stage of rendering
     // system can now access game objects via frame_info
 
-    // rendering order matters for alpha blending
-    // solid object should be drawn first, then transparent object should be drawn after that
-//    rendering_systems_[game::render_type::MESH]->render(frame_info);
-    rendering_systems_[game::render_type::MESHLET]->render(frame_info);
-    rendering_systems_[game::render_type::WIRE_FRUSTUM]->render(frame_info);
-//    rendering_systems_[game::render_type::POINT_LIGHT]->render(frame_info);
-    rendering_systems_[game::render_type::GRID]->render(frame_info);
+    for (auto& system : rendering_systems_) {
+      system.second.render(frame_info);
+    }
 
     renderer_->end_swap_chain_render_pass(command_buffer);
     renderer_->end_frame();
   }
 }
 
-void engine::remove_renderable_component_without_owner(hnll::game::render_type type, hnll::game::component_id id)
+void engine::remove_renderable_component_without_owner(utils::rendering_type type, hnll::game::component_id id)
 {
-  rendering_systems_[type]->remove_render_target(id);
+  rendering_systems_.at(static_cast<uint32_t>(type)).remove_render_target(id);
 }
 
 } // namespace hnll::graphics

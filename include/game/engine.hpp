@@ -24,6 +24,7 @@ namespace game {
 
 // forward declaration
 class actor;
+class shader;
 class default_camera;
 class point_light_manager;
 class point_light_component;
@@ -49,6 +50,7 @@ class engine {
     void run();
 
     static void add_actor(const s_ptr<actor> &actor);
+    static void add_shader(const s_ptr<shader> &shader);
 
     // void add_actor(s_ptr<actor>&& actor);
     void remove_actor(actor_id id);
