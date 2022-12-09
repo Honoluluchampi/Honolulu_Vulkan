@@ -7,7 +7,7 @@
 #include <graphics/descriptor_set_layout.hpp>
 #include <graphics/buffer.hpp>
 #include <graphics/rendering_system.hpp>
-#include <utils/rendering_type.hpp>
+#include <utils/rendering_utils.hpp>
 
 // std
 #include <memory>

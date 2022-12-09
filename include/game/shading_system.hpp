@@ -1,32 +1,32 @@
 #pragma once
 
 // hnll
-#include <utils/rendering_type.hpp>
+#include <utils/rendering_utils.hpp>
 
 namespace hnll {
 
 // forward declaration
-namespace graphics { class rendering_system; }
+namespace graphics { class device; }
 
 namespace game {
 
 class shading_system
 {
   public:
-    virtual void render(const graphics::frame_info& frame_info) = 0;
-    virtual void create_pipeline_layout() = 0;
-    virtual void create_pipeline() = 0;
+    shading_system(graphics::device& device, utils::rendering_type type)
+    : device_(device), rendering_type_(type) {}
+
+    virtual void render(const utils::frame_info& frame_info) = 0;
 
     // getter
-    graphics::rendering_system& get_rendering_system() { return *rendering_system_; }
-    utils::rendering_type       get_rendering_type() const { return rendering_type_; }
+    utils::rendering_type get_rendering_type() const { return rendering_type_; }
 
     // setter
-    shading_system& set_shading_order(utils::rendering_type type) { rendering_type_ = type; return *this; }
+    shading_system& set_rendering_type(utils::rendering_type type) { rendering_type_ = type; return *this; }
 
   private:
+    graphics::device& device_;
     // shading system is called in shading_order at rendering process
     utils::rendering_type rendering_type_;
-    u_ptr<graphics::rendering_system> rendering_system_;
 };
 }} // namespace hnll::game

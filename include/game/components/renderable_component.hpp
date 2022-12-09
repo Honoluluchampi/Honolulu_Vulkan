@@ -3,7 +3,7 @@
 // hnll
 #include <game/component.hpp>
 #include <utils/utils.hpp>
-#include <utils/rendering_type.hpp>
+#include <utils/rendering_utils.hpp>
 #include <game/actor.hpp>
 
 namespace hnll::game {

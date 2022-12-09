@@ -5,7 +5,7 @@
 #include <graphics/pipeline.hpp>
 #include <graphics/frame_info.hpp>
 #include <game/components/renderable_component.hpp>
-#include <utils/rendering_type.hpp>
+#include <utils/rendering_utils.hpp>
 
 // lib
 #include <vulkan/vulkan.h>

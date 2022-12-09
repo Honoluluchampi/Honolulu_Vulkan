@@ -5,7 +5,7 @@
 #include <game/engine.hpp>
 #include <game/component.hpp>
 #include <game/components/renderable_component.hpp>
-#include <utils/rendering_type.hpp>
+#include <utils/rendering_utils.hpp>
 
 // std
 #include <unordered_map>
