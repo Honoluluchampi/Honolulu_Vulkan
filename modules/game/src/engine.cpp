@@ -29,6 +29,7 @@ actor_map             engine::pending_actor_map_{};
 std::vector<actor_id> engine::dead_actor_ids_{};
 mesh_model_map        engine::mesh_model_map_;
 meshlet_model_map     engine::meshlet_model_map_;
+shading_system_map    engine::shading_system_map_;
 
 
 // glfw
@@ -243,8 +244,8 @@ void engine::load_meshlet_models()
 void engine::add_actor(const s_ptr<actor>& actor)
 { pending_actor_map_.emplace(actor->get_id(), actor); }
 
-void engine::add_shader(const s_ptr<shader>& shader)
-{}
+void engine::add_shading_system(u_ptr<hnll::game::shading_system> &&system)
+{ shading_system_map_[static_cast<uint32_t>(system->get_rendering_type())] = std::move(system); }
 
 void engine::remove_actor(id_t id)
 {

@@ -18,7 +18,8 @@ struct mesh_push_constant
   mat4 normal_matrix;
 };
 
-VkDescriptorSetLayout layout;
+u_ptr<mesh_model_shading_system> mesh_model_shading_system::create(graphics::device& device)
+{ return std::make_unique<mesh_model_shading_system>(device); }
 
 mesh_model_shading_system::mesh_model_shading_system(graphics::device &device)
  : shading_system(device, utils::rendering_type::MESH)

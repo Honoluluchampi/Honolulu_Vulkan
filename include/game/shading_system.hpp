@@ -5,21 +5,9 @@
 #include <graphics/pipeline.hpp>
 #include <utils/rendering_utils.hpp>
 
-// std
-#include <concepts>
-
 namespace hnll {
 
-// forward declaration
-namespace graphics { class device; }
-
 namespace game {
-
-template <class T>
-concept ShadingSystem = requires (T& x) {
-  x.get_rendering_type();
-  x.get_global_desc_set_layout();
-};
 
 class shading_system
 {
@@ -47,15 +35,17 @@ class shading_system
     static void     set_default_render_pass(VkRenderPass pass)               { default_render_pass_ = pass; }
 
   protected:
+    void create_pipeline(){}
+
     // vulkan objects
-    graphics::device&  device_;
+    graphics::device&         device_;
     u_ptr<graphics::pipeline> pipeline_;
-    VkPipelineLayout   pipeline_layout_;
+    VkPipelineLayout          pipeline_layout_;
 
     static VkDescriptorSetLayout global_desc_set_layout_;
     static VkRenderPass          default_render_pass_;
 
-    // shading system is called in enum class rendering_type-order at rendering process
+    // shading system is called in rendering_type-order at rendering process
     utils::rendering_type rendering_type_;
     render_target_map     render_target_map_;
 };

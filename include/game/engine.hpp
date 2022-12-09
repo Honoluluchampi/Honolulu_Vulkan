@@ -51,7 +51,7 @@ class engine {
     void run();
 
     static void add_actor(const s_ptr<actor> &actor);
-    static void add_shading_system(const s_ptr<shading_system> &shading_system);
+    static void add_shading_system(u_ptr<shading_system>&& shading_system);
 
     // void add_actor(s_ptr<actor>&& actor);
     void remove_actor(actor_id id);
@@ -153,7 +153,7 @@ class engine {
 
     // rendering --------------------------------------
     u_ptr<hnll::graphics::engine> graphics_engine_;
-    shading_system_map shading_system_map_;
+    static shading_system_map shading_system_map_;
 
     // physics ----------------------------------------
     u_ptr<hnll::physics::engine>  physics_engine_;

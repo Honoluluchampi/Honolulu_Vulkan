@@ -29,7 +29,7 @@ class mesh_component : public renderable_component
 
     template <Actor A>
     mesh_component(s_ptr<A>& owner_sp, graphics::mesh_model& _model)
-    : renderable_component(owner_sp, render_type::MESH), model_(_model) {}
+    : renderable_component(owner_sp, utils::rendering_type::MESH), model_(_model) {}
     ~mesh_component() override = default;
 
     // getter
