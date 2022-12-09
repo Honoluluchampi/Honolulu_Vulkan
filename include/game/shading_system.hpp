@@ -16,6 +16,7 @@ class shading_system
   public:
     shading_system(graphics::device& device, utils::rendering_type type)
     : device_(device), rendering_type_(type) {}
+    virtual ~shading_system() { vkDestroyPipelineLayout(device_.get_device(), pipeline_layout_, nullptr); }
 
     virtual void render(const utils::frame_info& frame_info) = 0;
 

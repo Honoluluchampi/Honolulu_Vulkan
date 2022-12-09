@@ -20,7 +20,6 @@ namespace hnll::graphics {
 
 template<class U> using u_ptr = std::unique_ptr<U>;
 template<class S> using s_ptr = std::shared_ptr<S>;
-using rendering_system_map = std::map<uint32_t, u_ptr<rendering_system>>;
 
 class engine
 {
@@ -80,8 +79,6 @@ class engine
     u_ptr<descriptor_set_layout> global_set_layout_;
     std::vector<VkDescriptorSet> global_descriptor_sets_ {swap_chain::MAX_FRAMES_IN_FLIGHT};
 
-    // ptrlize to make it later init
-    rendering_system_map rendering_systems_;
     global_ubo ubo_{};
 };
 

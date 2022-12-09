@@ -33,32 +33,7 @@ public:
   rendering_system(rendering_system &&) = default;
   rendering_system &operator=(rendering_system &&) = default;
 
-  virtual void render(utils::frame_info frame_info) {}
-
-  // takes s_ptr<RenderableComponent>
-  template<class S>
-  void add_render_target(hnll::game::component_id id, S&& target)
-  { render_target_map_.emplace(id, std::forward<S>(target)); }
-
-  template<class S>
-  void replace_render_target(hnll::game::component_id id, S&& target)
-  { render_target_map_[id] = std::forward<S>(target); }
-
-  void remove_render_target(hnll::game::component_id id)
-  { render_target_map_.erase(id); }
-
-  // getter
-  hnll::utils::rendering_type get_render_type() const { return render_type_; }
-
 protected:
-  device& device_;
-  u_ptr<pipeline> pipeline_ = nullptr;
-  VkPipelineLayout pipeline_layout_;
-  hnll::utils::rendering_type render_type_;
-
-  // derived classes must use renderTarget by down-cast values of this map
-  // ex) auto modelComp = dynamic_cast<ModelComponent*>(render_target_map_[1].get());
-  map render_target_map_;
 };
 
 } // namespace graphics

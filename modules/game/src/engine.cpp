@@ -244,9 +244,6 @@ void engine::load_meshlet_models()
 void engine::add_actor(const s_ptr<actor>& actor)
 { pending_actor_map_.emplace(actor->get_id(), actor); }
 
-void engine::add_shading_system(u_ptr<hnll::game::shading_system> &&system)
-{ shading_system_map_[static_cast<uint32_t>(system->get_rendering_type())] = std::move(system); }
-
 void engine::remove_actor(id_t id)
 {
   pending_actor_map_.erase(id);
@@ -309,6 +306,15 @@ void engine::remove_point_light_without_owner(component_id id)
   light_manager_up_->remove_light_comp(id);
 }
 
+// rendering ------------------------------------------------
+void engine::add_shading_system(u_ptr<hnll::game::shading_system> &&system)
+{ shading_system_map_[static_cast<uint32_t>(system->get_rendering_type())] = std::move(system); }
+
+void engine::add_renderable_component(hnll::game::renderable_component &comp)
+{ shading_system_map_[static_cast<uint32_t>(comp.get_render_type())]->add_render_target(comp.get_id(), comp); }
+
+void engine::remove_renderable_component(utils::rendering_type type, hnll::game::component_id id)
+{ shading_system_map_[static_cast<uint32_t>(type)]->remove_render_target(id); }
 
 void engine::cleanup()
 {

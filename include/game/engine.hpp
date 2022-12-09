@@ -51,23 +51,15 @@ class engine {
     void run();
 
     static void add_actor(const s_ptr<actor> &actor);
-    static void add_shading_system(u_ptr<shading_system>&& shading_system);
 
     // void add_actor(s_ptr<actor>&& actor);
     void remove_actor(actor_id id);
 
-    // takes s_ptr<renderable_component>
-    template<class S>
-    void set_renderable_component(S &&comp) { graphics_engine_->set_renderable_component(std::forward<S>(comp)); }
-
-    template<class S>
-    void replace_renderable_component(S &&comp) {
-      graphics_engine_->replace_renderable_component(std::forward<S>(comp));
-    }
-
-    void remove_renderable_component(utils::rendering_type type, component_id id) {
-      graphics_engine_->remove_renderable_component_without_owner(type, id);
-    }
+    // rendering -------------------------------------------
+    static void add_shading_system(u_ptr<shading_system>&& shading_system);
+    static void add_renderable_component(renderable_component &comp);
+    static void remove_renderable_component(utils::rendering_type type, component_id id);
+    // -----------------------------------------------------
 
     void add_point_light(s_ptr<actor> &owner, s_ptr<point_light_component> &light_comp);
 
