@@ -8,8 +8,7 @@ namespace game {
 class mesh_model_shading_system : public shading_system
 {
   public:
-    mesh_model_shading_system(graphics::device& device)
-    : shading_system(device, utils::rendering_type::MESH){}
+    mesh_model_shading_system(graphics::device& device);
 
     void render(const utils::frame_info& frame_info) override;
 };

@@ -3,7 +3,6 @@
 // hnll
 #include <graphics/device.hpp>
 #include <graphics/pipeline.hpp>
-#include <graphics/frame_info.hpp>
 #include <game/components/renderable_component.hpp>
 #include <utils/rendering_utils.hpp>
 
@@ -34,7 +33,7 @@ public:
   rendering_system(rendering_system &&) = default;
   rendering_system &operator=(rendering_system &&) = default;
 
-  virtual void render(frame_info frame_info) {}
+  virtual void render(utils::frame_info frame_info) {}
 
   // takes s_ptr<RenderableComponent>
   template<class S>

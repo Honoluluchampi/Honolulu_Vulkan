@@ -97,10 +97,6 @@ namespace graphics {
 
       private:
         void create_graphics_pipeline(
-          const std::string &vert_filepath,
-          const std::string &frag_filepath,
-          const pipeline_config_info &config_info);
-        void create_graphics_pipeline(
           const std::vector<std::string>& _shader_filepaths,
           const std::vector<VkShaderStageFlagBits>& _shader_stage_flags,
           const pipeline_config_info& _config_info);

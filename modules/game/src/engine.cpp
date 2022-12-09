@@ -145,11 +145,10 @@ void engine::render()
     if (auto command_buffer = renderer.begin_frame()) {
       int frame_index = renderer.get_frame_index();
 
-      graphics::frame_info frame_info {
+      utils::frame_info frame_info {
         frame_index,
         command_buffer,
         graphics_engine_->get_global_descriptor_set(frame_index),
-        &frustum_info_
       };
 
       // update ubo

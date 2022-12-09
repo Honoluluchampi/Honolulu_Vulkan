@@ -5,7 +5,6 @@
 #include <graphics/buffer.hpp>
 #include <graphics/swap_chain.hpp>
 #include <game/components/meshlet_component.hpp>
-#include <graphics/frame_info.hpp>
 
 namespace hnll::graphics {
 
@@ -26,7 +25,7 @@ meshlet_rendering_system::meshlet_rendering_system(
   hnll::graphics::device &_device,
   VkRenderPass _render_pass,
   VkDescriptorSetLayout _global_set_layout)
-  : rendering_system(_device, hnll::game::render_type::MESHLET)
+  : rendering_system(_device, utils::rendering_type::MESHLET)
 {
   setup_task_desc();
   create_pipeline_layout(_global_set_layout);
@@ -140,7 +139,7 @@ void meshlet_rendering_system::create_pipeline(
   );
 }
 
-void meshlet_rendering_system::render(hnll::graphics::frame_info _frame_info) {
+void meshlet_rendering_system::render(utils::frame_info _frame_info) {
   auto command_buffer = _frame_info.command_buffer;
 
   pipeline_->bind(command_buffer);
