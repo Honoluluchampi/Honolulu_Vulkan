@@ -10,6 +10,7 @@ namespace game {
 
 // init static member of shading_system
 VkDescriptorSetLayout shading_system::global_desc_set_layout_;
+VkRenderPass          shading_system::default_render_pass_;
 
 struct mesh_push_constant
 {
@@ -22,9 +23,19 @@ VkDescriptorSetLayout layout;
 mesh_model_shading_system::mesh_model_shading_system(graphics::device &device)
  : shading_system(device, utils::rendering_type::MESH)
 {
-  create_pipeline_layout(
-    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+  pipeline_layout_ = shading_system_helper::create_pipeline_layout<mesh_push_constant>(
+    device_.get_device(),
+    static_cast<VkShaderStageFlagBits>(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT),
     std::vector<VkDescriptorSetLayout>{ get_global_desc_set_layout() }
+  );
+
+  pipeline_ = shading_system_helper::create_pipeline(
+    device_,
+    pipeline_layout_,
+    shading_system::get_default_render_pass(),
+    "/modules/graphics/shader/spv/",
+    { "simple_shader.vert.spv", "simple_shader.frag.spv"},
+    { VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT }
   );
 }
 

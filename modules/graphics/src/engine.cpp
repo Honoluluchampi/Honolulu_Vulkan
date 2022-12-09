@@ -117,7 +117,6 @@ void engine::render(const utils::viewer_info& _viewer_info, utils::frustum_info&
         frame_index, 
         command_buffer, 
         global_descriptor_sets_[frame_index],
-        &_frustum_info
     };
 
     // update 

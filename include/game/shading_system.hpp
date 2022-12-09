@@ -39,10 +39,13 @@ class shading_system
     // getter
     utils::rendering_type        get_rendering_type()   const { return rendering_type_; }
     static VkDescriptorSetLayout get_global_desc_set_layout() { return global_desc_set_layout_; }
+    static VkRenderPass          get_default_render_pass()    { return default_render_pass_; }
 
     // setter
     shading_system& set_rendering_type(utils::rendering_type type)           { rendering_type_ = type; return *this; }
     static void     set_global_desc_set_layout(VkDescriptorSetLayout layout) { global_desc_set_layout_ = layout; }
+    static void     set_default_render_pass(VkRenderPass pass)               { default_render_pass_ = pass; }
+
   protected:
     // vulkan objects
     graphics::device&  device_;
@@ -50,6 +53,7 @@ class shading_system
     VkPipelineLayout   pipeline_layout_;
 
     static VkDescriptorSetLayout global_desc_set_layout_;
+    static VkRenderPass          default_render_pass_;
 
     // shading system is called in enum class rendering_type-order at rendering process
     utils::rendering_type rendering_type_;
@@ -83,6 +87,35 @@ VkPipelineLayout create_pipeline_layout(
     throw std::runtime_error("failed to create pipeline layout.");
 
   return ret;
+}
+
+// shaders_directory is relative to $ENV{HNLL_ENGN}
+u_ptr<graphics::pipeline> create_pipeline(
+  graphics::device&                  device,
+  VkPipelineLayout                   pipeline_layout,
+  VkRenderPass                       render_pass,
+  std::string                        shaders_directory,
+  std::vector<std::string>           shader_filenames,
+  std::vector<VkShaderStageFlagBits> shader_stage_flags)
+{
+  auto directory = std::string(std::getenv("HNLL_ENGN")) + shaders_directory;
+
+  std::vector<std::string> shader_paths;
+  for (const auto& name : shader_filenames) {
+    shader_paths.emplace_back(directory + name);
+  }
+
+  graphics::pipeline_config_info config_info;
+  graphics::pipeline::default_pipeline_config_info(config_info);
+  config_info.pipeline_layout = pipeline_layout;
+  config_info.render_pass     = render_pass;
+
+  return graphics::pipeline::create(
+    device,
+    shader_paths,
+    shader_stage_flags,
+    config_info
+  );
 }
 
 } // namespace shading_system_helper
