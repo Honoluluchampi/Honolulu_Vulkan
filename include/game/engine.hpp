@@ -56,6 +56,7 @@ class engine {
     void remove_actor(actor_id id);
 
     // rendering -------------------------------------------
+    void configure_shading_system();
     static void add_shading_system(u_ptr<shading_system>&& shading_system);
     static void add_renderable_component(renderable_component &comp);
     static void remove_renderable_component(utils::rendering_type type, component_id id);

@@ -47,6 +47,8 @@ engine::engine(const char* window_name) : graphics_engine_(std::make_unique<hnll
   graphics_engine_->get_renderer().set_next_renderer(gui_engine_->renderer_p());
 #endif
 
+  configur
+
   init_actors();
   load_data();
 
@@ -307,6 +309,12 @@ void engine::remove_point_light_without_owner(component_id id)
 }
 
 // rendering ------------------------------------------------
+void engine::configure_shading_system()
+{
+  shading_system::set_default_render_pass(graphics_engine_->get_renderer().get_swap_chain_render_pass(HVE_RENDER_PASS_ID));
+  shading_system::set_global_desc_set_layout(graphics_engine_->get_global_desc_set_layout());
+}
+
 void engine::add_shading_system(u_ptr<hnll::game::shading_system> &&system)
 { shading_system_map_[static_cast<uint32_t>(system->get_rendering_type())] = std::move(system); }
 

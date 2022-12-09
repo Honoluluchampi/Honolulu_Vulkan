@@ -36,21 +36,6 @@ class engine
 
     void render(const utils::viewer_info& _viewer_info, utils::frustum_info& _frustum_info);
 
-    // fluent api
-    engine& add_rendering_system(u_ptr<rendering_system>&& system)
-    { rendering_systems_.insert({static_cast<uint32_t>(system->get_render_type()), std::move(system)}); }
-
-    // takes s_ptr<RenderableComponent>
-    template<class RC>
-    void set_renderable_component(RC&& target)
-    { rendering_systems_[target->get_render_type()]->add_render_target(target->get_id(), std::forward<RC>(target)); }
-    
-    template<class RC>
-    void replace_renderable_component(RC&& target)
-    { rendering_systems_[target->get_render_type()]->replace_render_target(target->get_id(), std::forward<RC>(target)); }
-
-    void remove_renderable_component_without_owner(hnll::utils::rendering_type type, hnll::game::component_id id);
-
     inline void wait_idle() { vkDeviceWaitIdle(device_->get_device()); }
     void update_ubo(int frame_index)
     { ubo_buffers_[frame_index]->write_to_buffer(&ubo_); ubo_buffers_[frame_index]->flush(); }
@@ -61,6 +46,7 @@ class engine
     inline window&     get_window()     { return *window_; }
     inline global_ubo& get_global_ubo() { return ubo_; }
 
+    inline VkDescriptorSetLayout get_global_desc_set_layout() const { return global_set_layout_->get_descriptor_set_layout(); }
     inline VkDescriptorSet get_global_descriptor_set(int frame_index) { return global_descriptor_sets_[frame_index]; }
 
     inline GLFWwindow* get_glfw_window() const { return window_->get_glfw_window(); }
