@@ -2,7 +2,7 @@
 
 //hnll
 #include <gui/engine.hpp>
-#include <graphics/engine.hpp>
+#include <game/graphics_engine.hpp>
 #include <graphics/mesh_model.hpp>
 
 // lib

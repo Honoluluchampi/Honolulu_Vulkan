@@ -1,6 +1,6 @@
 // this class organizes all the graphics specific features
 // hnll
-#include <graphics/engine.hpp>
+#include <game/graphics_engine.hpp>
 #include <graphics/systems/point_light.hpp>
 #include <graphics/systems/mesh_rendering_system.hpp>
 #include <graphics/systems/meshlet_rendering_system.hpp>

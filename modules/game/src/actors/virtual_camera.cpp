@@ -3,7 +3,7 @@
 #include <game/components/keyboard_movement_component.hpp>
 #include <game/components/wire_frame_frustum_component.hpp>
 #include <game/components/viewer_component.hpp>
-#include <graphics/engine.hpp>
+#include <game/graphics_engine.hpp>
 
 namespace hnll::game {
 

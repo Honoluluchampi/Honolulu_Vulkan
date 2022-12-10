@@ -1,5 +1,5 @@
 // hnll
-#include <graphics/engine.hpp>
+#include <game/graphics_engine.hpp>
 #include <graphics/utils.hpp>
 #include <graphics/meshlet_model.hpp>
 #include <game/actor.hpp>
