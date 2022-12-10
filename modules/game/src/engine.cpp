@@ -29,8 +29,6 @@ actor_map             engine::pending_actor_map_{};
 std::vector<actor_id> engine::dead_actor_ids_{};
 mesh_model_map        engine::mesh_model_map_;
 meshlet_model_map     engine::meshlet_model_map_;
-shading_system_map    engine::shading_system_map_;
-
 
 // glfw
 GLFWwindow* engine::glfw_window_;

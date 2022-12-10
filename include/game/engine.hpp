@@ -33,7 +33,6 @@ using actor_id = unsigned int;
 using actor_map = std::unordered_map<actor_id, s_ptr<actor>>;
 using mesh_model_map = std::unordered_map<std::string, s_ptr<hnll::graphics::mesh_model>>;
 using meshlet_model_map = std::unordered_map<std::string, u_ptr<hnll::graphics::meshlet_model>>;
-using shading_system_map = std::map<uint32_t, u_ptr<shading_system>>;
 
 class engine {
   public:
@@ -55,13 +54,6 @@ class engine {
     // void add_actor(s_ptr<actor>&& actor);
     void remove_actor(actor_id id);
 
-    // rendering -------------------------------------------
-    void configure_shading_system();
-    static void add_shading_system(u_ptr<shading_system>&& shading_system);
-    static void add_renderable_component(renderable_component &comp);
-    static void remove_renderable_component(utils::rendering_type type, component_id id);
-    // -----------------------------------------------------
-
     void add_point_light(s_ptr<actor> &owner, s_ptr<point_light_component> &light_comp);
 
     // TODO : delete this func
@@ -70,8 +62,8 @@ class engine {
     void remove_point_light_without_owner(component_id id);
 
     // getter
-    hnll::graphics::engine &get_graphics_engine() { return *graphics_engine_; }
-    hnll::graphics::device &get_graphics_device() { return graphics_engine_->get_device(); }
+    graphics_engine  &get_graphics_engine() { return *graphics_engine_; }
+    graphics::device &get_graphics_device() { return graphics_engine_->get_device_r(); }
     static actor& get_active_actor(actor_id id) { return *active_actor_map_[id]; }
 
     static actor& get_pending_actor(actor_id id)  { return *pending_actor_map_[id]; }
@@ -144,12 +136,9 @@ class engine {
     static actor_map pending_actor_map_;
     static std::vector<actor_id> dead_actor_ids_;
 
-    // rendering --------------------------------------
-    u_ptr<hnll::graphics::engine> graphics_engine_;
-    static shading_system_map shading_system_map_;
-
-    // physics ----------------------------------------
+    u_ptr<graphics_engine> graphics_engine_;
     u_ptr<hnll::physics::engine>  physics_engine_;
+
 #ifndef IMGUI_DISABLED
     u_ptr<hnll::gui::engine>      gui_engine_;
 #endif
