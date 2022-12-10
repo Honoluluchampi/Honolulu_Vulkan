@@ -31,11 +31,12 @@ class graphics_engine
     graphics_engine(const graphics_engine &) = delete;
     graphics_engine &operator= (const graphics_engine &) = delete;
 
-    void render(const utils::viewer_info& _viewer_info, utils::frustum_info& _frustum_info);
+    void render(const utils::viewer_info& _viewer_info, const utils::frustum_info& _frustum_info);
 
     void configure_shading_system();
     static void add_shading_system(u_ptr<shading_system>&& shading_system);
-    static void add_renderable_component(renderable_component &comp);
+    static void add_renderable_component(const renderable_component &comp);
+    static void remove_renderable_component(const renderable_component &comp);
     static void remove_renderable_component(utils::rendering_type type, component_id id);
 
     inline void wait_idle() { vkDeviceWaitIdle(device_->get_device()); }

@@ -67,10 +67,12 @@ void graphics_engine::init()
       .write_buffer(0, &bufferInfo)
       .build(global_descriptor_sets_[i]);
   }
+
+  configure_shading_system();
 }
 
 // each render systems automatically detect render target components
-void graphics_engine::render(const utils::viewer_info& _viewer_info, utils::frustum_info& _frustum_info)
+void graphics_engine::render(const utils::viewer_info& _viewer_info, const utils::frustum_info& _frustum_info)
 {
   // returns nullptr if the swap chain is need to be recreated
   if (auto command_buffer = renderer_->begin_frame()) {
@@ -104,9 +106,22 @@ void graphics_engine::render(const utils::viewer_info& _viewer_info, utils::frus
   }
 }
 
-void graphics_engine::remove_renderable_component_without_owner(utils::rendering_type type, hnll::game::component_id id)
+void graphics_engine::configure_shading_system()
 {
-  rendering_systems_.at(static_cast<uint32_t>(type))->remove_render_target(id);
+  shading_system::set_default_render_pass(renderer_->get_swap_chain_render_pass(HVE_RENDER_PASS_ID));
+  shading_system::set_global_desc_set_layout(global_set_layout_->get_descriptor_set_layout());
 }
+
+void graphics_engine::add_shading_system(u_ptr<shading_system> &&system)
+{ shading_systems_[static_cast<uint32_t>(system->get_rendering_type())] = std::move(system); }
+
+void graphics_engine::add_renderable_component(const renderable_component& comp)
+{ shading_systems_[static_cast<uint32_t>(comp.get_render_type())]->add_render_target(comp.get_id(), comp); }
+
+void graphics_engine::remove_renderable_component(const renderable_component& comp)
+{ shading_systems_[static_cast<uint32_t>(comp.get_render_type())]->remove_render_target(comp.get_id()); }
+
+void graphics_engine::remove_renderable_component(utils::rendering_type type, component_id id)
+{ shading_systems_[static_cast<uint32_t>(type)]->remove_render_target(id); }
 
 } // namespace hnll::graphics

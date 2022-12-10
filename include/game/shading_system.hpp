@@ -11,7 +11,7 @@ namespace game {
 
 class shading_system
 {
-    using render_target_map = std::unordered_map<component_id, renderable_component&>;
+    using render_target_map = std::unordered_map<component_id, const renderable_component&>;
 
   public:
     shading_system(graphics::device& device, utils::rendering_type type)
@@ -20,7 +20,7 @@ class shading_system
 
     virtual void render(const utils::frame_info& frame_info) = 0;
 
-    void add_render_target(component_id id, renderable_component& target)
+    void add_render_target(component_id id, const renderable_component& target)
     { render_target_map_.emplace(id, target); }
     void remove_render_target(component_id id)
     { render_target_map_.erase(id); }

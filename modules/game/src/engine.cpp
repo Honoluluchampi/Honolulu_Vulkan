@@ -34,18 +34,18 @@ meshlet_model_map     engine::meshlet_model_map_;
 GLFWwindow* engine::glfw_window_;
 std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> engine::glfw_mouse_button_callbacks_{};
 
-engine::engine(const char* window_name) : graphics_engine_(std::make_unique<hnll::graphics::engine>(window_name))
+engine::engine(const char* window_name)
 {
-  set_glfw_window(); // ?
+  graphics_engine_ = std::make_unique<graphics_engine>(window_name);
+
+  set_glfw_window();
 
 #ifndef IMGUI_DISABLED
   gui_engine_ = std::make_unique<hnll::gui::engine>
-    (graphics_engine_->get_window(), graphics_engine_->get_device());
+    (graphics_engine_->get_window_r(), graphics_engine_->get_device_r());
   // configure dependency between renderers
-  graphics_engine_->get_renderer().set_next_renderer(gui_engine_->renderer_p());
+  graphics_engine_->get_renderer_r().set_next_renderer(gui_engine_->renderer_p());
 #endif
-
-  configur
 
   init_actors();
   load_data();
@@ -114,15 +114,14 @@ void engine::update()
   // activate pending actor
   for (auto& pend : pending_actor_map_) {
     if(pend.second->is_renderable())
-      graphics_engine_->set_renderable_component(pend.second->get_renderable_component_sp());
+      graphics_engine_->add_renderable_component(pend.second->get_renderable_component_r());
     active_actor_map_.emplace(pend.first, std::move(pend.second));
   }
   pending_actor_map_.clear();
   // clear all the dead actors
   for (const auto& id : dead_actor_ids_) {
     if (active_actor_map_[id]->is_renderable())
-      graphics_engine_->remove_renderable_component_without_owner(
-        active_actor_map_[id]->get_renderable_component_sp()->get_render_type(), id);
+      graphics_engine_->remove_renderable_component(active_actor_map_[id]->get_renderable_component_r());
     active_actor_map_.erase(id);
   }
   dead_actor_ids_.clear();
@@ -140,36 +139,7 @@ void engine::render()
   viewer_info_  = camera_up_->get_viewer_info();
   graphics_engine_->render(viewer_info_, frustum_info_);
 
-  auto& renderer = graphics_engine_->get_renderer();
-  // execute shading_systems
-  {
-    if (auto command_buffer = renderer.begin_frame()) {
-      int frame_index = renderer.get_frame_index();
-
-      utils::frame_info frame_info {
-        frame_index,
-        command_buffer,
-        graphics_engine_->get_global_descriptor_set(frame_index),
-      };
-
-      // update ubo
-      auto& ubo = graphics_engine_->get_global_ubo();
-      ubo.projection   = viewer_info_.projection;
-      ubo.view         = viewer_info_.view;
-      ubo.inverse_view = viewer_info_.inverse_view;
-      graphics_engine_->update_ubo(frame_index);
-
-      // rendering
-      renderer.begin_swap_chain_render_pass(command_buffer, HVE_RENDER_PASS_ID);
-
-      for (auto& system : shading_system_map_) {
-        system.second->render(frame_info);
-      }
-
-      renderer.end_swap_chain_render_pass(command_buffer);
-      renderer.end_frame();
-    }
-  }
+  graphics_engine_->render(viewer_info_, frustum_info_);
 
   #ifndef IMGUI_DISABLED
   if (!hnll::graphics::renderer::swap_chain_recreated_){
@@ -199,7 +169,7 @@ void engine::init_actors()
   camera_up_ = std::make_shared<default_camera>(*graphics_engine_);
   
   // TODO : configure priorities of actors, then update light manager after all light comp
-  light_manager_up_ = std::make_shared<point_light_manager>(graphics_engine_->get_global_ubo());
+  light_manager_up_ = std::make_shared<point_light_manager>(graphics_engine_->get_global_ubo_r());
 
 }
 
@@ -295,32 +265,16 @@ void engine::add_point_light(s_ptr<actor>& owner, s_ptr<point_light_component>& 
 void engine::add_point_light_without_owner(const s_ptr<point_light_component>& light_comp)
 {
   // path to the renderer
-  graphics_engine_->set_renderable_component(light_comp);
+  graphics_engine_->add_renderable_component(*light_comp);
   // path to the manager
   light_manager_up_->add_light_comp(light_comp);
 }
 
 void engine::remove_point_light_without_owner(component_id id)
 {
-  graphics_engine_->remove_renderable_component_without_owner(render_type::POINT_LIGHT, id);
+  graphics_engine_->remove_renderable_component(utils::rendering_type::POINT_LIGHT, id);
   light_manager_up_->remove_light_comp(id);
 }
-
-// rendering ------------------------------------------------
-void engine::configure_shading_system()
-{
-  shading_system::set_default_render_pass(graphics_engine_->get_renderer().get_swap_chain_render_pass(HVE_RENDER_PASS_ID));
-  shading_system::set_global_desc_set_layout(graphics_engine_->get_global_desc_set_layout());
-}
-
-void engine::add_shading_system(u_ptr<hnll::game::shading_system> &&system)
-{ shading_system_map_[static_cast<uint32_t>(system->get_rendering_type())] = std::move(system); }
-
-void engine::add_renderable_component(hnll::game::renderable_component &comp)
-{ shading_system_map_[static_cast<uint32_t>(comp.get_render_type())]->add_render_target(comp.get_id(), comp); }
-
-void engine::remove_renderable_component(utils::rendering_type type, hnll::game::component_id id)
-{ shading_system_map_[static_cast<uint32_t>(type)]->remove_render_target(id); }
 
 void engine::cleanup()
 {
