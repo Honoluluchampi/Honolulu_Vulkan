@@ -1,5 +1,6 @@
 // hnll
 #include <graphics/device.hpp>
+#include <utils/rendering_utils.hpp>
 
 // ray tracing
 #include <vulkan/vulkan_core.h>
@@ -58,10 +59,8 @@ void DestroyDebugUtilsMessengerEXT(
 }
 
 // class member functions
-device::device(
-  window &window,
-  rendering_type type
-) : window_{window}, rendering_type_(type)
+device::device(window &window, utils::rendering_type type)
+: window_{window}, rendering_type_(type)
 {
   create_instance();
   // window surface should be created right after the instance creation, 
@@ -100,11 +99,11 @@ void device::setup_device_extensions()
     available.insert(extension.extensionName);
   }
 
-  if (rendering_type_ == rendering_type::RASTERIZE) {
+  if (rendering_type_ == utils::rendering_type::VERTEX_SHADING) {
     device_extensions_ = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   }
 
-  if (rendering_type_ == rendering_type::RAY_TRACING) {
+  if (rendering_type_ == utils::rendering_type::RAY_TRACING) {
     device_extensions_ = {
       VK_KHR_SWAPCHAIN_EXTENSION_NAME,
       VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
@@ -114,7 +113,7 @@ void device::setup_device_extensions()
     };
   }
 
-  if (rendering_type_ == rendering_type::MESH_SHADING) {
+  if (rendering_type_ == utils::rendering_type::MESH_SHADING) {
     device_extensions_ = {
       VK_KHR_SWAPCHAIN_EXTENSION_NAME,
       VK_NV_MESH_SHADER_EXTENSION_NAME,
@@ -244,14 +243,14 @@ void device::create_logical_device()
 
   // configure device features for rasterize or ray tracing
   // for rasterize
-  if (rendering_type_ == rendering_type::RASTERIZE) {
+  if (rendering_type_ == utils::rendering_type::VERTEX_SHADING) {
     VkPhysicalDeviceFeatures device_features = {};
     device_features.samplerAnisotropy = VK_TRUE;
     create_info.pEnabledFeatures = &device_features;
   }
 
   // for ray tracing
-  if (rendering_type_ == rendering_type::RAY_TRACING) {
+  if (rendering_type_ == utils::rendering_type::RAY_TRACING) {
     // enabling ray tracing extensions
     VkPhysicalDeviceBufferDeviceAddressFeaturesKHR enabled_buffer_device_addr {
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES,
@@ -295,7 +294,7 @@ void device::create_logical_device()
   }
 
   // for mesh shader
-  if (rendering_type_ == rendering_type::MESH_SHADING) {
+  if (rendering_type_ == utils::rendering_type::MESH_SHADING) {
     // enable extensions
     // for uint8_t in taskNV
     VkPhysicalDeviceVulkan12Features vulkan12_features {
@@ -356,7 +355,7 @@ void device::create_logical_device()
   vkGetDeviceQueue(device_, indices.graphics_family_.value(), 0, &graphics_queue_);
   vkGetDeviceQueue(device_, indices.present_family_.value(), 0, &present_queue_);
 
-  if (rendering_type_ == rendering_type::MESH_SHADING || rendering_type_ == rendering_type::RAY_TRACING) {
+  if (rendering_type_ == utils::rendering_type::MESH_SHADING || rendering_type_ == utils::rendering_type::RAY_TRACING) {
     load_VK_EXTENSIONS(instance_, vkGetInstanceProcAddr, device_, vkGetDeviceProcAddr);
   }
 }
@@ -467,7 +466,7 @@ std::vector<const char *> device::get_required_extensions()
   }
 
   // ray tracing
-  if (rendering_type_ != rendering_type::RASTERIZE) {
+  if (rendering_type_ != utils::rendering_type::VERTEX_SHADING) {
     extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
   }
   return extensions;

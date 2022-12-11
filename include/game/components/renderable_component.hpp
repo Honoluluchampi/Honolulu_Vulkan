@@ -17,7 +17,7 @@ class renderable_component : public hnll::game::component
 {
   public:
     template <Actor A>
-    renderable_component(s_ptr<A>& owner, utils::rendering_type type) : component(), rendering_type_(type)
+    renderable_component(s_ptr<A>& owner, utils::shading_type type) : component(), shading_type_(type)
     { transform_sp_ = owner->get_transform_sp(); }
     ~renderable_component() override = default;
 
@@ -29,7 +29,7 @@ class renderable_component : public hnll::game::component
     // getter
     inline hnll::utils::transform        get_transform() { return *transform_sp_; }
     inline s_ptr<hnll::utils::transform> get_transform_sp() { return transform_sp_; }
-    const  utils::rendering_type         get_render_type() const { return rendering_type_; }
+    const  utils::shading_type           get_shading_type() const { return shading_type_; }
 
     // setter
     // basically called by game::actor
@@ -43,7 +43,7 @@ class renderable_component : public hnll::game::component
 
   protected:
     s_ptr<hnll::utils::transform> transform_sp_;
-    utils::rendering_type         rendering_type_;
+    utils::shading_type           shading_type_;
 };
 
 } // namespace hnll::game

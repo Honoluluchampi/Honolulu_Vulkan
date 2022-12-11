@@ -4,9 +4,7 @@
 #include <game/shading_system.hpp>
 
 //std
-#include <stdexcept>
 #include <array>
-#include <iostream>
 
 // lib
 #include <glm/gtc/constants.hpp>
@@ -113,15 +111,15 @@ void graphics_engine::configure_shading_system()
 }
 
 void graphics_engine::add_shading_system(u_ptr<shading_system> &&system)
-{ shading_systems_[static_cast<uint32_t>(system->get_rendering_type())] = std::move(system); }
+{ shading_systems_[static_cast<uint32_t>(system->get_shading_type())] = std::move(system); }
 
 void graphics_engine::add_renderable_component(const renderable_component& comp)
-{ shading_systems_[static_cast<uint32_t>(comp.get_render_type())]->add_render_target(comp.get_id(), comp); }
+{ shading_systems_[static_cast<uint32_t>(comp.get_shading_type())]->add_render_target(comp.get_id(), comp); }
 
 void graphics_engine::remove_renderable_component(const renderable_component& comp)
-{ shading_systems_[static_cast<uint32_t>(comp.get_render_type())]->remove_render_target(comp.get_id()); }
+{ shading_systems_[static_cast<uint32_t>(comp.get_shading_type())]->remove_render_target(comp.get_id()); }
 
-void graphics_engine::remove_renderable_component(utils::rendering_type type, component_id id)
+void graphics_engine::remove_renderable_component(utils::shading_type type, component_id id)
 { shading_systems_[static_cast<uint32_t>(type)]->remove_render_target(id); }
 
 } // namespace hnll::graphics

@@ -25,7 +25,7 @@ class graphics_engine
     static constexpr int HEIGHT = 820;
     static constexpr float MAX_FRAME_TIME = 0.05;
 
-    graphics_engine(const char* window_name = "honolulu engine", utils::rendering_type rendering_type = utils::rendering_type::MESHLET);
+    graphics_engine(const char* window_name = "honolulu engine", utils::rendering_type rendering_type = utils::rendering_type::MESH_SHADING);
     ~graphics_engine();
 
     graphics_engine(const graphics_engine &) = delete;
@@ -37,7 +37,7 @@ class graphics_engine
     static void add_shading_system(u_ptr<shading_system>&& shading_system);
     static void add_renderable_component(const renderable_component &comp);
     static void remove_renderable_component(const renderable_component &comp);
-    static void remove_renderable_component(utils::rendering_type type, component_id id);
+    static void remove_renderable_component(utils::shading_type type, component_id id);
 
     inline void wait_idle() { vkDeviceWaitIdle(device_->get_device()); }
     void update_ubo(int frame_index)

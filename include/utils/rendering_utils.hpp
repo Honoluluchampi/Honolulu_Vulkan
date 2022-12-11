@@ -8,9 +8,16 @@
 
 namespace hnll::utils {
 
+enum class rendering_type
+{
+  VERTEX_SHADING,
+  RAY_TRACING,
+  MESH_SHADING
+};
+
 // rendering order matters for alpha blending
 // solid object should be drawn first, then transparent object should be drawn after that
-enum class rendering_type : uint32_t
+enum class shading_type : uint32_t
 {
   MESH         = 10,
   MESHLET      = 20,

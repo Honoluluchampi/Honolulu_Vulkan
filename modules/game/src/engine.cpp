@@ -16,7 +16,6 @@
 // std
 #include <filesystem>
 #include <iostream>
-#include <typeinfo>
 
 namespace hnll::game {
 
@@ -272,7 +271,7 @@ void engine::add_point_light_without_owner(const s_ptr<point_light_component>& l
 
 void engine::remove_point_light_without_owner(component_id id)
 {
-  graphics_engine_->remove_renderable_component(utils::rendering_type::POINT_LIGHT, id);
+  graphics_engine_->remove_renderable_component(utils::shading_type::POINT_LIGHT, id);
   light_manager_up_->remove_light_comp(id);
 }
 

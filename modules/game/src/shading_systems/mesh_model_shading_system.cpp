@@ -22,7 +22,7 @@ u_ptr<mesh_model_shading_system> mesh_model_shading_system::create(graphics::dev
 { return std::make_unique<mesh_model_shading_system>(device); }
 
 mesh_model_shading_system::mesh_model_shading_system(graphics::device &device)
- : shading_system(device, utils::rendering_type::MESH)
+ : shading_system(device, utils::shading_type::MESH)
 {
   pipeline_layout_ = shading_system_helper::create_pipeline_layout<mesh_push_constant>(
     device_.get_device(),

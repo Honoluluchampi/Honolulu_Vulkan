@@ -25,7 +25,7 @@ meshlet_rendering_system::meshlet_rendering_system(
   hnll::graphics::device &_device,
   VkRenderPass _render_pass,
   VkDescriptorSetLayout _global_set_layout)
-  : rendering_system(_device, utils::rendering_type::MESHLET)
+  : rendering_system(_device, utils::shading_type::MESHLET)
 {
   setup_task_desc();
   create_pipeline_layout(_global_set_layout);

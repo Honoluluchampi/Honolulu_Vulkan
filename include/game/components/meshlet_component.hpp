@@ -28,7 +28,7 @@ class meshlet_component : public renderable_component
     }
     template <Actor A>
     meshlet_component(s_ptr<A>& owner_sp, graphics::meshlet_model& model)
-      : renderable_component(owner_sp, utils::rendering_type::MESHLET), model_(model) {}
+      : renderable_component(owner_sp, utils::shading_type::MESHLET), model_(model) {}
     ~meshlet_component() override = default;
 
     // getter

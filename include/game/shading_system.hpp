@@ -14,8 +14,8 @@ class shading_system
     using render_target_map = std::unordered_map<component_id, const renderable_component&>;
 
   public:
-    shading_system(graphics::device& device, utils::rendering_type type)
-    : device_(device), rendering_type_(type) {}
+    shading_system(graphics::device& device, utils::shading_type type)
+    : device_(device), shading_type_(type) {}
     virtual ~shading_system() { vkDestroyPipelineLayout(device_.get_device(), pipeline_layout_, nullptr); }
 
     virtual void render(const utils::frame_info& frame_info) = 0;
@@ -26,12 +26,12 @@ class shading_system
     { render_target_map_.erase(id); }
 
     // getter
-    utils::rendering_type        get_rendering_type()   const { return rendering_type_; }
+    utils::shading_type          get_shading_type()   const   { return shading_type_; }
     static VkDescriptorSetLayout get_global_desc_set_layout() { return global_desc_set_layout_; }
     static VkRenderPass          get_default_render_pass()    { return default_render_pass_; }
 
     // setter
-    shading_system& set_rendering_type(utils::rendering_type type)           { rendering_type_ = type; return *this; }
+    shading_system& set_shading_type(utils::shading_type type)               { shading_type_ = type; return *this; }
     static void     set_global_desc_set_layout(VkDescriptorSetLayout layout) { global_desc_set_layout_ = layout; }
     static void     set_default_render_pass(VkRenderPass pass)               { default_render_pass_ = pass; }
 
@@ -47,7 +47,7 @@ class shading_system
     static VkRenderPass          default_render_pass_;
 
     // shading system is called in rendering_type-order at rendering process
-    utils::rendering_type rendering_type_;
+    utils::shading_type   shading_type_;
     render_target_map     render_target_map_;
 };
 
