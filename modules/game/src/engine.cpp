@@ -219,6 +219,11 @@ void engine::remove_actor(id_t id)
   active_actor_map_.erase(id);
 }
 
+void engine::add_shading_system(u_ptr<hnll::game::shading_system> &&shading_system)
+{
+  graphics_engine_->add_shading_system(std::move(shading_system));
+}
+
 void engine::load_actor()
 {
   auto smooth_vase = actor::create();

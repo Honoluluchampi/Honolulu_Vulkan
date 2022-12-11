@@ -50,9 +50,9 @@ class engine {
     void run();
 
     static void add_actor(const s_ptr<actor> &actor);
-
-    // void add_actor(s_ptr<actor>&& actor);
     void remove_actor(actor_id id);
+
+    void add_shading_system(u_ptr<shading_system>&& shading_system);
 
     void add_point_light(s_ptr<actor> &owner, s_ptr<point_light_component> &light_comp);
 
