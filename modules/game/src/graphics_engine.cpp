@@ -28,7 +28,13 @@ graphics_engine::graphics_engine(const char* window_name, utils::rendering_type 
   init();
 }
 
-graphics_engine::~graphics_engine() = default;
+// delete static vulkan objects explicitly, because static member would be deleted after non-static member(device)
+graphics_engine::~graphics_engine()
+{
+  for (auto& system_kv : shading_systems_) {
+    system_kv.second.reset();
+  }
+}
 
 // todo : separate into some functions
 void graphics_engine::init()
