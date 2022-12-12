@@ -3,24 +3,25 @@
 // hnll
 #include <graphics/device.hpp>
 #include <graphics/pipeline.hpp>
+#include <game/components/renderable_component.hpp>
 #include <utils/rendering_utils.hpp>
 
 namespace hnll {
 
 namespace game {
 
+using render_target_map = std::unordered_map<component_id, renderable_component&>;
+
 class shading_system
 {
-    using render_target_map = std::unordered_map<component_id, const renderable_component&>;
-
   public:
-    shading_system(graphics::device& device, utils::shading_type type)
-    : device_(device), shading_type_(type) {}
+    explicit shading_system(graphics::device& device, utils::shading_type type)
+      : device_(device), shading_type_(type) {}
     virtual ~shading_system() { vkDestroyPipelineLayout(device_.get_device(), pipeline_layout_, nullptr); }
 
-    virtual void render(const utils::frame_info& frame_info) = 0;
+    virtual void render(const utils::frame_info& frame_info){}
 
-    void add_render_target(component_id id, const renderable_component& target)
+    void add_render_target(component_id id, renderable_component& target)
     { render_target_map_.emplace(id, target); }
     void remove_render_target(component_id id)
     { render_target_map_.erase(id); }
@@ -36,7 +37,19 @@ class shading_system
     static void     set_default_render_pass(VkRenderPass pass)               { default_render_pass_ = pass; }
 
   protected:
-    void create_pipeline(){}
+    // takes push_constant struct as type parameter (use it for size calculation)
+    template <typename PushConstant>
+    VkPipelineLayout create_pipeline_layout(
+      VkShaderStageFlagBits shader_stage_flags,
+      std::vector<VkDescriptorSetLayout> desc_set_layouts
+    );
+    u_ptr<graphics::pipeline> create_pipeline(
+      VkPipelineLayout                   pipeline_layout,
+      VkRenderPass                       render_pass,
+      std::string                        shaders_directory,
+      std::vector<std::string>           shader_filenames,
+      std::vector<VkShaderStageFlagBits> shader_stage_flags
+    );
 
     // vulkan objects
     graphics::device&         device_;
@@ -51,11 +64,10 @@ class shading_system
     render_target_map     render_target_map_;
 };
 
-namespace shading_system_helper {
+// impl
 // takes push_constant struct as type parameter
 template <typename PushConstant>
-VkPipelineLayout create_pipeline_layout(
-  VkDevice device,
+VkPipelineLayout shading_system::create_pipeline_layout(
   VkShaderStageFlagBits shader_stage_flags,
   std::vector<VkDescriptorSetLayout> descriptor_set_layouts)
 {
@@ -74,15 +86,14 @@ VkPipelineLayout create_pipeline_layout(
 
   // create
   VkPipelineLayout ret;
-  if (vkCreatePipelineLayout(device, &create_info, nullptr, &ret) != VK_SUCCESS)
+  if (vkCreatePipelineLayout(device_.get_device(), &create_info, nullptr, &ret) != VK_SUCCESS)
     throw std::runtime_error("failed to create pipeline layout.");
 
   return ret;
 }
 
 // shaders_directory is relative to $ENV{HNLL_ENGN}
-u_ptr<graphics::pipeline> create_pipeline(
-  graphics::device&                  device,
+u_ptr<graphics::pipeline> shading_system::create_pipeline(
   VkPipelineLayout                   pipeline_layout,
   VkRenderPass                       render_pass,
   std::string                        shaders_directory,
@@ -102,12 +113,11 @@ u_ptr<graphics::pipeline> create_pipeline(
   config_info.render_pass     = render_pass;
 
   return graphics::pipeline::create(
-    device,
+    device_,
     shader_paths,
     shader_stage_flags,
     config_info
   );
 }
 
-} // namespace shading_system_helper
 }} // namespace hnll::game

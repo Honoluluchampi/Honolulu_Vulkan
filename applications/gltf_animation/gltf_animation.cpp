@@ -2,6 +2,9 @@
 #include <game/engine.hpp>
 #include <game/shading_systems/mesh_model_shading_system.hpp>
 
+// std
+#include <iostream>
+
 namespace hnll {
 
 class gltf_animation : public game::engine
@@ -19,7 +22,6 @@ class gltf_animation : public game::engine
       add_shading_system(std::move(mesh_model_shader));
     }
 };
-
 } // namespace hnll
 
 int main()

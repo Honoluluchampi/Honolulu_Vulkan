@@ -113,7 +113,7 @@ void graphics_engine::configure_shading_system()
 void graphics_engine::add_shading_system(u_ptr<shading_system> &&system)
 { shading_systems_[static_cast<uint32_t>(system->get_shading_type())] = std::move(system); }
 
-void graphics_engine::add_renderable_component(const renderable_component& comp)
+void graphics_engine::add_renderable_component(renderable_component& comp)
 { shading_systems_[static_cast<uint32_t>(comp.get_shading_type())]->add_render_target(comp.get_id(), comp); }
 
 void graphics_engine::remove_renderable_component(const renderable_component& comp)

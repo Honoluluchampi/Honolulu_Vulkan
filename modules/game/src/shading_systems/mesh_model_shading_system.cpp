@@ -19,19 +19,19 @@ struct mesh_push_constant
 };
 
 u_ptr<mesh_model_shading_system> mesh_model_shading_system::create(graphics::device& device)
-{ return std::make_unique<mesh_model_shading_system>(device); }
+{
+  return std::make_unique<mesh_model_shading_system>(device);
+}
 
 mesh_model_shading_system::mesh_model_shading_system(graphics::device &device)
  : shading_system(device, utils::shading_type::MESH)
 {
-  pipeline_layout_ = shading_system_helper::create_pipeline_layout<mesh_push_constant>(
-    device_.get_device(),
+  pipeline_layout_ = create_pipeline_layout<mesh_push_constant>(
     static_cast<VkShaderStageFlagBits>(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT),
     std::vector<VkDescriptorSetLayout>{ get_global_desc_set_layout() }
   );
 
-  pipeline_ = shading_system_helper::create_pipeline(
-    device_,
+  pipeline_ = create_pipeline(
     pipeline_layout_,
     shading_system::get_default_render_pass(),
     "/modules/graphics/shader/spv/",
@@ -56,7 +56,7 @@ void mesh_model_shading_system::render(const utils::frame_info& frame_info)
   );
 
   for (auto& target : render_target_map_) {
-    auto obj = dynamic_cast<mesh_component*>(target.second.get());
+    auto obj = dynamic_cast<mesh_component*>(&target.second);
 
     mesh_push_constant push{};
     push.model_matrix  = obj->get_transform().mat4().cast<float>();

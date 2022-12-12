@@ -6,7 +6,8 @@
 #include <graphics/renderer.hpp>
 #include <graphics/descriptor_set_layout.hpp>
 #include <graphics/buffer.hpp>
-#include <graphics/rendering_system.hpp>
+#include <game/shading_system.hpp>
+#include <game/components/renderable_component.hpp>
 #include <utils/rendering_utils.hpp>
 
 // std
@@ -35,7 +36,7 @@ class graphics_engine
 
     void configure_shading_system();
     static void add_shading_system(u_ptr<shading_system>&& shading_system);
-    static void add_renderable_component(const renderable_component &comp);
+    static void add_renderable_component(renderable_component &comp);
     static void remove_renderable_component(const renderable_component &comp);
     static void remove_renderable_component(utils::shading_type type, component_id id);
 
