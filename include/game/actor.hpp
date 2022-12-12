@@ -56,8 +56,8 @@ void update_gui();
     inline actor_id    get_id()          const { return id_; }
     inline const state get_actor_state() const { return state_; }
     inline bool        is_renderable()   const { return renderable_component_ != nullptr; }
-    inline const renderable_component& get_renderable_component_r() { return *renderable_component_; }
-    s_ptr<hnll::utils::transform>      get_transform_sp();
+    inline renderable_component&  get_renderable_component_r() { return *renderable_component_; }
+    s_ptr<hnll::utils::transform> get_transform_sp();
     // setter
     void add_component(u_ptr<component>&& comp) { unique_components_.emplace_back(std::move(comp)); }
     void add_component(s_ptr<component>&& comp) { shared_components_.emplace_back(std::move(comp)); }

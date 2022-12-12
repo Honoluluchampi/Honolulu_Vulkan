@@ -1,9 +1,4 @@
 set(TARGETS
-        src/systems/grid_rendering_system.cpp
-        src/systems/wire_frustum_rendering_system.cpp
-        src/systems/mesh_rendering_system.cpp
-        src/systems/meshlet_rendering_system.cpp
-        src/systems/point_light.cpp
         src/buffer.cpp
         src/camera.cpp
         src/descriptor_set_layout.cpp

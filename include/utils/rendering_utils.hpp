@@ -2,6 +2,7 @@
 
 // libs
 #include <eigen3/Eigen/Dense>
+#include <glm/glm.hpp>
 #include <vulkan/vulkan.h>
 
 #define MAX_LIGHTS 20

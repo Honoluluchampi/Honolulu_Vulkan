@@ -4,19 +4,19 @@
 #include <game/actor.hpp>
 #include <game/components/viewer_component.hpp>
 #include <game/components/keyboard_movement_component.hpp>
+#include <utils/rendering_utils.hpp>
 #include <utils/utils.hpp>
 
 namespace hnll {
+namespace game {
 
 // forward declaration
-namespace graphics { class engine; }
-
-namespace game {
+class graphics_engine;
 
 class default_camera : public actor
 {
 public:
-  default_camera(hnll::graphics::engine& engine);
+  default_camera(graphics_engine& engine);
   ~default_camera(){}
 
   default_camera(const default_camera &) = delete;

@@ -53,6 +53,8 @@ engine::engine(const char* window_name)
   set_glfw_mouse_button_callbacks();
 }
 
+engine::~engine() = default;
+
 void engine::run()
 {
   current_time_ = std::chrono::system_clock::now();

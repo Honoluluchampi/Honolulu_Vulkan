@@ -38,7 +38,7 @@ class engine {
   public:
     engine(const char *windowName = "honolulu engine");
 
-    virtual ~engine() = default;
+    virtual ~engine();
 
     // delete copy ctor
     engine(const engine &) = delete;

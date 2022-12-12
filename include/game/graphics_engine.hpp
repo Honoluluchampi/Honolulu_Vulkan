@@ -6,7 +6,6 @@
 #include <graphics/renderer.hpp>
 #include <graphics/descriptor_set_layout.hpp>
 #include <graphics/buffer.hpp>
-#include <game/shading_system.hpp>
 #include <game/components/renderable_component.hpp>
 #include <utils/rendering_utils.hpp>
 

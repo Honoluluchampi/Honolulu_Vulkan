@@ -5,9 +5,9 @@
 
 namespace hnll::game {
 
-default_camera::default_camera(hnll::graphics::engine& hve) : actor()
+default_camera::default_camera(graphics_engine& hve) : actor()
 {
-  viewer_comp_sp_ = std::make_shared<viewer_component>(transform_, hve.get_renderer());
+  viewer_comp_sp_ = std::make_shared<viewer_component>(transform_, hve.get_renderer_r());
   // set initial position
   transform_.translation.z = -7.f;
   transform_.translation.y = -2.f;
