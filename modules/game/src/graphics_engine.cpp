@@ -28,8 +28,7 @@ graphics_engine::graphics_engine(const char* window_name, utils::rendering_type 
   init();
 }
 
-graphics_engine::~graphics_engine()
-{ }
+graphics_engine::~graphics_engine() = default;
 
 // todo : separate into some functions
 void graphics_engine::init()

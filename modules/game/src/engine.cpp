@@ -140,8 +140,6 @@ void engine::render()
   viewer_info_  = camera_up_->get_viewer_info();
   graphics_engine_->render(viewer_info_, frustum_info_);
 
-  graphics_engine_->render(viewer_info_, frustum_info_);
-
   #ifndef IMGUI_DISABLED
   if (!hnll::graphics::renderer::swap_chain_recreated_){
     gui_engine_->begin_imgui();
