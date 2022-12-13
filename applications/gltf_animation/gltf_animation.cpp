@@ -14,6 +14,8 @@ class gltf_animation : public game::engine
     gltf_animation() : game::engine("gltf animation")
     {
       setup_shading_systems();
+
+      add_obj_models();
     }
 
   private:
