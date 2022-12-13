@@ -318,6 +318,13 @@ void pipeline::default_pipeline_config_info(pipeline_config_info &config_info)
   config_info.attribute_descriptions = vertex::get_attribute_descriptions();
 }
 
+pipeline_config_info pipeline::default_pipeline_config_info()
+{
+  pipeline_config_info ci;
+  default_pipeline_config_info(ci);
+  return ci;
+}
+
 void pipeline::enable_alpha_blending(pipeline_config_info &config_info)
 {
   config_info.color_blend_attachment.blendEnable = VK_TRUE;

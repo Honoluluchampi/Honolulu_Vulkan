@@ -48,7 +48,8 @@ class shading_system
       VkRenderPass                       render_pass,
       std::string                        shaders_directory,
       std::vector<std::string>           shader_filenames,
-      std::vector<VkShaderStageFlagBits> shader_stage_flags
+      std::vector<VkShaderStageFlagBits> shader_stage_flags,
+      graphics::pipeline_config_info     config_info
     );
 
     // vulkan objects
