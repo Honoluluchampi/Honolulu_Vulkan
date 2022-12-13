@@ -96,25 +96,4 @@ VkPipelineLayout shading_system::create_pipeline_layout(
 // pipeline layout for shaders with no push constant
 struct no_push_constant {};
 
-template<>
-VkPipelineLayout shading_system::create_pipeline_layout<no_push_constant>(
-  VkShaderStageFlagBits shader_stage_flags,
-  std::vector<VkDescriptorSetLayout> descriptor_set_layouts)
-{
-  // configure desc sets layout
-  VkPipelineLayoutCreateInfo create_info{};
-  create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-  create_info.setLayoutCount = static_cast<uint32_t>(descriptor_set_layouts.size());
-  create_info.pSetLayouts = descriptor_set_layouts.data();
-  create_info.pushConstantRangeCount = 0;
-  create_info.pPushConstantRanges = nullptr;
-
-  // create
-  VkPipelineLayout ret;
-  if (vkCreatePipelineLayout(device_.get_device(), &create_info, nullptr, &ret) != VK_SUCCESS)
-    throw std::runtime_error("failed to create pipeline layout.");
-
-  return ret;
-}
-
 }} // namespace hnll::game
