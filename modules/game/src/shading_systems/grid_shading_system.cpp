@@ -14,6 +14,7 @@ grid_shading_system::grid_shading_system(graphics::device& device)
     std::vector<VkDescriptorSetLayout>{ get_global_desc_set_layout() }
   );
 
+  // delete redundant vertex attributes
   auto config_info = graphics::pipeline::default_pipeline_config_info();
   config_info.attribute_descriptions.clear();
   config_info.binding_descriptions.clear();
