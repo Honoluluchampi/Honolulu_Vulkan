@@ -352,4 +352,35 @@ void skinning_model::load_mesh(const tinygltf::Model &model, hnll::graphics::ski
     mesh_groups_[mesh_index].node_index_ = node_index;
   }
 }
+
+void skinning_model::load_skin(const tinygltf::Model &model)
+{
+  if (model.skins.empty()) {
+    has_skin_ = false;
+    return;
+  }
+  has_skin_ = true;
+
+  // only process first skin data
+  const auto& in_skin = model.skins[0];
+
+  skin_info_.name = in_skin.name;
+  skin_info_.joints.assign(in_skin.joints.begin(), in_skin.joints.end());
+
+  if (in_skin.inverseBindMatrices > -1) {
+    const auto& acc = model.accessors[in_skin.inverseBindMatrices];
+    const auto& view = model.bufferViews[acc.bufferView];
+    const auto& buffer = model.buffers[view.buffer];
+    skin_info_.inv_bind_matrices.resize(acc.count);
+
+    auto offset_bytes = acc.byteOffset + view.byteOffset;
+    memcpy(
+      skin_info_.inv_bind_matrices.data(),
+      &buffer.data[offset_bytes],
+      acc.count * sizeof(mat4)
+    );
+  }
+}
+
+
 } // namespace hnll::graphics
