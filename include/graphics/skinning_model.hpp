@@ -124,8 +124,8 @@ class skinning_model
     skinning_model()  = default;
     ~skinning_model() = default;
 
-    void load_from_gltf(const std::string& filepath, device& device);
-
+    static u_ptr<skinning_model> create_from_gltf(const std::string& filepath, device& device);
+    bool load_from_gltf(const std::string& filepath, device& device);
 
   private:
     // associated struct ----------------------------------------------------
@@ -133,8 +133,8 @@ class skinning_model
     {
       std::vector<uint32_t> index_buffer;
       std::vector<vec3>     position_buffer;
-      std::vector<vec3>     normal_buffer_;
-      std::vector<vec2>     tex_coord_buffer_;
+      std::vector<vec3>     normal_buffer;
+      std::vector<vec2>     tex_coord_buffer;
 
       std::vector<uvec4> joint_buffer;
       std::vector<vec4>  weight_buffer;
@@ -170,6 +170,9 @@ class skinning_model
     std::vector<material> materials_;
     std::vector<s_ptr<node>> nodes_;
     std::vector<int> root_nodes_;
+
+    bool has_skin_ = false;
+    skin_info skin_info_;
 
     std::vector<image_info> images_;
     std::vector<texture_info> textures_;
