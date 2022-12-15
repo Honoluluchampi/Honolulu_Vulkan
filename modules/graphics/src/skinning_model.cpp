@@ -382,5 +382,31 @@ void skinning_model::load_skin(const tinygltf::Model &model)
   }
 }
 
+void skinning_model::load_material(const tinygltf::Model &model)
+{
+  for (const auto& in_material : model.materials) {
+    materials_.emplace_back(material());
+    auto& target = materials_.back();
+    target.name_ = in_material.name;
 
+    for (auto& value : in_material.values) {
+      auto value_name = value.first;
+      if (value_name == "baseColorTexture") {
+        auto texture_index = value.second.TextureIndex();
+        target.texture_index_ = texture_index;
+      }
+//      if (value_name == "normalTexture") {
+//        auto texture_index = value.second.TextureIndex();
+//      }
+      if (value_name == "baseColorFactor") {
+        auto color = value.second.ColorFactor();
+        target.diffuse_color_ = vec3(
+          static_cast<float>(color[0]),
+          static_cast<float>(color[1]),
+          static_cast<float>(color[2])
+        );
+      }
+    }
+  }
+}
 } // namespace hnll::graphics
