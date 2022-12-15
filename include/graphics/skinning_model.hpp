@@ -127,6 +127,42 @@ class skinning_model
     static u_ptr<skinning_model> create_from_gltf(const std::string& filepath, device& device);
     bool load_from_gltf(const std::string& filepath, device& device);
 
+    // getter
+    // buffer
+    const buffer& get_position_buffer()     const { return *vertex_attribute_buffer_.position_buffer; }
+    const buffer& get_normal_buffer()       const { return *vertex_attribute_buffer_.normal_buffer; }
+    const buffer& get_tex_coord_buffer()    const { return *vertex_attribute_buffer_.tex_coord_buffer; }
+    const buffer& get_joint_index_buffer()  const { return *vertex_attribute_buffer_.joint_index_buffer; }
+    const buffer& get_joint_weight_buffer() const { return *vertex_attribute_buffer_.joint_weight_buffer; }
+    const buffer& get_index_buffer()        const { return *index_buffer_; }
+
+    // image and texture
+    uint32_t get_texture_count() const { return static_cast<uint32_t>(textures_.size()); }
+    uint32_t get_image_count()   const { return static_cast<uint32_t>(images_.size()); }
+    std::vector<texture_info> get_textures() const { return textures_; }
+    std::vector<image_info>   get_iamges()   const { return images_; }
+
+    // node
+    uint32_t get_node_count()         const { return static_cast<uint32_t>(nodes_.size()); }
+    s_ptr<node> get_node(int index)   const { return nodes_[index]; }
+    std::vector<int> get_root_nodes() const { return root_nodes_; }
+
+    // material
+    std::vector<material> get_materials() const { return materials_; }
+
+    // mesh group
+    uint32_t get_mesh_group_count() const { return static_cast<uint32_t>(mesh_groups_.size()); }
+    std::vector<mesh_group> get_mesh_groups() const { return mesh_groups_; }
+
+    // others
+    bool is_skinned() const { return has_skin_; }
+
+    std::vector<std::string> get_joint_node_names() const;
+
+    std::vector<mat4> get_inv_bind_matrices() const;
+
+    uint32_t get_skinned_vertex_count() const { return skin_info_.skin_vertex_count; }
+
   private:
     // associated struct ----------------------------------------------------
     struct vertex_attribute_visitor

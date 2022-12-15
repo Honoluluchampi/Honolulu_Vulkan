@@ -160,5 +160,5 @@ bool skinning_model::load_from_gltf(const std::string &filepath, hnll::graphics:
   return true;
 }
 
-
+std::vecto
 } // namespace hnll::graphics
