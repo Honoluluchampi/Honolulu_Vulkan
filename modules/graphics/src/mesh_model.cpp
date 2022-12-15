@@ -31,11 +31,11 @@ mesh_model::~mesh_model()
   // buffers will be freed in dtor of hnll::graphics::buffer
 }
 
-std::shared_ptr<mesh_model> mesh_model::create_from_file(device &device, const std::string &filename)
+s_ptr<mesh_model> mesh_model::create_from_file(device &device, const std::string &filename)
 {
   auto filepath = utils::get_full_path(filename);
   mesh_builder builder;
-  builder.load_model(filepath);
+  builder.load_obj_model(filepath);
   std::cout << filename << " vertex count: " << builder.vertices.size() << "\n";
   return std::make_shared<mesh_model>(device, builder);
 }
@@ -126,7 +126,7 @@ void mesh_model::bind(VkCommandBuffer command_buffer)
     vkCmdBindIndexBuffer(command_buffer, index_buffer_->get_buffer(), 0, VK_INDEX_TYPE_UINT32);
 }
 
-void mesh_builder::load_model(const std::string& filename)
+void mesh_builder::load_obj_model(const std::string& filename)
 {
   // loader
   tinyobj::attrib_t attrib;
@@ -183,6 +183,11 @@ void mesh_builder::load_model(const std::string& filename)
       indices.push_back(unique_vertices[vertex]);
     }
   }
+}
+
+void mesh_builder::load_gltf_model(const std::string &filename)
+{
+
 }
 
 std::vector<Eigen::Vector3d> mesh_model::get_vertex_position_list() const
