@@ -39,8 +39,8 @@ class skinning_model
     class node
     {
       public:
-        node();
-        ~node();
+        node()  = default;
+        ~node() = default;
 
         // getter
         std::string get_name() const { return name_; }
@@ -50,13 +50,13 @@ class skinning_model
         std::vector<int> get_children() const { return children_; }
 
       private:
-        std::string name_;
+        std::string name_ = "";
 
-        vec3 translation_;
-        quat rotation_;
-        vec3 scale_;
-        mat4 local_mat_;
-        mat4 world_mat_;
+        vec3 translation_ = { 0.f, 0.f, 0.f };
+        quat rotation_    = { 1.f, 0.f, 0.f, 0.f };
+        vec3 scale_       = { 1.f, 1.f, 1.f };
+        mat4 local_mat_   = Eigen::Matrix4f::Identity();
+        mat4 world_mat_   = Eigen::Matrix4f::Identity();
 
         std::vector<int> children_;
         s_ptr<node>      parent_ = nullptr;
@@ -121,8 +121,8 @@ class skinning_model
 
     // ---------------------------------------------------------------------
 
-    skinning_model();
-    ~skinning_model();
+    skinning_model()  = default;
+    ~skinning_model() = default;
 
     void load_from_gltf(const std::string& filepath, device& device);
 
