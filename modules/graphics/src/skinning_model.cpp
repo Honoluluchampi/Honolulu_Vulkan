@@ -217,4 +217,139 @@ void skinning_model::load_node(const tinygltf::Model &model)
     target->mesh_index_ = input.mesh;
   }
 }
+
+void skinning_model::load_mesh(const tinygltf::Model &model, hnll::graphics::skinning_model::vertex_attribute_visitor &visitor)
+{
+  auto& index_buffer     = visitor.index_buffer;
+  auto& position_buffer  = visitor.position_buffer;
+  auto& normal_buffer    = visitor.normal_buffer;
+  auto& tex_coord_buffer = visitor.tex_coord_buffer;
+  auto& joint_buffer     = visitor.joint_buffer;
+  auto& weight_buffer    = visitor.weight_buffer;
+
+  for (auto& in_mesh : model.meshes) {
+    mesh_groups_.emplace_back(mesh_group());
+    auto& group = mesh_groups_.back();
+
+    for (auto& primitive : in_mesh.primitives) {
+      auto index_start  = static_cast<uint32_t>(index_buffer.size());
+      auto vertex_start = static_cast<uint32_t>(position_buffer.size());
+      uint32_t index_count = 0, vertex_count = 0;
+      bool has_skin = false;
+
+      const auto& not_found = primitive.attributes.end();
+
+      // extract positions
+      if (auto attr = primitive.attributes.find("POSITION"); attr != not_found) {
+        auto& acc  = model.accessors[attr->second];
+        auto& view = model.bufferViews[acc.bufferView];
+        auto offset_bytes = acc.byteOffset + view.byteOffset;
+        const auto* src   = reinterpret_cast<const vec3*>(&(model.buffers[view.buffer].data[offset_bytes]));
+
+        vertex_count = static_cast<uint32_t>(acc.count);
+        for (uint32_t i = 0; i < vertex_count; i++) {
+          position_buffer.push_back(src[i]);
+        }
+      }
+
+      // extract normals
+      if (auto attr = primitive.attributes.find("NORMAL"); attr != not_found) {
+        auto& acc  = model.accessors[attr->second];
+        auto& view = model.bufferViews[acc.bufferView];
+        auto offset_bytes = acc.byteOffset + view.byteOffset;
+        const auto* src   = reinterpret_cast<const vec3*>(&(model.buffers[view.buffer].data[offset_bytes]));
+
+        vertex_count = static_cast<uint32_t>(acc.count);
+        for (uint32_t i = 0; i < vertex_count; i++) {
+          normal_buffer.push_back(src[i]);
+        }
+      }
+
+      // extract texture coordinates
+      if (auto attr = primitive.attributes.find("TEXCOORD_0"); attr != not_found) {
+        auto& acc  = model.accessors[attr->second];
+        auto& view = model.bufferViews[acc.bufferView];
+        auto offset_bytes = acc.byteOffset + view.byteOffset;
+        const auto* src   = reinterpret_cast<const vec2*>(&(model.buffers[view.buffer].data[offset_bytes]));
+
+        for (uint32_t i = 0; i < vertex_count; i++) {
+          tex_coord_buffer.push_back(src[i]);
+        }
+      } else {
+        // zero pudding
+        for (uint32_t i = 0; i < vertex_count; i++) {
+          tex_coord_buffer.push_back(vec2{0.f, 0.f});
+        }
+      }
+
+      // extract joint indices
+      if (auto attr = primitive.attributes.find("JOINTS_0"); attr != not_found) {
+        auto& acc  = model.accessors[attr->second];
+        auto& view = model.bufferViews[acc.bufferView];
+        auto offset_bytes = acc.byteOffset + view.byteOffset;
+        const auto* src   = reinterpret_cast<const uint16_t*>(&(model.buffers[view.buffer].data[offset_bytes]));
+
+        for (uint32_t i = 0; i < vertex_count; i++) {
+          auto idx = i * 4;
+          auto v = uvec4(
+            src[idx + 0],
+            src[idx + 1],
+            src[idx + 2],
+            src[idx + 3]
+          );
+          joint_buffer.push_back(v);
+        }
+      }
+
+      // extract joint weights
+      if (auto attr = primitive.attributes.find("WEIGHTS_0"); attr != not_found) {
+        auto& acc  = model.accessors[attr->second];
+        auto& view = model.bufferViews[acc.bufferView];
+        auto offset_bytes = acc.byteOffset + view.byteOffset;
+        const auto* src   = reinterpret_cast<const vec4*>(&(model.buffers[view.buffer].data[offset_bytes]));
+
+        for (uint32_t i = 0; i < vertex_count; i++) {
+          weight_buffer.push_back(src[i]);
+        }
+      }
+
+      // extract index buffer
+      {
+        auto& acc = model.accessors[primitive.indices];
+        const auto& view = model.bufferViews[acc.bufferView];
+        const auto& buffer = model.buffers[view.buffer];
+        index_count = static_cast<uint32_t>(acc.count);
+        auto offset_bytes = acc.byteOffset + view.byteOffset;
+        if (acc.componentType == TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT) {
+          auto src = reinterpret_cast<const uint32_t*>(&(buffer.data[offset_bytes]));
+
+          for (size_t index = 0; index < acc.count; index++) {
+            index_buffer.push_back(src[index]);
+          }
+        }
+        if (acc.componentType == TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT) {
+          auto src = reinterpret_cast<const uint16_t*>(&(buffer.data[offset_bytes]));
+          for (size_t index = 0; index < acc.count; index++) {
+            index_buffer.push_back(src[index]);
+          }
+        }
+      }
+
+      group.meshes_.emplace_back(mesh());
+      auto& m = group.meshes_.back();
+      m.index_start    = index_start;
+      m.vertex_start   = vertex_start;
+      m.index_count    = index_count;
+      m.vertex_count   = vertex_count;
+      m.material_index = primitive.material;
+    }
+  }
+
+  for (uint32_t node_index = 0; node_index < static_cast<uint32_t>(model.nodes.size()); node_index++) {
+    auto mesh_index = model.nodes[node_index].mesh;
+    if (mesh_index < 0)
+      continue;
+    mesh_groups_[mesh_index].node_index_ = node_index;
+  }
+}
 } // namespace hnll::graphics
