@@ -18,6 +18,8 @@ u_ptr<skinning_model> skinning_model::create_from_gltf(const std::string &filepa
   auto ret = std::make_unique<skinning_model>();
 
   ret->load_from_gltf(filepath, device);
+
+  return ret;
 }
 
 bool load_file(std::vector<char>& out, const std::string& filepath)
@@ -160,5 +162,17 @@ bool skinning_model::load_from_gltf(const std::string &filepath, hnll::graphics:
   return true;
 }
 
-std::vecto
+std::vector<std::string> skinning_model::get_joint_node_names() const
+{
+  std::vector<std::string> ret;
+  for (auto node_index : skin_info_.joints) {
+    ret.emplace_back(nodes_[node_index]->get_name());
+  }
+  return ret;
+}
+
+std::vector<mat4> skinning_model::get_inv_bind_matrices() const
+{ return skin_info_.inv_bind_matrices; }
+
+
 } // namespace hnll::graphics
