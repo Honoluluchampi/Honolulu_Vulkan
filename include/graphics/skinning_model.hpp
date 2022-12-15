@@ -61,7 +61,7 @@ class skinning_model
         std::vector<int> children_;
         s_ptr<node>      parent_ = nullptr;
 
-        int mesh_index = -1;
+        int mesh_index_ = -1;
 
         friend class skinning_model;
     };
@@ -199,18 +199,19 @@ class skinning_model
     void load_skin(const tinygltf::Model& model);
     void load_material(const tinygltf::Model& model);
 
+    // buffer
     vertex_attribute_buffer vertex_attribute_buffer_;
-    u_ptr<buffer> index_buffer_;
+    u_ptr<buffer>           index_buffer_;
 
-    std::vector<mesh_group> mesh_groups_;
-    std::vector<material> materials_;
+    std::vector<mesh_group>  mesh_groups_;
+    std::vector<material>    materials_;
     std::vector<s_ptr<node>> nodes_;
-    std::vector<int> root_nodes_;
+    std::vector<int>         root_nodes_;
 
     bool has_skin_ = false;
     skin_info skin_info_;
 
-    std::vector<image_info> images_;
+    std::vector<image_info>   images_;
     std::vector<texture_info> textures_;
 };
 

@@ -174,5 +174,47 @@ std::vector<std::string> skinning_model::get_joint_node_names() const
 std::vector<mat4> skinning_model::get_inv_bind_matrices() const
 { return skin_info_.inv_bind_matrices; }
 
+vec3 vec3_convert_from_gltf(const double* input)
+{
+  return vec3 {
+    static_cast<float>(input[0]),
+    static_cast<float>(input[1]),
+    static_cast<float>(input[2])
+  };
+}
 
+quat quat_convert_from_gltf(const double* input)
+{
+  return quat {
+    static_cast<float>(input[0]),
+    static_cast<float>(input[1]),
+    static_cast<float>(input[2]),
+    static_cast<float>(input[3])
+  };
+}
+
+void skinning_model::load_node(const tinygltf::Model &model)
+{
+  for (auto& input : model.nodes) {
+    // create
+    nodes_.emplace_back(std::make_shared<node>());
+    auto target = nodes_.back();
+
+    // fill in values
+    target->name_ = input.name;
+    if (!input.translation.empty()) {
+      target->translation_ = vec3_convert_from_gltf(input.translation.data());
+    }
+    if (!input.rotation.empty()) {
+      target->rotation_ = quat_convert_from_gltf(input.rotation.data());
+    }
+    if (!input.scale.empty()) {
+      target->scale_ = vec3_convert_from_gltf(input.scale.data());
+    }
+    for (auto& c : input.children) {
+      target->children_.push_back(c);
+    }
+    target->mesh_index_ = input.mesh;
+  }
+}
 } // namespace hnll::graphics
