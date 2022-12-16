@@ -11,6 +11,7 @@ set(TARGETS
         src/swap_chain.cpp
         src/window.cpp
         src/utils.cpp
+        src/skinning_model.cpp
         $ENV{HNLL_ENGN}/submodules/extensions/ray_tracing_extensions.cpp
         )
 
@@ -21,6 +22,7 @@ target_include_directories(hnll_graphics PUBLIC
     $ENV{VULKAN_DIR}/include/
     ${PROJECT_SOURCE_DIR}/submodules/tiny_obj_loader
     ${PROJECT_SOURCE_DIR}/submodules/imgui
+    $ENV{HNLL_ENGN}/submodules
     $ENV{HNLL_ENGN}/submodules/extensions
     )
 

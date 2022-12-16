@@ -138,11 +138,14 @@ class skinning_model
 
     // getter
     // buffer
-    const buffer& get_position_buffer()     const { return *vertex_attribute_buffer_.position_buffer; }
-    const buffer& get_normal_buffer()       const { return *vertex_attribute_buffer_.normal_buffer; }
-    const buffer& get_tex_coord_buffer()    const { return *vertex_attribute_buffer_.tex_coord_buffer; }
-    const buffer& get_joint_index_buffer()  const { return *vertex_attribute_buffer_.joint_index_buffer; }
-    const buffer& get_joint_weight_buffer() const { return *vertex_attribute_buffer_.joint_weight_buffer; }
+    // for vertex shading
+    const buffer& get_vertex_buffer() const { return *vertex_buffer_; }
+    // for mesh shading
+//    const buffer& get_position_buffer()     const { return *vertex_attribute_buffer_.position_buffer; }
+//    const buffer& get_normal_buffer()       const { return *vertex_attribute_buffer_.normal_buffer; }
+//    const buffer& get_tex_coord_buffer()    const { return *vertex_attribute_buffer_.tex_coord_buffer; }
+//    const buffer& get_joint_index_buffer()  const { return *vertex_attribute_buffer_.joint_index_buffer; }
+//    const buffer& get_joint_weight_buffer() const { return *vertex_attribute_buffer_.joint_weight_buffer; }
     const buffer& get_index_buffer()        const { return *index_buffer_; }
 
     // image and texture
@@ -185,14 +188,15 @@ class skinning_model
       std::vector<vec4>  weight_buffer;
     };
 
-    struct vertex_attribute_buffer
-    {
-      u_ptr<buffer> position_buffer;
-      u_ptr<buffer> normal_buffer;
-      u_ptr<buffer> tex_coord_buffer;
-      u_ptr<buffer> joint_index_buffer;
-      u_ptr<buffer> joint_weight_buffer;
-    };
+    // for mesh shading
+//    struct vertex_attribute_buffer
+//    {
+//      u_ptr<buffer> position_buffer;
+//      u_ptr<buffer> normal_buffer;
+//      u_ptr<buffer> tex_coord_buffer;
+//      u_ptr<buffer> joint_index_buffer;
+//      u_ptr<buffer> joint_weight_buffer;
+//    };
 
     struct skin_info
     {
@@ -209,8 +213,8 @@ class skinning_model
     void load_material(const tinygltf::Model& model);
 
     // buffer
-    vertex_attribute_buffer vertex_attribute_buffer_;
-    u_ptr<buffer>           index_buffer_;
+    u_ptr<buffer> vertex_buffer_;
+    u_ptr<buffer> index_buffer_;
 
     std::vector<mesh_group>  mesh_groups_;
     std::vector<material>    materials_;
