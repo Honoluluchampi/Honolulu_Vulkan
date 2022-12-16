@@ -1,5 +1,5 @@
 // hnll
-#include <graphics/skinning_model.hpp>
+#include <graphics/skinning_mesh_model.hpp>
 #include <graphics/device.hpp>
 #include <graphics/buffer.hpp>
 
@@ -13,9 +13,9 @@
 
 namespace hnll::graphics {
 
-u_ptr<skinning_model> skinning_model::create_from_gltf(const std::string &filepath, hnll::graphics::device &device)
+u_ptr<skinning_mesh_model> skinning_mesh_model::create_from_gltf(const std::string &filepath, hnll::graphics::device &device)
 {
-  auto ret = std::make_unique<skinning_model>();
+  auto ret = std::make_unique<skinning_mesh_model>();
 
   ret->load_from_gltf(filepath, device);
 
@@ -33,7 +33,7 @@ bool load_file(std::vector<char>& out, const std::string& filepath)
   return true;
 }
 
-bool skinning_model::load_from_gltf(const std::string &filepath, hnll::graphics::device &device)
+bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::graphics::device &device)
 {
   std::filesystem::path path = { filepath };
   std::vector<char> buffer;
@@ -162,7 +162,7 @@ bool skinning_model::load_from_gltf(const std::string &filepath, hnll::graphics:
   return true;
 }
 
-std::vector<std::string> skinning_model::get_joint_node_names() const
+std::vector<std::string> skinning_mesh_model::get_joint_node_names() const
 {
   std::vector<std::string> ret;
   for (auto node_index : skin_info_.joints) {
@@ -171,7 +171,7 @@ std::vector<std::string> skinning_model::get_joint_node_names() const
   return ret;
 }
 
-std::vector<mat4> skinning_model::get_inv_bind_matrices() const
+std::vector<mat4> skinning_mesh_model::get_inv_bind_matrices() const
 { return skin_info_.inv_bind_matrices; }
 
 vec3 vec3_convert_from_gltf(const double* input)
@@ -193,7 +193,7 @@ quat quat_convert_from_gltf(const double* input)
   };
 }
 
-void skinning_model::load_node(const tinygltf::Model &model)
+void skinning_mesh_model::load_node(const tinygltf::Model &model)
 {
   for (auto& input : model.nodes) {
     // create
@@ -218,7 +218,7 @@ void skinning_model::load_node(const tinygltf::Model &model)
   }
 }
 
-void skinning_model::load_mesh(const tinygltf::Model &model, hnll::graphics::skinning_model::vertex_attribute_visitor &visitor)
+void skinning_mesh_model::load_mesh(const tinygltf::Model &model, hnll::graphics::skinning_mesh_model::vertex_attribute_visitor &visitor)
 {
   auto& index_buffer     = visitor.index_buffer;
   auto& position_buffer  = visitor.position_buffer;
@@ -353,7 +353,7 @@ void skinning_model::load_mesh(const tinygltf::Model &model, hnll::graphics::ski
   }
 }
 
-void skinning_model::load_skin(const tinygltf::Model &model)
+void skinning_mesh_model::load_skin(const tinygltf::Model &model)
 {
   if (model.skins.empty()) {
     has_skin_ = false;
@@ -382,7 +382,7 @@ void skinning_model::load_skin(const tinygltf::Model &model)
   }
 }
 
-void skinning_model::load_material(const tinygltf::Model &model)
+void skinning_mesh_model::load_material(const tinygltf::Model &model)
 {
   for (const auto& in_material : model.materials) {
     materials_.emplace_back(material());
