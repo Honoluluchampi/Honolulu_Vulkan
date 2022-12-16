@@ -66,12 +66,21 @@ class skinning_model
         friend class skinning_model;
     };
 
+    struct vertex
+    {
+      alignas(16) vec3 position;
+      alignas(16) vec3 normal;
+      vec2  tex_coord;
+      uvec4 joint_indices;
+      vec4  joint_weights;
+    };
+
     struct mesh
     {
-      uint32_t index_start = 0;
-      uint32_t vertex_start = 0;
-      uint32_t index_count = 0;
-      uint32_t vertex_count = 0;
+      uint32_t index_start    = 0;
+      uint32_t vertex_start   = 0;
+      uint32_t index_count    = 0;
+      uint32_t vertex_count   = 0;
       uint32_t material_index = 0;
     };
 
