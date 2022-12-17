@@ -31,7 +31,7 @@ class skinning_meshlet_model
     uint32_t get_texture_count() const { return static_cast<uint32_t>(textures_.size()); }
     uint32_t get_image_count()   const { return static_cast<uint32_t>(images_.size()); }
     std::vector<skinning_utils::texture_info> get_textures() const { return textures_; }
-    std::vector<skinning_utils::image_info>   get_iamges()   const { return images_; }
+    std::vector<skinning_utils::image_info>   get_images()   const { return images_; }
 
     // node
     uint32_t get_node_count()         const { return static_cast<uint32_t>(nodes_.size()); }

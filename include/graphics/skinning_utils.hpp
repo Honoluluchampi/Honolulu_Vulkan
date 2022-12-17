@@ -38,34 +38,23 @@ struct vertex
   vec4  joint_weights;
 };
 
-class node
+struct node
 {
-  public:
     node()  = default;
     ~node() = default;
 
-    // getter
-    std::string get_name() const { return name_; }
-    vec3 get_translation() const { return translation_; }
-    quat get_rotation()    const { return rotation_; }
-    vec3 get_scale()       const { return scale_; }
-    std::vector<int> get_children() const { return children_; }
+    std::string name = "";
 
-  private:
-    std::string name_ = "";
+    vec3 translation = { 0.f, 0.f, 0.f };
+    quat rotation    = { 1.f, 0.f, 0.f, 0.f };
+    vec3 scale       = { 1.f, 1.f, 1.f };
+    mat4 local_mat   = Eigen::Matrix4f::Identity();
+    mat4 world_mat   = Eigen::Matrix4f::Identity();
 
-    vec3 translation_ = { 0.f, 0.f, 0.f };
-    quat rotation_    = { 1.f, 0.f, 0.f, 0.f };
-    vec3 scale_       = { 1.f, 1.f, 1.f };
-    mat4 local_mat_   = Eigen::Matrix4f::Identity();
-    mat4 world_mat_   = Eigen::Matrix4f::Identity();
+    std::vector<int> children;
+    s_ptr<node>      parent = nullptr;
 
-    std::vector<int> children_;
-    s_ptr<node>      parent_ = nullptr;
-
-    int mesh_index_ = -1;
-
-    friend class skinning_model;
+    int mesh_index = -1;
 };
 
 struct mesh
@@ -77,40 +66,24 @@ struct mesh
   uint32_t material_index = 0;
 };
 
-class mesh_group
+struct mesh_group
 {
-  public:
-    int get_node() const { return node_index_; }
-    std::vector<mesh> get_meshes() const { return meshes_; }
-
-  private:
-    int node_index_;
-    std::vector<mesh> meshes_;
-    friend class skinning_model;
+    int node_index;
+    std::vector<mesh> meshes;
 };
 
-class skin
+struct skin
 {
-    std::string name_;
-    std::vector<int> joints_;
-    std::vector<mat4> inv_bind_matrices_;
-    friend class skinning_model;
+    std::string name;
+    std::vector<int> joints;
+    std::vector<mat4> inv_bind_matrices;
 };
 
-class material
+struct material
 {
-  public:
-    // getter
-    std::string get_name()          const { return name_; }
-    int         get_texture_index() const { return texture_index_; }
-    vec3        get_diffuse_color() const { return diffuse_color_; }
-
-  private:
-    std::string name_ = "";
-    int texture_index_ = -1;
-    vec3 diffuse_color_ = { 1.f, 1.f, 1.f };
-
-    friend class skinning_model;
+    std::string name = "";
+    int texture_index = -1;
+    vec3 diffuse_color = { 1.f, 1.f, 1.f };
 };
 
 struct image_info

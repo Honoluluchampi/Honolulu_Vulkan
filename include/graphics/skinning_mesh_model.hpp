@@ -20,26 +20,19 @@ class skinning_mesh_model
 
     // getter
     // buffer
-    // for vertex shading
     const buffer& get_vertex_buffer() const { return *vertex_buffer_; }
-    // for mesh shading
-//    const buffer& get_position_buffer()     const { return *vertex_attribute_buffer_.position_buffer; }
-//    const buffer& get_normal_buffer()       const { return *vertex_attribute_buffer_.normal_buffer; }
-//    const buffer& get_tex_coord_buffer()    const { return *vertex_attribute_buffer_.tex_coord_buffer; }
-//    const buffer& get_joint_index_buffer()  const { return *vertex_attribute_buffer_.joint_index_buffer; }
-//    const buffer& get_joint_weight_buffer() const { return *vertex_attribute_buffer_.joint_weight_buffer; }
-    const buffer& get_index_buffer()        const { return *index_buffer_; }
+    const buffer& get_index_buffer()  const { return *index_buffer_; }
 
     // image and texture
     uint32_t get_texture_count() const { return static_cast<uint32_t>(textures_.size()); }
     uint32_t get_image_count()   const { return static_cast<uint32_t>(images_.size()); }
     std::vector<skinning_utils::texture_info> get_textures() const { return textures_; }
-    std::vector<skinning_utils::image_info>   get_iamges()   const { return images_; }
+    std::vector<skinning_utils::image_info>   get_images()   const { return images_; }
 
     // node
-    uint32_t get_node_count()         const { return static_cast<uint32_t>(nodes_.size()); }
-    s_ptr<skinning_utils::node> get_node(int index)   const { return nodes_[index]; }
+    uint32_t         get_node_count() const { return static_cast<uint32_t>(nodes_.size()); }
     std::vector<int> get_root_nodes() const { return root_nodes_; }
+    s_ptr<skinning_utils::node> get_node(int index) const { return nodes_[index]; }
 
     // material
     std::vector<skinning_utils::material> get_materials() const { return materials_; }
@@ -58,19 +51,6 @@ class skinning_mesh_model
     uint32_t get_skinned_vertex_count() const { return skin_info_.skin_vertex_count; }
 
   private:
-    // associated struct ----------------------------------------------------
-
-
-    // for mesh shading
-//    struct vertex_attribute_buffer
-//    {
-//      u_ptr<buffer> position_buffer;
-//      u_ptr<buffer> normal_buffer;
-//      u_ptr<buffer> tex_coord_buffer;
-//      u_ptr<buffer> joint_index_buffer;
-//      u_ptr<buffer> joint_weight_buffer;
-//    };
-    // ---------------------------------------------------------------------
 
     void load_node(const tinygltf::Model& model);
     void load_mesh(const tinygltf::Model& model, skinning_utils::vertex_attribute_visitor& visitor);
