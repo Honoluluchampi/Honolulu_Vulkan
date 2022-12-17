@@ -18,6 +18,8 @@ u_ptr<skinning_mesh_model> skinning_mesh_model::create_from_gltf(const std::stri
   auto ret = std::make_unique<skinning_mesh_model>();
 
   ret->load_from_gltf(filepath, device);
+  ret->create_vertex_buffer();
+  ret->create_index_buffer();
 
   return ret;
 }
@@ -126,10 +128,31 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
 //    );
 //  }
 
+  // create vertex buffer
+  // convert visitor into vertex
+  auto vertex_count = visitor.position_buffer.size();
+  std::vector<skinning_utils::vertex> vertices(vertex_count);
+  for (int i = 0; i < vertex_count; i++) {
+    vertices[i].position      = std::move(visitor.position_buffer[0]);
+    vertices[i].normal        = std::move(visitor.normal_buffer[0]);
+    vertices[i].tex_coord     = std::move(visitor.tex_coord_buffer[0]);
+    vertices[i].joint_indices = std::move(visitor.joint_buffer[0]);
+    vertices[i].joint_weights = std::move(visitor.weight_buffer[0]);
+  }
+
+  vertex_buffer_ = buffer::create(
+    device,
+    sizeof(skinning_utils::vertex),
+    vertex_count,
+    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+    vertices.data()
+  );
+
   // create index buffer
   auto size_index    = sizeof(uint32_t) * visitor.index_buffer.size();
-  auto memory_props  = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
   auto usage         = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+  auto memory_props  = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
   index_buffer_ = buffer::create(
     device,
     size_index,
@@ -139,7 +162,7 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
     visitor.index_buffer.data()
   );
 
-    skin_info_.skin_vertex_count = static_cast<uint32_t>(visitor.joint_buffer.size());
+  skin_info_.skin_vertex_count = static_cast<uint32_t>(vertex_count);
 
   for (auto& image : gltf_model.images) {
     auto view = gltf_model.bufferViews[image.bufferView];
