@@ -18,8 +18,6 @@ u_ptr<skinning_mesh_model> skinning_mesh_model::create_from_gltf(const std::stri
   auto ret = std::make_unique<skinning_mesh_model>();
 
   ret->load_from_gltf(filepath, device);
-  ret->create_vertex_buffer();
-  ret->create_index_buffer();
 
   return ret;
 }
