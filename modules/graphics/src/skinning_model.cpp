@@ -166,7 +166,7 @@ std::vector<std::string> skinning_mesh_model::get_joint_node_names() const
 {
   std::vector<std::string> ret;
   for (auto node_index : skin_info_.joints) {
-    ret.emplace_back(nodes_[node_index]->get_name());
+    ret.emplace_back(nodes_[node_index]->name);
   }
   return ret;
 }
@@ -218,7 +218,7 @@ void skinning_mesh_model::load_node(const tinygltf::Model &model)
   }
 }
 
-void skinning_mesh_model::load_mesh(const tinygltf::Model &model, hnll::graphics::skinning_mesh_model::vertex_attribute_visitor &visitor)
+void skinning_mesh_model::load_mesh(const tinygltf::Model &model, skinning_utils::vertex_attribute_visitor &visitor)
 {
   auto& index_buffer     = visitor.index_buffer;
   auto& position_buffer  = visitor.position_buffer;
@@ -228,7 +228,7 @@ void skinning_mesh_model::load_mesh(const tinygltf::Model &model, hnll::graphics
   auto& weight_buffer    = visitor.weight_buffer;
 
   for (auto& in_mesh : model.meshes) {
-    mesh_groups_.emplace_back(mesh_group());
+    mesh_groups_.emplace_back(skinning_utils::mesh_group());
     auto& group = mesh_groups_.back();
 
     for (auto& primitive : in_mesh.primitives) {
@@ -335,8 +335,8 @@ void skinning_mesh_model::load_mesh(const tinygltf::Model &model, hnll::graphics
         }
       }
 
-      group.meshes_.emplace_back(mesh());
-      auto& m = group.meshes_.back();
+      group.meshes.emplace_back(skinning_utils::mesh());
+      auto& m = group.meshes.back();
       m.index_start    = index_start;
       m.vertex_start   = vertex_start;
       m.index_count    = index_count;
@@ -349,7 +349,7 @@ void skinning_mesh_model::load_mesh(const tinygltf::Model &model, hnll::graphics
     auto mesh_index = model.nodes[node_index].mesh;
     if (mesh_index < 0)
       continue;
-    mesh_groups_[mesh_index].node_index_ = node_index;
+    mesh_groups_[mesh_index].node_index = node_index;
   }
 }
 
@@ -385,22 +385,22 @@ void skinning_mesh_model::load_skin(const tinygltf::Model &model)
 void skinning_mesh_model::load_material(const tinygltf::Model &model)
 {
   for (const auto& in_material : model.materials) {
-    materials_.emplace_back(material());
+    materials_.emplace_back(skinning_utils::material());
     auto& target = materials_.back();
-    target.name_ = in_material.name;
+    target.name = in_material.name;
 
     for (auto& value : in_material.values) {
       auto value_name = value.first;
       if (value_name == "baseColorTexture") {
         auto texture_index = value.second.TextureIndex();
-        target.texture_index_ = texture_index;
+        target.texture_index = texture_index;
       }
 //      if (value_name == "normalTexture") {
 //        auto texture_index = value.second.TextureIndex();
 //      }
       if (value_name == "baseColorFactor") {
         auto color = value.second.ColorFactor();
-        target.diffuse_color_ = vec3(
+        target.diffuse_color = vec3(
           static_cast<float>(color[0]),
           static_cast<float>(color[1]),
           static_cast<float>(color[2])
