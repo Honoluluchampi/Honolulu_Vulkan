@@ -2,7 +2,7 @@
 #include <game/engine.hpp>
 #include <game/shading_systems/mesh_model_shading_system.hpp>
 #include <game/shading_systems/grid_shading_system.hpp>
-#include <game/shading_systems/gltf_mesh_shading_system.hpp>
+#include <game/shading_systems/skinning_mesh_model_shading_system.hpp>
 #include <game/components/mesh_component.hpp>
 
 // std

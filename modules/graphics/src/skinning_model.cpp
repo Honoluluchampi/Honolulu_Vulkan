@@ -315,7 +315,7 @@ void skinning_mesh_model::load_mesh(const tinygltf::Model &model, skinning_utils
       } else {
         // zero pudding
         for (uint32_t i = 0; i < vertex_count; i++) {
-          tex_coord_buffer.push_back(vec2{0.f, 0.f});
+          tex_coord_buffer.emplace_back(vec2{0.f, 0.f});
         }
       }
 
