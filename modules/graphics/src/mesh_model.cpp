@@ -107,14 +107,6 @@ void mesh_model::create_index_buffers(const std::vector<uint32_t> &indices)
   device_.copy_buffer(staging_buffer.get_buffer(), index_buffer_->get_buffer(), buffer_size);
 }
 
-void mesh_model::draw(VkCommandBuffer command_buffer)
-{
-  if (had_index_buffer_)
-    vkCmdDrawIndexed(command_buffer, index_count_, 1, 0, 0, 0);
-  else 
-    vkCmdDraw(command_buffer, vertex_count_, 1, 0, 0);
-}
-
 void mesh_model::bind(VkCommandBuffer command_buffer)
 {
   VkBuffer buffers[] = {vertex_buffer_->get_buffer()};
@@ -124,6 +116,14 @@ void mesh_model::bind(VkCommandBuffer command_buffer)
   // last parameter should be same as the type of the Build::indices
   if (had_index_buffer_) 
     vkCmdBindIndexBuffer(command_buffer, index_buffer_->get_buffer(), 0, VK_INDEX_TYPE_UINT32);
+}
+
+void mesh_model::draw(VkCommandBuffer command_buffer)
+{
+  if (had_index_buffer_)
+    vkCmdDrawIndexed(command_buffer, index_count_, 1, 0, 0, 0);
+  else
+    vkCmdDraw(command_buffer, vertex_count_, 1, 0, 0);
 }
 
 void mesh_builder::load_obj_model(const std::string& filename)

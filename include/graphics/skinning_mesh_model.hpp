@@ -1,6 +1,10 @@
 #pragma once
 
+// hnll
 #include <graphics/skinning_utils.hpp>
+
+// lib
+#include <vulkan/vulkan.h>
 
 namespace hnll {
 namespace graphics {
@@ -14,6 +18,9 @@ class skinning_mesh_model
   public:
     skinning_mesh_model()  = default;
     ~skinning_mesh_model() = default;
+
+    void bind(VkCommandBuffer command_buffer);
+    void draw(VkCommandBuffer command_buffer);
 
     static u_ptr<skinning_mesh_model> create_from_gltf(const std::string& filepath, device& device);
     bool load_from_gltf(const std::string& filepath, device& device);
@@ -53,13 +60,14 @@ class skinning_mesh_model
   private:
 
     void load_node(const tinygltf::Model& model);
-    void load_mesh(const tinygltf::Model& model, skinning_utils::vertex_attribute_visitor& visitor);
+    void load_mesh(const tinygltf::Model& model, skinning_utils::skinning_model_builder& visitor);
     void load_skin(const tinygltf::Model& model);
     void load_material(const tinygltf::Model& model);
 
     // buffer
     u_ptr<buffer> vertex_buffer_;
     u_ptr<buffer> index_buffer_;
+    uint32_t index_count_;
 
     std::vector<skinning_utils::mesh_group>  mesh_groups_;
     std::vector<skinning_utils::material>    materials_;

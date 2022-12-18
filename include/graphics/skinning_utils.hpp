@@ -94,7 +94,7 @@ struct image_info
 
 struct texture_info { int image_index; };
 
-struct vertex_attribute_visitor
+struct skinning_model_builder
 {
   std::vector<uint32_t> index_buffer;
   std::vector<vec3>     position_buffer;

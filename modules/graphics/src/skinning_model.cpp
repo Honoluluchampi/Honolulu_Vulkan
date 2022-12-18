@@ -13,6 +13,21 @@
 
 namespace hnll::graphics {
 
+void skinning_mesh_model::bind(VkCommandBuffer command_buffer)
+{
+  // bind vertex buffer
+  VkBuffer buffers[] = { vertex_buffer_->get_buffer() };
+  VkDeviceSize offsets[] = { 0 };
+  vkCmdBindVertexBuffers(command_buffer, 0, 1, buffers, offsets);
+
+  vkCmdBindIndexBuffer(command_buffer, index_buffer_->get_buffer(), 0, VK_INDEX_TYPE_UINT32);
+}
+
+void skinning_mesh_model::draw(VkCommandBuffer command_buffer)
+{
+  vkCmdDrawIndexed(command_buffer, index_count_, 1, 0, 0, 0);
+}
+
 u_ptr<skinning_mesh_model> skinning_mesh_model::create_from_gltf(const std::string &filepath, hnll::graphics::device &device)
 {
   auto ret = std::make_unique<skinning_mesh_model>();
@@ -61,7 +76,7 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
   if (!err.empty())  { std::cerr << err  << std::endl; }
   if (!result) { return false; }
 
-  skinning_utils::vertex_attribute_visitor visitor;
+  skinning_utils::skinning_model_builder builder;
   const auto& scene = gltf_model.scenes[0];
   // extract all root node indices
   for (const auto& node_index : scene.nodes) {
@@ -69,7 +84,7 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
   }
 
   load_node(gltf_model);
-  load_mesh(gltf_model, visitor);
+  load_mesh(gltf_model, builder);
   load_skin(gltf_model);
   load_material(gltf_model);
 
@@ -128,14 +143,14 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
 
   // create vertex buffer
   // convert visitor into vertex
-  auto vertex_count = visitor.position_buffer.size();
+  auto vertex_count = builder.position_buffer.size();
   std::vector<skinning_utils::vertex> vertices(vertex_count);
   for (int i = 0; i < vertex_count; i++) {
-    vertices[i].position      = std::move(visitor.position_buffer[0]);
-    vertices[i].normal        = std::move(visitor.normal_buffer[0]);
-    vertices[i].tex_coord     = std::move(visitor.tex_coord_buffer[0]);
-    vertices[i].joint_indices = std::move(visitor.joint_buffer[0]);
-    vertices[i].joint_weights = std::move(visitor.weight_buffer[0]);
+    vertices[i].position      = std::move(builder.position_buffer[0]);
+    vertices[i].normal        = std::move(builder.normal_buffer[0]);
+    vertices[i].tex_coord     = std::move(builder.tex_coord_buffer[0]);
+    vertices[i].joint_indices = std::move(builder.joint_buffer[0]);
+    vertices[i].joint_weights = std::move(builder.weight_buffer[0]);
   }
 
   vertex_buffer_ = buffer::create(
@@ -148,7 +163,8 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
   );
 
   // create index buffer
-  auto size_index    = sizeof(uint32_t) * visitor.index_buffer.size();
+  index_count_ = builder.index_buffer.size();
+  auto size_index    = sizeof(uint32_t) * builder.index_buffer.size();
   auto usage         = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
   auto memory_props  = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
   index_buffer_ = buffer::create(
@@ -157,7 +173,7 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
     1,
     usage,
     memory_props,
-    visitor.index_buffer.data()
+    builder.index_buffer.data()
   );
 
   skin_info_.skin_vertex_count = static_cast<uint32_t>(vertex_count);
@@ -239,14 +255,14 @@ void skinning_mesh_model::load_node(const tinygltf::Model &model)
   }
 }
 
-void skinning_mesh_model::load_mesh(const tinygltf::Model &model, skinning_utils::vertex_attribute_visitor &visitor)
+void skinning_mesh_model::load_mesh(const tinygltf::Model &model, skinning_utils::skinning_model_builder &builder)
 {
-  auto& index_buffer     = visitor.index_buffer;
-  auto& position_buffer  = visitor.position_buffer;
-  auto& normal_buffer    = visitor.normal_buffer;
-  auto& tex_coord_buffer = visitor.tex_coord_buffer;
-  auto& joint_buffer     = visitor.joint_buffer;
-  auto& weight_buffer    = visitor.weight_buffer;
+  auto& index_buffer     = builder.index_buffer;
+  auto& position_buffer  = builder.position_buffer;
+  auto& normal_buffer    = builder.normal_buffer;
+  auto& tex_coord_buffer = builder.tex_coord_buffer;
+  auto& joint_buffer     = builder.joint_buffer;
+  auto& weight_buffer    = builder.weight_buffer;
 
   for (auto& in_mesh : model.meshes) {
     mesh_groups_.emplace_back(skinning_utils::mesh_group());
