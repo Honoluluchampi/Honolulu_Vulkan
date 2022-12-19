@@ -2,7 +2,7 @@
 .vscode/
 .env
 tiny_obj_loader.h
-tiny_gltf.h
+submodules/tiny_gltf/*
 models
 build/
 roboto_regular.embed

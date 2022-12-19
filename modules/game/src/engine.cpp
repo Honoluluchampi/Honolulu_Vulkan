@@ -190,7 +190,7 @@ void engine::load_models()
       auto length = filename.size() - path.size();
       auto key = filename.substr(path.size() + 1, length);
 
-      if (extension == "obj") {
+      if (extension == ".obj") {
         // mesh model
         auto mesh_model = hnll::graphics::mesh_model::create_from_file(get_graphics_device(), key);
         mesh_model_map_.emplace(key, std::move(mesh_model));
@@ -201,10 +201,10 @@ void engine::load_models()
         meshlet_model_map_.emplace(key, std::move(meshlet_model));
       }
 
-      if (extension == "glb") {
-        auto skinning_model = hnll::graphics::skinning_mesh_model::create_from_gltf(filename, get_graphics_device());
-        skinning_mesh_model_map_.emplace(key, std::move(skinning_model));
-      }
+//      if (extension == ".glb") {
+//        auto skinning_model = hnll::graphics::skinning_mesh_model::create_from_gltf(filename, get_graphics_device());
+//        skinning_mesh_model_map_.emplace(key, std::move(skinning_model));
+//      }
     }
   }
 }

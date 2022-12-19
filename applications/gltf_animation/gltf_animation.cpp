@@ -4,6 +4,7 @@
 #include <game/shading_systems/grid_shading_system.hpp>
 #include <game/shading_systems/skinning_mesh_model_shading_system.hpp>
 #include <game/components/mesh_component.hpp>
+#include <game/components/point_light_component.hpp>
 
 // std
 #include <iostream>
@@ -17,6 +18,8 @@ class gltf_animation : public game::engine
     {
       setup_shading_systems();
 
+//      setup_lights();
+
       add_obj_models();
     }
 
@@ -29,10 +32,31 @@ class gltf_animation : public game::engine
       add_shading_system(std::move(grid_shader));
     }
 
+    void setup_lights()
+    {
+      float light_intensity = 20.f;
+      std::vector<glm::vec3> positions;
+      float position_radius = 8.f;
+      for (int i = 0; i < 6; i++) {
+        positions.push_back({position_radius * std::sin(M_PI/3.f * i), -2.f, position_radius * std::cos(M_PI/3.f * i)});
+      }
+      positions.push_back({0.f, position_radius, 0.f});
+      positions.push_back({0.f, -position_radius, 0.f});
+
+      for (const auto& position : positions) {
+        auto light = hnll::game::actor::create();
+        auto light_component = hnll::game::point_light_component::create(light, light_intensity, 0.f);
+        add_point_light(light, light_component);
+        light->set_translation(position);
+      }
+    }
+
     void add_obj_models()
     {
       auto actor = game::actor::create();
-      auto obj = game::mesh_component::create(actor, "light_bunny.obj");
+      auto obj = game::mesh_component::create(actor, "Cappuccino_cup.obj");
+      actor->set_scale({0.3f, 0.3f, 0.3f});
+      actor->set_rotation({M_PI, 0.f, 0.f});
     }
 };
 } // namespace hnll
