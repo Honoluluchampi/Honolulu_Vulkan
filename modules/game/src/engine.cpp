@@ -9,6 +9,7 @@
 #include <physics/collision_detector.hpp>
 #include <physics/engine.hpp>
 #include <graphics/meshlet_model.hpp>
+#include <graphics/skinning_mesh_model.hpp>
 
 // lib
 #include <imgui.h>
@@ -175,36 +176,34 @@ void engine::init_actors()
 void engine::load_data()
 {
   // load raw mesh data
-  load_mesh_models();
-  load_meshlet_models();
+  load_models();
   // load_actor();
 }
 
-// use filenames as the key of the map
-// TODO : add models by adding folders or files
-void engine::load_mesh_models()
+void engine::load_models()
 {
   for (const auto& path : utils::loading_directories) {
     for (const auto& file : std::filesystem::directory_iterator(path)) {
       auto filename = std::string(file.path());
+      auto extension = std::string(file.path().extension());
       auto length = filename.size() - path.size();
       auto key = filename.substr(path.size() + 1, length);
-      auto mesh_model = hnll::graphics::mesh_model::create_from_file(get_graphics_device(), key);
-      mesh_model_map_.emplace(key, std::move(mesh_model));
-    }
-  }
-}
 
-void engine::load_meshlet_models()
-{
-  for (const auto& path : utils::loading_directories) {
-    for (const auto& file : std::filesystem::directory_iterator(path)) {
-      auto filename = std::string(file.path());
-      auto length = filename.size() - path.size();
-      auto key = filename.substr(path.size() + 1, length);
-      auto meshlet_model = hnll::graphics::meshlet_model::create_from_file(get_graphics_device(), key);
-      std::cout << key << " :" << std::endl << "\tmeshlet count : " << meshlet_model->get_meshlets_count() << std::endl;
-      meshlet_model_map_.emplace(key, std::move(meshlet_model));
+      if (extension == "obj") {
+        // mesh model
+        auto mesh_model = hnll::graphics::mesh_model::create_from_file(get_graphics_device(), key);
+        mesh_model_map_.emplace(key, std::move(mesh_model));
+
+        // meshlet model
+        auto meshlet_model = hnll::graphics::meshlet_model::create_from_file(get_graphics_device(), key);
+        std::cout << key << " :" << std::endl << "\tmeshlet count : " << meshlet_model->get_meshlets_count() << std::endl;
+        meshlet_model_map_.emplace(key, std::move(meshlet_model));
+      }
+
+      if (extension == "glb") {
+        auto skinning_model = hnll::graphics::skinning_mesh_model::create_from_gltf(filename, get_graphics_device());
+        skinning_mesh_model_map_.emplace(key, std::move(skinning_model));
+      }
     }
   }
 }
@@ -317,8 +316,11 @@ void engine::set_frustum_info(utils::frustum_info &&_frustum_info)
   frustum_info_ = std::move(_frustum_info);
 }
 
-graphics::meshlet_model& engine::get_meshlet_model(std::string model_name)
+graphics::meshlet_model& engine::get_meshlet_model(const std::string& model_name)
 { return *meshlet_model_map_[model_name]; }
+
+graphics::skinning_mesh_model& engine::get_skinning_mesh_model(const std::string& model_name)
+{ return *skinning_mesh_model_map_[model_name]; }
 
 //actor& engine::get_active_actor(actor_id id)
 //{ return *active_actor_map_[id]; }
