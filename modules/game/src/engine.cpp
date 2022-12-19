@@ -24,11 +24,12 @@ constexpr float MAX_FPS = 60.0f;
 constexpr float MAX_DT = 0.05f;
 
 // static members
-actor_map             engine::active_actor_map_{};
-actor_map             engine::pending_actor_map_{};
-std::vector<actor_id> engine::dead_actor_ids_{};
-mesh_model_map        engine::mesh_model_map_;
-meshlet_model_map     engine::meshlet_model_map_;
+actor_map               engine::active_actor_map_{};
+actor_map               engine::pending_actor_map_{};
+std::vector<actor_id>   engine::dead_actor_ids_{};
+mesh_model_map          engine::mesh_model_map_;
+meshlet_model_map       engine::meshlet_model_map_;
+skinning_mesh_model_map engine::skinning_mesh_model_map_;
 
 // glfw
 GLFWwindow* engine::glfw_window_;

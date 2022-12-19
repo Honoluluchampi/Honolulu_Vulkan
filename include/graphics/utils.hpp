@@ -30,8 +30,7 @@ struct mesh_builder
   std::vector<vertex> vertices{};
   std::vector<uint32_t> indices{};
 
-  void load_obj_model(const std::string& filename);
-  void load_gltf_model(const std::string& filename);
+  void load_model(const std::string& filename);
 };
 
 } // namespace hnll::graphics

@@ -31,7 +31,10 @@ export TINY_OBJ_LOADER_DIR=$HNLL_ENGN/submodules/tiny_obj_loader
 if [ ! -e $HNLL_ENGN/submodules/tiny_gltf/tiny_gltf.h ]; then
   mkdir $HNLL_ENGN/submodules/tiny_gltf
   echo "download tiny gltf"
-  curl -o $HNLL_ENGN/submodules/tiny_gltf/tiny_gltf.h https://raw.githubusercontent.com/syoyo/tinygltf/release/tiny_gltf.h
+  curl -o $HNLL_ENGN/submodules/tiny_gltf/tiny_gltf.h       https://raw.githubusercontent.com/syoyo/tinygltf/release/tiny_gltf.h
+  curl -o $HNLL_ENGN/submodules/tiny_gltf/stb_image.h       https://raw.githubusercontent.com/syoyo/tinygltf/release/stb_image.h
+  curl -o $HNLL_ENGN/submodules/tiny_gltf/stb_image_write.h https://raw.githubusercontent.com/syoyo/tinygltf/release/stb_image_write.h
+  curl -o $HNLL_ENGN/submodules/tiny_gltf/json.hpp          https://raw.githubusercontent.com/syoyo/tinygltf/release/json.hpp
 fi
 export TINY_GLTF_DIR=$HNLL_ENGN/submodules/tiny_gltf
 
