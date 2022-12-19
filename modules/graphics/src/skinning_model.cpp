@@ -156,7 +156,7 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
     vertices[i].joint_weights = std::move(builder.weight_buffer[0]);
   }
 
-  vertex_buffer_ = buffer::create(
+  vertex_buffer_ = buffer::create_with_staging(
     device,
     sizeof(skinning_utils::vertex),
     vertex_count,
@@ -170,7 +170,7 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
   auto size_index    = sizeof(uint32_t) * builder.index_buffer.size();
   auto usage         = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
   auto memory_props  = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-  index_buffer_ = buffer::create(
+  index_buffer_ = buffer::create_with_staging(
     device,
     size_index,
     1,

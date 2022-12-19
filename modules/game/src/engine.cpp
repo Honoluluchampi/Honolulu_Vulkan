@@ -201,10 +201,10 @@ void engine::load_models()
         meshlet_model_map_.emplace(key, std::move(meshlet_model));
       }
 
-//      if (extension == ".glb") {
-//        auto skinning_model = hnll::graphics::skinning_mesh_model::create_from_gltf(filename, get_graphics_device());
-//        skinning_mesh_model_map_.emplace(key, std::move(skinning_model));
-//      }
+      if (extension == ".glb") {
+        auto skinning_model = hnll::graphics::skinning_mesh_model::create_from_gltf(filename, get_graphics_device());
+        skinning_mesh_model_map_.emplace(key, std::move(skinning_model));
+      }
     }
   }
 }
@@ -287,6 +287,7 @@ void engine::cleanup()
   dead_actor_ids_.clear();
   mesh_model_map_.clear();
   meshlet_model_map_.clear();
+  skinning_mesh_model_map_.clear();
   hnll::graphics::renderer::cleanup_swap_chain();
 }
 
