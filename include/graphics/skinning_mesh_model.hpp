@@ -29,7 +29,7 @@ class skinning_mesh_model
     skinning_mesh_model()  = default;
     ~skinning_mesh_model() = default;
 
-    void bind(VkCommandBuffer command_buffer);
+    void bind(VkCommandBuffer command_buffer, VkDescriptorSet global_desc_set, VkPipelineLayout pipeline_layout);
     void draw(VkCommandBuffer command_buffer);
 
     static u_ptr<skinning_mesh_model> create_from_gltf(const std::string& filepath, device& device);

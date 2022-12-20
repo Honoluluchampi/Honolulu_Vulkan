@@ -18,14 +18,29 @@
 
 namespace hnll::graphics {
 
-void skinning_mesh_model::bind(VkCommandBuffer command_buffer)
+void skinning_mesh_model::bind(VkCommandBuffer command_buffer, VkDescriptorSet global_desc_set, VkPipelineLayout pipeline_layout)
 {
   // bind vertex buffer
   VkBuffer buffers[] = { vertex_buffer_->get_buffer() };
   VkDeviceSize offsets[] = { 0 };
   vkCmdBindVertexBuffers(command_buffer, 0, 1, buffers, offsets);
 
+  // bind index buffer
   vkCmdBindIndexBuffer(command_buffer, index_buffer_->get_buffer(), 0, VK_INDEX_TYPE_UINT32);
+
+  // bind desc sets
+  std::vector<VkDescriptorSet> desc_sets = { global_desc_set, desc_set_ };
+
+  vkCmdBindDescriptorSets(
+    command_buffer,
+    VK_PIPELINE_BIND_POINT_GRAPHICS,
+    pipeline_layout,
+    0,
+    static_cast<uint32_t>(desc_sets.size()),
+    desc_sets.data(),
+    0,
+    nullptr
+  );
 }
 
 void skinning_mesh_model::draw(VkCommandBuffer command_buffer)
