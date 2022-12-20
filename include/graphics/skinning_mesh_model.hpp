@@ -12,6 +12,16 @@ namespace graphics {
 // forward declaration
 class device;
 class buffer;
+class descriptor_pool;
+class descriptor_set_layout;
+
+#define MAX_NUM_JOINTS 128
+
+struct node_info {
+  mat4  matrix = Eigen::Matrix4f::Identity();
+  mat4  joint_matrices[MAX_NUM_JOINTS];
+  float joint_count;
+};
 
 class skinning_mesh_model
 {
@@ -64,6 +74,12 @@ class skinning_mesh_model
     void load_skin(const tinygltf::Model& model);
     void load_material(const tinygltf::Model& model);
 
+    void setup_descs(device& device);
+    void create_desc_pool(device& _device);
+    void create_desc_buffers(device& _device);
+    void create_desc_set_layouts(device& _device);
+    void create_desc_sets();
+
     // buffer
     u_ptr<buffer> vertex_buffer_;
     u_ptr<buffer> index_buffer_;
@@ -76,9 +92,16 @@ class skinning_mesh_model
 
     bool has_skin_ = false;
     skinning_utils::skin_info skin_info_;
+    node_info node_info_;
 
     std::vector<skinning_utils::image_info>   images_;
     std::vector<skinning_utils::texture_info> textures_;
+
+    // for node_info desc buffer
+    u_ptr<descriptor_pool>       desc_pool_;
+    u_ptr<buffer>                desc_buffer_;
+    u_ptr<descriptor_set_layout> desc_set_layout_;
+    VkDescriptorSet              desc_set_;
 };
 
 }} // hnll::graphics

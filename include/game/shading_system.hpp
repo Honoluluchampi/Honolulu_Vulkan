@@ -18,6 +18,10 @@ class shading_system
     explicit shading_system(graphics::device& device, utils::shading_type type)
       : device_(device), shading_type_(type) {}
     virtual ~shading_system() { vkDestroyPipelineLayout(device_.get_device(), pipeline_layout_, nullptr); }
+    shading_system(const shading_system &) = delete;
+    shading_system &operator=(const shading_system &) = delete;
+    shading_system(shading_system &&) = default;
+    shading_system &operator=(shading_system &&) = default;
 
     virtual void render(const utils::frame_info& frame_info){}
 

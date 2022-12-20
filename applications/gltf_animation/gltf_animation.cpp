@@ -4,6 +4,7 @@
 #include <game/shading_systems/grid_shading_system.hpp>
 #include <game/shading_systems/skinning_mesh_model_shading_system.hpp>
 #include <game/components/mesh_component.hpp>
+#include <game/components/skinning_mesh_component.hpp>
 #include <game/components/point_light_component.hpp>
 
 // std
@@ -20,7 +21,7 @@ class gltf_animation : public game::engine
 
 //      setup_lights();
 
-      add_obj_models();
+      add_model();
     }
 
   private:
@@ -30,6 +31,8 @@ class gltf_animation : public game::engine
       add_shading_system(std::move(mesh_model_shader));
       auto grid_shader = game::grid_shading_system::create(get_graphics_device());
       add_shading_system(std::move(grid_shader));
+      auto skinning_shader = game::skinning_mesh_model_shading_system::create(get_graphics_device());
+      add_shading_system(std::move(skinning_shader));
     }
 
     void setup_lights()
@@ -51,10 +54,10 @@ class gltf_animation : public game::engine
       }
     }
 
-    void add_obj_models()
+    void add_model()
     {
       auto actor = game::actor::create();
-      auto obj = game::mesh_component::create(actor, "Cappuccino_cup.obj");
+      auto obj = game::skinning_mesh_component::create(actor, "human.glb");
       actor->set_scale({0.3f, 0.3f, 0.3f});
       actor->set_rotation({M_PI, 0.f, 0.f});
     }

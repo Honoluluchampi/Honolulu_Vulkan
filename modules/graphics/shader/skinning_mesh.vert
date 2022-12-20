@@ -6,8 +6,9 @@ layout(location = 2) in vec2  in_tex_coord;
 layout(location = 3) in uvec4 in_joint_indices;
 layout(location = 4) in vec4  in_joint_weights;
 
-layout(location = 0) out vec3 out_world_position;
-layout(location = 0) out vec3 out_world_normal;
+layout(location = 0) out vec3 out_color;
+layout(location = 1) out vec3 out_world_position;
+layout(location = 2) out vec3 out_world_normal;
 
 // should be compatible with a description layout
 struct PointLight
@@ -41,7 +42,7 @@ layout(push_constant) uniform Push {
   mat4 normal_matrix;
 } push;
 
-int main() {
+void main() {
   vec4 local_position;
   // if mesh is skinned 
   if (node.joint_count > 0.0) {
@@ -61,4 +62,6 @@ int main() {
 
   out_world_position = local_position.xyz / local_position.w;
   gl_Position = ubo.projection * ubo.view * vec4(out_world_position, 1.0);
+
+  out_color = vec3(0.2f, 0.8f, 0.1f);
 }

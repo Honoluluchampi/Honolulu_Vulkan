@@ -2,6 +2,7 @@
 #include <graphics/skinning_mesh_model.hpp>
 #include <graphics/device.hpp>
 #include <graphics/buffer.hpp>
+#include <graphics/descriptor_set_layout.hpp>
 
 // std
 #include <fstream>
@@ -13,6 +14,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <tiny_gltf.h>
+#include <vulkan/vulkan.h>
 
 namespace hnll::graphics {
 
@@ -37,7 +39,55 @@ u_ptr<skinning_mesh_model> skinning_mesh_model::create_from_gltf(const std::stri
 
   ret->load_from_gltf(filepath, device);
 
+  ret->setup_descs(device);
+
   return ret;
+}
+
+void skinning_mesh_model::setup_descs(device &device)
+{
+  create_desc_pool(device);
+  create_desc_buffers(device);
+  create_desc_set_layouts(device);
+  create_desc_sets();
+}
+
+void skinning_mesh_model::create_desc_pool(device &_device)
+{
+  desc_pool_ = descriptor_pool::builder(_device)
+    .set_max_sets(1)
+    .add_pool_size(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1)
+    .build();
+}
+
+void skinning_mesh_model::create_desc_buffers(device& _device)
+{
+  desc_buffer_ = graphics::buffer::create_with_staging(
+    _device,
+    sizeof(node_info_),
+    1,
+    VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+    &node_info_
+  );
+}
+
+void skinning_mesh_model::create_desc_set_layouts(device& _device)
+{
+    desc_set_layout_ = descriptor_set_layout::builder(_device)
+      .add_binding(
+        0,
+        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
+      .build();
+}
+
+void skinning_mesh_model::create_desc_sets()
+{
+  auto buffer_info = desc_buffer_->descriptor_info();
+  descriptor_writer(*desc_set_layout_, *desc_pool_)
+    .write_buffer(0, &buffer_info)
+    .build(desc_set_);
 }
 
 bool load_file(std::vector<char>& out, const std::string& filepath)
@@ -419,6 +469,12 @@ void skinning_mesh_model::load_skin(const tinygltf::Model &model)
       &buffer.data[offset_bytes],
       acc.count * sizeof(mat4)
     );
+  }
+
+  // copy to node_info
+  node_info_.joint_count = skin_info_.joints.size();
+  for (int i = 0; i < skin_info_.inv_bind_matrices.size(); i++) {
+    node_info_.joint_matrices[i] = skin_info_.inv_bind_matrices[i];
   }
 }
 

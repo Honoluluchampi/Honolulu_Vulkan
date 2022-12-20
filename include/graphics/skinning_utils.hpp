@@ -72,13 +72,6 @@ struct mesh_group
     std::vector<mesh> meshes;
 };
 
-struct skin
-{
-    std::string name;
-    std::vector<int> joints;
-    std::vector<mat4> inv_bind_matrices;
-};
-
 struct material
 {
     std::string name = "";
