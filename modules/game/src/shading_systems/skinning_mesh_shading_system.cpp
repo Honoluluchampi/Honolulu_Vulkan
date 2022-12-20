@@ -20,7 +20,7 @@ skinning_mesh_model_shading_system::skinning_mesh_model_shading_system(graphics:
 {
   pipeline_layout_ = create_pipeline_layout<skinning_mesh_push_constant>(
     static_cast<VkShaderStageFlagBits>(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT),
-    std::vector<VkDescriptorSetLayout>{ get_global_desc_set_layout() }
+    std::vector<VkDescriptorSetLayout>{ get_global_desc_set_layout(), graphics::skinning_mesh_model::get_desc_set_layout() }
   );
 
   pipeline_ = create_pipeline(

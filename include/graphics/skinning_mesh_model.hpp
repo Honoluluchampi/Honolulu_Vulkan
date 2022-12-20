@@ -2,6 +2,7 @@
 
 // hnll
 #include <graphics/skinning_utils.hpp>
+#include <graphics/descriptor_set_layout.hpp>
 
 // lib
 #include <vulkan/vulkan.h>
@@ -67,6 +68,8 @@ class skinning_mesh_model
 
     uint32_t get_skinned_vertex_count() const { return skin_info_.skin_vertex_count; }
 
+    static VkDescriptorSetLayout get_desc_set_layout() { return desc_set_layout_->get_descriptor_set_layout(); }
+    static void erase_desc_set_layout() { }
   private:
 
     void load_node(const tinygltf::Model& model);
@@ -100,8 +103,9 @@ class skinning_mesh_model
     // for node_info desc buffer
     u_ptr<descriptor_pool>       desc_pool_;
     u_ptr<buffer>                desc_buffer_;
-    u_ptr<descriptor_set_layout> desc_set_layout_;
     VkDescriptorSet              desc_set_;
+
+    static u_ptr<descriptor_set_layout> desc_set_layout_;
 };
 
 }} // hnll::graphics

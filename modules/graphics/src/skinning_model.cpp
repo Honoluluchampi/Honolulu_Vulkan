@@ -2,7 +2,6 @@
 #include <graphics/skinning_mesh_model.hpp>
 #include <graphics/device.hpp>
 #include <graphics/buffer.hpp>
-#include <graphics/descriptor_set_layout.hpp>
 
 // std
 #include <fstream>
@@ -17,6 +16,8 @@
 #include <vulkan/vulkan.h>
 
 namespace hnll::graphics {
+
+u_ptr<descriptor_set_layout> skinning_mesh_model::desc_set_layout_ = nullptr;
 
 void skinning_mesh_model::bind(VkCommandBuffer command_buffer, VkDescriptorSet global_desc_set, VkPipelineLayout pipeline_layout)
 {
@@ -50,6 +51,16 @@ void skinning_mesh_model::draw(VkCommandBuffer command_buffer)
 
 u_ptr<skinning_mesh_model> skinning_mesh_model::create_from_gltf(const std::string &filepath, hnll::graphics::device &device)
 {
+  if (desc_set_layout_ == nullptr) {
+    desc_set_layout_ = descriptor_set_layout::builder(device)
+      .add_binding(
+        0,
+        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT
+      )
+      .build();
+  }
+
   auto ret = std::make_unique<skinning_mesh_model>();
 
   ret->load_from_gltf(filepath, device);
@@ -63,7 +74,6 @@ void skinning_mesh_model::setup_descs(device &device)
 {
   create_desc_pool(device);
   create_desc_buffers(device);
-  create_desc_set_layouts(device);
   create_desc_sets();
 }
 
@@ -81,25 +91,16 @@ void skinning_mesh_model::create_desc_buffers(device& _device)
     _device,
     sizeof(node_info_),
     1,
-    VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+    VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
     &node_info_
   );
 }
 
-void skinning_mesh_model::create_desc_set_layouts(device& _device)
-{
-    desc_set_layout_ = descriptor_set_layout::builder(_device)
-      .add_binding(
-        0,
-        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
-      .build();
-}
-
 void skinning_mesh_model::create_desc_sets()
 {
   auto buffer_info = desc_buffer_->descriptor_info();
+  auto desc_set_layout =
   descriptor_writer(*desc_set_layout_, *desc_pool_)
     .write_buffer(0, &buffer_info)
     .build(desc_set_);
@@ -233,14 +234,12 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
   // create index buffer
   index_count_ = builder.index_buffer.size();
   auto size_index    = sizeof(uint32_t) * builder.index_buffer.size();
-  auto usage         = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-  auto memory_props  = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
   index_buffer_ = buffer::create_with_staging(
     device,
     size_index,
     1,
-    usage,
-    memory_props,
+    VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
     builder.index_buffer.data()
   );
 
