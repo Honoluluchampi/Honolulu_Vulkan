@@ -51,16 +51,6 @@ void skinning_mesh_model::draw(VkCommandBuffer command_buffer)
 
 u_ptr<skinning_mesh_model> skinning_mesh_model::create_from_gltf(const std::string &filepath, hnll::graphics::device &device)
 {
-  if (desc_set_layout_ == nullptr) {
-    desc_set_layout_ = descriptor_set_layout::builder(device)
-      .add_binding(
-        0,
-        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT
-      )
-      .build();
-  }
-
   auto ret = std::make_unique<skinning_mesh_model>();
 
   ret->load_from_gltf(filepath, device);
@@ -100,7 +90,7 @@ void skinning_mesh_model::create_desc_buffers(device& _device)
 void skinning_mesh_model::create_desc_sets()
 {
   auto buffer_info = desc_buffer_->descriptor_info();
-  auto desc_set_layout =
+  auto desc_set_layout = get_desc_set_layout();
   descriptor_writer(*desc_set_layout_, *desc_pool_)
     .write_buffer(0, &buffer_info)
     .build(desc_set_);

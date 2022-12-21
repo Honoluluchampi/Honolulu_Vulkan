@@ -119,6 +119,8 @@ class engine {
 #endif
 
     // init
+    virtual void setup_shading_systems();
+
     void init_actors();
 
     void load_data();

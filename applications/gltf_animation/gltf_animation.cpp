@@ -25,14 +25,9 @@ class gltf_animation : public game::engine
     }
 
   private:
-    void setup_shading_systems()
+    void setup_shading_systems() override
     {
-      auto mesh_model_shader = game::mesh_model_shading_system::create(get_graphics_device());
-      add_shading_system(std::move(mesh_model_shader));
-      auto grid_shader = game::grid_shading_system::create(get_graphics_device());
-      add_shading_system(std::move(grid_shader));
-      auto skinning_shader = game::skinning_mesh_model_shading_system::create(get_graphics_device());
-      add_shading_system(std::move(skinning_shader));
+
     }
 
     void setup_lights()

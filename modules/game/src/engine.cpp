@@ -5,6 +5,9 @@
 #include <game/actors/point_light_manager.hpp>
 #include <game/actors/default_camera.hpp>
 #include <game/components/mesh_component.hpp>
+#include <game/shading_systems/mesh_model_shading_system.hpp>
+#include <game/shading_systems/grid_shading_system.hpp>
+#include <game/shading_systems/skinning_mesh_model_shading_system.hpp>
 #include <physics/collision_info.hpp>
 #include <physics/collision_detector.hpp>
 #include <physics/engine.hpp>
@@ -48,6 +51,7 @@ engine::engine(const char* window_name)
   graphics_engine_->get_renderer_r().set_next_renderer(gui_engine_->renderer_p());
 #endif
 
+  setup_shading_systems();
   init_actors();
   load_data();
 
@@ -164,6 +168,16 @@ void engine::update_gui()
 }
 #endif
 
+void engine::setup_shading_systems()
+{
+  auto mesh_model_shader = game::mesh_model_shading_system::create(get_graphics_device());
+  add_shading_system(std::move(mesh_model_shader));
+  auto grid_shader = game::grid_shading_system::create(get_graphics_device());
+  add_shading_system(std::move(grid_shader));
+  auto skinning_shader = game::skinning_mesh_model_shading_system::create(get_graphics_device());
+  add_shading_system(std::move(skinning_shader));
+}
+
 void engine::init_actors()
 {
   // hge actors
@@ -171,7 +185,6 @@ void engine::init_actors()
   
   // TODO : configure priorities of actors, then update light manager after all light comp
   light_manager_up_ = std::make_shared<point_light_manager>(graphics_engine_->get_global_ubo_r());
-
 }
 
 void engine::load_data()

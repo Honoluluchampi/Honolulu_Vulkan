@@ -2,7 +2,22 @@
 #include <game/shading_systems/skinning_mesh_model_shading_system.hpp>
 #include <game/components/skinning_mesh_component.hpp>
 
-namespace hnll::game {
+namespace hnll {
+namespace graphics {
+
+void graphics::skinning_mesh_model::setup_desc_set_layout(device& device)
+{
+  desc_set_layout_ = descriptor_set_layout::builder(device)
+    .add_binding(
+      0,
+      VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+      VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT
+    )
+    .build();
+}
+} // namespace graphics
+
+namespace game {
 
 using mat4 = Eigen::Matrix4f;
 
@@ -18,6 +33,8 @@ u_ptr<skinning_mesh_model_shading_system> skinning_mesh_model_shading_system::cr
 skinning_mesh_model_shading_system::skinning_mesh_model_shading_system(graphics::device &device)
  : shading_system(device, utils::shading_type::SKINNING_MESH)
 {
+  graphics::skinning_mesh_model::setup_desc_set_layout(device_);
+
   pipeline_layout_ = create_pipeline_layout<skinning_mesh_push_constant>(
     static_cast<VkShaderStageFlagBits>(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT),
     std::vector<VkDescriptorSetLayout>{ get_global_desc_set_layout(), graphics::skinning_mesh_model::get_desc_set_layout() }
@@ -31,6 +48,11 @@ skinning_mesh_model_shading_system::skinning_mesh_model_shading_system(graphics:
     { VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT },
     graphics::pipeline::default_pipeline_config_info()
   );
+}
+
+skinning_mesh_model_shading_system::~skinning_mesh_model_shading_system()
+{
+  graphics::skinning_mesh_model::erase_desc_set_layout();
 }
 
 void skinning_mesh_model_shading_system::render(const utils::frame_info& frame_info)
@@ -58,4 +80,4 @@ void skinning_mesh_model_shading_system::render(const utils::frame_info& frame_i
   }
 }
 
-} // namespace hnll::game
+}} // namespace hnll::game

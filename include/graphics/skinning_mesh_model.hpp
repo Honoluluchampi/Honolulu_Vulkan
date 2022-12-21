@@ -68,8 +68,11 @@ class skinning_mesh_model
 
     uint32_t get_skinned_vertex_count() const { return skin_info_.skin_vertex_count; }
 
+    // for shading system
+    static void setup_desc_set_layout(device& device);
     static VkDescriptorSetLayout get_desc_set_layout() { return desc_set_layout_->get_descriptor_set_layout(); }
-    static void erase_desc_set_layout() { }
+    static void erase_desc_set_layout()                { desc_set_layout_.reset(); }
+
   private:
 
     void load_node(const tinygltf::Model& model);

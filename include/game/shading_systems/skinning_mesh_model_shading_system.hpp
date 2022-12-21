@@ -14,7 +14,7 @@ class skinning_mesh_model_shading_system : public shading_system
     static u_ptr<skinning_mesh_model_shading_system> create(graphics::device& device);
 
     explicit skinning_mesh_model_shading_system(graphics::device& device);
-    skinning_mesh_model_shading_system& operator=(const skinning_mesh_model_shading_system&) = default;
+    ~skinning_mesh_model_shading_system();
 
     void render(const utils::frame_info& frame_info) override;
 };
