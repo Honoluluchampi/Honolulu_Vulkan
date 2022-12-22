@@ -205,11 +205,11 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
   auto vertex_count = builder.position_buffer.size();
   std::vector<skinning_utils::vertex> vertices(vertex_count);
   for (int i = 0; i < vertex_count; i++) {
-    vertices[i].position      = std::move(builder.position_buffer[0]);
-    vertices[i].normal        = std::move(builder.normal_buffer[0]);
-    vertices[i].tex_coord     = std::move(builder.tex_coord_buffer[0]);
-    vertices[i].joint_indices = std::move(builder.joint_buffer[0]);
-    vertices[i].joint_weights = std::move(builder.weight_buffer[0]);
+    vertices[i].position      = builder.position_buffer[i];
+    vertices[i].normal        = builder.normal_buffer[i];
+    vertices[i].tex_coord     = builder.tex_coord_buffer[i];
+    vertices[i].joint_indices = builder.joint_buffer[i];
+    vertices[i].joint_weights = builder.weight_buffer[i];
   }
 
   vertex_buffer_ = buffer::create_with_staging(
