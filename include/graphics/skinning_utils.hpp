@@ -5,6 +5,7 @@
 
 // lib
 #include <eigen3/Eigen/Dense>
+#include <vulkan/vulkan.h>
 
 // forward declaration
 namespace tinygltf {
@@ -36,6 +37,8 @@ struct vertex
   vec2  tex_coord;
   uvec4 joint_indices;
   vec4  joint_weights;
+  static std::vector<VkVertexInputBindingDescription>   get_binding_descriptions();
+  static std::vector<VkVertexInputAttributeDescription> get_attribute_descriptions();
 };
 
 struct node

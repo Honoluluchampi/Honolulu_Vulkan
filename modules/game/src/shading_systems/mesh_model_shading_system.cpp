@@ -31,13 +31,17 @@ mesh_model_shading_system::mesh_model_shading_system(graphics::device &device)
     std::vector<VkDescriptorSetLayout>{ get_global_desc_set_layout() }
   );
 
+  auto pipeline_config_info = graphics::pipeline::default_pipeline_config_info();
+  pipeline_config_info.binding_descriptions   = graphics::vertex::get_binding_descriptions();
+  pipeline_config_info.attribute_descriptions = graphics::vertex::get_attribute_descriptions();
+
   pipeline_ = create_pipeline(
     pipeline_layout_,
     shading_system::get_default_render_pass(),
     "/modules/graphics/shader/spv/",
     { "simple_shader.vert.spv", "simple_shader.frag.spv" },
     { VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT },
-    graphics::pipeline::default_pipeline_config_info()
+    pipeline_config_info
   );
 }
 
