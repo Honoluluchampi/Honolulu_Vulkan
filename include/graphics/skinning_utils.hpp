@@ -109,5 +109,29 @@ struct skin_info
   uint32_t skin_vertex_count;
 };
 
+struct animation_sampler
+{
+  std::string        interpolation_type; // LINEAR, STEP, or CUBICSPLINE
+  std::vector<float> inputs;
+  std::vector<vec4>  outputs;
+};
+
+struct animation_channel
+{
+  std::string path; // translation, rotation, scale, or weights
+  s_ptr<node> node;
+  uint32_t    sampler_index;
+};
+
+struct animation
+{
+  std::string name;
+  std::vector<animation_sampler> samplers;
+  std::vector<animation_channel> channels;
+  float start = std::numeric_limits<float>::max();
+  float end   = std::numeric_limits<float>::min();
+  float current_time = 0.0f;
+};
+
 }  // namespace skinning_utils
 }} // namespace hnll::graphics
