@@ -46,6 +46,9 @@ void skinning_mesh_model::bind(VkCommandBuffer command_buffer, VkDescriptorSet g
 
 void skinning_mesh_model::draw(VkCommandBuffer command_buffer)
 {
+  for (auto& node : root_nodes_) {
+    draw_node(*node, command_buffer);
+  }
   vkCmdDrawIndexed(command_buffer, index_count_, 1, 0, 0, 0);
 }
 
@@ -233,7 +236,7 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
     builder.index_buffer.data()
   );
 
-  skin_info_.skin_vertex_count = static_cast<uint32_t>(vertex_count);
+  skin_.skin_vertex_count = static_cast<uint32_t>(vertex_count);
 
   for (auto& image : gltf_model.images) {
     auto view = gltf_model.bufferViews[image.bufferView];
@@ -259,14 +262,14 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
 std::vector<std::string> skinning_mesh_model::get_joint_node_names() const
 {
   std::vector<std::string> ret;
-  for (auto node_index : skin_info_.joints) {
+  for (auto node_index : skin_.joints) {
     ret.emplace_back(nodes_[node_index]->name);
   }
   return ret;
 }
 
 std::vector<mat4> skinning_mesh_model::get_inv_bind_matrices() const
-{ return skin_info_.inv_bind_matrices; }
+{ return skin_.inv_bind_matrices; }
 
 vec3 vec3_convert_from_gltf(const double* input)
 {
@@ -458,27 +461,27 @@ void skinning_mesh_model::load_skin(const tinygltf::Model &model)
   // only process first skin data
   const auto& in_skin = model.skins[0];
 
-  skin_info_.name = in_skin.name;
-  skin_info_.joints.assign(in_skin.joints.begin(), in_skin.joints.end());
+  skin_.name = in_skin.name;
+  skin_.joints.assign(in_skin.joints.begin(), in_skin.joints.end());
 
   if (in_skin.inverseBindMatrices > -1) {
     const auto& acc = model.accessors[in_skin.inverseBindMatrices];
     const auto& view = model.bufferViews[acc.bufferView];
     const auto& buffer = model.buffers[view.buffer];
-    skin_info_.inv_bind_matrices.resize(acc.count);
+    skin_.inv_bind_matrices.resize(acc.count);
 
     auto offset_bytes = acc.byteOffset + view.byteOffset;
     memcpy(
-      skin_info_.inv_bind_matrices.data(),
+      skin_.inv_bind_matrices.data(),
       &buffer.data[offset_bytes],
       acc.count * sizeof(mat4)
     );
   }
 
   // copy to node_info
-  node_info_.joint_count = skin_info_.joints.size();
-  for (int i = 0; i < skin_info_.inv_bind_matrices.size(); i++) {
-    node_info_.joint_matrices[i] = skin_info_.inv_bind_matrices[i];
+  node_info_.joint_count = skin_.joints.size();
+  for (int i = 0; i < skin_.inv_bind_matrices.size(); i++) {
+    node_info_.joint_matrices[i] = skin_.inv_bind_matrices[i];
   }
 }
 
@@ -611,7 +614,7 @@ void skinning_mesh_model::load_animation(const tinygltf::Model &model)
         continue;
       }
       channel.sampler_index = i_channel.sampler;
-      channel.node = node_from;
+      channel.node = get_node(i_channel.target_node);
       if (!channel.node) {
         continue;
       }
@@ -621,6 +624,29 @@ void skinning_mesh_model::load_animation(const tinygltf::Model &model)
 
     animations_.push_back(animation);
   } // animation loop
+}
+
+s_ptr<skinning_utils::node>& skinning_mesh_model::get_node(uint32_t index)
+{
+  s_ptr<skinning_utils::node> node_found = nullptr;
+  for (auto& node : nodes_) {
+    node_found = find_node(node, index);
+    if (node_found) break;
+  }
+  return node_found;
+}
+
+s_ptr<skinning_utils::node>& skinning_mesh_model::find_node(s_ptr<skinning_utils::node>& parent, uint32_t index)
+{
+  s_ptr<skinning_utils::node> node_found = nullptr;
+  if (parent->index == index) {
+    return parent;
+  }
+  for (auto& child : parent->children) {
+    node_found = find_node(child, index);
+    if (node_found) break;
+    return node_found;
+  }
 }
 
 std::vector<VkVertexInputBindingDescription>   skinning_utils::vertex::get_binding_descriptions()

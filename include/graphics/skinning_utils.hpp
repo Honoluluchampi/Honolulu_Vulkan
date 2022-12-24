@@ -30,6 +30,10 @@ namespace graphics {
 namespace skinning_utils
 {
 
+#define MAX_JOINTS_NUM 128u
+
+struct node;
+
 struct vertex
 {
   alignas(16) vec3 position;
@@ -39,25 +43,6 @@ struct vertex
   vec4  joint_weights;
   static std::vector<VkVertexInputBindingDescription>   get_binding_descriptions();
   static std::vector<VkVertexInputAttributeDescription> get_attribute_descriptions();
-};
-
-struct node
-{
-    node()  = default;
-    ~node() = default;
-
-    std::string name = "";
-
-    vec3 translation = { 0.f, 0.f, 0.f };
-    quat rotation    = { 1.f, 0.f, 0.f, 0.f };
-    vec3 scale       = { 1.f, 1.f, 1.f };
-    mat4 local_mat   = Eigen::Matrix4f::Identity();
-    mat4 world_mat   = Eigen::Matrix4f::Identity();
-
-    std::vector<int> children;
-    s_ptr<node>      parent = nullptr;
-
-    int mesh_index = -1;
 };
 
 struct mesh
@@ -73,6 +58,52 @@ struct mesh_group
 {
     int node_index;
     std::vector<mesh> meshes;
+    // TODO : add desc buffer
+    struct uniform_block
+    {
+      mat4 matrix;
+      mat4 joint_matrices[MAX_JOINTS_NUM]{};
+      float joint_count = 0;
+    } block;
+};
+
+struct skin
+{
+  std::string name;
+  s_ptr<node> root_node = nullptr;
+  std::vector<s_ptr<node>>  joints;
+  std::vector<mat4>         inv_bind_matrices;
+  uint32_t skin_vertex_count;
+};
+
+struct node
+{
+  node()  = default;
+  ~node() = default;
+
+  std::string name = "";
+
+  vec3 translation = { 0.f, 0.f, 0.f };
+  quat rotation    = { 1.f, 0.f, 0.f, 0.f };
+  vec3 scale       = { 1.f, 1.f, 1.f };
+  mat4 local_mat   = Eigen::Matrix4f::Identity();
+  mat4 world_mat   = Eigen::Matrix4f::Identity();
+
+  std::vector<s_ptr<node>> children;
+  s_ptr<node>      parent = nullptr;
+
+  uint32_t index;
+
+  int mesh_index = -1;
+
+  mat4 matrix;
+  mesh_group mesh;
+  skin       skin;
+  int32_t skin_index = -1;
+
+  mat4 local_matrix();
+  mat4 get_matrix();
+  void update();
 };
 
 struct material
@@ -99,14 +130,6 @@ struct skinning_model_builder
 
   std::vector<uvec4> joint_buffer;
   std::vector<vec4>  weight_buffer;
-};
-
-struct skin_info
-{
-  std::string name;
-  std::vector<int> joints;
-  std::vector<mat4> inv_bind_matrices;
-  uint32_t skin_vertex_count;
 };
 
 enum class interpolation_type

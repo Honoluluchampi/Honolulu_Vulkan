@@ -27,7 +27,7 @@ struct node_info {
 class skinning_mesh_model
 {
   public:
-    skinning_mesh_model()  = default;
+    explicit skinning_mesh_model(device& device) : device_(device) {}
     ~skinning_mesh_model() = default;
 
     void bind(VkCommandBuffer command_buffer, VkDescriptorSet global_desc_set, VkPipelineLayout pipeline_layout);
@@ -50,7 +50,6 @@ class skinning_mesh_model
     // node
     uint32_t         get_node_count() const { return static_cast<uint32_t>(nodes_.size()); }
     std::vector<int> get_root_nodes() const { return root_nodes_; }
-    s_ptr<skinning_utils::node> get_node(int index) const { return nodes_[index]; }
 
     // material
     std::vector<skinning_utils::material> get_materials() const { return materials_; }
@@ -66,14 +65,14 @@ class skinning_mesh_model
 
     std::vector<mat4> get_inv_bind_matrices() const;
 
-    uint32_t get_skinned_vertex_count() const { return skin_info_.skin_vertex_count; }
-
     // for shading system
     static void setup_desc_set_layout(device& device);
     static VkDescriptorSetLayout get_desc_set_layout() { return desc_set_layout_->get_descriptor_set_layout(); }
     static void erase_desc_set_layout()                { desc_set_layout_.reset(); }
 
   private:
+
+    void draw_node(skinning_utils::node& node, VkCommandBuffer command_buffer);
 
     void load_node(const tinygltf::Model& model);
     void load_mesh(const tinygltf::Model& model, skinning_utils::skinning_model_builder& visitor);
@@ -88,7 +87,9 @@ class skinning_mesh_model
     void create_desc_sets();
 
     s_ptr<skinning_utils::node>& get_node(uint32_t index);
+    s_ptr<skinning_utils::node>& find_node(s_ptr<skinning_utils::node>& parent, uint32_t index);
 
+    device& device_;
     // buffer
     u_ptr<buffer> vertex_buffer_;
     u_ptr<buffer> index_buffer_;
@@ -97,16 +98,18 @@ class skinning_mesh_model
     std::vector<skinning_utils::mesh_group>  mesh_groups_;
     std::vector<skinning_utils::material>    materials_;
     std::vector<s_ptr<skinning_utils::node>> nodes_;
+    // std::vector<s_ptr<skinning_utils::node>> linear_nodes_;
     std::vector<int> root_nodes_;
 
+    std::vector<s_ptr<skinning_utils::skin>> skins_;
+    std::vector<skinning_utils::animation>   animations_;
+
     bool has_skin_ = false;
-    skinning_utils::skin_info skin_info_;
     node_info node_info_;
 
     std::vector<skinning_utils::image_info>   images_;
     std::vector<skinning_utils::texture_info> textures_;
 
-    std::vector<skinning_utils::animation> animations_;
 
     // for node_info desc buffer
     u_ptr<descriptor_pool>       desc_pool_;
