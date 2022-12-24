@@ -512,7 +512,115 @@ void skinning_mesh_model::load_material(const tinygltf::Model &model)
 
 void skinning_mesh_model::load_animation(const tinygltf::Model &model)
 {
+  for (auto& i_animation : model.animations) {
+    skinning_utils::animation animation;
+    animation.name = i_animation.name;
+    if (i_animation.name.empty()) {
+      animation.name = std::to_string(animations_.size());
+    }
 
+    // samplers
+    for (auto& i_sampler : i_animation.samplers) {
+      skinning_utils::animation_sampler sampler{};
+
+      if (i_sampler.interpolation == "LINEAR") {
+        sampler.interpolation = skinning_utils::interpolation_type::LINEAR;
+      }
+      if (i_sampler.interpolation == "STEP") {
+        sampler.interpolation = skinning_utils::interpolation_type::STEP;
+      }
+      if (i_sampler.interpolation == "CUBICSPLINE") {
+        sampler.interpolation = skinning_utils::interpolation_type::CUBICSPLINE;
+      }
+
+      // time values
+      {
+        const auto& accessor    = model.accessors[i_sampler.input];
+        const auto& buffer_view = model.bufferViews[accessor.bufferView];
+        const auto& buffer      = model.buffers[buffer_view.buffer];
+
+        assert(accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT);
+
+        const void*  data_ptr = &buffer.data[accessor.byteOffset + buffer_view.byteOffset];
+        const float* buf = static_cast<const float*>(data_ptr);
+
+        for (size_t index = 0; index < accessor.count; index++) {
+          sampler.inputs.push_back(buf[index]);
+        }
+
+        for (auto input : sampler.inputs) {
+          if (input < animation.start) {
+            animation.start = input;
+          }
+          if (input > animation.end) {
+            animation.end = input;
+          }
+        }
+      }
+
+      // translation, rotation, scale
+      {
+        const auto& accessor    = model.accessors[i_sampler.output];
+        const auto& buffer_view = model.bufferViews[accessor.bufferView];
+        const auto& buffer      = model.buffers[buffer_view.buffer];
+
+        assert(accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT);
+
+        const void* data_ptr = &buffer.data[accessor.byteOffset + buffer_view.byteOffset];
+
+        switch (accessor.type) {
+          case TINYGLTF_TYPE_VEC3 : {
+            const vec3* buf = static_cast<const vec3*>(data_ptr);
+            for (size_t index = 0; index < accessor.count; index++) {
+              auto& v = buf[index];
+              sampler.outputs.push_back({v.x(), v.y(), v.z(), 0.0f});
+            }
+            break;
+          }
+          case TINYGLTF_TYPE_VEC4 : {
+            const vec4* buf = static_cast<const vec4*>(data_ptr);
+            for (size_t index = 0; index < accessor.count; index++) {
+              sampler.outputs.push_back(buf[index]);
+            }
+            break;
+          }
+          default : {
+            std::cout << "unknown type" << std::endl;
+            break;
+          }
+        }
+      }
+      animation.samplers.push_back(sampler);
+    } // i_sampler loop
+
+    // channel
+    for (auto& i_channel : i_animation.channels) {
+      skinning_utils::animation_channel channel{};
+
+      if (i_channel.target_path == "translation") {
+        channel.path = skinning_utils::animation_channel::path_type::TRANSLATION;
+      }
+      if (i_channel.target_path == "rotation") {
+        channel.path = skinning_utils::animation_channel::path_type::ROTATION;
+      }
+      if (i_channel.target_path == "scale") {
+        channel.path = skinning_utils::animation_channel::path_type::SCALE;
+      }
+      if (i_channel.target_path == "weights") {
+        std::cout << "weights are not supported yet." << std::endl;
+        continue;
+      }
+      channel.sampler_index = i_channel.sampler;
+      channel.node = node_from;
+      if (!channel.node) {
+        continue;
+      }
+
+      animation.channels.push_back(channel);
+    }
+
+    animations_.push_back(animation);
+  } // animation loop
 }
 
 std::vector<VkVertexInputBindingDescription>   skinning_utils::vertex::get_binding_descriptions()

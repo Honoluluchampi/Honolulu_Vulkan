@@ -109,16 +109,30 @@ struct skin_info
   uint32_t skin_vertex_count;
 };
 
+enum class interpolation_type
+{
+  LINEAR,
+  STEP,
+  CUBICSPLINE
+};
+
 struct animation_sampler
 {
-  std::string        interpolation_type; // LINEAR, STEP, or CUBICSPLINE
+  interpolation_type interpolation;
   std::vector<float> inputs;
   std::vector<vec4>  outputs;
 };
 
 struct animation_channel
 {
-  std::string path; // translation, rotation, scale, or weights
+  enum class path_type
+  {
+    TRANSLATION,
+    ROTATION,
+    SCALE
+  };
+
+  path_type   path; // translation, rotation, scale, or weights
   s_ptr<node> node;
   uint32_t    sampler_index;
 };

@@ -87,6 +87,8 @@ class skinning_mesh_model
     void create_desc_set_layouts(device& _device);
     void create_desc_sets();
 
+    s_ptr<skinning_utils::node>& get_node(uint32_t index);
+
     // buffer
     u_ptr<buffer> vertex_buffer_;
     u_ptr<buffer> index_buffer_;
