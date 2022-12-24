@@ -79,6 +79,7 @@ class skinning_mesh_model
     void load_mesh(const tinygltf::Model& model, skinning_utils::skinning_model_builder& visitor);
     void load_skin(const tinygltf::Model& model);
     void load_material(const tinygltf::Model& model);
+    void load_animation(const tinygltf::Model& model);
 
     void setup_descs(device& device);
     void create_desc_pool(device& _device);
@@ -102,6 +103,8 @@ class skinning_mesh_model
 
     std::vector<skinning_utils::image_info>   images_;
     std::vector<skinning_utils::texture_info> textures_;
+
+    std::vector<skinning_utils::animation> animations_;
 
     // for node_info desc buffer
     u_ptr<descriptor_pool>       desc_pool_;

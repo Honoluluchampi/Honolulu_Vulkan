@@ -510,6 +510,11 @@ void skinning_mesh_model::load_material(const tinygltf::Model &model)
   }
 }
 
+void skinning_mesh_model::load_animation(const tinygltf::Model &model)
+{
+
+}
+
 std::vector<VkVertexInputBindingDescription>   skinning_utils::vertex::get_binding_descriptions()
 {
   std::vector<VkVertexInputBindingDescription> binding_descriptions(1);
