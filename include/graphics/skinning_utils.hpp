@@ -27,6 +27,11 @@ template<class T> using s_ptr = std::shared_ptr<T>;
 
 namespace graphics {
 
+class device;
+class buffer;
+class descriptor_set_layout;
+class descriptor_pool;
+
 namespace skinning_utils
 {
 
@@ -56,6 +61,10 @@ struct mesh
 
 struct mesh_group
 {
+  public:
+    mesh_group(device& device);
+    void build_desc();
+
     int node_index;
     std::vector<mesh> meshes;
     // TODO : add desc buffer
@@ -65,6 +74,12 @@ struct mesh_group
       mat4 joint_matrices[MAX_JOINTS_NUM]{};
       float joint_count = 0;
     } block;
+
+  private:
+    device&                      device_;
+    u_ptr<buffer>                desc_buffer_;
+    u_ptr<descriptor_set_layout> desc_layout_;
+    VkDescriptorSet              desc_set_;
 };
 
 struct skin
@@ -130,6 +145,14 @@ struct skinning_model_builder
 
   std::vector<uvec4> joint_buffer;
   std::vector<vec4>  weight_buffer;
+};
+
+struct loader
+{
+  std::vector<uint32_t>               index_buffer;
+  std::vector<skinning_utils::vertex> vertex_buffer;
+  size_t index_pos  = 0;
+  size_t vertex_pos = 0;
 };
 
 enum class interpolation_type
