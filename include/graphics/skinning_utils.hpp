@@ -64,6 +64,7 @@ struct mesh_group
   public:
     mesh_group(device& device);
     void build_desc();
+    void update_desc_buffer();
 
     int node_index;
     std::vector<mesh> meshes;
@@ -112,11 +113,11 @@ struct node
   int mesh_index = -1;
 
   mat4 matrix;
-  mesh_group mesh;
-  skin       skin;
+  s_ptr<mesh_group> mesh_group = nullptr;
+  s_ptr<skin>       skin = nullptr;
   int32_t skin_index = -1;
 
-  mat4 local_matrix();
+  mat4 get_local_matrix();
   mat4 get_matrix();
   void update();
 };

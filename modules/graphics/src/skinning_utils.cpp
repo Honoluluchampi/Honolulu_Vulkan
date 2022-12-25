@@ -20,6 +20,52 @@ void skinning_utils::mesh_group::build_desc()
   );
 }
 
+void skinning_utils::mesh_group::update_desc_buffer()
+{
+  desc_buffer_->write_to_buffer(&block);
+}
+
+mat4 skinning_utils::node::get_local_matrix()
+{
+  return (Eigen::Translation3f(translation) * Eigen::Scaling(scale) * rotation).matrix();
+}
+
+mat4 skinning_utils::node::get_matrix()
+{
+  auto mat = get_local_matrix();
+  auto par = parent;
+  while (par) {
+    mat = par->get_local_matrix() * mat;
+    par = par->parent;
+  }
+  return mat;
+}
+
+void skinning_utils::node::update()
+{
+  if (mesh_group) {
+    auto mat = get_matrix();
+    if (skin) {
+      mesh_group->block.matrix = mat;
+      // update joint matrices
+      auto inv_mat = mat.inverse();
+      size_t num_joints = std::min(static_cast<uint32_t>(skin->joints.size()), MAX_JOINTS_NUM);
+      for (size_t i = 0; i < num_joints; i++) {
+        auto& joint_node = skin->joints[i];
+        mat4  joint_mat  = joint_node->get_matrix() * skin->inv_bind_matrices[i];
+        joint_mat = inv_mat * joint_mat;
+        mesh_group->block.joint_matrices[i] = joint_mat;
+      }
+      mesh_group->block.joint_count = static_cast<float>(num_joints);
+    }
+  }
+  mesh_group->update_desc_buffer();
+
+  for (auto& child : children) {
+    child->update();
+  }
+}
+
 std::vector<VkVertexInputBindingDescription>   skinning_utils::vertex::get_binding_descriptions()
 {
   std::vector<VkVertexInputBindingDescription> binding_descriptions(1);
