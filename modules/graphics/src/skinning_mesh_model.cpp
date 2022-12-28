@@ -218,16 +218,17 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
   );
 }
 
-vec3 vec3_convert_from_gltf(const double* input)
+template<int element_count, typename Input = float, typename Output = float>
+Eigen::Matrix<Output, element_count, 1> vec_convert_from_raw(const Input* input)
 {
-  return vec3 {
-    static_cast<float>(input[0]),
-    static_cast<float>(input[1]),
-    static_cast<float>(input[2])
+  Eigen::Matrix<Output, element_count, 1> ret;
+  for (int i = 0; i < element_count; i++) {
+    ret[i] = static_cast<Output>(input[i]);
   };
+  return ret;
 }
 
-quat quat_convert_from_gltf(const double* input)
+quat quat_convert_from_raw(const double* input)
 {
   return quat {
     static_cast<float>(input[0]),
@@ -235,6 +236,28 @@ quat quat_convert_from_gltf(const double* input)
     static_cast<float>(input[2]),
     static_cast<float>(input[3])
   };
+}
+
+mat4 mat4_convert_from_raw(const double* input)
+{
+  mat4 ret;
+  ret << static_cast<float>(input[0]),
+         static_cast<float>(input[1]),
+         static_cast<float>(input[2]),
+         static_cast<float>(input[3]),
+         static_cast<float>(input[4]),
+         static_cast<float>(input[5]),
+         static_cast<float>(input[6]),
+         static_cast<float>(input[7]),
+         static_cast<float>(input[8]),
+         static_cast<float>(input[9]),
+         static_cast<float>(input[10]),
+         static_cast<float>(input[11]),
+         static_cast<float>(input[12]),
+         static_cast<float>(input[13]),
+         static_cast<float>(input[14]),
+         static_cast<float>(input[15]);
+  return ret;
 }
 
 void skinning_mesh_model::load_node(
@@ -245,7 +268,198 @@ void skinning_mesh_model::load_node(
   skinning_utils::builder&           builder
 )
 {
+  auto new_node = std::make_shared<skinning_utils::node>();
+  new_node->index      = node_index;
+  new_node->parent     = parent;
+  new_node->name       = node.name;
+  new_node->skin_index = node.skin;
+  new_node->matrix     = mat4::Identity();
 
+  // transform
+  if (node.translation.size() == 3) {
+    new_node->translation = vec_convert_from_raw<3, double>(node.translation.data());
+  }
+  if (node.rotation.size() == 4) {
+    new_node->rotation = quat_convert_from_raw(node.rotation.data());
+  }
+  if (node.scale.size() == 3) {
+    new_node->scale = vec_convert_from_raw<3, double>(node.scale.data());
+  }
+  if (node.matrix.size() == 16) {
+    new_node->matrix = mat4_convert_from_raw(node.matrix.data());
+  }
+
+  // load children
+  if (node.children.size() > 0) {
+    for (size_t i = 0; i < node.children.size(); i++) {
+      load_node(new_node, model.nodes[node.children[i]], node.children[i], model, builder);
+    }
+  }
+
+  // mesh
+  if (node.mesh > -1) {
+    const tinygltf::Mesh& mesh = model.meshes[node.mesh];
+    auto new_mesh = std::make_shared<skinning_utils::mesh_group>(device_);
+    for (size_t j = 0; j < mesh.primitives.size(); j++) {
+      const tinygltf::Primitive& primitive = mesh.primitives[j];
+      uint32_t vertex_start = static_cast<uint32_t>(builder.vertex_pos);
+      uint32_t index_start  = static_cast<uint32_t>(builder.index_pos);
+      uint32_t vertex_count = 0;
+      uint32_t index_count  = 0;
+      bool has_skin = false;
+      bool has_indices = primitive.indices > -1;
+      // vertices
+      {
+        const float* buffer_pos = nullptr;
+        const float* buffer_normals = nullptr;
+        const float* buffer_tex_coord_set_0 = nullptr;
+        const float* buffer_tex_coord_set_1 = nullptr;
+        const float* buffer_color_set_0 = nullptr;
+        const void*  buffer_joints = nullptr;
+        const float* buffer_weights = nullptr;
+
+        int pos_byte_stride;
+        int norm_byte_stride;
+        int uv0_byte_stride;
+        int uv1_byte_stride;
+        int color_0_byte_stride;
+        int joint_byte_stride;
+        int weight_byte_stride;
+        int joint_component_type;
+
+        assert(primitive.attributes.find("POSITION") != primitive.attributes.end());
+
+        const auto& pos_acc  = model.accessors[primitive.attributes.find("POSITION")->second];
+        const auto& pos_view = model.bufferViews[pos_acc.bufferView];
+        buffer_pos = reinterpret_cast<const float*>(&model.buffers[pos_view.buffer].data[pos_acc.byteOffset + pos_view.byteOffset]);
+        vertex_count = static_cast<uint32_t>(pos_acc.count);
+        pos_byte_stride = pos_acc.ByteStride(pos_view) ? (pos_acc.ByteStride(pos_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC3);
+
+        if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) {
+          const auto& norm_acc  = model.accessors[primitive.attributes.find("NORMAL")->second];
+          const auto& norm_view = model.bufferViews[norm_acc.bufferView];
+          buffer_normals = reinterpret_cast<const float*>(&model.buffers[norm_view.buffer].data[norm_acc.byteOffset + norm_view.byteOffset]);
+          norm_byte_stride = norm_acc.ByteStride(norm_view) ? (norm_acc.ByteStride(norm_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC3);
+        }
+        if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) {
+          const auto& uv0_acc  = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
+          const auto& uv0_view = model.bufferViews[uv0_acc.bufferView];
+          buffer_tex_coord_set_0 = reinterpret_cast<const float*>(&model.buffers[uv0_view.buffer].data[uv0_acc.byteOffset + uv0_view.byteOffset]);
+          uv0_byte_stride = uv0_acc.ByteStride(uv0_view) ? (uv0_acc.ByteStride(uv0_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC2);
+        }
+        if (primitive.attributes.find("TEXCOORD_1") != primitive.attributes.end()) {
+          const auto& uv1_acc  = model.accessors[primitive.attributes.find("TEXCOORD_1")->second];
+          const auto& uv1_view = model.bufferViews[uv1_acc.bufferView];
+          buffer_tex_coord_set_1 = reinterpret_cast<const float*>(&model.buffers[uv1_view.buffer].data[uv1_acc.byteOffset + uv1_view.byteOffset]);
+          uv1_byte_stride = uv1_acc.ByteStride(uv1_view) ? (uv1_acc.ByteStride(uv1_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC2);
+        }
+        if (primitive.attributes.find("COLOR_0") != primitive.attributes.end()) {
+          const auto& col_acc  = model.accessors[primitive.attributes.find("COLOR_0")->second];
+          const auto& col_view = model.bufferViews[col_acc.bufferView];
+          buffer_color_set_0 = reinterpret_cast<const float*>(&model.buffers[col_view.buffer].data[col_acc.byteOffset + col_view.byteOffset]);
+          color_0_byte_stride = col_acc.ByteStride(col_view) ? (col_acc.ByteStride(col_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC3);
+        }
+        // skinning
+        if (primitive.attributes.find("JOINTS_0") != primitive.attributes.end()) {
+          const auto& joint_acc  = model.accessors[primitive.attributes.find("JOINTS_0")->second];
+          const auto& joint_view = model.bufferViews[joint_acc.bufferView];
+          buffer_joints = reinterpret_cast<const float*>(&model.buffers[joint_view.buffer].data[joint_acc.byteOffset + joint_view.byteOffset]);
+          joint_byte_stride = joint_acc.ByteStride(joint_view) ? (joint_acc.ByteStride(joint_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC3);
+        }
+        if (primitive.attributes.find("WEIGHTS_0") != primitive.attributes.end()) {
+          const auto& weight_acc  = model.accessors[primitive.attributes.find("WEIGHTS_0")->second];
+          const auto& weight_view = model.bufferViews[weight_acc.bufferView];
+          buffer_weights = reinterpret_cast<const float*>(&model.buffers[weight_view.buffer].data[weight_acc.byteOffset + weight_view.byteOffset]);
+          weight_byte_stride = weight_acc.ByteStride(weight_view) ? (weight_acc.ByteStride(weight_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC3);
+        }
+
+        has_skin = buffer_joints && buffer_weights;
+
+        for (size_t v = 0; v < pos_acc.count; v++) {
+          auto& vert = builder.vertex_buffer[builder.vertex_pos];
+          vert.position = vec_convert_from_raw<3>(&buffer_pos[v * pos_byte_stride]);
+          vert.normal   = vec_convert_from_raw<3>(&buffer_normals[v * norm_byte_stride]).normalized();
+          vert.tex_coord_0 = buffer_tex_coord_set_0 ? vec_convert_from_raw<2>(&buffer_tex_coord_set_0[v * uv0_byte_stride]) : vec2{ 0.f, 0.f };
+          vert.tex_coord_1 = buffer_tex_coord_set_1 ? vec_convert_from_raw<2>(&buffer_tex_coord_set_1[v * uv0_byte_stride]) : vec2{ 0.f, 0.f };
+          vert.color = buffer_color_set_0 ? vec_convert_from_raw<4>(&buffer_color_set_0[v * color_0_byte_stride]) : vec4{ 1.f, 1.f, 1.f, 1.f };
+
+          if (has_skin) {
+            switch (joint_component_type) {
+              case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT : {
+                const auto *buf = static_cast<const uint16_t*>(buffer_joints);
+                vert.joint_indices = vec_convert_from_raw<4, uint16_t, uint32_t>(&buf[v * joint_byte_stride]);
+                break;
+              }
+              case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE : {
+                const auto *buf = static_cast<const uint8_t*>(buffer_joints);
+                vert.joint_indices = vec_convert_from_raw<4, uint8_t, uint32_t>(&buf[v * joint_byte_stride]);
+                break;
+              }
+              default:
+                std::cerr << "joint component type " << joint_component_type << " not supported." << std::endl;
+                break;
+            }
+          }
+          else {
+            vert.joint_indices = uvec4{ 0.f, 0.f, 0.f, 0.f };
+          }
+          vert.joint_weights = has_skin ? vec_convert_from_raw<4>(&buffer_weights[v * weight_byte_stride]) : vec4{ 1.f, 0.f, 0.f, 0.f };
+          builder.vertex_pos++;
+        }
+      }
+
+      // indices
+      if (has_indices) {
+        const auto& acc  = model.accessors[primitive.indices > -1 ? primitive.indices : 0];
+        const auto& view = model.bufferViews[acc.bufferView];
+        const auto& buffer = model.buffers[view.buffer];
+
+        index_count = static_cast<uint32_t>(acc.count);
+        const void* data = &buffer.data[acc.byteOffset + view.byteOffset];
+
+        switch (acc.componentType) {
+          case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT : {
+            const uint32_t *buf = static_cast<const uint32_t*>(data);
+            for (size_t index = 0; index < acc.count; index++) {
+              builder.index_buffer[builder.index_pos] = buf[index] + vertex_start;
+              builder.index_pos++;
+            }
+            break;
+          }
+          case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT : {
+            const uint16_t *buf = static_cast<const uint16_t*>(data);
+            for (size_t index = 0; index < acc.count; index++) {
+              builder.index_buffer[builder.index_pos] = buf[index] + vertex_start;
+              builder.index_pos++;
+            }
+            break;
+          }
+          case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE : {
+            const uint8_t *buf = static_cast<const uint8_t*>(data);
+            for (size_t index = 0; index < acc.count; index++) {
+              builder.index_buffer[builder.index_pos] = buf[index] + vertex_start;
+              builder.index_pos++;
+            }
+            break;
+          }
+          default :
+            std::cerr << "index component type " << acc.componentType << " not supported." << std::endl;
+            return;
+        }
+      }
+      skinning_utils::mesh new_primitive;
+      new_primitive.first_index = index_start;
+      new_primitive.index_count = index_count;
+      new_primitive.vertex_count = vertex_count;
+      new_mesh->meshes.emplace_back(std::move(new_primitive));
+    }
+  }
+  if (parent) {
+    parent->children.emplace_back(std::move(new_node));
+  } else {
+    nodes_.emplace_back(std::move(new_node));
+  }
+  linear_nodes_.emplace_back(std::move(new_node));
 }
 
 void skinning_mesh_model::load_mesh(const tinygltf::Model &model, skinning_utils::skinning_model_builder &builder)

@@ -43,7 +43,9 @@ struct vertex
 {
   alignas(16) vec3 position;
   alignas(16) vec3 normal;
-  vec2  tex_coord;
+  vec2  tex_coord_0;
+  vec2  tex_coord_1;
+  vec4  color; // rgba
   uvec4 joint_indices;
   vec4  joint_weights;
   static std::vector<VkVertexInputBindingDescription>   get_binding_descriptions();
@@ -52,11 +54,11 @@ struct vertex
 
 struct mesh
 {
-  uint32_t index_start    = 0;
-  uint32_t vertex_start   = 0;
+  uint32_t first_index    = 0;
   uint32_t index_count    = 0;
   uint32_t vertex_count   = 0;
   uint32_t material_index = 0;
+  bool has_indices;
 };
 
 struct mesh_group
