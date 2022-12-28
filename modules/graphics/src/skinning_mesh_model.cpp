@@ -255,7 +255,32 @@ void skinning_mesh_model::load_mesh(const tinygltf::Model &model, skinning_utils
 
 void skinning_mesh_model::load_skins(const tinygltf::Model &model)
 {
+  for (auto& skin : model.skins) {
+    auto new_skin = std::make_shared<skinning_utils::skin>();
+    new_skin->name = skin.name;
 
+    // find root node
+    if (skin.skeleton > -1) {
+      new_skin->root_node = get_node(skin.skeleton);
+    }
+
+    // find joint nodes
+    for (auto joint_index : skin.joints) {
+      if (auto node = get_node(joint_index); node) {
+        new_skin->joints.emplace_back(std::move(node));
+      }
+    }
+
+    if (skin.inverseBindMatrices > -1) {
+      const auto& acc = model.accessors[skin.inverseBindMatrices];
+      const auto& buffer_view = model.bufferViews[acc.bufferView];
+      const auto& buffer = model.buffers[buffer_view.buffer];
+      new_skin->inv_bind_matrices.resize(acc.count);
+      memcpy(new_skin->inv_bind_matrices.data(), &buffer.data[acc.byteOffset + buffer_view.byteOffset], acc.count * sizeof(mat4));
+    }
+
+    skins_.emplace_back(std::move(new_skin));
+  }
 }
 
 void skinning_mesh_model::load_material(const tinygltf::Model &model)
