@@ -49,14 +49,12 @@ class skinning_mesh_model
 
     // node
     uint32_t         get_node_count() const { return static_cast<uint32_t>(nodes_.size()); }
-    std::vector<int> get_root_nodes() const { return root_nodes_; }
 
     // material
     std::vector<skinning_utils::material> get_materials() const { return materials_; }
 
     // mesh group
     uint32_t get_mesh_group_count() const { return static_cast<uint32_t>(mesh_groups_.size()); }
-    std::vector<skinning_utils::mesh_group> get_mesh_groups() const { return mesh_groups_; }
 
     // others
     bool is_skinned() const { return has_skin_; }
@@ -74,9 +72,15 @@ class skinning_mesh_model
 
     void draw_node(skinning_utils::node& node, VkCommandBuffer command_buffer);
 
-    void load_node(const tinygltf::Model& model);
+    void load_node(
+      const s_ptr<skinning_utils::node>& parent,
+      const tinygltf::Node&              node,
+      uint32_t                           node_index,
+      const tinygltf::Model&             model,
+      skinning_utils::builder&           builder
+    );
     void load_mesh(const tinygltf::Model& model, skinning_utils::skinning_model_builder& visitor);
-    void load_skin(const tinygltf::Model& model);
+    void load_skins(const tinygltf::Model& model);
     void load_material(const tinygltf::Model& model);
     void load_animation(const tinygltf::Model& model);
 
@@ -98,8 +102,7 @@ class skinning_mesh_model
     std::vector<skinning_utils::mesh_group>  mesh_groups_;
     std::vector<skinning_utils::material>    materials_;
     std::vector<s_ptr<skinning_utils::node>> nodes_;
-    // std::vector<s_ptr<skinning_utils::node>> linear_nodes_;
-    std::vector<int> root_nodes_;
+    std::vector<s_ptr<skinning_utils::node>> linear_nodes_;
 
     std::vector<s_ptr<skinning_utils::skin>> skins_;
     std::vector<skinning_utils::animation>   animations_;

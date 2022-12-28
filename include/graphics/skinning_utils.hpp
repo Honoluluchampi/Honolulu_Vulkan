@@ -148,7 +148,7 @@ struct skinning_model_builder
   std::vector<vec4>  weight_buffer;
 };
 
-struct loader
+struct builder
 {
   std::vector<uint32_t>               index_buffer;
   std::vector<skinning_utils::vertex> vertex_buffer;

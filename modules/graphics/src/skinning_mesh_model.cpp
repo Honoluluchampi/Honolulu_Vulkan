@@ -110,6 +110,25 @@ bool load_file(std::vector<char>& out, const std::string& filepath)
   return true;
 }
 
+void get_node_props(const tinygltf::Node& node, const tinygltf::Model& model, size_t& vertex_count, size_t& index_count)
+{
+  if (node.children.size() > 0) {
+    for (size_t i = 0; i < node.children.size(); i++) {
+      get_node_props(model.nodes[node.children[i]], model, vertex_count, index_count);
+    }
+  }
+  if (node.mesh > -1) {
+    const tinygltf::Mesh mesh = model.meshes[node.mesh];
+    for (size_t i = 0; i < mesh.primitives.size(); i++) {
+      auto primitive = mesh.primitives[i];
+      vertex_count += model.accessors[primitive.attributes.find("POSITION")->second].count;
+      if (primitive.indices > -1) {
+        index_count += model.accessors[primitive.indices].count;
+      }
+    }
+  }
+}
+
 bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::graphics::device &device)
 {
   std::filesystem::path path = { filepath };
@@ -136,8 +155,67 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
 
   if (!warn.empty()) { std::cerr << warn << std::endl; }
   if (!err.empty())  { std::cerr << err  << std::endl; }
-  if (!result) { return false; }
+  if (!result) {
+    std::cerr << "failed to load model : " << filepath << std::endl;
+    return false;
+  }
 
+  skinning_utils::builder builder{};
+  size_t vertex_count = 0;
+  size_t index_count  = 0;
+
+  const auto& scene = gltf_model.scenes[gltf_model.defaultScene > -1 ? gltf_model.defaultScene : 0];
+
+  // count vertex and index
+  for (size_t i = 0; i < scene.nodes.size(); i++) {
+    get_node_props(gltf_model.nodes[scene.nodes[i]], gltf_model, vertex_count, index_count);
+  }
+  builder.vertex_buffer.resize(vertex_count);
+  builder.index_buffer.resize(index_count);
+
+  for (size_t i = 0; i < scene.nodes.size(); i++) {
+    const auto& node = gltf_model.nodes[scene.nodes[i]];
+    load_node(nullptr, node, scene.nodes[i], gltf_model, builder);
+  }
+
+  if (gltf_model.animations.size() > 0) {
+    load_animation(gltf_model);
+  }
+
+  load_skins(gltf_model);
+
+  for (auto node : linear_nodes_) {
+    // assign skins
+    if (node->skin_index > -1) {
+      node->skin = skins_[node->skin_index];
+    }
+    // initial pose
+    if (node->mesh_group) {
+      node->update();
+    }
+  }
+
+  // vertex and index buffers
+  size_t vertex_buffer_size = vertex_count * sizeof(skinning_utils::vertex);
+  size_t index_buffer_size  = index_count  * sizeof(uint32_t);
+  assert(vertex_buffer_size > 0);
+
+  vertex_buffer_ = buffer::create_with_staging(
+    device_,
+    vertex_buffer_size,
+    1,
+    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+    builder.vertex_buffer.data()
+  );
+  index_buffer_ = buffer::create_with_staging(
+    device_,
+    index_buffer_size,
+    1,
+    VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+    builder.index_buffer.data()
+  );
 }
 
 vec3 vec3_convert_from_gltf(const double* input)
@@ -159,7 +237,13 @@ quat quat_convert_from_gltf(const double* input)
   };
 }
 
-void skinning_mesh_model::load_node(const tinygltf::Model &model)
+void skinning_mesh_model::load_node(
+  const s_ptr<skinning_utils::node>& parent,
+  const tinygltf::Node&              node,
+  uint32_t                           node_index,
+  const tinygltf::Model&             model,
+  skinning_utils::builder&           builder
+)
 {
 
 }
@@ -169,7 +253,7 @@ void skinning_mesh_model::load_mesh(const tinygltf::Model &model, skinning_utils
 
 }
 
-void skinning_mesh_model::load_skin(const tinygltf::Model &model)
+void skinning_mesh_model::load_skins(const tinygltf::Model &model)
 {
 
 }
