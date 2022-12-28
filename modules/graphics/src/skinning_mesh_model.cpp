@@ -46,10 +46,22 @@ void skinning_mesh_model::bind(VkCommandBuffer command_buffer, VkDescriptorSet g
 
 void skinning_mesh_model::draw(VkCommandBuffer command_buffer)
 {
-  for (auto& node : root_nodes_) {
+  for (auto& node : nodes_) {
     draw_node(*node, command_buffer);
   }
   vkCmdDrawIndexed(command_buffer, index_count_, 1, 0, 0, 0);
+}
+
+void skinning_mesh_model::draw_node(skinning_utils::node& node, VkCommandBuffer command_buffer)
+{
+  if (node.mesh_group) {
+    for (auto& mesh : node.mesh_group->meshes) {
+      vkCmdDrawIndexed(command_buffer, mesh.index_count, 1, mesh.first_index, 0, 0);
+    }
+  }
+  for (auto& child : node.children) {
+    draw_node(*child, command_buffer);
+  }
 }
 
 u_ptr<skinning_mesh_model> skinning_mesh_model::create_from_gltf(const std::string &filepath, hnll::graphics::device &device)
