@@ -67,6 +67,7 @@ struct mesh_group
     mesh_group(device& device);
     void build_desc();
     void update_desc_buffer();
+    VkDescriptorSet get_desc_set() const { return desc_set_; }
 
     int node_index;
     std::vector<mesh> meshes;

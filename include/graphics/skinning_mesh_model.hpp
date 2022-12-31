@@ -31,7 +31,7 @@ class skinning_mesh_model
     ~skinning_mesh_model() = default;
 
     void bind(VkCommandBuffer command_buffer, VkDescriptorSet global_desc_set, VkPipelineLayout pipeline_layout);
-    void draw(VkCommandBuffer command_buffer);
+    void draw(VkCommandBuffer command_buffer, VkDescriptorSet global_desc_set, VkPipelineLayout pipeline_layout);
 
     static u_ptr<skinning_mesh_model> create_from_gltf(const std::string& filepath, device& device);
     bool load_from_gltf(const std::string& filepath, device& device);
@@ -70,7 +70,11 @@ class skinning_mesh_model
 
   private:
 
-    void draw_node(skinning_utils::node& node, VkCommandBuffer command_buffer);
+    void draw_node(
+      skinning_utils::node& node,
+      VkCommandBuffer command_buffer,
+      VkDescriptorSet global_desc_set,
+      VkPipelineLayout pipeline_layout);
 
     void load_node(
       const s_ptr<skinning_utils::node>& parent,
