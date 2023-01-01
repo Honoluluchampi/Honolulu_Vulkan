@@ -33,6 +33,8 @@ class skinning_mesh_model
     void bind(VkCommandBuffer command_buffer, VkDescriptorSet global_desc_set, VkPipelineLayout pipeline_layout);
     void draw(VkCommandBuffer command_buffer, VkDescriptorSet global_desc_set, VkPipelineLayout pipeline_layout);
 
+    void update_animation(uint32_t index, float time);
+
     static u_ptr<skinning_mesh_model> create_from_gltf(const std::string& filepath, device& device);
     bool load_from_gltf(const std::string& filepath, device& device);
 

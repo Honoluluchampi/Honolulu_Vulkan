@@ -80,7 +80,7 @@ void skinning_mesh_model_shading_system::render(const utils::frame_info& frame_i
     );
 
     obj->get_model().bind(frame_info.command_buffer, frame_info.global_descriptor_set, pipeline_layout_);
-    obj->get_model().draw(frame_info.command_buffer);
+    obj->get_model().draw(frame_info.command_buffer, frame_info.global_descriptor_set, pipeline_layout_);
   }
 }
 

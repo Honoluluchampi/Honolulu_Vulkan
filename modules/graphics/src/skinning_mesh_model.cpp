@@ -35,7 +35,6 @@ void skinning_mesh_model::draw(VkCommandBuffer command_buffer, VkDescriptorSet g
   for (auto& node : nodes_) {
     draw_node(*node, command_buffer, global_desc_set, pipeline_layout);
   }
-  vkCmdDrawIndexed(command_buffer, index_count_, 1, 0, 0, 0);
 }
 
 void skinning_mesh_model::draw_node(
@@ -66,6 +65,69 @@ void skinning_mesh_model::draw_node(
   }
   for (auto& child : node.children) {
     draw_node(*child, command_buffer, global_desc_set, pipeline_layout);
+  }
+}
+
+void skinning_mesh_model::update_animation(uint32_t index, float time)
+{
+  if (animations_.empty()) {
+    std::cout << "gltf model does not contain animation." << std::endl;
+    return;
+  }
+  if (index > static_cast<uint32_t>(animations_.size()) - 1) {
+    std::cout << "No animation with index " << index << std::endl;
+    return;
+  }
+  auto& animation = animations_[index];
+
+  bool updated = false;
+  for (auto& channel : animation.channels) {
+    auto& sampler = animation.samplers[channel.sampler_index];
+    if (sampler.inputs.size() > sampler.outputs.size()) {
+      continue;
+    }
+
+    for (size_t i = 0; i < sampler.inputs.size() - 1; i++) {
+      // choose current channel
+      if ((time >= sampler.inputs[i]) && (time <= sampler.inputs[i+1])) {
+        // normalize the elapsed time
+        float u = std::max(0.0f, time - sampler.inputs[i]) / (sampler.inputs[i + 1] - sampler.inputs[i]);
+        if (u <= 1.0f) {
+          switch (channel.path) {
+            case skinning_utils::animation_channel::path_type::TRANSLATION : {
+              vec4 trans = (1.f - u) * sampler.outputs[i] + u * sampler.outputs[i + 1];
+              channel.node->translation = { trans.x(), trans.y(), trans.z() };
+              break;
+            }
+            case skinning_utils::animation_channel::path_type::SCALE : {
+              vec4 scale = (1.f - u) * sampler.outputs[i] + u * sampler.outputs[i + 1];
+              channel.node->scale = { scale.x(), scale.y(), scale.z() };
+              break;
+            }
+            case skinning_utils::animation_channel::path_type::ROTATION : {
+              quat q1 = {
+                sampler.outputs[i].x(),
+                sampler.outputs[i].y(),
+                sampler.outputs[i].z(),
+                sampler.outputs[i].w()
+              };
+              quat q2 = {
+                sampler.outputs[i + 1].x(),
+                sampler.outputs[i + 1].y(),
+                sampler.outputs[i + 1].z(),
+                sampler.outputs[i + 1].w()
+              };
+              channel.node->rotation = q1.slerp(u, q2).normalized();
+              break;
+            }
+          }
+          updated = true;
+        }
+      }
+    }
+    if (updated)
+      for (auto& node : nodes_)
+        node->update();
   }
 }
 
