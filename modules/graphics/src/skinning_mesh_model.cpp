@@ -43,12 +43,12 @@ void skinning_mesh_model::draw_node(
   VkDescriptorSet global_desc_set,
   VkPipelineLayout pipeline_layout)
 {
-  if (node.mesh_group) {
-    for (auto& mesh : node.mesh_group->meshes) {
+  if (node.mesh_group_) {
+    for (auto& mesh : node.mesh_group_->meshes) {
       // bind desc sets
       const std::vector<VkDescriptorSet> descriptor_sets = {
         global_desc_set,
-        node.mesh_group->get_desc_set()
+        node.mesh_group_->get_desc_set()
       };
       vkCmdBindDescriptorSets(
         command_buffer,
@@ -96,12 +96,12 @@ void skinning_mesh_model::update_animation(uint32_t index, float time)
           switch (channel.path) {
             case skinning_utils::animation_channel::path_type::TRANSLATION : {
               vec4 trans = (1.f - u) * sampler.outputs[i] + u * sampler.outputs[i + 1];
-              channel.node->translation = { trans.x(), trans.y(), trans.z() };
+              channel.node_->translation = {trans.x(), trans.y(), trans.z() };
               break;
             }
             case skinning_utils::animation_channel::path_type::SCALE : {
               vec4 scale = (1.f - u) * sampler.outputs[i] + u * sampler.outputs[i + 1];
-              channel.node->scale = { scale.x(), scale.y(), scale.z() };
+              channel.node_->scale = {scale.x(), scale.y(), scale.z() };
               break;
             }
             case skinning_utils::animation_channel::path_type::ROTATION : {
@@ -117,7 +117,7 @@ void skinning_mesh_model::update_animation(uint32_t index, float time)
                 sampler.outputs[i + 1].z(),
                 sampler.outputs[i + 1].w()
               };
-              channel.node->rotation = q1.slerp(u, q2).normalized();
+              channel.node_->rotation = q1.slerp(u, q2).normalized();
               break;
             }
           }
@@ -266,10 +266,10 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
   for (auto node : linear_nodes_) {
     // assign skins
     if (node->skin_index > -1) {
-      node->skin = skins_[node->skin_index];
+      node->skin_ = skins_[node->skin_index];
     }
     // initial pose
-    if (node->mesh_group) {
+    if (node->mesh_group_) {
       node->update();
     }
   }
@@ -295,6 +295,8 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
     builder.index_buffer.data()
   );
+
+  return true;
 }
 
 template<int element_count, typename Input = float, typename Output = float>
@@ -480,7 +482,7 @@ void skinning_mesh_model::load_node(
             }
           }
           else {
-            vert.joint_indices = uvec4{ 0.f, 0.f, 0.f, 0.f };
+            vert.joint_indices = uvec4{ 0, 0, 0, 0 };
           }
           vert.joint_weights = has_skin ? vec_convert_from_raw<4>(&buffer_weights[v * weight_byte_stride]) : vec4{ 1.f, 0.f, 0.f, 0.f };
           builder.vertex_pos++;
@@ -682,8 +684,8 @@ void skinning_mesh_model::load_animation(const tinygltf::Model &model)
         continue;
       }
       channel.sampler_index = i_channel.sampler;
-      channel.node = get_node(i_channel.target_node);
-      if (!channel.node) {
+      channel.node_ = get_node(i_channel.target_node);
+      if (!channel.node_) {
         continue;
       }
 
@@ -694,7 +696,7 @@ void skinning_mesh_model::load_animation(const tinygltf::Model &model)
   } // animation loop
 }
 
-s_ptr<skinning_utils::node>& skinning_mesh_model::get_node(uint32_t index)
+s_ptr<skinning_utils::node> skinning_mesh_model::get_node(uint32_t index)
 {
   s_ptr<skinning_utils::node> node_found = nullptr;
   for (auto& node : nodes_) {
@@ -704,7 +706,7 @@ s_ptr<skinning_utils::node>& skinning_mesh_model::get_node(uint32_t index)
   return node_found;
 }
 
-s_ptr<skinning_utils::node>& skinning_mesh_model::find_node(s_ptr<skinning_utils::node>& parent, uint32_t index)
+s_ptr<skinning_utils::node> skinning_mesh_model::find_node(s_ptr<skinning_utils::node>& parent, uint32_t index)
 {
   s_ptr<skinning_utils::node> node_found = nullptr;
   if (parent->index == index) {
@@ -713,7 +715,7 @@ s_ptr<skinning_utils::node>& skinning_mesh_model::find_node(s_ptr<skinning_utils
   for (auto& child : parent->children) {
     node_found = find_node(child, index);
     if (node_found) break;
-    return node_found;
   }
+  return node_found;
 }
 } // namespace hnll::graphics

@@ -43,23 +43,23 @@ mat4 skinning_utils::node::get_matrix()
 
 void skinning_utils::node::update()
 {
-  if (mesh_group) {
+  if (mesh_group_) {
     auto mat = get_matrix();
-    if (skin) {
-      mesh_group->block.matrix = mat;
+    if (skin_) {
+      mesh_group_->block.matrix = mat;
       // update joint matrices
       auto inv_mat = mat.inverse();
-      size_t num_joints = std::min(static_cast<uint32_t>(skin->joints.size()), MAX_JOINTS_NUM);
+      size_t num_joints = std::min(static_cast<uint32_t>(skin_->joints.size()), MAX_JOINTS_NUM);
       for (size_t i = 0; i < num_joints; i++) {
-        auto& joint_node = skin->joints[i];
-        mat4  joint_mat  = joint_node->get_matrix() * skin->inv_bind_matrices[i];
+        auto& joint_node = skin_->joints[i];
+        mat4  joint_mat  = joint_node->get_matrix() * skin_->inv_bind_matrices[i];
         joint_mat = inv_mat * joint_mat;
-        mesh_group->block.joint_matrices[i] = joint_mat;
+        mesh_group_->block.joint_matrices[i] = joint_mat;
       }
-      mesh_group->block.joint_count = static_cast<float>(num_joints);
+      mesh_group_->block.joint_count = static_cast<float>(num_joints);
     }
   }
-  mesh_group->update_desc_buffer();
+  mesh_group_->update_desc_buffer();
 
   for (auto& child : children) {
     child->update();
@@ -81,10 +81,10 @@ std::vector<VkVertexInputAttributeDescription> skinning_utils::vertex::get_attri
   attribute_descriptions.push_back({0, 0, VK_FORMAT_R32G32B32_SFLOAT,    offsetof(skinning_utils::vertex, position)});
   attribute_descriptions.push_back({1, 0, VK_FORMAT_R32G32B32_SFLOAT,    offsetof(skinning_utils::vertex, normal)});
   attribute_descriptions.push_back({2, 0, VK_FORMAT_R32G32_SFLOAT,       offsetof(skinning_utils::vertex, tex_coord_0)});
-  attribute_descriptions.push_back({2, 0, VK_FORMAT_R32G32_SFLOAT,       offsetof(skinning_utils::vertex, tex_coord_1)});
-  attribute_descriptions.push_back({2, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(skinning_utils::vertex, color)});
-  attribute_descriptions.push_back({3, 0, VK_FORMAT_R32G32B32A32_UINT,   offsetof(skinning_utils::vertex, joint_indices)});
-  attribute_descriptions.push_back({4, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(skinning_utils::vertex, joint_weights)});
+  attribute_descriptions.push_back({3, 0, VK_FORMAT_R32G32_SFLOAT,       offsetof(skinning_utils::vertex, tex_coord_1)});
+  attribute_descriptions.push_back({4, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(skinning_utils::vertex, color)});
+  attribute_descriptions.push_back({5, 0, VK_FORMAT_R32G32B32A32_UINT,   offsetof(skinning_utils::vertex, joint_indices)});
+  attribute_descriptions.push_back({6, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(skinning_utils::vertex, joint_weights)});
 
   return attribute_descriptions;
 }

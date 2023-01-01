@@ -74,7 +74,7 @@ struct mesh_group
     // TODO : add desc buffer
     struct uniform_block
     {
-      mat4 matrix;
+      mat4 matrix = mat4::Identity();
       mat4 joint_matrices[MAX_JOINTS_NUM]{};
       float joint_count = 0;
     } block;
@@ -116,8 +116,8 @@ struct node
   int mesh_index = -1;
 
   mat4 matrix;
-  s_ptr<mesh_group> mesh_group = nullptr;
-  s_ptr<skin>       skin = nullptr;
+  s_ptr<mesh_group> mesh_group_ = nullptr;
+  s_ptr<skin>       skin_ = nullptr;
   int32_t skin_index = -1;
 
   mat4 get_local_matrix();
@@ -183,7 +183,7 @@ struct animation_channel
   };
 
   path_type   path; // translation, rotation, scale, or weights
-  s_ptr<node> node;
+  s_ptr<node> node_;
   uint32_t    sampler_index;
 };
 

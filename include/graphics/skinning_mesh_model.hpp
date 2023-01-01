@@ -96,8 +96,8 @@ class skinning_mesh_model
     void create_desc_set_layouts(device& _device);
     void create_desc_sets();
 
-    s_ptr<skinning_utils::node>& get_node(uint32_t index);
-    s_ptr<skinning_utils::node>& find_node(s_ptr<skinning_utils::node>& parent, uint32_t index);
+    s_ptr<skinning_utils::node> get_node(uint32_t index);
+    s_ptr<skinning_utils::node> find_node(s_ptr<skinning_utils::node>& parent, uint32_t index);
 
     device& device_;
     // buffer
