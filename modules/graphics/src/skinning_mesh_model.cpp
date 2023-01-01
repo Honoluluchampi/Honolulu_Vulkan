@@ -445,6 +445,7 @@ void skinning_mesh_model::load_node(
           const auto& joint_acc  = model.accessors[primitive.attributes.find("JOINTS_0")->second];
           const auto& joint_view = model.bufferViews[joint_acc.bufferView];
           buffer_joints = reinterpret_cast<const float*>(&model.buffers[joint_view.buffer].data[joint_acc.byteOffset + joint_view.byteOffset]);
+          joint_component_type = joint_acc.componentType;
           joint_byte_stride = joint_acc.ByteStride(joint_view) ? (joint_acc.ByteStride(joint_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC3);
         }
         if (primitive.attributes.find("WEIGHTS_0") != primitive.attributes.end()) {
@@ -536,9 +537,9 @@ void skinning_mesh_model::load_node(
     }
   }
   if (parent) {
-    parent->children.emplace_back(std::move(new_node));
+    parent->children.push_back(new_node);
   } else {
-    nodes_.emplace_back(std::move(new_node));
+    nodes_.push_back(new_node);
   }
   linear_nodes_.emplace_back(std::move(new_node));
 }

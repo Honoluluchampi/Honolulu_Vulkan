@@ -127,4 +127,7 @@ void graphics_engine::remove_renderable_component(const renderable_component& co
 void graphics_engine::remove_renderable_component(utils::shading_type type, component_id id)
 { shading_systems_[static_cast<uint32_t>(type)]->remove_render_target(id); }
 
+bool graphics_engine::check_shading_system_exists(utils::shading_type type)
+{ return shading_systems_.find(static_cast<uint32_t>(type)) != shading_systems_.end(); }
+
 } // namespace hnll::graphics

@@ -38,6 +38,7 @@ class graphics_engine
     static void add_renderable_component(renderable_component &comp);
     static void remove_renderable_component(const renderable_component &comp);
     static void remove_renderable_component(utils::shading_type type, component_id id);
+    static bool check_shading_system_exists(utils::shading_type type);
 
     inline void wait_idle() { vkDeviceWaitIdle(device_->get_device()); }
     void update_ubo(int frame_index)

@@ -203,11 +203,12 @@ void engine::load_models()
       auto length = filename.size() - path.size();
       auto key = filename.substr(path.size() + 1, length);
 
-      if (extension == ".obj") {
+      if (extension == ".obj" && graphics_engine_->check_shading_system_exists(utils::shading_type::MESH)) {
         // mesh model
         auto mesh_model = hnll::graphics::mesh_model::create_from_file(get_graphics_device(), key);
         mesh_model_map_.emplace(key, std::move(mesh_model));
-
+      }
+      if (extension == ".obj" && graphics_engine_->check_shading_system_exists(utils::shading_type::MESHLET)) {
         // meshlet model
         auto meshlet_model = hnll::graphics::meshlet_model::create_from_file(get_graphics_device(), key);
         std::cout << key << " :" << std::endl << "\tmeshlet count : " << meshlet_model->get_meshlets_count() << std::endl;
