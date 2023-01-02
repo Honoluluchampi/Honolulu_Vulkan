@@ -37,10 +37,14 @@ void skinning_mesh_model::bind(VkCommandBuffer command_buffer, VkDescriptorSet g
   vkCmdBindIndexBuffer(command_buffer, index_buffer_->get_buffer(), 0, VK_INDEX_TYPE_UINT32);
 }
 
-void skinning_mesh_model::draw(VkCommandBuffer command_buffer, VkDescriptorSet global_desc_set, VkPipelineLayout pipeline_layout)
+void skinning_mesh_model::draw(
+  VkCommandBuffer command_buffer,
+  VkDescriptorSet global_desc_set,
+  VkPipelineLayout pipeline_layout,
+  const skinning_mesh_push_constant& push)
 {
   for (auto& node : nodes_) {
-    draw_node(*node, command_buffer, global_desc_set, pipeline_layout);
+    draw_node(*node, command_buffer, global_desc_set, pipeline_layout, push);
   }
 }
 
@@ -48,7 +52,8 @@ void skinning_mesh_model::draw_node(
   skinning_utils::node& node,
   VkCommandBuffer command_buffer,
   VkDescriptorSet global_desc_set,
-  VkPipelineLayout pipeline_layout)
+  VkPipelineLayout pipeline_layout,
+  const skinning_mesh_push_constant& push)
 {
   if (node.mesh_group_) {
     for (auto& mesh : node.mesh_group_->meshes) {
@@ -67,11 +72,22 @@ void skinning_mesh_model::draw_node(
         0,
         nullptr
       );
+
+      // push constants
+      vkCmdPushConstants(
+        command_buffer,
+        pipeline_layout,
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+        0,
+        sizeof(skinning_mesh_push_constant),
+        &push
+      );
+
       vkCmdDrawIndexed(command_buffer, mesh.index_count, 1, mesh.first_index, 0, 0);
     }
   }
   for (auto& child : node.children) {
-    draw_node(*child, command_buffer, global_desc_set, pipeline_layout);
+    draw_node(*child, command_buffer, global_desc_set, pipeline_layout, push);
   }
 }
 

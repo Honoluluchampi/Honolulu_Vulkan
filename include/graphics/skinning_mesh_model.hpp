@@ -24,6 +24,12 @@ struct node_info {
   float joint_count;
 };
 
+struct skinning_mesh_push_constant
+{
+  mat4 model_matrix;
+  mat4 normal_matrix;
+};
+
 class skinning_mesh_model
 {
   public:
@@ -31,7 +37,11 @@ class skinning_mesh_model
     ~skinning_mesh_model();
 
     void bind(VkCommandBuffer command_buffer, VkDescriptorSet global_desc_set, VkPipelineLayout pipeline_layout);
-    void draw(VkCommandBuffer command_buffer, VkDescriptorSet global_desc_set, VkPipelineLayout pipeline_layout);
+    void draw(
+      VkCommandBuffer command_buffer,
+      VkDescriptorSet global_desc_set,
+      VkPipelineLayout pipeline_layout,
+      const skinning_mesh_push_constant& push);
 
     void update_animation(uint32_t index, float time);
 
@@ -77,7 +87,8 @@ class skinning_mesh_model
       skinning_utils::node& node,
       VkCommandBuffer command_buffer,
       VkDescriptorSet global_desc_set,
-      VkPipelineLayout pipeline_layout);
+      VkPipelineLayout pipeline_layout,
+      const skinning_mesh_push_constant& push);
 
     void load_node(
       const s_ptr<skinning_utils::node>& parent,
