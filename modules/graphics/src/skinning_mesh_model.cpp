@@ -270,7 +270,7 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
 
   load_skins(gltf_model);
 
-  for (auto node : linear_nodes_) {
+  for (auto node : nodes_) {
     // assign skins
     if (node->skin_index > -1) {
       node->skin_ = skins_[node->skin_index];
