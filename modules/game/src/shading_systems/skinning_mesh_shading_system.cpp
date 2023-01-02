@@ -66,6 +66,10 @@ void skinning_mesh_model_shading_system::render(const utils::frame_info& frame_i
   for (auto& target : render_target_map_) {
     auto obj = dynamic_cast<skinning_mesh_component*>(&target.second);
 
+    for (auto& node : obj->get_model().get_nodes()) {
+      node->update();
+    }
+
     skinning_mesh_push_constant push{};
     push.model_matrix  = obj->get_transform().mat4().cast<float>();
     push.normal_matrix = obj->get_transform().normal_matrix().cast<float>();

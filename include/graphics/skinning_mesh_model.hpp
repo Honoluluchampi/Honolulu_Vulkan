@@ -28,7 +28,7 @@ class skinning_mesh_model
 {
   public:
     explicit skinning_mesh_model(device& device) : device_(device) {}
-    ~skinning_mesh_model() = default;
+    ~skinning_mesh_model();
 
     void bind(VkCommandBuffer command_buffer, VkDescriptorSet global_desc_set, VkPipelineLayout pipeline_layout);
     void draw(VkCommandBuffer command_buffer, VkDescriptorSet global_desc_set, VkPipelineLayout pipeline_layout);
@@ -51,6 +51,7 @@ class skinning_mesh_model
 
     // node
     uint32_t         get_node_count() const { return static_cast<uint32_t>(nodes_.size()); }
+    std::vector<s_ptr<skinning_utils::node>>& get_nodes() { return nodes_; }
 
     // material
     std::vector<skinning_utils::material> get_materials() const { return materials_; }

@@ -82,6 +82,7 @@ struct mesh_group
   private:
     device&                      device_;
     u_ptr<buffer>                desc_buffer_;
+    u_ptr<descriptor_pool>       desc_pool_;
     u_ptr<descriptor_set_layout> desc_layout_;
     VkDescriptorSet              desc_set_;
 };

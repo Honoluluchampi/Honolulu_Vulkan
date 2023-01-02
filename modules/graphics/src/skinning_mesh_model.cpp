@@ -19,6 +19,13 @@ namespace hnll::graphics {
 
 u_ptr<descriptor_set_layout> skinning_mesh_model::desc_set_layout_ = nullptr;
 
+skinning_mesh_model::~skinning_mesh_model()
+{
+  for (auto& node : linear_nodes_) {
+    node->mesh_group_.reset();
+  }
+}
+
 void skinning_mesh_model::bind(VkCommandBuffer command_buffer, VkDescriptorSet global_desc_set, VkPipelineLayout pipeline_layout)
 {
   // bind vertex buffer
@@ -535,6 +542,7 @@ void skinning_mesh_model::load_node(
       new_primitive.vertex_count = vertex_count;
       new_mesh->meshes.emplace_back(std::move(new_primitive));
     }
+    new_node->mesh_group_ = new_mesh;
   }
   if (parent) {
     parent->children.push_back(new_node);

@@ -6,10 +6,20 @@
 
 namespace hnll::graphics {
 
-skinning_utils::mesh_group::mesh_group(device& device) : device_(device) {}
+skinning_utils::mesh_group::mesh_group(device& device) : device_(device)
+{
+  build_desc();
+}
 
 void skinning_utils::mesh_group::build_desc()
 {
+  // pool
+  desc_pool_ = descriptor_pool::builder(device_)
+    .set_max_sets(1)
+    .add_pool_size(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1)
+    .build();
+
+  // buffer
   desc_buffer_ = buffer::create(
     device_,
     sizeof(uniform_block),
@@ -18,6 +28,21 @@ void skinning_utils::mesh_group::build_desc()
     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
     &block
   );
+
+  // layout
+  desc_layout_ = descriptor_set_layout::builder(device_)
+    .add_binding(
+      0,
+      VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+    )
+    .build();
+
+  // desc set
+  auto buffer_info = desc_buffer_->descriptor_info();
+  descriptor_writer(*desc_layout_, *desc_pool_)
+    .write_buffer(0, &buffer_info)
+    .build(desc_set_);
 }
 
 void skinning_utils::mesh_group::update_desc_buffer()
@@ -58,8 +83,8 @@ void skinning_utils::node::update()
       }
       mesh_group_->block.joint_count = static_cast<float>(num_joints);
     }
+    mesh_group_->update_desc_buffer();
   }
-  mesh_group_->update_desc_buffer();
 
   for (auto& child : children) {
     child->update();
