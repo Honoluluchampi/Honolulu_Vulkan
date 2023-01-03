@@ -201,7 +201,6 @@ struct animation
   std::vector<animation_channel> channels;
   float start = std::numeric_limits<float>::max();
   float end   = std::numeric_limits<float>::min();
-  float current_time = 0.0f;
 };
 
 }  // namespace skinning_utils

@@ -69,6 +69,9 @@ class skinning_mesh_model
     // mesh group
     uint32_t get_mesh_group_count() const { return static_cast<uint32_t>(mesh_groups_.size()); }
 
+    // animations
+    std::vector<skinning_utils::animation>& get_animations() { return animations_; }
+
     // others
     bool is_skinned() const { return has_skin_; }
 
