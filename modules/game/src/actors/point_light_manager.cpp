@@ -1,10 +1,9 @@
 // hnll
 #include <game/actors/point_light_manager.hpp>
-#include <graphics/frame_info.hpp>
 
 namespace hnll::game {
 
-point_light_manager::point_light_manager(hnll::graphics::global_ubo& ubo) : 
+point_light_manager::point_light_manager(utils::global_ubo& ubo) :
   actor(), ubo_(ubo)
 {
 }

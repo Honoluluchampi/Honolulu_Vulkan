@@ -1,14 +1,9 @@
 set(TARGETS
-        src/systems/grid_rendering_system.cpp
-        src/systems/wire_frustum_rendering_system.cpp
-        src/systems/mesh_rendering_system.cpp
-        src/systems/meshlet_rendering_system.cpp
-        src/systems/point_light.cpp
         src/buffer.cpp
         src/camera.cpp
         src/descriptor_set_layout.cpp
         src/device.cpp
-        src/engine.cpp
+        ../game/src/graphics_engine.cpp
         src/mesh_model.cpp
         src/meshlet_model.cpp
         src/pipeline.cpp
@@ -16,6 +11,8 @@ set(TARGETS
         src/swap_chain.cpp
         src/window.cpp
         src/utils.cpp
+        src/skinning_mesh_model.cpp
+        src/skinning_utils.cpp
         $ENV{HNLL_ENGN}/submodules/extensions/ray_tracing_extensions.cpp
         )
 
@@ -26,6 +23,7 @@ target_include_directories(hnll_graphics PUBLIC
     $ENV{VULKAN_DIR}/include/
     ${PROJECT_SOURCE_DIR}/submodules/tiny_obj_loader
     ${PROJECT_SOURCE_DIR}/submodules/imgui
+    $ENV{HNLL_ENGN}/submodules/tiny_gltf
     $ENV{HNLL_ENGN}/submodules/extensions
     )
 

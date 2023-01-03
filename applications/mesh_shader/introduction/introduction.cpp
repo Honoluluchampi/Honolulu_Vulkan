@@ -1,5 +1,5 @@
 // hnll
-#include <graphics/engine.hpp>
+#include <game/graphics_engine.hpp>
 #include <graphics/utils.hpp>
 #include <graphics/meshlet_model.hpp>
 #include <game/actor.hpp>
@@ -9,6 +9,8 @@
 #include <game/components/mesh_component.hpp>
 #include <game/components/meshlet_component.hpp>
 #include <physics/engine.hpp>
+
+#include <game/shading_systems/mesh_model_shading_system.hpp>
 
 // std
 #include <memory>
@@ -63,6 +65,7 @@ class mesh_shader_introduction : public game::engine
       // mesh_actor or ml_actor
       create_bunny_wall<ml_actor>();
       add_virtual_camera();
+      setup_shading_system();
     }
 
     ~mesh_shader_introduction() override = default;
@@ -125,6 +128,13 @@ class mesh_shader_introduction : public game::engine
 
       ImGui::End();
     }
+
+    void setup_shading_system()
+    {
+      auto mesh_model_shader = game::mesh_model_shading_system::create(get_graphics_device());
+      add_shading_system(std::move(mesh_model_shader));
+    }
+
     // sample object
     std::vector<s_ptr<ml_actor>> ml_actors_;
 

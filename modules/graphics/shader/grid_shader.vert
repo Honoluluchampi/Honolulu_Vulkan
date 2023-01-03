@@ -19,10 +19,6 @@ layout(set = 0, binding = 0) uniform GlobalUbo
   int numLights;
 } ubo;
 
-layout(push_constant) uniform Push {
-  float height;
-} push;
-
 vec3 grid_plane[6] = vec3 [](
   vec3( 1, 0,  1),
   vec3(-1, 0, -1),
@@ -36,7 +32,7 @@ const float scale = 500.0;
 
 void main() {
   vec3 position = scale * grid_plane[gl_VertexIndex].xyz;
-  position.y = -push.height;
+  position.y = 0;
   vertex_position = position;
   gl_Position = ubo.projection * ubo.view * vec4(position, 1.0);
 }

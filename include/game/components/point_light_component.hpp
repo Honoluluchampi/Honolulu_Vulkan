@@ -22,7 +22,7 @@ class point_light_component : public renderable_component
     }
 
     template <Actor A>
-    point_light_component(s_ptr<A>& owner) : renderable_component(owner, render_type::POINT_LIGHT) {}
+    point_light_component(s_ptr<A>& owner) : renderable_component(owner, utils::shading_type::POINT_LIGHT) {}
     ~point_light_component() override = default;
     point_light_component(const point_light_component&) = delete;
     point_light_component& operator=(const point_light_component&) = delete;

@@ -5,6 +5,7 @@
 #include <game/engine.hpp>
 #include <game/component.hpp>
 #include <game/components/renderable_component.hpp>
+#include <utils/rendering_utils.hpp>
 
 // std
 #include <unordered_map>
@@ -27,7 +28,7 @@ class meshlet_component : public renderable_component
     }
     template <Actor A>
     meshlet_component(s_ptr<A>& owner_sp, graphics::meshlet_model& model)
-      : renderable_component(owner_sp, render_type::MESHLET), model_(model) {}
+      : renderable_component(owner_sp, utils::shading_type::MESHLET), model_(model) {}
     ~meshlet_component() override = default;
 
     // getter

@@ -1,7 +1,7 @@
 #pragma once
 
 // hnll
-#include <graphics/engine.hpp>
+#include <game/graphics_engine.hpp>
 #include <gui/renderer.hpp>
 
 // basic header
