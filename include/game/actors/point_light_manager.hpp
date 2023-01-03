@@ -3,14 +3,12 @@
 // hnll
 #include <game/actor.hpp>
 #include <game/components/point_light_component.hpp>
+#include <utils/rendering_utils.hpp>
 
 // std
 #include <unordered_map>
 
 namespace hnll {
-
-// forward declaration
-namespace graphics { class global_ubo; }
 
 namespace game {
 
@@ -19,7 +17,7 @@ using point_light_map = std::unordered_map<component_id, s_ptr<point_light_compo
 class point_light_manager : public actor
 {
   public:
-    point_light_manager(hnll::graphics::global_ubo& ubo);
+    point_light_manager(utils::global_ubo& ubo);
     ~point_light_manager(){}
 
     // complete transport
@@ -31,7 +29,7 @@ class point_light_manager : public actor
 
   private:
     point_light_map light_comp_map_;
-    hnll::graphics::global_ubo& ubo_;    
+    utils::global_ubo& ubo_;
 };
 
 } // namespace game

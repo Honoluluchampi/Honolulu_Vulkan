@@ -36,6 +36,7 @@ class actor
     actor& operator=(const actor &) = delete;
     actor(actor &&) = default;
     actor& operator=(actor &&) = default;
+    // TODO : delete renderable component from graphics_engine::shading_systems::render_targets
     virtual ~actor() = default;
 
     void update(float dt);
@@ -52,10 +53,10 @@ void update_gui();
 #endif
 
     // getter
-    inline actor_id get_id()                                   const { return id_; }
-    inline const state get_actor_state()                       const { return state_; }
-    inline bool is_renderable()                                const { return renderable_component_ != nullptr; }
-    inline const s_ptr<renderable_component>& get_renderable_component_sp() { return renderable_component_; }
+    inline actor_id    get_id()          const { return id_; }
+    inline const state get_actor_state() const { return state_; }
+    inline bool        is_renderable()   const { return renderable_component_ != nullptr; }
+    inline renderable_component&  get_renderable_component_r() { return *renderable_component_; }
     s_ptr<hnll::utils::transform> get_transform_sp();
     // setter
     void add_component(u_ptr<component>&& comp) { unique_components_.emplace_back(std::move(comp)); }
