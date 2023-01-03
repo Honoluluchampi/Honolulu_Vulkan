@@ -4,6 +4,12 @@
 #include <memory>
 
 // lib
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include <eigen3/Eigen/Dense>
 #include <vulkan/vulkan.h>
 
@@ -43,11 +49,11 @@ struct vertex
 {
   alignas(16) vec3 position;
   alignas(16) vec3 normal;
-  vec2  tex_coord_0;
-  vec2  tex_coord_1;
-  vec4  color; // rgba
-  uvec4 joint_indices;
-  vec4  joint_weights;
+  vec2 tex_coord_0;
+  vec2 tex_coord_1;
+  vec4 color; // rgba
+  vec4 joint_indices;
+  vec4 joint_weights;
   static std::vector<VkVertexInputBindingDescription>   get_binding_descriptions();
   static std::vector<VkVertexInputAttributeDescription> get_attribute_descriptions();
 };
@@ -103,9 +109,9 @@ struct node
 
   std::string name = "";
 
-  vec3 translation = { 0.f, 0.f, 0.f };
-  quat rotation    = { 1.f, 0.f, 0.f, 0.f };
-  vec3 scale       = { 1.f, 1.f, 1.f };
+  glm::vec3 translation = { 0.f, 0.f, 0.f };
+  glm::quat rotation{};
+  glm::vec3 scale       = { 1.f, 1.f, 1.f };
   mat4 local_mat   = Eigen::Matrix4f::Identity();
   mat4 world_mat   = Eigen::Matrix4f::Identity();
 

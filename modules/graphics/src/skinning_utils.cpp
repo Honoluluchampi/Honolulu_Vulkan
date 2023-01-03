@@ -3,6 +3,7 @@
 #include <graphics/device.hpp>
 #include <graphics/buffer.hpp>
 #include <graphics/descriptor_set_layout.hpp>
+#include <utils/utils.hpp>
 
 namespace hnll::graphics {
 
@@ -50,9 +51,31 @@ void skinning_utils::mesh_group::update_desc_buffer()
   desc_buffer_->write_to_buffer(&block);
 }
 
+mat4 convert_glm_to_eigen(const glm::mat4& g) {
+  mat4 e;
+  e(0, 0) = g[0][0];
+  e(0, 1) = g[1][0];
+  e(0, 2) = g[2][0];
+  e(0, 3) = g[3][0];
+  e(1, 0) = g[0][1];
+  e(1, 1) = g[1][1];
+  e(1, 2) = g[2][1];
+  e(1, 3) = g[3][1];
+  e(2, 0) = g[0][2];
+  e(2, 1) = g[1][2];
+  e(2, 2) = g[2][2];
+  e(2, 3) = g[3][2];
+  e(3, 0) = g[0][3];
+  e(3, 1) = g[1][3];
+  e(3, 2) = g[2][3];
+  e(3, 3) = g[3][3];
+  return e;
+}
+
 mat4 skinning_utils::node::get_local_matrix()
 {
-  return (Eigen::Translation3f(translation) * Eigen::Scaling(scale) * rotation).matrix();
+  auto mat = glm::translate(glm::mat4(1.f), translation) * glm::mat4(rotation) * glm::scale(glm::mat4(1.f), scale);
+  return convert_glm_to_eigen(mat);
 }
 
 mat4 skinning_utils::node::get_matrix()
@@ -108,7 +131,7 @@ std::vector<VkVertexInputAttributeDescription> skinning_utils::vertex::get_attri
   attribute_descriptions.push_back({2, 0, VK_FORMAT_R32G32_SFLOAT,       offsetof(skinning_utils::vertex, tex_coord_0)});
   attribute_descriptions.push_back({3, 0, VK_FORMAT_R32G32_SFLOAT,       offsetof(skinning_utils::vertex, tex_coord_1)});
   attribute_descriptions.push_back({4, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(skinning_utils::vertex, color)});
-  attribute_descriptions.push_back({5, 0, VK_FORMAT_R32G32B32A32_UINT,   offsetof(skinning_utils::vertex, joint_indices)});
+  attribute_descriptions.push_back({5, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(skinning_utils::vertex, joint_indices)});
   attribute_descriptions.push_back({6, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(skinning_utils::vertex, joint_weights)});
 
   return attribute_descriptions;

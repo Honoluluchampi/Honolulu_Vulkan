@@ -14,6 +14,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <tiny_gltf.h>
 #include <vulkan/vulkan.h>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace hnll::graphics {
 
@@ -128,19 +129,20 @@ void skinning_mesh_model::update_animation(uint32_t index, float time)
               break;
             }
             case skinning_utils::animation_channel::path_type::ROTATION : {
-              quat q1 = {
-                sampler.outputs[i].x(),
-                sampler.outputs[i].y(),
-                sampler.outputs[i].z(),
-                sampler.outputs[i].w()
-              };
-              quat q2 = {
-                sampler.outputs[i + 1].x(),
-                sampler.outputs[i + 1].y(),
-                sampler.outputs[i + 1].z(),
-                sampler.outputs[i + 1].w()
-              };
-              channel.node_->rotation = q1.slerp(u, q2).normalized();
+              glm::quat q1;
+              q1.x = sampler.outputs[i].x();
+              q1.y = sampler.outputs[i].y();
+              q1.z = sampler.outputs[i].z();
+              q1.w = sampler.outputs[i].w();
+
+              glm::quat q2;
+              q2.x = sampler.outputs[i + 1].x();
+              q2.y = sampler.outputs[i + 1].y();
+              q2.z = sampler.outputs[i + 1].z();
+              q2.w = sampler.outputs[i + 1].w();
+
+//              channel.node_->rotation = q1.slerp(u, q2).normalized();
+              channel.node_->rotation = glm::normalize(glm::slerp(q1, q2, u));
               break;
             }
           }
@@ -201,17 +203,6 @@ void skinning_mesh_model::create_desc_sets()
     .build(desc_set_);
 }
 
-bool load_file(std::vector<char>& out, const std::string& filepath)
-{
-  std::ifstream infile(filepath, std::ifstream::binary);
-  if (!infile) { return false; }
-
-  out.resize(infile.seekg(0, std::ifstream::end).tellg());
-  infile.seekg(0, std::ifstream::beg).read(out.data(), out.size());
-
-  return true;
-}
-
 void get_node_props(const tinygltf::Node& node, const tinygltf::Model& model, size_t& vertex_count, size_t& index_count)
 {
   if (node.children.size() > 0) {
@@ -233,34 +224,19 @@ void get_node_props(const tinygltf::Node& node, const tinygltf::Model& model, si
 
 bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::graphics::device &device)
 {
-  std::filesystem::path path = { filepath };
-  std::vector<char> buffer;
-  load_file(buffer, filepath);
-
-  std::string base_dir = path.parent_path().string();
-
   std::string err, warn;
-  tinygltf::TinyGLTF loader;
-  tinygltf::Model gltf_model;
-  bool result = false;
+  tinygltf::TinyGLTF gltf_context;
+  tinygltf::Model    gltf_model;
 
-  if (path.extension() == L".glb") {
-    result = loader.LoadBinaryFromMemory(
-      &gltf_model,
-      &err,
-      &warn,
-      reinterpret_cast<const uint8_t*>(buffer.data()),
-      uint32_t(buffer.size()),
-      base_dir
-    );
+  bool binary = false;
+
+  size_t ext_pos = filepath.rfind('.', filepath.length());
+  if (ext_pos != std::string::npos) {
+    binary = (filepath.substr(ext_pos + 1, filepath.length() - ext_pos) == "glb");
   }
 
-  if (!warn.empty()) { std::cerr << warn << std::endl; }
-  if (!err.empty())  { std::cerr << err  << std::endl; }
-  if (!result) {
-    std::cerr << "failed to load model : " << filepath << std::endl;
-    return false;
-  }
+  bool file_loaded = binary ? gltf_context.LoadBinaryFromFile(&gltf_model, &err, &warn, filepath.c_str())
+                            : gltf_context.LoadASCIIFromFile(&gltf_model, &err, &warn, filepath.c_str());
 
   skinning_utils::builder builder{};
   size_t vertex_count = 0;
@@ -286,7 +262,7 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
 
   load_skins(gltf_model);
 
-  for (auto node : nodes_) {
+  for (auto node : linear_nodes_) {
     // assign skins
     if (node->skin_index > -1) {
       node->skin_ = skins_[node->skin_index];
@@ -381,13 +357,15 @@ void skinning_mesh_model::load_node(
 
   // transform
   if (node.translation.size() == 3) {
-    new_node->translation = vec_convert_from_raw<3, double>(node.translation.data());
+//    new_node->translation = vec_convert_from_raw<3, double>(node.translation.data());
+    new_node->translation = glm::make_vec3(node.translation.data());
   }
   if (node.rotation.size() == 4) {
-    new_node->rotation = quat_convert_from_raw(node.rotation.data());
+    new_node->rotation = glm::make_quat(node.rotation.data());
   }
   if (node.scale.size() == 3) {
-    new_node->scale = vec_convert_from_raw<3, double>(node.scale.data());
+//    new_node->scale = vec_convert_from_raw<3, double>(node.scale.data());
+    new_node->scale = glm::make_vec3(node.scale.data());
   }
   if (node.matrix.size() == 16) {
     new_node->matrix = mat4_convert_from_raw(node.matrix.data());
@@ -469,13 +447,13 @@ void skinning_mesh_model::load_node(
           const auto& joint_view = model.bufferViews[joint_acc.bufferView];
           buffer_joints = reinterpret_cast<const float*>(&model.buffers[joint_view.buffer].data[joint_acc.byteOffset + joint_view.byteOffset]);
           joint_component_type = joint_acc.componentType;
-          joint_byte_stride = joint_acc.ByteStride(joint_view) ? (joint_acc.ByteStride(joint_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC3);
+          joint_byte_stride = joint_acc.ByteStride(joint_view) ? (joint_acc.ByteStride(joint_view) / tinygltf::GetComponentSizeInBytes(joint_component_type)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC4);
         }
         if (primitive.attributes.find("WEIGHTS_0") != primitive.attributes.end()) {
           const auto& weight_acc  = model.accessors[primitive.attributes.find("WEIGHTS_0")->second];
           const auto& weight_view = model.bufferViews[weight_acc.bufferView];
           buffer_weights = reinterpret_cast<const float*>(&model.buffers[weight_view.buffer].data[weight_acc.byteOffset + weight_view.byteOffset]);
-          weight_byte_stride = weight_acc.ByteStride(weight_view) ? (weight_acc.ByteStride(weight_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC3);
+          weight_byte_stride = weight_acc.ByteStride(weight_view) ? (weight_acc.ByteStride(weight_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC4);
         }
 
         has_skin = buffer_joints && buffer_weights;
@@ -485,19 +463,19 @@ void skinning_mesh_model::load_node(
           vert.position = vec_convert_from_raw<3>(&buffer_pos[v * pos_byte_stride]);
           vert.normal   = vec_convert_from_raw<3>(&buffer_normals[v * norm_byte_stride]).normalized();
           vert.tex_coord_0 = buffer_tex_coord_set_0 ? vec_convert_from_raw<2>(&buffer_tex_coord_set_0[v * uv0_byte_stride]) : vec2{ 0.f, 0.f };
-          vert.tex_coord_1 = buffer_tex_coord_set_1 ? vec_convert_from_raw<2>(&buffer_tex_coord_set_1[v * uv0_byte_stride]) : vec2{ 0.f, 0.f };
+          vert.tex_coord_1 = buffer_tex_coord_set_1 ? vec_convert_from_raw<2>(&buffer_tex_coord_set_1[v * uv1_byte_stride]) : vec2{ 0.f, 0.f };
           vert.color = buffer_color_set_0 ? vec_convert_from_raw<4>(&buffer_color_set_0[v * color_0_byte_stride]) : vec4{ 1.f, 1.f, 1.f, 1.f };
 
           if (has_skin) {
             switch (joint_component_type) {
               case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT : {
                 const auto *buf = static_cast<const uint16_t*>(buffer_joints);
-                vert.joint_indices = vec_convert_from_raw<4, uint16_t, uint32_t>(&buf[v * joint_byte_stride]);
+                vert.joint_indices = vec_convert_from_raw<4, uint16_t, float>(&buf[v * joint_byte_stride]);
                 break;
               }
               case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE : {
                 const auto *buf = static_cast<const uint8_t*>(buffer_joints);
-                vert.joint_indices = vec_convert_from_raw<4, uint8_t, uint32_t>(&buf[v * joint_byte_stride]);
+                vert.joint_indices = vec_convert_from_raw<4, uint8_t, float>(&buf[v * joint_byte_stride]);
                 break;
               }
               default:
@@ -506,9 +484,12 @@ void skinning_mesh_model::load_node(
             }
           }
           else {
-            vert.joint_indices = uvec4{ 0, 0, 0, 0 };
+            vert.joint_indices = vec4{ 0, 0, 0, 0 };
           }
-          vert.joint_weights = has_skin ? vec_convert_from_raw<4>(&buffer_weights[v * weight_byte_stride]) : vec4{ 1.f, 0.f, 0.f, 0.f };
+          vert.joint_weights = has_skin ? vec_convert_from_raw<4>(&buffer_weights[v * weight_byte_stride]) : vec4{ 0.f, 0.f, 0.f, 0.f };
+          if (vert.joint_weights.size() == 0.0f) {
+            vert.joint_weights = vec4{ 1.f, 0.f, 0.f, 0.f };
+          }
           builder.vertex_pos++;
         }
       }

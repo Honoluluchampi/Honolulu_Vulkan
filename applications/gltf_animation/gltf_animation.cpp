@@ -53,7 +53,7 @@ class gltf_animation : public game::engine
     void add_model()
     {
       auto actor = game::actor::create();
-      auto obj = game::skinning_mesh_component::create(actor, "skinning_box.glb");
+      auto obj = game::skinning_mesh_component::create(actor, "human.glb");
       actor->set_scale({0.3f, 0.3f, 0.3f});
       actor->set_rotation({M_PI, 0.f, 0.f});
     }

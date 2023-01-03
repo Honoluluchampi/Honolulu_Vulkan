@@ -57,13 +57,15 @@ void skinning_mesh_model_shading_system::render(const utils::frame_info& frame_i
 {
   pipeline_->bind(frame_info.command_buffer);
 
+  static float animation_timer = 0.f;
+  animation_timer += 0.001f;
+  while (animation_timer > 0.8f) {
+    animation_timer -= 0.8f;
+  }
   for (auto& target : render_target_map_) {
     auto obj = dynamic_cast<skinning_mesh_component*>(&target.second);
 
-    obj->get_model().update_animation(0, 0.3f);
-//    for (auto& node : obj->get_model().get_nodes()) {
-//      node->update();
-//    }
+    obj->get_model().update_animation(0, animation_timer);
 
     graphics::skinning_mesh_push_constant push{};
     push.model_matrix  = obj->get_transform().mat4().cast<float>();

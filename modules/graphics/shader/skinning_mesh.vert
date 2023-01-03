@@ -1,12 +1,12 @@
 #version 450
 
-layout(location = 0) in vec3  in_position;
-layout(location = 1) in vec3  in_normal;
-layout(location = 2) in vec2  in_tex_coord;
-layout(location = 3) in vec2  in_tex_coord_1;
-layout(location = 4) in vec4  in_color;
-layout(location = 5) in uvec4 in_joint_indices;
-layout(location = 6) in vec4  in_joint_weights;
+layout(location = 0) in vec3 in_position;
+layout(location = 1) in vec3 in_normal;
+layout(location = 2) in vec2 in_tex_coord;
+layout(location = 3) in vec2 in_tex_coord_1;
+layout(location = 4) in vec4 in_color;
+layout(location = 5) in vec4 in_joint_indices;
+layout(location = 6) in vec4 in_joint_weights;
 
 layout(location = 0) out vec3 out_color;
 layout(location = 1) out vec3 out_world_position;
@@ -49,9 +49,9 @@ void main() {
   // if mesh is skinned 
   if (node.joint_count > 0.0) {
     mat4 skin_mat = 
-      in_joint_weights.x * node.joint_matrices[int(in_joint_indices.x)] + 
-      in_joint_weights.y * node.joint_matrices[int(in_joint_indices.y)] + 
-      in_joint_weights.z * node.joint_matrices[int(in_joint_indices.z)] + 
+      in_joint_weights.x * node.joint_matrices[int(in_joint_indices.x)] +
+      in_joint_weights.y * node.joint_matrices[int(in_joint_indices.y)] +
+      in_joint_weights.z * node.joint_matrices[int(in_joint_indices.z)] +
       in_joint_weights.w * node.joint_matrices[int(in_joint_indices.w)];
 
     // mat4 transform_matrix = push.model_matrix * node.matrix * skin_mat;
