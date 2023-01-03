@@ -33,8 +33,8 @@ class frame_anim_mesh_model
     frame_anim_mesh_model(device& _device);
 
     // vertex attributes binding info
-    std::vector<VkVertexInputBindingDescription>   get_binding_descriptions();
-    std::vector<VkVertexInputAttributeDescription> get_attributes_descriptions();
+    static std::vector<VkVertexInputBindingDescription>   get_binding_descriptions();
+    static std::vector<VkVertexInputAttributeDescription> get_attributes_descriptions();
 
   private:
     void load_from_skinning_mesh_model(skinning_mesh_model& original, uint32_t max_fps);

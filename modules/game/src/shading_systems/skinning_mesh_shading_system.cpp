@@ -57,7 +57,6 @@ void skinning_mesh_model_shading_system::render(const utils::frame_info& frame_i
 {
   pipeline_->bind(frame_info.command_buffer);
 
-
   for (auto& target : render_target_map_) {
     auto obj = dynamic_cast<skinning_mesh_component*>(&target.second);
 

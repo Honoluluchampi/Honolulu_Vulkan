@@ -22,6 +22,7 @@ enum class shading_type : uint32_t
 {
   MESH         = 10,
   SKINNING_MESH    = 11,
+  FRAME_ANIM_MESH = 12,
   MESHLET      = 20,
   POINT_LIGHT  = 40,
   LINE         = 0,
