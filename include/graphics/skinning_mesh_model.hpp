@@ -79,6 +79,8 @@ class skinning_mesh_model
 
     std::vector<mat4> get_inv_bind_matrices() const;
 
+    skinning_utils::builder get_ownership_of_builder() { return std::move(builder_); }
+
     // for shading system
     static void setup_desc_set_layout(device& device);
     static VkDescriptorSetLayout get_desc_set_layout() { return desc_set_layout_->get_descriptor_set_layout(); }
@@ -119,6 +121,8 @@ class skinning_mesh_model
     u_ptr<buffer> vertex_buffer_;
     u_ptr<buffer> index_buffer_;
     uint32_t index_count_;
+
+    skinning_utils::builder builder_;
 
     std::vector<skinning_utils::mesh_group>  mesh_groups_;
     std::vector<skinning_utils::material>    materials_;

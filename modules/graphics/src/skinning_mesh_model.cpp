@@ -238,7 +238,6 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
   bool file_loaded = binary ? gltf_context.LoadBinaryFromFile(&gltf_model, &err, &warn, filepath.c_str())
                             : gltf_context.LoadASCIIFromFile(&gltf_model, &err, &warn, filepath.c_str());
 
-  skinning_utils::builder builder{};
   size_t vertex_count = 0;
   size_t index_count  = 0;
 
@@ -248,12 +247,12 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
   for (size_t i = 0; i < scene.nodes.size(); i++) {
     get_node_props(gltf_model.nodes[scene.nodes[i]], gltf_model, vertex_count, index_count);
   }
-  builder.vertex_buffer.resize(vertex_count);
-  builder.index_buffer.resize(index_count);
+  builder_.vertex_buffer.resize(vertex_count);
+  builder_.index_buffer.resize(index_count);
 
   for (size_t i = 0; i < scene.nodes.size(); i++) {
     const auto& node = gltf_model.nodes[scene.nodes[i]];
-    load_node(nullptr, node, scene.nodes[i], gltf_model, builder);
+    load_node(nullptr, node, scene.nodes[i], gltf_model, builder_);
   }
 
   if (gltf_model.animations.size() > 0) {
@@ -284,7 +283,7 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
     1,
     VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-    builder.vertex_buffer.data()
+    builder_.vertex_buffer.data()
   );
   index_buffer_ = buffer::create_with_staging(
     device_,
@@ -292,7 +291,7 @@ bool skinning_mesh_model::load_from_gltf(const std::string &filepath, hnll::grap
     1,
     VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-    builder.index_buffer.data()
+    builder_.index_buffer.data()
   );
 
   return true;
