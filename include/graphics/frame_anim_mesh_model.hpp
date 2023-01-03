@@ -32,6 +32,10 @@ class frame_anim_mesh_model
     static u_ptr<frame_anim_mesh_model> create_from_skinning_mesh_model(device& _device, skinning_mesh_model& original, uint32_t max_fps);
     frame_anim_mesh_model(device& _device);
 
+    // vertex attributes binding info
+    std::vector<VkVertexInputBindingDescription>   get_binding_descriptions();
+    std::vector<VkVertexInputAttributeDescription> get_attributes_descriptions();
+
   private:
     void load_from_skinning_mesh_model(skinning_mesh_model& original, uint32_t max_fps);
     void load_animation(

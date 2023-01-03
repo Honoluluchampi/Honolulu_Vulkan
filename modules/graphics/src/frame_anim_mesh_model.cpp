@@ -72,4 +72,33 @@ void frame_anim_mesh_model::load_animation(skinning_mesh_model& original, uint32
   }
 }
 
+std::vector<VkVertexInputBindingDescription>   frame_anim_mesh_model::get_binding_descriptions()
+{
+  std::vector<VkVertexInputBindingDescription> binding_descriptions;
+  binding_descriptions.resize(2);
+  // binding for dynamic attribs
+  binding_descriptions[0].binding   = 0;
+  binding_descriptions[0].stride    = sizeof(dynamic_attributes);
+  binding_descriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+  // binding for common attribs
+  binding_descriptions[1].binding   = 1;
+  binding_descriptions[1].stride    = sizeof(common_attributes);
+  binding_descriptions[1].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+  return binding_descriptions;
+}
+
+std::vector<VkVertexInputAttributeDescription> frame_anim_mesh_model::get_attributes_descriptions()
+{
+  std::vector<VkVertexInputAttributeDescription> attribute_descriptions{};
+  attribute_descriptions.push_back({0, 0, VK_FORMAT_R32G32B32_SFLOAT,    offsetof(dynamic_attributes, position)});
+  attribute_descriptions.push_back({1, 0, VK_FORMAT_R32G32B32_SFLOAT,    offsetof(dynamic_attributes, normal)});
+  attribute_descriptions.push_back({2, 1, VK_FORMAT_R32G32_SFLOAT,       offsetof(common_attributes, uv0)});
+  attribute_descriptions.push_back({3, 1, VK_FORMAT_R32G32_SFLOAT,       offsetof(common_attributes, uv1)});
+  attribute_descriptions.push_back({4, 1, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(common_attributes, color)});
+  attribute_descriptions.push_back({5, 1, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(common_attributes, joints)});
+  attribute_descriptions.push_back({6, 1, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(common_attributes, weights)});
+
+  return attribute_descriptions;
+}
+
 } // namespace hnll::graphics
