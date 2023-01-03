@@ -1,13 +1,18 @@
 // hnll
 #include <game/engine.hpp>
 #include <game/actor.hpp>
+#include <game/shading_system.hpp>
 #include <game/actors/point_light_manager.hpp>
 #include <game/actors/default_camera.hpp>
 #include <game/components/mesh_component.hpp>
+#include <game/shading_systems/mesh_model_shading_system.hpp>
+#include <game/shading_systems/grid_shading_system.hpp>
+#include <game/shading_systems/skinning_mesh_model_shading_system.hpp>
 #include <physics/collision_info.hpp>
 #include <physics/collision_detector.hpp>
 #include <physics/engine.hpp>
 #include <graphics/meshlet_model.hpp>
+#include <graphics/skinning_mesh_model.hpp>
 
 // lib
 #include <imgui.h>
@@ -15,7 +20,6 @@
 // std
 #include <filesystem>
 #include <iostream>
-#include <typeinfo>
 
 namespace hnll::game {
 
@@ -23,34 +27,39 @@ constexpr float MAX_FPS = 60.0f;
 constexpr float MAX_DT = 0.05f;
 
 // static members
-actor_map             engine::active_actor_map_{};
-actor_map             engine::pending_actor_map_{};
-std::vector<actor_id> engine::dead_actor_ids_{};
-mesh_model_map        engine::mesh_model_map_;
-meshlet_model_map     engine::meshlet_model_map_;
-
+actor_map               engine::active_actor_map_{};
+actor_map               engine::pending_actor_map_{};
+std::vector<actor_id>   engine::dead_actor_ids_{};
+mesh_model_map          engine::mesh_model_map_;
+meshlet_model_map       engine::meshlet_model_map_;
+skinning_mesh_model_map engine::skinning_mesh_model_map_;
 
 // glfw
 GLFWwindow* engine::glfw_window_;
 std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> engine::glfw_mouse_button_callbacks_{};
 
-engine::engine(const char* window_name) : graphics_engine_(std::make_unique<hnll::graphics::engine>(window_name))
+engine::engine(const char* window_name)
 {
-  set_glfw_window(); // ?
+  graphics_engine_ = std::make_unique<graphics_engine>(window_name);
+
+  set_glfw_window();
 
 #ifndef IMGUI_DISABLED
   gui_engine_ = std::make_unique<hnll::gui::engine>
-    (graphics_engine_->get_window(), graphics_engine_->get_device());
+    (graphics_engine_->get_window_r(), graphics_engine_->get_device_r());
   // configure dependency between renderers
-  graphics_engine_->get_renderer().set_next_renderer(gui_engine_->renderer_p());
+  graphics_engine_->get_renderer_r().set_next_renderer(gui_engine_->renderer_p());
 #endif
 
+  setup_shading_systems();
   init_actors();
   load_data();
 
   // glfw
   set_glfw_mouse_button_callbacks();
 }
+
+engine::~engine() = default;
 
 void engine::run()
 {
@@ -112,15 +121,14 @@ void engine::update()
   // activate pending actor
   for (auto& pend : pending_actor_map_) {
     if(pend.second->is_renderable())
-      graphics_engine_->set_renderable_component(pend.second->get_renderable_component_sp());
+      graphics_engine_->add_renderable_component(pend.second->get_renderable_component_r());
     active_actor_map_.emplace(pend.first, std::move(pend.second));
   }
   pending_actor_map_.clear();
   // clear all the dead actors
   for (const auto& id : dead_actor_ids_) {
     if (active_actor_map_[id]->is_renderable())
-      graphics_engine_->remove_renderable_component_without_owner(
-        active_actor_map_[id]->get_renderable_component_sp()->get_render_type(), id);
+      graphics_engine_->remove_renderable_component(active_actor_map_[id]->get_renderable_component_r());
     active_actor_map_.erase(id);
   }
   dead_actor_ids_.clear();
@@ -137,13 +145,14 @@ void engine::render()
 {
   viewer_info_  = camera_up_->get_viewer_info();
   graphics_engine_->render(viewer_info_, frustum_info_);
-#ifndef IMGUI_DISABLED
+
+  #ifndef IMGUI_DISABLED
   if (!hnll::graphics::renderer::swap_chain_recreated_){
     gui_engine_->begin_imgui();
     update_gui();
     gui_engine_->render();
   }
-#endif
+  #endif
 }
 
 #ifndef IMGUI_DISABLED
@@ -159,49 +168,57 @@ void engine::update_gui()
 }
 #endif
 
+void engine::setup_shading_systems()
+{
+  auto mesh_model_shader = game::mesh_model_shading_system::create(get_graphics_device());
+  add_shading_system(std::move(mesh_model_shader));
+  auto grid_shader = game::grid_shading_system::create(get_graphics_device());
+  add_shading_system(std::move(grid_shader));
+  auto skinning_shader = game::skinning_mesh_model_shading_system::create(get_graphics_device());
+  add_shading_system(std::move(skinning_shader));
+}
+
 void engine::init_actors()
 {
   // hge actors
   camera_up_ = std::make_shared<default_camera>(*graphics_engine_);
   
   // TODO : configure priorities of actors, then update light manager after all light comp
-  light_manager_up_ = std::make_shared<point_light_manager>(graphics_engine_->get_global_ubo());
-
+  light_manager_up_ = std::make_shared<point_light_manager>(graphics_engine_->get_global_ubo_r());
 }
 
 void engine::load_data()
 {
   // load raw mesh data
-  load_mesh_models();
-  load_meshlet_models();
+  load_models();
   // load_actor();
 }
 
-// use filenames as the key of the map
-// TODO : add models by adding folders or files
-void engine::load_mesh_models()
+void engine::load_models()
 {
   for (const auto& path : utils::loading_directories) {
     for (const auto& file : std::filesystem::directory_iterator(path)) {
       auto filename = std::string(file.path());
+      auto extension = std::string(file.path().extension());
       auto length = filename.size() - path.size();
       auto key = filename.substr(path.size() + 1, length);
-      auto mesh_model = hnll::graphics::mesh_model::create_from_file(get_graphics_device(), key);
-      mesh_model_map_.emplace(key, std::move(mesh_model));
-    }
-  }
-}
 
-void engine::load_meshlet_models()
-{
-  for (const auto& path : utils::loading_directories) {
-    for (const auto& file : std::filesystem::directory_iterator(path)) {
-      auto filename = std::string(file.path());
-      auto length = filename.size() - path.size();
-      auto key = filename.substr(path.size() + 1, length);
-      auto meshlet_model = hnll::graphics::meshlet_model::create_from_file(get_graphics_device(), key);
-      std::cout << key << " :" << std::endl << "\tmeshlet count : " << meshlet_model->get_meshlets_count() << std::endl;
-      meshlet_model_map_.emplace(key, std::move(meshlet_model));
+      if (extension == ".obj" && graphics_engine_->check_shading_system_exists(utils::shading_type::MESH)) {
+        // mesh model
+        auto mesh_model = hnll::graphics::mesh_model::create_from_file(get_graphics_device(), key);
+        mesh_model_map_.emplace(key, std::move(mesh_model));
+      }
+      if (extension == ".obj" && graphics_engine_->check_shading_system_exists(utils::shading_type::MESHLET)) {
+        // meshlet model
+        auto meshlet_model = hnll::graphics::meshlet_model::create_from_file(get_graphics_device(), key);
+        std::cout << key << " :" << std::endl << "\tmeshlet count : " << meshlet_model->get_meshlets_count() << std::endl;
+        meshlet_model_map_.emplace(key, std::move(meshlet_model));
+      }
+
+      if (extension == ".glb") {
+        auto skinning_model = hnll::graphics::skinning_mesh_model::create_from_gltf(filename, get_graphics_device());
+        skinning_mesh_model_map_.emplace(key, std::move(skinning_model));
+      }
     }
   }
 }
@@ -214,6 +231,11 @@ void engine::remove_actor(id_t id)
 {
   pending_actor_map_.erase(id);
   active_actor_map_.erase(id);
+}
+
+void engine::add_shading_system(u_ptr<hnll::game::shading_system> &&shading_system)
+{
+  graphics_engine_->add_shading_system(std::move(shading_system));
 }
 
 void engine::load_actor()
@@ -261,17 +283,16 @@ void engine::add_point_light(s_ptr<actor>& owner, s_ptr<point_light_component>& 
 void engine::add_point_light_without_owner(const s_ptr<point_light_component>& light_comp)
 {
   // path to the renderer
-  graphics_engine_->set_renderable_component(light_comp);
+  graphics_engine_->add_renderable_component(*light_comp);
   // path to the manager
   light_manager_up_->add_light_comp(light_comp);
 }
 
 void engine::remove_point_light_without_owner(component_id id)
 {
-  graphics_engine_->remove_renderable_component_without_owner(render_type::POINT_LIGHT, id);
+  graphics_engine_->remove_renderable_component(utils::shading_type::POINT_LIGHT, id);
   light_manager_up_->remove_light_comp(id);
 }
-
 
 void engine::cleanup()
 {
@@ -280,6 +301,7 @@ void engine::cleanup()
   dead_actor_ids_.clear();
   mesh_model_map_.clear();
   meshlet_model_map_.clear();
+  skinning_mesh_model_map_.clear();
   hnll::graphics::renderer::cleanup_swap_chain();
 }
 
@@ -310,8 +332,11 @@ void engine::set_frustum_info(utils::frustum_info &&_frustum_info)
   frustum_info_ = std::move(_frustum_info);
 }
 
-graphics::meshlet_model& engine::get_meshlet_model(std::string model_name)
+graphics::meshlet_model& engine::get_meshlet_model(const std::string& model_name)
 { return *meshlet_model_map_[model_name]; }
+
+graphics::skinning_mesh_model& engine::get_skinning_mesh_model(const std::string& model_name)
+{ return *skinning_mesh_model_map_[model_name]; }
 
 //actor& engine::get_active_actor(actor_id id)
 //{ return *active_actor_map_[id]; }

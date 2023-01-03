@@ -313,9 +313,13 @@ void pipeline::default_pipeline_config_info(pipeline_config_info &config_info)
   config_info.create_color_blend_state();
   config_info.create_depth_stencil_state();
   config_info.create_dynamic_state();
+}
 
-  config_info.binding_descriptions = vertex::get_binding_descriptions();
-  config_info.attribute_descriptions = vertex::get_attribute_descriptions();
+pipeline_config_info pipeline::default_pipeline_config_info()
+{
+  pipeline_config_info ci;
+  default_pipeline_config_info(ci);
+  return ci;
 }
 
 void pipeline::enable_alpha_blending(pipeline_config_info &config_info)

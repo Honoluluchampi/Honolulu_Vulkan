@@ -27,7 +27,7 @@ class wire_frame_frustum_component : public renderable_component
       return wire_frustum;
     }
     template <Actor A>
-    wire_frame_frustum_component(s_ptr<A>& owner_sp) : renderable_component(owner_sp, render_type::WIRE_FRUSTUM) {}
+    wire_frame_frustum_component(s_ptr<A>& owner_sp) : renderable_component(owner_sp, utils::shading_type::WIRE_FRUSTUM) {}
     ~wire_frame_frustum_component() override = default;
 
     void update_frustum_planes(utils::transform& tf) { frustum_->update_planes(tf); }

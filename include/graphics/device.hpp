@@ -11,13 +11,12 @@
 #include <vector>
 #include <optional>
 
-namespace hnll::graphics {
+namespace hnll {
 
-enum class rendering_type {
-    RASTERIZE,
-    RAY_TRACING,
-    MESH_SHADING,
-};
+// forward declaration
+namespace utils { enum class rendering_type; }
+
+namespace graphics {
 
 // non-member function
 struct swap_chain_support_details
@@ -34,19 +33,17 @@ struct queue_family_indices
   inline bool is_complete() { return (graphics_family_ != std::nullopt) && (present_family_ != std::nullopt); };
 };
 
-class device 
+class device
 {
   public:
-    #ifdef NDEBUG
-      const bool enable_validation_layers = false;
-    #else
-      const bool enable_validation_layers = true;
-    #endif
+#ifdef NDEBUG
+    const bool enable_validation_layers = false;
+#else
+    const bool enable_validation_layers = true;
+#endif
 
     // default device extension is VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    device(window &window,
-           rendering_type type = rendering_type::RASTERIZE
-    );
+    device(window &window, utils::rendering_type type);
     ~device();
 
     // Not copyable or movable
@@ -72,21 +69,21 @@ class device
 
     // Buffer Helper Functions
     void create_buffer(
-        VkDeviceSize size,
-        VkBufferUsageFlags usage,
-        VkMemoryPropertyFlags properties,
-        VkBuffer &buffer,
-        VkDeviceMemory &buffer_memory);
+      VkDeviceSize size,
+      VkBufferUsageFlags usage,
+      VkMemoryPropertyFlags properties,
+      VkBuffer &buffer,
+      VkDeviceMemory &buffer_memory);
     VkCommandBuffer begin_one_shot_commands();
     void end_one_shot_commands(VkCommandBuffer command_buffer);
     void copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size);
     void copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layer_count);
 
     void create_image_with_info(
-        const VkImageCreateInfo &image_info,
-        VkMemoryPropertyFlags properties,
-        VkImage &image,
-        VkDeviceMemory &image_memory);
+      const VkImageCreateInfo &image_info,
+      VkMemoryPropertyFlags properties,
+      VkImage &image,
+      VkDeviceMemory &image_memory);
 
     VkPhysicalDeviceProperties properties;
 
@@ -127,7 +124,8 @@ class device
     const std::vector<const char *> validation_layers_ = {"VK_LAYER_KHRONOS_validation"};
     std::vector<const char *> device_extensions_;
 
-    rendering_type rendering_type_;
+    utils::rendering_type rendering_type_;
 };
 
-} // namespace hnll::graphics
+
+}} // namespace hnll::graphics

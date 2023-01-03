@@ -5,20 +5,20 @@
 namespace hnll {
 
 // forward declaration
-
-namespace graphics { class engine; }
+namespace utils    { class frustum_info; }
 namespace geometry { class perspective_frustum; }
 
 namespace game {
 
 // forward declaration
+class graphics_engine;
 class viewer_component;
 class wire_frame_frustum_component;
 class keyboard_movement_component;
 
 class virtual_camera : public actor {
   public:
-    static s_ptr<virtual_camera> create(hnll::graphics::engine& _engine);
+    static s_ptr<virtual_camera> create(graphics_engine& _engine);
 
     virtual_camera()  = default;
     ~virtual_camera() = default;
