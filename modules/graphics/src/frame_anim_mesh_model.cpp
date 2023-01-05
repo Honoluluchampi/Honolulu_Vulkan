@@ -78,10 +78,19 @@ void frame_anim_mesh_model::load_from_skinning_mesh_model(hnll::graphics::skinni
   }
 }
 
+Eigen::Matrix3f mat4to3(const mat4& original)
+{
+  Eigen::Matrix3f ret;
+  ret << original(0, 0), original(0, 1), original(0, 2),
+         original(1, 0), original(1, 1), original(1, 2),
+         original(2, 0), original(2, 1), original(2, 2);
+  return ret;
+}
+
 void extract_node_vertices(
   skinning_utils::node& node,
   std::vector<frame_anim_mesh_model::dynamic_attributes>& buffer,
-  skinning_utils::builder& builder,
+  const skinning_utils::builder& builder,
   std::vector<bool>& vertex_computed)
 {
   for (auto& mesh : node.mesh_group_->meshes) {
@@ -91,6 +100,27 @@ void extract_node_vertices(
       if (vertex_computed[index])
         continue;
 
+      // compute vertex position and normal
+      const auto& target = builder.vertex_buffer[index];
+      vec3 new_position, new_normal;
+      if (node.mesh_group_->block.joint_count > 0) {
+        const auto &joint_matrices = node.mesh_group_->block.joint_matrices;
+        mat4 skin_mat = target.joint_weights.x() * joint_matrices[static_cast<int>(target.joint_indices.x())]
+                        + target.joint_weights.y() * joint_matrices[static_cast<int>(target.joint_indices.y())]
+                        + target.joint_weights.z() * joint_matrices[static_cast<int>(target.joint_indices.z())]
+                        + target.joint_weights.w() * joint_matrices[static_cast<int>(target.joint_indices.w())];
+        mat4 transform_mat = node.mesh_group_->block.matrix * skin_mat;
+        vec4 position = transform_mat * vec4{ target.position.x(), target.position.y(), target.position.z(), 1.f};
+        new_position = vec3{ position.x(), position.y(), position.z() };
+        new_normal = mat4to3(transform_mat.inverse().transpose().normalized()) * target.normal;
+      }
+      else {
+        vec4 position = node.mesh_group_->block.matrix * vec4{ target.position.x(), target.position.y(), target.position.z(), 1.f};
+        new_position = vec3{ position.x(), position.y(), position.z() };
+        new_normal = mat4to3(node.mesh_group_->block.matrix.inverse().transpose().normalized()) * target.normal;
+      }
+      buffer[index] = { new_position, new_normal };
+      vertex_computed[index] = true;
     }
   }
 }
@@ -98,7 +128,7 @@ void extract_node_vertices(
 std::vector<frame_anim_mesh_model::dynamic_attributes>
   frame_anim_mesh_model::extract_dynamic_attributes(
     skinning_mesh_model& original,
-    skinning_utils::builder& builder)
+    const skinning_utils::builder& builder)
 {
   std::vector<dynamic_attributes> new_dynamic_attribs(vertex_count_);
   std::vector<bool> vertex_computed(vertex_count_, false);
