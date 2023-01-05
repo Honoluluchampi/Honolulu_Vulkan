@@ -130,12 +130,12 @@ void extract_node_vertices(
         mat4 transform_mat = node.mesh_group_->block.matrix * skin_mat;
         vec4 position = transform_mat * vec4{ target.position.x(), target.position.y(), target.position.z(), 1.f};
         new_position = vec3{ position.x(), position.y(), position.z() };
-        new_normal = mat4to3(transform_mat.inverse().transpose().normalized()) * target.normal;
+        new_normal = mat4to3(transform_mat) * target.normal;
       }
       else {
         vec4 position = node.mesh_group_->block.matrix * vec4{ target.position.x(), target.position.y(), target.position.z(), 1.f};
         new_position = vec3{ position.x(), position.y(), position.z() };
-        new_normal = mat4to3(node.mesh_group_->block.matrix.inverse().transpose().normalized()) * target.normal;
+        new_normal = mat4to3(node.mesh_group_->block.matrix) * target.normal;
       }
       buffer[index] = { new_position, new_normal };
       vertex_computed[index] = true;
