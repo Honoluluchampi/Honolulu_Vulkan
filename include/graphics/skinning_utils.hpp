@@ -1,7 +1,7 @@
 #pragma once
 
-// std
-#include <memory>
+// hnll
+#include <utils/common_using.hpp>
 
 // lib
 #define GLM_FORCE_RADIANS
@@ -10,7 +10,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
-#include <eigen3/Eigen/Dense>
 #include <vulkan/vulkan.h>
 
 // forward declaration
@@ -21,16 +20,6 @@ namespace tinygltf {
 }
 
 namespace hnll {
-
-using vec2  = Eigen::Vector2f;
-using vec3  = Eigen::Vector3f;
-using vec4  = Eigen::Vector4f;
-using uvec4 = Eigen::Matrix<unsigned, 4, 1>;
-using mat4  = Eigen::Matrix4f;
-using quat  = Eigen::Quaternionf;
-template<class T> using u_ptr = std::unique_ptr<T>;
-template<class T> using s_ptr = std::shared_ptr<T>;
-
 namespace graphics {
 
 class device;

@@ -13,6 +13,7 @@ set(TARGETS
         src/utils.cpp
         src/skinning_mesh_model.cpp
         src/skinning_utils.cpp
+        src/frame_anim_mesh_model.cpp
         $ENV{HNLL_ENGN}/submodules/extensions/ray_tracing_extensions.cpp
         )
 

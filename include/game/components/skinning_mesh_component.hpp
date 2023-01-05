@@ -16,7 +16,6 @@ class skinning_mesh_component : public renderable_component
       auto& mesh_model = engine::get_skinning_mesh_model(model_name);
       auto mesh = std::make_shared<skinning_mesh_component>(owner_sp, mesh_model);
       owner_sp->set_renderable_component(mesh);
-      owner_sp->add_component(mesh);
       return mesh;
     }
 
@@ -32,8 +31,8 @@ class skinning_mesh_component : public renderable_component
     void update_component(float dt) override
     {
       animation_timer_ += dt;
-      while (animation_timer_ > end_time_) {
-        animation_timer_ -= end_time_;
+      while (animation_timer_ >= end_time_) {
+        animation_timer_ -= (end_time_ - start_time_);
       }
       model_.update_animation(target_animation_, animation_timer_);
     }

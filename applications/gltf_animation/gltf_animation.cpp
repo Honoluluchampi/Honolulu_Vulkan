@@ -3,8 +3,10 @@
 #include <game/shading_systems/mesh_model_shading_system.hpp>
 #include <game/shading_systems/grid_shading_system.hpp>
 #include <game/shading_systems/skinning_mesh_model_shading_system.hpp>
+#include <game/shading_systems/frame_anim_mesh_model_shading_system.hpp>
 #include <game/components/mesh_component.hpp>
 #include <game/components/skinning_mesh_component.hpp>
+#include <game/components/frame_anim_mesh_component.hpp>
 #include <game/components/point_light_component.hpp>
 
 // std
@@ -29,6 +31,8 @@ class gltf_animation : public game::engine
     {
       auto skinning_shading_system = game::skinning_mesh_model_shading_system::create(get_graphics_device());
       add_shading_system(std::move(skinning_shading_system));
+      auto frame_anim_shading_system = game::frame_anim_mesh_model_shading_system::create((get_graphics_device()));
+      add_shading_system(std::move(frame_anim_shading_system));
     }
 
     void setup_lights()
@@ -52,10 +56,19 @@ class gltf_animation : public game::engine
 
     void add_model()
     {
+      std::string model_name = "human.glb";
+
       auto actor = game::actor::create();
-      auto obj = game::skinning_mesh_component::create(actor, "human.glb");
+      auto obj = game::skinning_mesh_component::create(actor, model_name);
       actor->set_scale({0.3f, 0.3f, 0.3f});
       actor->set_rotation({M_PI, 0.f, 0.f});
+      actor->set_translation({3.f, 0.f, 0.f});
+
+      auto frame_actor = game::actor::create();
+      auto frame_mesh = game::frame_anim_mesh_component::create(frame_actor, get_graphics_device(), model_name);
+      frame_actor->set_scale({0.3f, 0.3f, 0.3f});
+      frame_actor->set_rotation({M_PI, 0.f, 0.f});
+      frame_actor->set_translation({-3.f, 0.f, 0.f});
     }
 };
 } // namespace hnll
