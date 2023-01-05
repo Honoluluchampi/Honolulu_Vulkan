@@ -20,6 +20,15 @@ void frame_anim_mesh_model::load_from_skinning_mesh_model(hnll::graphics::skinni
 {
   auto original_data = original.get_ownership_of_builder();
 
+  // extract time info
+  auto& animations = original.get_animations();
+  start_times_.resize(animations.size());
+  end_times_.resize(animations.size());
+  for (int i = 0; i < animations.size(); i++) {
+    start_times_[i] = animations[i].start;
+    end_times_[i]   = animations[i].end;
+  }
+
   // extract common attributes
   std::vector<common_attributes> common_attribs;
   for (auto& data : original_data.vertex_buffer) {
@@ -77,9 +86,9 @@ void frame_anim_mesh_model::load_from_skinning_mesh_model(hnll::graphics::skinni
     }
   }
 
-  max_frame_indices_.resize(dynamic_attributes_buffers_.size());
+  frame_counts_.resize(dynamic_attributes_buffers_.size());
   for (int i = 0; i < dynamic_attributes_buffers_.size(); i++) {
-    max_frame_indices_[i] = dynamic_attributes_buffers_[i].size();
+    frame_counts_[i] = dynamic_attributes_buffers_[i].size();
   }
 }
 
