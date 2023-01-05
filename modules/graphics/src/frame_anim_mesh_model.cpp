@@ -40,6 +40,16 @@ void frame_anim_mesh_model::load_from_skinning_mesh_model(hnll::graphics::skinni
     common_attribs.data()
   );
 
+  // extract index buffer
+  index_buffer_ = buffer::create_with_staging(
+    device_,
+    original_data.index_buffer.size() * sizeof(uint32_t),
+    1,
+    VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+    original_data.index_buffer.data()
+  );
+
   // extract dynamic attributes
   auto animation_count = original.get_animations().size();
   dynamic_attributes_buffers_.resize(animation_count);
@@ -48,13 +58,20 @@ void frame_anim_mesh_model::load_from_skinning_mesh_model(hnll::graphics::skinni
   }
 }
 
+std::vector<frame_anim_mesh_model::dynamic_attributes> extract_dynamic_attributes(skinning_mesh_model& original)
+{
+  std::vector<frame_anim_mesh_model::dynamic_attributes> new_dynamic_attribs;
+
+}
+
 void frame_anim_mesh_model::load_animation(skinning_mesh_model& original, uint32_t animation_index, uint32_t max_fps)
 {
   auto& anim = original.get_animations()[animation_index];
   float timer = anim.start;
-  while (timer > anim.end) {
+  while (timer <= anim.end) {
     // calculate new position and normal
     std::vector<dynamic_attributes> new_dynamic_attribs;
+    original.update_animation(animation_index, timer);
 
     // assign buffer
     auto new_buffer = buffer::create_with_staging(

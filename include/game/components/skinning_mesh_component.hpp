@@ -33,7 +33,7 @@ class skinning_mesh_component : public renderable_component
     {
       animation_timer_ += dt;
       while (animation_timer_ > end_time_) {
-        animation_timer_ -= end_time_;
+        animation_timer_ -= (end_time_ - start_time_);
       }
       model_.update_animation(target_animation_, animation_timer_);
     }
