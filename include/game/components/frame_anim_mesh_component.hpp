@@ -17,7 +17,6 @@ class frame_anim_mesh_component : public renderable_component
       auto frame_mesh = graphics::frame_anim_mesh_model::create_from_skinning_mesh_model(device, skinning_mesh);
       auto ret = std::make_shared<frame_anim_mesh_component>(owner, std::move(frame_mesh));
       owner->set_renderable_component(ret);
-      owner->add_component(ret);
       return ret;
     }
 
