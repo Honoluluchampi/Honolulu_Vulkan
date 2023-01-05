@@ -150,6 +150,27 @@ std::vector<frame_anim_mesh_model::dynamic_attributes>
   return new_dynamic_attribs;
 }
 
+void frame_anim_mesh_model::bind(uint32_t animation_index, uint32_t frame_index, VkCommandBuffer command_buffer)
+{
+  // bind vertex buffer
+  VkBuffer vertex_buffers[] = {
+    dynamic_attributes_buffers_[animation_index][frame_index]->get_buffer(),
+    common_attributes_buffer_->get_buffer()
+  };
+  VkDeviceSize offsets[] = {
+    0,
+    0
+  };
+  vkCmdBindVertexBuffers(command_buffer, 0, 2, vertex_buffers, offsets);
+
+  vkCmdBindIndexBuffer(command_buffer, index_buffer_->get_buffer(), 0, VK_INDEX_TYPE_UINT32);
+}
+
+void frame_anim_mesh_model::draw(VkCommandBuffer command_buffer)
+{
+  vkCmdDrawIndexed(command_buffer, index_count_, 1, 0, 0, 0);
+}
+
 std::vector<VkVertexInputBindingDescription>   frame_anim_mesh_model::get_binding_descriptions()
 {
   std::vector<VkVertexInputBindingDescription> binding_descriptions;
