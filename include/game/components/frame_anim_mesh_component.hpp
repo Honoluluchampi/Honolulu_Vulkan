@@ -27,10 +27,22 @@ class frame_anim_mesh_component : public renderable_component
     {
 
     }
+
+    void bind_and_draw(VkCommandBuffer command_buffer)
+    {
+      model_->bind(animation_index_, frame_index_, command_buffer);
+      model_->draw(command_buffer);
+    }
+
+    // getter
+    uint32_t get_animation_index() { return animation_index_; }
+    uint32_t get_frame_index()     { return frame_index_; }
+
   private:
     // TODO : make this reference
     u_ptr<graphics::frame_anim_mesh_model> model_;
-    float
+    uint32_t animation_index_ = 0;
+    uint32_t frame_index_ = 0;
 };
 
 }// namespace hnll::game
