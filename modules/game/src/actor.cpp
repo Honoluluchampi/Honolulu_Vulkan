@@ -29,10 +29,12 @@ void actor::update(float dt)
 
 void actor::update_components(float dt)
 {
-for (const auto& comp : unique_components_)
-  comp->update(dt);
-for (const auto& comp : shared_components_)
-  comp->update(dt);
+  for (const auto& comp : unique_components_)
+    comp->update(dt);
+  for (const auto& comp : shared_components_)
+    comp->update(dt);
+  if (is_renderable())
+    renderable_component_->update(dt);
 }
 
 void actor::re_update(const physics::collision_info &info) {}

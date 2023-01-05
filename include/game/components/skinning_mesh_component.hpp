@@ -16,7 +16,6 @@ class skinning_mesh_component : public renderable_component
       auto& mesh_model = engine::get_skinning_mesh_model(model_name);
       auto mesh = std::make_shared<skinning_mesh_component>(owner_sp, mesh_model);
       owner_sp->set_renderable_component(mesh);
-      owner_sp->add_component(mesh);
       return mesh;
     }
 

@@ -15,6 +15,8 @@ namespace skinning_utils {
   struct builder;
 }
 
+#define MAX_FPS 60
+
 class frame_anim_mesh_model
 {
   public:
@@ -32,8 +34,14 @@ class frame_anim_mesh_model
       vec4 weights;
     };
 
-    static u_ptr<frame_anim_mesh_model> create_from_skinning_mesh_model(device& _device, skinning_mesh_model& original, uint32_t max_fps);
+    static u_ptr<frame_anim_mesh_model> create_from_skinning_mesh_model(device& _device, skinning_mesh_model& original, uint32_t max_fps = MAX_FPS);
     frame_anim_mesh_model(device& _device);
+
+    void bind(uint32_t animation_index, VkCommandBuffer command_buffer);
+    void draw(VkCommandBuffer command_buffer);
+
+    // getter
+    uint32_t get_max_frame_index(uint32_t animation_index) { return max_frame_indices_[animation_index]; }
 
     // vertex attributes binding info
     static std::vector<VkVertexInputBindingDescription>   get_binding_descriptions();
@@ -53,6 +61,8 @@ class frame_anim_mesh_model
     // first vector : animation index
     // second vector : animation frame
     std::vector<std::vector<u_ptr<buffer>>> dynamic_attributes_buffers_;
+
+    std::vector<uint32_t> max_frame_indices_;
     uint32_t vertex_count_;
     uint32_t index_count_;
 };

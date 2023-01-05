@@ -8,7 +8,7 @@ namespace hnll::graphics {
 
 frame_anim_mesh_model::frame_anim_mesh_model(device &_device) : device_(_device) {}
 
-u_ptr<frame_anim_mesh_model> frame_anim_mesh_model::create_from_skinning_mesh_model(device& _device, skinning_mesh_model &original, uint32_t max_fps = MAX_FPS)
+u_ptr<frame_anim_mesh_model> frame_anim_mesh_model::create_from_skinning_mesh_model(device& _device, skinning_mesh_model &original, uint32_t max_fps)
 {
   auto ret = std::make_unique<frame_anim_mesh_model>(_device);
   ret->load_from_skinning_mesh_model(original, max_fps);
@@ -76,6 +76,11 @@ void frame_anim_mesh_model::load_from_skinning_mesh_model(hnll::graphics::skinni
       timer += 1.f / static_cast<float>(max_fps);
     }
   }
+
+  max_frame_indices_.resize(dynamic_attributes_buffers_.size());
+  for (int i = 0; i < dynamic_attributes_buffers_.size(); i++) {
+    max_frame_indices_[i] = dynamic_attributes_buffers_[i].size();
+  }
 }
 
 Eigen::Matrix3f mat4to3(const mat4& original)
@@ -106,9 +111,9 @@ void extract_node_vertices(
       if (node.mesh_group_->block.joint_count > 0) {
         const auto &joint_matrices = node.mesh_group_->block.joint_matrices;
         mat4 skin_mat = target.joint_weights.x() * joint_matrices[static_cast<int>(target.joint_indices.x())]
-                        + target.joint_weights.y() * joint_matrices[static_cast<int>(target.joint_indices.y())]
-                        + target.joint_weights.z() * joint_matrices[static_cast<int>(target.joint_indices.z())]
-                        + target.joint_weights.w() * joint_matrices[static_cast<int>(target.joint_indices.w())];
+                      + target.joint_weights.y() * joint_matrices[static_cast<int>(target.joint_indices.y())]
+                      + target.joint_weights.z() * joint_matrices[static_cast<int>(target.joint_indices.z())]
+                      + target.joint_weights.w() * joint_matrices[static_cast<int>(target.joint_indices.w())];
         mat4 transform_mat = node.mesh_group_->block.matrix * skin_mat;
         vec4 position = transform_mat * vec4{ target.position.x(), target.position.y(), target.position.z(), 1.f};
         new_position = vec3{ position.x(), position.y(), position.z() };
