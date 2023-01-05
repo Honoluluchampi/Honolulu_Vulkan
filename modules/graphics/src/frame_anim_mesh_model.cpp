@@ -71,7 +71,7 @@ void frame_anim_mesh_model::load_from_skinning_mesh_model(hnll::graphics::skinni
       // assign buffer
       auto new_buffer = buffer::create_with_staging(
         device_,
-        new_dynamic_attribs.size() * sizeof(dynamic_attributes),
+        144 * sizeof(dynamic_attributes),
         1,
         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -105,6 +105,9 @@ void extract_node_vertices(
   const skinning_utils::builder& builder,
   std::vector<bool>& vertex_computed)
 {
+  if (node.mesh_group_ == nullptr)
+    return;
+
   for (auto& mesh : node.mesh_group_->meshes) {
     for (int i = 0; i < mesh.index_count; i++) {
       uint32_t index = builder.index_buffer[i + mesh.first_index];
@@ -142,13 +145,13 @@ std::vector<frame_anim_mesh_model::dynamic_attributes>
     skinning_mesh_model& original,
     const skinning_utils::builder& builder)
 {
-  std::vector<dynamic_attributes> new_dynamic_attribs(vertex_count_);
+  vertex_count_ = builder.vertex_buffer.size();
+
+  std::vector<dynamic_attributes> new_dynamic_attribs(vertex_count_, {{1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}});
   std::vector<bool> vertex_computed(vertex_count_, false);
 
   for (auto& node : original.get_nodes()) {
-    if (node->mesh_group_) {
-      extract_node_vertices(*node, new_dynamic_attribs, builder, vertex_computed);
-    }
+    extract_node_vertices(*node, new_dynamic_attribs, builder, vertex_computed);
     for (auto& child : node->children) {
       extract_node_vertices(*child, new_dynamic_attribs, builder, vertex_computed);
     }
