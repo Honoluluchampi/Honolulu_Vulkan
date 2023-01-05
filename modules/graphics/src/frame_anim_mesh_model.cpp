@@ -36,8 +36,6 @@ void frame_anim_mesh_model::load_from_skinning_mesh_model(hnll::graphics::skinni
     new_ca.uv0     = data.tex_coord_0;
     new_ca.uv1     = data.tex_coord_1;
     new_ca.color   = data.color;
-    new_ca.joints  = data.joint_indices;
-    new_ca.weights = data.joint_weights;
     common_attribs.emplace_back(std::move(new_ca));
   }
   common_attributes_buffer_ = buffer::create_with_staging(
@@ -203,8 +201,6 @@ std::vector<VkVertexInputAttributeDescription> frame_anim_mesh_model::get_attrib
   attribute_descriptions.push_back({2, 1, VK_FORMAT_R32G32_SFLOAT,       offsetof(common_attributes, uv0)});
   attribute_descriptions.push_back({3, 1, VK_FORMAT_R32G32_SFLOAT,       offsetof(common_attributes, uv1)});
   attribute_descriptions.push_back({4, 1, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(common_attributes, color)});
-  attribute_descriptions.push_back({5, 1, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(common_attributes, joints)});
-  attribute_descriptions.push_back({6, 1, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(common_attributes, weights)});
 
   return attribute_descriptions;
 }

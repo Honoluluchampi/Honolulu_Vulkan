@@ -22,16 +22,14 @@ class frame_anim_mesh_model
   public:
     struct dynamic_attributes
     {
-      vec3 position;
-      vec3 normal;
+      alignas(16) vec3 position;
+      alignas(16) vec3 normal;
     };
     struct common_attributes
     {
       vec2 uv0;
       vec2 uv1;
       vec4 color;
-      vec4 joints;
-      vec4 weights;
     };
 
     static u_ptr<frame_anim_mesh_model> create_from_skinning_mesh_model(device& _device, skinning_mesh_model& original, uint32_t max_fps = MAX_FPS);
