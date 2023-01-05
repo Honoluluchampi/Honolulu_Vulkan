@@ -54,39 +54,65 @@ void frame_anim_mesh_model::load_from_skinning_mesh_model(hnll::graphics::skinni
   auto animation_count = original.get_animations().size();
   dynamic_attributes_buffers_.resize(animation_count);
   for (int i = 0; i < animation_count; i++) {
-    load_animation(original, i, max_fps);
+    auto& anim = original.get_animations()[i];
+    float timer = anim.start;
+    while (timer <= anim.end) {
+      // calculate new position and normal
+      original.update_animation(i, timer);
+      auto new_dynamic_attribs = extract_dynamic_attributes(original, original_data);
+
+      // assign buffer
+      auto new_buffer = buffer::create_with_staging(
+        device_,
+        new_dynamic_attribs.size() * sizeof(dynamic_attributes),
+        1,
+        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        new_dynamic_attribs.data()
+      );
+      dynamic_attributes_buffers_[i].emplace_back(std::move(new_buffer));
+
+      // update timer
+      timer += 1.f / static_cast<float>(max_fps);
+    }
   }
 }
 
-std::vector<frame_anim_mesh_model::dynamic_attributes> extract_dynamic_attributes(skinning_mesh_model& original)
+void extract_node_vertices(
+  skinning_utils::node& node,
+  std::vector<frame_anim_mesh_model::dynamic_attributes>& buffer,
+  skinning_utils::builder& builder,
+  std::vector<bool>& vertex_computed)
 {
-  std::vector<frame_anim_mesh_model::dynamic_attributes> new_dynamic_attribs;
+  for (auto& mesh : node.mesh_group_->meshes) {
+    for (int i = 0; i < mesh.index_count; i++) {
+      uint32_t index = builder.index_buffer[i + mesh.first_index];
+      // already calculated
+      if (vertex_computed[index])
+        continue;
 
+    }
+  }
 }
 
-void frame_anim_mesh_model::load_animation(skinning_mesh_model& original, uint32_t animation_index, uint32_t max_fps)
+std::vector<frame_anim_mesh_model::dynamic_attributes>
+  frame_anim_mesh_model::extract_dynamic_attributes(
+    skinning_mesh_model& original,
+    skinning_utils::builder& builder)
 {
-  auto& anim = original.get_animations()[animation_index];
-  float timer = anim.start;
-  while (timer <= anim.end) {
-    // calculate new position and normal
-    std::vector<dynamic_attributes> new_dynamic_attribs;
-    original.update_animation(animation_index, timer);
+  std::vector<dynamic_attributes> new_dynamic_attribs(vertex_count_);
+  std::vector<bool> vertex_computed(vertex_count_, false);
 
-    // assign buffer
-    auto new_buffer = buffer::create_with_staging(
-      device_,
-      new_dynamic_attribs.size() * sizeof(dynamic_attributes),
-      1,
-      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-      new_dynamic_attribs.data()
-    );
-    dynamic_attributes_buffers_[animation_index].emplace_back(std::move(new_buffer));
-
-    // update timer
-    timer += 1.f / static_cast<float>(max_fps);
+  for (auto& node : original.get_nodes()) {
+    if (node->mesh_group_) {
+      extract_node_vertices(*node, new_dynamic_attribs, builder, vertex_computed);
+    }
+    for (auto& child : node->children) {
+      extract_node_vertices(*child, new_dynamic_attribs, builder, vertex_computed);
+    }
   }
+
+  return new_dynamic_attribs;
 }
 
 std::vector<VkVertexInputBindingDescription>   frame_anim_mesh_model::get_binding_descriptions()

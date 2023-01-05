@@ -10,7 +10,10 @@ namespace graphics {
 
 // forward declaration
 class skinning_mesh_model;
-namespace skinning_utils { struct animation; }
+namespace skinning_utils {
+  struct animation;
+  struct builder;
+}
 
 class frame_anim_mesh_model
 {
@@ -38,10 +41,9 @@ class frame_anim_mesh_model
 
   private:
     void load_from_skinning_mesh_model(skinning_mesh_model& original, uint32_t max_fps);
-    void load_animation(
+    std::vector<dynamic_attributes> extract_dynamic_attributes(
       skinning_mesh_model& original,
-      uint32_t animation_index,
-      uint32_t max_fps);
+      skinning_utils::builder& builder);
 
     device& device_;
     // uv, color, joint info
@@ -51,6 +53,8 @@ class frame_anim_mesh_model
     // first vector : animation index
     // second vector : animation frame
     std::vector<std::vector<u_ptr<buffer>>> dynamic_attributes_buffers_;
+    uint32_t vertex_count_;
+    uint32_t index_count_;
 };
 
 }} // namespace hnll::graphics
