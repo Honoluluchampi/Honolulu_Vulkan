@@ -18,7 +18,10 @@ u_ptr<frame_anim_mesh_model> frame_anim_mesh_model::create_from_skinning_mesh_mo
 
 void frame_anim_mesh_model::load_from_skinning_mesh_model(hnll::graphics::skinning_mesh_model &original, uint32_t max_fps)
 {
-  auto original_data = original.get_ownership_of_builder();
+  auto builder = original.get_ownership_of_builder();
+
+  vertex_count_ = builder.vertex_buffer.size();
+  index_count_ = builder.index_buffer.size();
 
   // extract time info
   auto& animations = original.get_animations();
@@ -31,7 +34,7 @@ void frame_anim_mesh_model::load_from_skinning_mesh_model(hnll::graphics::skinni
 
   // extract common attributes
   std::vector<common_attributes> common_attribs;
-  for (auto& data : original_data.vertex_buffer) {
+  for (auto& data : builder.vertex_buffer) {
     common_attributes new_ca;
     new_ca.uv0     = data.tex_coord_0;
     new_ca.uv1     = data.tex_coord_1;
@@ -50,11 +53,11 @@ void frame_anim_mesh_model::load_from_skinning_mesh_model(hnll::graphics::skinni
   // extract index buffer
   index_buffer_ = buffer::create_with_staging(
     device_,
-    original_data.index_buffer.size() * sizeof(uint32_t),
+    builder.index_buffer.size() * sizeof(uint32_t),
     1,
     VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-    original_data.index_buffer.data()
+    builder.index_buffer.data()
   );
 
   // extract dynamic attributes
@@ -66,7 +69,7 @@ void frame_anim_mesh_model::load_from_skinning_mesh_model(hnll::graphics::skinni
     while (timer <= anim.end) {
       // calculate new position and normal
       original.update_animation(i, timer);
-      auto new_dynamic_attribs = extract_dynamic_attributes(original, original_data);
+      auto new_dynamic_attribs = extract_dynamic_attributes(original, builder);
 
       // assign buffer
       auto new_buffer = buffer::create_with_staging(
@@ -145,9 +148,7 @@ std::vector<frame_anim_mesh_model::dynamic_attributes>
     skinning_mesh_model& original,
     const skinning_utils::builder& builder)
 {
-  vertex_count_ = builder.vertex_buffer.size();
-
-  std::vector<dynamic_attributes> new_dynamic_attribs(vertex_count_, {{1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}});
+  std::vector<dynamic_attributes> new_dynamic_attribs(vertex_count_);
   std::vector<bool> vertex_computed(vertex_count_, false);
 
   for (auto& node : original.get_nodes()) {
