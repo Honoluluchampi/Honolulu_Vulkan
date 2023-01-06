@@ -1,4 +1,5 @@
 // hnll
+#include <graphics/buffer.hpp>
 #include <graphics/frame_anim_mesh_model.hpp>
 #include <graphics/skinning_mesh_model.hpp>
 
@@ -168,10 +169,7 @@ void frame_anim_mesh_model::bind(uint32_t animation_index, uint32_t frame_index,
     dynamic_attributes_buffers_[animation_index][frame_index]->get_buffer(),
     common_attributes_buffer_->get_buffer()
   };
-  VkDeviceSize offsets[] = {
-    0,
-    0
-  };
+  VkDeviceSize offsets[] = { 0, 0 };
   vkCmdBindVertexBuffers(command_buffer, 0, 2, vertex_buffers, offsets);
 
   vkCmdBindIndexBuffer(command_buffer, index_buffer_->get_buffer(), 0, VK_INDEX_TYPE_UINT32);

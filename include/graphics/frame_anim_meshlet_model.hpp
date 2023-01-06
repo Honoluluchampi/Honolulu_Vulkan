@@ -3,6 +3,10 @@
 // hnll
 #include <utils/common_using.hpp>
 #include <graphics/frame_anim_utils.hpp>
+#include <graphics/meshlet_utils.hpp>
+
+//lib
+#include <vulkan/vulkan.h>
 
 namespace hnll {
 
@@ -17,12 +21,23 @@ namespace skinning_utils {
   struct builder;
 }
 
-class frame_anim_mesh_model
+class frame_anim_meshlet_model
 {
   public:
+    struct dynamic_attributes
+    {
+      alignas(16) vec3 position;
+      alignas(16) vec3 normal;
+    };
+    struct common_attributes
+    {
+      vec2 uv0;
+      vec2 uv1;
+      vec4 color;
+    };
 
-    static u_ptr<frame_anim_mesh_model> create_from_skinning_mesh_model(device& _device, skinning_mesh_model& original, uint32_t max_fps = frame_anim_utils::MAX_FPS);
-    frame_anim_mesh_model(device& _device);
+    static u_ptr<frame_anim_meshlet_model> create_from_skinning_mesh_model(device& _device, skinning_mesh_model& original, uint32_t max_fps = frame_anim_utils::MAX_FPS);
+    frame_anim_meshlet_model(device& _device);
 
     void bind(uint32_t animation_index, uint32_t frame_index, VkCommandBuffer command_buffer);
     void draw(VkCommandBuffer command_buffer);
@@ -32,10 +47,6 @@ class frame_anim_mesh_model
     uint32_t get_frame_count(uint32_t animation_index) const { return frame_counts_[animation_index]; }
     float    get_start_time(uint32_t animation_index)  const { return start_times_[animation_index]; }
     float    get_end_time(uint32_t animation_index)    const { return end_times_[animation_index]; }
-
-    // vertex attributes binding info
-    static std::vector<VkVertexInputBindingDescription>   get_binding_descriptions();
-    static std::vector<VkVertexInputAttributeDescription> get_attributes_descriptions();
 
   private:
     void load_from_skinning_mesh_model(skinning_mesh_model& original, uint32_t max_fps);
@@ -48,9 +59,15 @@ class frame_anim_mesh_model
     u_ptr<buffer> common_attributes_buffer_;
     // index
     u_ptr<buffer> index_buffer_;
-    // first vector : animation index
-    // second vector : animation frame
+    // first index : animation index
+    // second index : animation frame
     std::vector<std::vector<u_ptr<buffer>>> dynamic_attributes_buffers_;
+
+    // this meshlet info is used by all frames
+    u_ptr<buffer> meshlet_buffer_;
+    // bounding sphere is assigned for each frame's each meshlet
+    // index usage is same as dynamic_attributes_buffers_
+    std::vector<std::vector<u_ptr<buffer>>> sphere_buffers_;
 
     std::vector<uint32_t> frame_counts_;
     uint32_t vertex_count_;
