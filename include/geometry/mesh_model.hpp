@@ -37,6 +37,7 @@ namespace hnll::graphics
 class mesh_model;
 struct vertex;
 struct mesh_builder;
+namespace frame_anim_utils { struct dynamic_attributes; }
 }
 
 namespace hnll::geometry {
@@ -64,6 +65,10 @@ class mesh_model
   public:
     static s_ptr<mesh_model> create();
     static s_ptr<mesh_model> create_from_obj_file(const std::string& filename);
+    // for frame_anim_meshlet_model
+    static s_ptr<mesh_model> create_from_dynamic_attributes(
+      const std::vector<graphics::frame_anim_utils::dynamic_attributes>& vertices,
+      const std::vector<uint32_t>& indices);
 
     mesh_model();
     void align_vertex_id();
