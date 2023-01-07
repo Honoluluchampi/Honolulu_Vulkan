@@ -197,7 +197,6 @@ void skinning_mesh_model::create_desc_buffers(device& _device)
 void skinning_mesh_model::create_desc_sets()
 {
   auto buffer_info = desc_buffer_->descriptor_info();
-  auto desc_set_layout = get_desc_set_layout();
   descriptor_writer(*desc_set_layout_, *desc_pool_)
     .write_buffer(0, &buffer_info)
     .build(desc_set_);

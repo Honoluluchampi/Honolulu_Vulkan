@@ -6,6 +6,7 @@
 #include <game/actors/default_camera.hpp>
 #include <game/components/mesh_component.hpp>
 #include <game/shading_systems/mesh_model_shading_system.hpp>
+#include <game/shading_systems/meshlet_model_shading_system.hpp>
 #include <game/shading_systems/grid_shading_system.hpp>
 #include <game/shading_systems/skinning_mesh_model_shading_system.hpp>
 #include <physics/collision_info.hpp>
@@ -13,6 +14,8 @@
 #include <physics/engine.hpp>
 #include <graphics/meshlet_model.hpp>
 #include <graphics/skinning_mesh_model.hpp>
+#include <graphics/frame_anim_mesh_model.hpp>
+#include <graphics/frame_anim_meshlet_model.hpp>
 
 // lib
 #include <imgui.h>
@@ -27,12 +30,15 @@ constexpr float MAX_FPS = 60.0f;
 constexpr float MAX_DT = 0.05f;
 
 // static members
+u_ptr<graphics_engine>  engine::graphics_engine_{};
 actor_map               engine::active_actor_map_{};
 actor_map               engine::pending_actor_map_{};
 std::vector<actor_id>   engine::dead_actor_ids_{};
 mesh_model_map          engine::mesh_model_map_;
 meshlet_model_map       engine::meshlet_model_map_;
 skinning_mesh_model_map engine::skinning_mesh_model_map_;
+frame_anim_mesh_model_map engine::frame_anim_mesh_model_map_;
+frame_anim_meshlet_model_map engine::frame_anim_meshlet_model_map_;
 
 // glfw
 GLFWwindow* engine::glfw_window_;
@@ -170,12 +176,8 @@ void engine::update_gui()
 
 void engine::setup_shading_systems()
 {
-  auto mesh_model_shader = game::mesh_model_shading_system::create(get_graphics_device());
-  add_shading_system(std::move(mesh_model_shader));
   auto grid_shader = game::grid_shading_system::create(get_graphics_device());
   add_shading_system(std::move(grid_shader));
-  auto skinning_shader = game::skinning_mesh_model_shading_system::create(get_graphics_device());
-  add_shading_system(std::move(skinning_shader));
 }
 
 void engine::init_actors()
@@ -190,7 +192,7 @@ void engine::init_actors()
 void engine::load_data()
 {
   // load raw mesh data
-  load_models();
+  // load_models();
   // load_actor();
 }
 
@@ -220,6 +222,46 @@ void engine::load_models()
         skinning_mesh_model_map_.emplace(key, std::move(skinning_model));
       }
     }
+  }
+}
+
+void engine::load_model(const std::string &model_name, utils::shading_type type)
+{
+  auto full_path = utils::get_full_path(model_name);
+  std::filesystem::path path = { full_path };
+
+  switch (type) {
+    case utils::shading_type::MESH : {
+      if (path.extension().string() == ".obj") {
+        check_and_add_shading_system<mesh_model_shading_system>(type);
+        auto model = graphics::mesh_model::create_from_file(get_graphics_device(), path.filename().string());
+        mesh_model_map_.emplace(path.filename().string(), std::move(model));
+      }
+      else
+        std::cerr << "extension " << path.extension().string() << " is not supported for shading_type::MESH." << std::endl;
+      break;
+    }
+    case utils::shading_type::MESHLET : {
+      if (path.extension().string() == ".obj") {
+        // check_and_add_shading_system<meshlet_model_shading_system>(type);
+        auto model = graphics::meshlet_model::create_from_file(get_graphics_device(), path.filename().string());
+        meshlet_model_map_.emplace(path.filename().string(), std::move(model));
+      }
+      else
+        std::cerr << "extension " << path.extension().string() << " is not supported for shading_type::MESHLET." << std::endl;
+      break;
+    }
+    case utils::shading_type::SKINNING_MESH : {
+      if (path.extension().string() == ".glb") {
+        check_and_add_shading_system<skinning_mesh_model_shading_system>(type);
+        auto model = graphics::skinning_mesh_model::create_from_gltf(path.string(), get_graphics_device());
+        skinning_mesh_model_map_.emplace(path.filename().string(), std::move(model));
+      }
+      else
+        std::cerr << "extension " << path.extension().string() << " is not supported for shading_type::SKINNING_MESH." << std::endl;
+      break;
+    }
+    // TODO : add frame_anim_mesh_model and frame_anim_meshlet_model
   }
 }
 
@@ -336,7 +378,14 @@ graphics::meshlet_model& engine::get_meshlet_model(const std::string& model_name
 { return *meshlet_model_map_[model_name]; }
 
 graphics::skinning_mesh_model& engine::get_skinning_mesh_model(const std::string& model_name)
-{ return *skinning_mesh_model_map_[model_name]; }
+{
+  if (skinning_mesh_model_map_.find(model_name) == skinning_mesh_model_map_.end()) {
+    load_model(model_name, utils::shading_type::SKINNING_MESH);
+  }
+  return *skinning_mesh_model_map_[model_name]; }
+
+graphics::frame_anim_meshlet_model& engine::get_frame_anim_meshlet_model(const std::string& model_name)
+{ return *frame_anim_meshlet_model_map_[model_name]; }
 
 //actor& engine::get_active_actor(actor_id id)
 //{ return *active_actor_map_[id]; }

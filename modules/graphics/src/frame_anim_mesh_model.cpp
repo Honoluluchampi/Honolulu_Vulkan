@@ -34,9 +34,9 @@ void frame_anim_mesh_model::load_from_skinning_mesh_model(hnll::graphics::skinni
   }
 
   // extract common attributes
-  std::vector<common_attributes> common_attribs;
+  std::vector<frame_anim_utils::common_attributes> common_attribs;
   for (auto& data : builder.vertex_buffer) {
-    common_attributes new_ca;
+    frame_anim_utils::common_attributes new_ca;
     new_ca.uv0     = data.tex_coord_0;
     new_ca.uv1     = data.tex_coord_1;
     new_ca.color   = data.color;
@@ -44,7 +44,7 @@ void frame_anim_mesh_model::load_from_skinning_mesh_model(hnll::graphics::skinni
   }
   common_attributes_buffer_ = buffer::create_with_staging(
     device_,
-    common_attribs.size() * sizeof(common_attributes),
+    common_attribs.size() * sizeof(frame_anim_utils::common_attributes),
     1,
     VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -75,7 +75,7 @@ void frame_anim_mesh_model::load_from_skinning_mesh_model(hnll::graphics::skinni
       // assign buffer
       auto new_buffer = buffer::create_with_staging(
         device_,
-        144 * sizeof(dynamic_attributes),
+        144 * sizeof(frame_anim_utils::dynamic_attributes),
         1,
         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -105,7 +105,7 @@ Eigen::Matrix3f mat4to3(const mat4& original)
 
 void extract_node_vertices(
   skinning_utils::node& node,
-  std::vector<frame_anim_mesh_model::dynamic_attributes>& buffer,
+  std::vector<frame_anim_utils::dynamic_attributes>& buffer,
   const skinning_utils::builder& builder,
   std::vector<bool>& vertex_computed)
 {
@@ -144,12 +144,12 @@ void extract_node_vertices(
   }
 }
 
-std::vector<frame_anim_mesh_model::dynamic_attributes>
+std::vector<frame_anim_utils::dynamic_attributes>
   frame_anim_mesh_model::extract_dynamic_attributes(
     skinning_mesh_model& original,
     const skinning_utils::builder& builder)
 {
-  std::vector<dynamic_attributes> new_dynamic_attribs(vertex_count_);
+  std::vector<frame_anim_utils::dynamic_attributes> new_dynamic_attribs(vertex_count_);
   std::vector<bool> vertex_computed(vertex_count_, false);
 
   for (auto& node : original.get_nodes()) {
@@ -186,11 +186,11 @@ std::vector<VkVertexInputBindingDescription>   frame_anim_mesh_model::get_bindin
   binding_descriptions.resize(2);
   // binding for dynamic attribs
   binding_descriptions[0].binding   = 0;
-  binding_descriptions[0].stride    = sizeof(dynamic_attributes);
+  binding_descriptions[0].stride    = sizeof(frame_anim_utils::dynamic_attributes);
   binding_descriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
   // binding for common attribs
   binding_descriptions[1].binding   = 1;
-  binding_descriptions[1].stride    = sizeof(common_attributes);
+  binding_descriptions[1].stride    = sizeof(frame_anim_utils::common_attributes);
   binding_descriptions[1].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
   return binding_descriptions;
 }
@@ -198,11 +198,11 @@ std::vector<VkVertexInputBindingDescription>   frame_anim_mesh_model::get_bindin
 std::vector<VkVertexInputAttributeDescription> frame_anim_mesh_model::get_attributes_descriptions()
 {
   std::vector<VkVertexInputAttributeDescription> attribute_descriptions{};
-  attribute_descriptions.push_back({0, 0, VK_FORMAT_R32G32B32_SFLOAT,    offsetof(dynamic_attributes, position)});
-  attribute_descriptions.push_back({1, 0, VK_FORMAT_R32G32B32_SFLOAT,    offsetof(dynamic_attributes, normal)});
-  attribute_descriptions.push_back({2, 1, VK_FORMAT_R32G32_SFLOAT,       offsetof(common_attributes, uv0)});
-  attribute_descriptions.push_back({3, 1, VK_FORMAT_R32G32_SFLOAT,       offsetof(common_attributes, uv1)});
-  attribute_descriptions.push_back({4, 1, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(common_attributes, color)});
+  attribute_descriptions.push_back({0, 0, VK_FORMAT_R32G32B32_SFLOAT,    offsetof(frame_anim_utils::dynamic_attributes, position)});
+  attribute_descriptions.push_back({1, 0, VK_FORMAT_R32G32B32_SFLOAT,    offsetof(frame_anim_utils::dynamic_attributes, normal)});
+  attribute_descriptions.push_back({2, 1, VK_FORMAT_R32G32_SFLOAT,       offsetof(frame_anim_utils::common_attributes, uv0)});
+  attribute_descriptions.push_back({3, 1, VK_FORMAT_R32G32_SFLOAT,       offsetof(frame_anim_utils::common_attributes, uv1)});
+  attribute_descriptions.push_back({4, 1, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(frame_anim_utils::common_attributes, color)});
 
   return attribute_descriptions;
 }
