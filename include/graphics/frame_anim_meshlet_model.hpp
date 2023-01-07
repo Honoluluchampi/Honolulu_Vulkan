@@ -24,18 +24,6 @@ namespace skinning_utils {
 class frame_anim_meshlet_model
 {
   public:
-    struct dynamic_attributes
-    {
-      alignas(16) vec3 position;
-      alignas(16) vec3 normal;
-    };
-    struct common_attributes
-    {
-      vec2 uv0;
-      vec2 uv1;
-      vec4 color;
-    };
-
     static u_ptr<frame_anim_meshlet_model> create_from_skinning_mesh_model(device& _device, skinning_mesh_model& original, uint32_t max_fps = frame_anim_utils::MAX_FPS);
     frame_anim_meshlet_model(device& _device);
 

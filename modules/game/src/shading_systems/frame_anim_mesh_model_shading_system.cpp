@@ -1,6 +1,6 @@
 // hnll
 #include <game/shading_systems/frame_anim_mesh_model_shading_system.hpp>
-#include <game/components/frame_anim_mesh_component.hpp>
+#include <game/components/frame_anim_component.hpp>
 #include <graphics/frame_anim_mesh_model.hpp>
 
 namespace hnll::game {
@@ -42,7 +42,7 @@ void frame_anim_mesh_model_shading_system::render(const utils::frame_info& frame
   pipeline_->bind(frame_info.command_buffer);
 
   for (auto& target : render_target_map_) {
-    auto obj = dynamic_cast<frame_anim_mesh_component*>(&target.second);
+    auto obj = dynamic_cast<frame_anim_component<graphics::frame_anim_mesh_model>*>(&target.second);
 
     frame_anim_push_constant push{};
     push.model_matrix = obj->get_transform().mat4().cast<float>();

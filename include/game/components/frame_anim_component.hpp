@@ -7,21 +7,22 @@
 
 namespace hnll::game {
 
-class frame_anim_mesh_component : public renderable_component
+template <class FrameAnimModel>
+class frame_anim_component : public renderable_component
 {
   public:
     template <Actor A>
-    static s_ptr<frame_anim_mesh_component> create(s_ptr<A>& owner, graphics::device& device, const std::string& model_name)
+    static s_ptr<frame_anim_component> create(s_ptr<A>& owner, graphics::device& device, const std::string& model_name)
     {
       auto& skinning_mesh = engine::get_skinning_mesh_model(model_name);
-      auto frame_mesh = graphics::frame_anim_mesh_model::create_from_skinning_mesh_model(device, skinning_mesh);
-      auto ret = std::make_shared<frame_anim_mesh_component>(owner, std::move(frame_mesh));
+      auto frame_mesh = FrameAnimModel::create_from_skinning_mesh_model(device, skinning_mesh);
+      auto ret = std::make_shared<frame_anim_component>(owner, std::move(frame_mesh));
       owner->set_renderable_component(ret);
       return ret;
     }
 
     template <Actor A>
-    frame_anim_mesh_component(s_ptr<A>& owner, u_ptr<graphics::frame_anim_mesh_model>&& model)
+    frame_anim_component(s_ptr<A>& owner, u_ptr<FrameAnimModel>&& model)
       : renderable_component(owner, utils::shading_type::FRAME_ANIM_MESH), model_(std::move(model))
     {
       animation_count_ = model_->get_animation_count();
@@ -65,17 +66,17 @@ class frame_anim_mesh_component : public renderable_component
 
   private:
     // TODO : make this reference
-    u_ptr<graphics::frame_anim_mesh_model> model_;
+    u_ptr<FrameAnimModel> model_;
     uint32_t animation_index_ = 0;
     uint32_t frame_index_ = 0;
     uint32_t animation_count_;
+    uint32_t frame_count_;
 
     float animation_timer_ = 0.f;
     float start_time_ = 0.f;
     float end_time_;
-    uint32_t frame_count_;
 
-    bool animating_;
+    bool animating_ = true;
 };
 
 }// namespace hnll::game
