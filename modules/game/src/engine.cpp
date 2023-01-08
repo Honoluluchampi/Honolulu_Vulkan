@@ -243,7 +243,7 @@ void engine::load_model(const std::string &model_name, utils::shading_type type)
     }
     case utils::shading_type::MESHLET : {
       if (path.extension().string() == ".obj") {
-        // check_and_add_shading_system<meshlet_model_shading_system>(type);
+        check_and_add_shading_system<meshlet_model_shading_system>(type);
         auto model = graphics::meshlet_model::create_from_file(get_graphics_device(), path.filename().string());
         meshlet_model_map_.emplace(path.filename().string(), std::move(model));
       }
@@ -375,7 +375,12 @@ void engine::set_frustum_info(utils::frustum_info &&_frustum_info)
 }
 
 graphics::meshlet_model& engine::get_meshlet_model(const std::string& model_name)
-{ return *meshlet_model_map_[model_name]; }
+{
+  if (skinning_mesh_model_map_.find(model_name) == skinning_mesh_model_map_.end()) {
+    load_model(model_name, utils::shading_type::MESHLET);
+  }
+  return *meshlet_model_map_[model_name];
+}
 
 graphics::skinning_mesh_model& engine::get_skinning_mesh_model(const std::string& model_name)
 {
