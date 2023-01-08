@@ -21,7 +21,7 @@ class frame_anim_mesh_model
 {
   public:
 
-    static u_ptr<frame_anim_mesh_model> create_from_skinning_mesh_model(device& _device, skinning_mesh_model& original, uint32_t max_fps = frame_anim_utils::MAX_FPS);
+    static u_ptr<frame_anim_mesh_model> create_from_skinning_mesh_model(skinning_mesh_model& original, uint32_t max_fps = frame_anim_utils::MAX_FPS);
     frame_anim_mesh_model(device& _device);
 
     void bind(uint32_t animation_index, uint32_t frame_index, VkCommandBuffer command_buffer);

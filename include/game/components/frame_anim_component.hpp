@@ -13,18 +13,18 @@ class frame_anim_component : public renderable_component
 {
   public:
     template <Actor A>
-    static s_ptr<frame_anim_component> create(s_ptr<A>& owner, graphics::device& device, const std::string& model_name)
+    static s_ptr<frame_anim_component> create(s_ptr<A>& owner, const std::string& model_name)
     {
       auto& skinning_mesh = engine::get_skinning_mesh_model(model_name);
-      auto frame_mesh = FrameAnimModel::create_from_skinning_mesh_model(device, skinning_mesh);
-      auto ret = std::make_shared<frame_anim_component>(owner, std::move(frame_mesh));
+      auto& frame_mesh = engine::get_frame_anim_mesh_model(model_name);
+      auto ret = std::make_shared<frame_anim_component>(owner, frame_mesh);
       owner->set_renderable_component(ret);
       return ret;
     }
 
     // no default implementation
     template <Actor A>
-    frame_anim_component(s_ptr<A>& owner, u_ptr<FrameAnimModel>&& model);
+    frame_anim_component(s_ptr<A>& owner, FrameAnimModel& model);
 
     void update_component(float dt) override
     {
@@ -37,8 +37,8 @@ class frame_anim_component : public renderable_component
 
     void bind_and_draw(VkCommandBuffer command_buffer)
     {
-      model_->bind(animation_index_, frame_index_, command_buffer);
-      model_->draw(command_buffer);
+      model_.bind(animation_index_, frame_index_, command_buffer);
+      model_.draw(command_buffer);
     }
 
     // getter
@@ -53,17 +53,16 @@ class frame_anim_component : public renderable_component
       }
       animation_index_ = index;
       animation_timer_ = 0.f;
-      start_time_  = model_->get_start_time(index);
-      end_time_    = model_->get_end_time(index);
-      frame_count_ = model_->get_frame_count(index);
+      start_time_  = model_.get_start_time(index);
+      end_time_    = model_.get_end_time(index);
+      frame_count_ = model_.get_frame_count(index);
       animating_ = true;
     }
 
     void stop_animation() { animating_ = false; }
 
   private:
-    // TODO : make this reference
-    u_ptr<FrameAnimModel> model_;
+    FrameAnimModel& model_;
     uint32_t animation_index_ = 0;
     uint32_t frame_index_ = 0;
     uint32_t animation_count_;
@@ -77,18 +76,18 @@ class frame_anim_component : public renderable_component
 };
 
 template <> template <Actor A>
-frame_anim_component<graphics::frame_anim_mesh_model>::frame_anim_component(s_ptr<A>& owner, u_ptr<graphics::frame_anim_mesh_model>&& model)
-  : renderable_component(owner, utils::shading_type::FRAME_ANIM_MESH), model_(std::move(model))
+frame_anim_component<graphics::frame_anim_mesh_model>::frame_anim_component(s_ptr<A>& owner, graphics::frame_anim_mesh_model& model)
+  : renderable_component(owner, utils::shading_type::FRAME_ANIM_MESH), model_(model)
 {
-  animation_count_ = model_->get_animation_count();
+  animation_count_ = model_.get_animation_count();
   activate_animation(0);
 }
 
 template <> template <Actor A>
-frame_anim_component<graphics::frame_anim_meshlet_model>::frame_anim_component(s_ptr<A>& owner, u_ptr<graphics::frame_anim_meshlet_model>&& model)
-  : renderable_component(owner, utils::shading_type::FRAME_ANIM_MESHLET), model_(std::move(model))
+frame_anim_component<graphics::frame_anim_meshlet_model>::frame_anim_component(s_ptr<A>& owner, graphics::frame_anim_meshlet_model& model)
+  : renderable_component(owner, utils::shading_type::FRAME_ANIM_MESHLET), model_(model)
 {
-  animation_count_ = model_->get_animation_count();
+  animation_count_ = model_.get_animation_count();
   activate_animation(0);
 }
 

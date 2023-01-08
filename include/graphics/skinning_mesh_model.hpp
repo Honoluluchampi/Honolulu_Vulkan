@@ -74,12 +74,8 @@ class skinning_mesh_model
 
     // others
     bool is_skinned() const { return has_skin_; }
-
-    std::vector<std::string> get_joint_node_names() const;
-
-    std::vector<mat4> get_inv_bind_matrices() const;
-
     skinning_utils::builder get_ownership_of_builder() { return std::move(builder_); }
+    device& get_device() { return device_; }
 
     // for shading system
     static void setup_desc_set_layout(device& device);

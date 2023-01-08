@@ -23,7 +23,7 @@ using vec2 = Eigen::Vector2f;
 using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
 
-std::string FILENAME = "light_bunny.obj";
+std::string FILENAME = "human.glb";
 
 template <class ModelComp>
 class model_actor : public game::actor

@@ -9,9 +9,9 @@ namespace hnll::graphics {
 
 frame_anim_mesh_model::frame_anim_mesh_model(device &_device) : device_(_device) {}
 
-u_ptr<frame_anim_mesh_model> frame_anim_mesh_model::create_from_skinning_mesh_model(device& _device, skinning_mesh_model &original, uint32_t max_fps)
+u_ptr<frame_anim_mesh_model> frame_anim_mesh_model::create_from_skinning_mesh_model(skinning_mesh_model &original, uint32_t max_fps)
 {
-  auto ret = std::make_unique<frame_anim_mesh_model>(_device);
+  auto ret = std::make_unique<frame_anim_mesh_model>(original.get_device());
   ret->load_from_skinning_mesh_model(original, max_fps);
 
   return ret;

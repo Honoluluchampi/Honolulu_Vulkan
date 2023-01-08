@@ -9,6 +9,7 @@
 #include <game/shading_systems/meshlet_model_shading_system.hpp>
 #include <game/shading_systems/grid_shading_system.hpp>
 #include <game/shading_systems/skinning_mesh_model_shading_system.hpp>
+#include <game/shading_systems/frame_anim_mesh_model_shading_system.hpp>
 #include <physics/collision_info.hpp>
 #include <physics/collision_detector.hpp>
 #include <physics/engine.hpp>
@@ -261,7 +262,17 @@ void engine::load_model(const std::string &model_name, utils::shading_type type)
         std::cerr << "extension " << path.extension().string() << " is not supported for shading_type::SKINNING_MESH." << std::endl;
       break;
     }
-    // TODO : add frame_anim_mesh_model and frame_anim_meshlet_model
+    case utils::shading_type::FRAME_ANIM_MESH : {
+      if (path.extension().string() == ".glb") {
+        check_and_add_shading_system<frame_anim_mesh_model_shading_system>(type);
+        auto model = graphics::frame_anim_mesh_model::create_from_skinning_mesh_model(get_skinning_mesh_model(path.filename().string()));
+        frame_anim_mesh_model_map_.emplace(path.filename().string(), std::move(model));
+      }
+      else
+        std::cerr << "extension" << path.extension().string() << " is not supported for shading_type::FRAME_ANIM_MESH." << std::endl;
+      break;
+    }
+    // TODO : add frame_anim_meshlet_model
   }
 }
 
@@ -344,6 +355,8 @@ void engine::cleanup()
   mesh_model_map_.clear();
   meshlet_model_map_.clear();
   skinning_mesh_model_map_.clear();
+  frame_anim_mesh_model_map_.clear();
+  frame_anim_meshlet_model_map_.clear();
   hnll::graphics::renderer::cleanup_swap_chain();
 }
 
@@ -395,13 +408,18 @@ graphics::skinning_mesh_model& engine::get_skinning_mesh_model(const std::string
   if (skinning_mesh_model_map_.find(model_name) == skinning_mesh_model_map_.end()) {
     load_model(model_name, utils::shading_type::SKINNING_MESH);
   }
-  return *skinning_mesh_model_map_[model_name]; }
+  return *skinning_mesh_model_map_[model_name];
+}
+
+graphics::frame_anim_mesh_model& engine::get_frame_anim_mesh_model(const std::string &model_name)
+{
+  if (frame_anim_mesh_model_map_.find(model_name) == frame_anim_mesh_model_map_.end()) {
+    load_model(model_name, utils::shading_type::FRAME_ANIM_MESH);
+  }
+  return *frame_anim_mesh_model_map_[model_name];
+}
 
 graphics::frame_anim_meshlet_model& engine::get_frame_anim_meshlet_model(const std::string& model_name)
 { return *frame_anim_meshlet_model_map_[model_name]; }
-
-//actor& engine::get_active_actor(actor_id id)
-//{ return *active_actor_map_[id]; }
-
 
 } // namespace hnll::game
