@@ -26,7 +26,7 @@ class descriptor_set
   private:
     device& device_;
     u_ptr<descriptor_pool>       pool_;
-    std::vector<u_ptr<descriptor_set_layout>> layouts_;
+    u_ptr<descriptor_set_layout> layout_;
     std::vector<u_ptr<buffer>>   buffers_;
     std::vector<VkDescriptorSet> sets_;
     VkDescriptorType             type_;

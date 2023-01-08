@@ -2,7 +2,7 @@
 
 // hnll
 #include <game/shading_system.hpp>
-#include <graphics/descriptor_set_layout.hpp>
+#include <graphics/descriptor_set.hpp>
 #include <graphics/buffer.hpp>
 
 namespace hnll::game {
@@ -16,12 +16,8 @@ class meshlet_model_shading_system : public shading_system
   private:
     void setup_task_desc();
 
-    u_ptr<graphics::descriptor_pool> task_desc_pool_;
     std::vector<u_ptr<graphics::buffer>> task_desc_buffers_;
-    u_ptr<graphics::descriptor_set_layout> task_desc_layout_;
-    std::vector<VkDescriptorSet> task_desc_sets_;
-
-
+    u_ptr<graphics::descriptor_set>      task_desc_sets_;
 };
 
 } // namespace hnll::game
