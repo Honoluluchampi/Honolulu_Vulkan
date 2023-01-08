@@ -23,6 +23,12 @@ class descriptor_set
     descriptor_set& add_buffer(u_ptr<buffer>&& desc_buffer);
     descriptor_set& add_layout(VkShaderStageFlagBits shader_stage);
     descriptor_set& build_sets();
+
+    // getter
+    VkDescriptorSetLayout get_layout() const;
+    VkDescriptorSet       get_set(size_t index) const
+    { return sets_[index]; }
+
   private:
     device& device_;
     u_ptr<descriptor_pool>       pool_;

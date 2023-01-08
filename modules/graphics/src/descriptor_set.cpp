@@ -54,4 +54,8 @@ descriptor_set& descriptor_set::build_sets()
   return *this;
 }
 
+// getter
+VkDescriptorSetLayout descriptor_set::get_layout() const
+{ return layout_->get_descriptor_set_layout(); }
+
 } // namespace hnll::graphics

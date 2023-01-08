@@ -1,6 +1,8 @@
 // hnll
 #include <game/shading_systems/meshlet_model_shading_system.hpp>
+#include <game/components/meshlet_component.hpp>
 #include <utils/common_using.hpp>
+#include <graphics/meshlet_model.hpp>
 #include <graphics/descriptor_set_layout.hpp>
 #include <graphics/swap_chain.hpp>
 
@@ -51,9 +53,22 @@ meshlet_model_shading_system::meshlet_model_shading_system(graphics::device &dev
   : shading_system(device, utils::shading_type::MESHLET)
 {
   setup_task_desc();
+
+  // prepare desc set layouts
+  std::vector<VkDescriptorSetLayout> desc_set_layouts;
+  // global
+  desc_set_layouts.emplace_back(get_global_desc_set_layout());
+  // task desc
+  desc_set_layouts.emplace_back(task_desc_sets_->get_layout());
+  // meshlet
+  auto mesh_descs = graphics::meshlet_model::default_desc_set_layouts(device_);
+  for (auto&& layout : mesh_descs) {
+    desc_set_layouts.emplace_back(std::move(layout->get_descriptor_set_layout()));
+  }
+
   pipeline_layout_ = create_pipeline_layout<meshlet_push_constant>(
     static_cast<VkShaderStageFlagBits>(VK_SHADER_STAGE_TASK_BIT_NV | VK_SHADER_STAGE_MESH_BIT_NV | VK_SHADER_STAGE_FRAGMENT_BIT),
-    std::vector<VkDescriptorSetLayout>{get_global_desc_set_layout() }
+    desc_set_layouts
   );
 
   auto pipeline_config_info = graphics::pipeline::default_pipeline_config_info();
@@ -72,7 +87,33 @@ meshlet_model_shading_system::meshlet_model_shading_system(graphics::device &dev
 
 void meshlet_model_shading_system::render(const utils::frame_info &frame_info)
 {
+  auto command_buffer = frame_info.command_buffer;
+  pipeline_->bind(command_buffer);
 
+  for (auto& target : render_target_map_) {
+    auto obj = dynamic_cast<meshlet_component *>(&target.second);
+
+    meshlet_push_constant push{};
+    push.model_matrix  = obj->get_transform().mat4().cast<float>();
+    push.normal_matrix = obj->get_transform().normal_matrix().cast<float>();
+
+    // task desc set update
+
+    vkCmdPushConstants(
+      command_buffer,
+      pipeline_layout_,
+      VK_SHADER_STAGE_TASK_BIT_NV | VK_SHADER_STAGE_MESH_BIT_NV | VK_SHADER_STAGE_FRAGMENT_BIT,
+      0,
+      sizeof(meshlet_push_constant),
+      &push
+    );
+
+    obj->bind_and_draw(
+      command_buffer,
+      { frame_info.global_descriptor_set, task_desc_sets_->get_set(frame_info.frame_index) },
+      pipeline_layout_
+    );
+  }
 }
 
 } // namespace hnll::game

@@ -32,7 +32,14 @@ class meshlet_component : public renderable_component
     ~meshlet_component() override = default;
 
     // getter
-    graphics::meshlet_model& get_model() { return model_; }
+    void bind_and_draw(
+      VkCommandBuffer command_buffer,
+      std::vector<VkDescriptorSet>&& desc_sets,
+      VkPipelineLayout& pipeline_layout)
+    {
+      model_.bind(command_buffer, desc_sets, pipeline_layout);
+      model_.draw(command_buffer);
+    }
 
   private:
     // hnll::graphics::mesh_model can be shared all over a game
