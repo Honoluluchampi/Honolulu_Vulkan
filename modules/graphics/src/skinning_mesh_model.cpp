@@ -20,6 +20,8 @@ namespace hnll::graphics {
 
 u_ptr<descriptor_set_layout> skinning_mesh_model::desc_set_layout_ = nullptr;
 
+skinning_mesh_model::skinning_mesh_model(device &device) : device_(device){}
+
 skinning_mesh_model::~skinning_mesh_model()
 {
   for (auto& node : linear_nodes_) {

@@ -33,7 +33,7 @@ struct skinning_mesh_push_constant
 class skinning_mesh_model
 {
   public:
-    explicit skinning_mesh_model(device& device) : device_(device) {}
+    explicit skinning_mesh_model(device& device);
     ~skinning_mesh_model();
 
     void bind(VkCommandBuffer command_buffer, VkDescriptorSet global_desc_set, VkPipelineLayout pipeline_layout);

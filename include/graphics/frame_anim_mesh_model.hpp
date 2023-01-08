@@ -39,9 +39,6 @@ class frame_anim_mesh_model
 
   private:
     void load_from_skinning_mesh_model(skinning_mesh_model& original, uint32_t max_fps);
-    std::vector<frame_anim_utils::dynamic_attributes> extract_dynamic_attributes(
-      skinning_mesh_model& original,
-      const skinning_utils::builder& builder);
 
     device& device_;
     // uv, color, joint info

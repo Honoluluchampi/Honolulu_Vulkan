@@ -1,9 +1,12 @@
 #pragma once
 
 // hnll
+#include <graphics/skinning_utils.hpp>
 #include <utils/common_using.hpp>
 
 namespace hnll::graphics {
+
+class skinning_mesh_model;
 
 namespace frame_anim_utils {
 
@@ -18,6 +21,10 @@ struct common_attributes {
   vec2 uv1;
   vec4 color;
 };
+
+std::vector<frame_anim_utils::dynamic_attributes> extract_dynamic_attributes(
+  skinning_mesh_model& original,
+  const skinning_utils::builder& builder);
 
 } // namespace frame_anim_utils
 } // namespace hnll::graphics
