@@ -7,12 +7,12 @@
 
 /*
  * set 0 : global ubo (uniform)
- * set 1 : meshlet (storage)
- * set 2 : sphere (storage)
- * set 3 : common attribs (storage)
- * set 4 : dynamic attribs (storage)
+ * set 1 : frustum info (uniform)
+ * set 2 : meshlet (storage)
+ * set 3 : sphere (storage)
+ * set 4 : common attribs (storage)
+ * set 5 : dynamic attribs (storage)
  */
-
 
 namespace hnll::game {
 
@@ -70,7 +70,7 @@ frame_anim_meshlet_shading_system::frame_anim_meshlet_shading_system(graphics::d
   // meshlet
   auto mesh_descs = graphics::frame_anim_meshlet_model::default_desc_set_layouts(device_);
   for (auto&& layout : mesh_descs) {
-    desc_set_layouts.emplace_back(std::move(layout->get_descriptor_set_layout()));
+    desc_set_layouts.emplace_back(layout->get_descriptor_set_layout());
   }
 
   pipeline_layout_ = create_pipeline_layout<frame_anim_meshlet_push_constant>(

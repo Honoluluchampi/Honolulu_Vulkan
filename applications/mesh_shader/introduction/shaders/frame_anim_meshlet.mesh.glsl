@@ -74,20 +74,20 @@ struct dynamic_attribute {
   vec3 normal;
 };
 
-layout(set = 2, binding = 0) buffer MeshBuffer {
-  meshlet meshlets[];
-};
-
-layout(set = 3, binding = 0) buffer BoundingSphere {
-  sphere bounding_sphere[];
-};
-
-layout(set = 4, binding = 0) buffer CommonAttribs {
+layout(set = 2, binding = 0) buffer CommonAttribs {
   common_attribute common_attributes[];
 };
 
-layout(set = 5, binding = 0) buffer DynamicAttribs {
+layout(set = 3, binding = 0) buffer MeshBuffer {
+  meshlet meshlets[];
+};
+
+layout(set = 4, binding = 0) buffer DynamicAttribs {
   dynamic_attribute dynamic_attributes[];
+};
+
+layout(set = 5, binding = 0) buffer BoundingSphere {
+  sphere bounding_sphere[];
 };
 
 // ------------------------------------------------------------------------

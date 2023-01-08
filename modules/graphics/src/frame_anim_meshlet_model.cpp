@@ -1,6 +1,7 @@
 // hnll
 #include <graphics/frame_anim_meshlet_model.hpp>
 #include <graphics/descriptor_set_layout.hpp>
+#include <graphics/descriptor_set.hpp>
 #include <graphics/buffer.hpp>
 
 namespace hnll::graphics {
@@ -17,6 +18,57 @@ u_ptr<frame_anim_meshlet_model> frame_anim_meshlet_model::create_from_skinning_m
 
 frame_anim_meshlet_model::frame_anim_meshlet_model(device &_device) : device_(_device)
 {}
+
+void frame_anim_meshlet_model::setup_descs()
+{
+  // common -----------------------------------------
+  common_desc_sets_ = descriptor_set::create(device_);
+
+  common_desc_sets_->create_pool(
+    FRAME_ANIM_DESC_SET_COUNT + 1,
+    2,
+    VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+
+  common_desc_sets_->add_layout(static_cast<VkShaderStageFlagBits>(VK_SHADER_STAGE_TASK_BIT_NV | VK_SHADER_STAGE_MESH_BIT_NV));
+
+  common_desc_sets_->add_buffer(std::move(common_attributes_buffer_));
+  common_desc_sets_->add_buffer(std::move(meshlet_buffer_));
+
+  common_desc_sets_->build_sets();
+
+  // dynamic attribs ----------------------------------
+  uint32_t desc_set_count = 0;
+  for (auto& count : frame_counts_) {
+    desc_set_count += count;
+  }
+
+  dynamic_attribs_desc_sets_ = descriptor_set::create(device_);
+
+  dynamic_attribs_desc_sets_->create_pool(
+    FRAME_ANIM_DESC_SET_COUNT + 1,
+    desc_set_count,
+    VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+
+  for (int i = 0; i < dynamic_attributes_buffers_.size(); i++)
+    for (int j = 0; j < dynamic_attributes_buffers_[i].size(); j++)
+      dynamic_attribs_desc_sets_->add_buffer(std::move(dynamic_attributes_buffers_[i][j]));
+
+  dynamic_attribs_desc_sets_->build_sets();
+
+  // sphere ------------------------------------------
+  sphere_desc_sets_ = descriptor_set::create(device_);
+
+  sphere_desc_sets_->create_pool(
+    FRAME_ANIM_DESC_SET_COUNT + 1,
+    desc_set_count,
+    VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+
+  for (int i = 0; i < sphere_buffers_.size(); i++)
+    for (int j = 0; j < sphere_buffers_[i].size(); j++)
+      sphere_desc_sets_->add_buffer(std::move(sphere_buffers_[i][j]));
+
+  sphere_desc_sets_->build_sets();
+}
 
 std::vector<u_ptr<descriptor_set_layout>> frame_anim_meshlet_model::default_desc_set_layouts(device& _device)
 {

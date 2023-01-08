@@ -15,6 +15,7 @@ namespace graphics {
 // forward declaration
 class device;
 class buffer;
+class descriptor_set;
 class skinning_mesh_model;
 namespace skinning_utils {
   struct animation;
@@ -32,8 +33,8 @@ class frame_anim_meshlet_model
       uint32_t frame_index,
       VkCommandBuffer command_buffer,
       const std::vector<VkDescriptorSet>& external_desc_sets,
-      VkPipelineLayout pipeline_layout){}
-    void draw(VkCommandBuffer command_buffer){}
+      VkPipelineLayout pipeline_layout);
+    void draw(VkCommandBuffer command_buffer);
 
     // getter
     uint32_t get_animation_count() const { return dynamic_attributes_buffers_.size(); }
@@ -46,24 +47,32 @@ class frame_anim_meshlet_model
   private:
     void load_from_skinning_mesh_model(skinning_mesh_model& original, uint32_t max_fps);
 
+    void setup_descs();
+
     device& device_;
-    // uv, color, joint info
-    u_ptr<buffer> common_attributes_buffer_;
     // index
     u_ptr<buffer> index_buffer_;
+
+    // desc buffers for static objects
+    // uv, color, joint info
+    u_ptr<buffer> common_attributes_buffer_;
+    // this meshlet info is used by all frames
+    u_ptr<buffer> meshlet_buffer_;
+
+    // desc buffers for dynamic objects
     // first index : animation index
     // second index : animation frame
     std::vector<std::vector<u_ptr<buffer>>> dynamic_attributes_buffers_;
-
-    // this meshlet info is used by all frames
-    u_ptr<buffer> meshlet_buffer_;
-    // bounding sphere is assigned for each frame's each meshlet
-    // index usage is same as dynamic_attributes_buffers_
     std::vector<std::vector<u_ptr<buffer>>> sphere_buffers_;
 
     std::vector<uint32_t> frame_counts_;
     uint32_t vertex_count_;
     uint32_t index_count_;
+
+    // desc sets
+    u_ptr<descriptor_set> common_desc_sets_;
+    u_ptr<descriptor_set> dynamic_attribs_desc_sets_;
+    u_ptr<descriptor_set> sphere_desc_sets_;
 
     std::vector<float> start_times_;
     std::vector<float> end_times_;
