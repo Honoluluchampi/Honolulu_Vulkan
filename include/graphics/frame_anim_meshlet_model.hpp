@@ -32,8 +32,8 @@ class frame_anim_meshlet_model
       uint32_t frame_index,
       VkCommandBuffer command_buffer,
       const std::vector<VkDescriptorSet>& external_desc_sets,
-      VkPipelineLayout pipeline_layout);
-    void draw(VkCommandBuffer command_buffer);
+      VkPipelineLayout pipeline_layout){}
+    void draw(VkCommandBuffer command_buffer){}
 
     // getter
     uint32_t get_animation_count() const { return dynamic_attributes_buffers_.size(); }
