@@ -21,13 +21,9 @@ class frame_anim_component : public renderable_component
       return ret;
     }
 
+    // no default implementation
     template <Actor A>
-    frame_anim_component(s_ptr<A>& owner, u_ptr<FrameAnimModel>&& model)
-      : renderable_component(owner, utils::shading_type::FRAME_ANIM_MESH), model_(std::move(model))
-    {
-      animation_count_ = model_->get_animation_count();
-      activate_animation(0);
-    }
+    frame_anim_component(s_ptr<A>& owner, u_ptr<FrameAnimModel>&& model);
 
     void update_component(float dt) override
     {
@@ -78,5 +74,13 @@ class frame_anim_component : public renderable_component
 
     bool animating_ = true;
 };
+
+template <> template <Actor A>
+frame_anim_component<graphics::frame_anim_mesh_model>::frame_anim_component(s_ptr<A>& owner, u_ptr<graphics::frame_anim_mesh_model>&& model)
+  : renderable_component(owner, utils::shading_type::FRAME_ANIM_MESH), model_(std::move(model))
+{
+  animation_count_ = model_->get_animation_count();
+  activate_animation(0);
+}
 
 }// namespace hnll::game
