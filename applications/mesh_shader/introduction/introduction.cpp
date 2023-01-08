@@ -1,13 +1,12 @@
 // hnll
-#include <game/graphics_engine.hpp>
 #include <graphics/utils.hpp>
-#include <graphics/meshlet_model.hpp>
 #include <game/actor.hpp>
 #include <game/engine.hpp>
 #include <game/actors/default_camera.hpp>
 #include <game/actors/virtual_camera.hpp>
 #include <game/components/mesh_component.hpp>
 #include <game/components/meshlet_component.hpp>
+#include <game/components/frame_anim_component.hpp>
 #include <physics/engine.hpp>
 
 #include <game/shading_systems/mesh_model_shading_system.hpp>
@@ -26,35 +25,21 @@ using vec4 = Eigen::Vector4f;
 
 std::string FILENAME = "light_bunny.obj";
 
-class ml_actor : public game::actor
+template <class ModelComp>
+class model_actor : public game::actor
 {
   public:
-    static s_ptr<ml_actor> create(graphics::device& _device)
+    static s_ptr<model_actor> create(graphics::device& _device)
     {
-      auto ret = std::make_shared<ml_actor>();
-      ret->meshlet_comp_ = game::meshlet_component::create(ret, FILENAME);
+      auto ret = std::make_shared<model_actor>();
+      ret->model_comp_ = ModelComp::create(ret, FILENAME);
       ret->set_rotation({M_PI, 0.f, 0.f});
       game::engine::add_actor(ret);
       return ret;
     }
-    ml_actor(){}
+    model_actor(){}
   private:
-    s_ptr<game::meshlet_component> meshlet_comp_;
-};
-
-class mesh_actor : public game::actor
-{
-  public:
-    static s_ptr<mesh_actor> create(graphics::device& _device)
-    {
-      auto ret = std::make_shared<mesh_actor>();
-      ret->mesh_comp_ = game::mesh_component::create(ret, FILENAME);
-      ret->set_rotation({M_PI, 0.f, 0.f});
-      game::engine::add_actor(ret);
-      return ret;
-    }
-  private:
-    s_ptr<game::mesh_component> mesh_comp_;
+    s_ptr<ModelComp> model_comp_;
 };
 
 class mesh_shader_introduction : public game::engine
@@ -63,7 +48,7 @@ class mesh_shader_introduction : public game::engine
     mesh_shader_introduction() : game::engine("mesh shader introduction")
     {
       // mesh_actor or ml_actor
-      create_bunny_wall<ml_actor>();
+      create_bunny_wall<model_actor<game::mesh_component>>();
       //add_virtual_camera();
     }
 
@@ -127,9 +112,6 @@ class mesh_shader_introduction : public game::engine
 
       ImGui::End();
     }
-
-    // sample object
-    std::vector<s_ptr<ml_actor>> ml_actors_;
 
     s_ptr<game::virtual_camera> virtual_camera_;
     // frustum culling is organized based on this frustum;

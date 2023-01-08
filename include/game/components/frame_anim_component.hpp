@@ -4,6 +4,7 @@
 #include <game/engine.hpp>
 #include <game/components/renderable_component.hpp>
 #include <graphics/frame_anim_mesh_model.hpp>
+#include <graphics/frame_anim_meshlet_model.hpp>
 
 namespace hnll::game {
 
@@ -78,6 +79,14 @@ class frame_anim_component : public renderable_component
 template <> template <Actor A>
 frame_anim_component<graphics::frame_anim_mesh_model>::frame_anim_component(s_ptr<A>& owner, u_ptr<graphics::frame_anim_mesh_model>&& model)
   : renderable_component(owner, utils::shading_type::FRAME_ANIM_MESH), model_(std::move(model))
+{
+  animation_count_ = model_->get_animation_count();
+  activate_animation(0);
+}
+
+template <> template <Actor A>
+frame_anim_component<graphics::frame_anim_meshlet_model>::frame_anim_component(s_ptr<A>& owner, u_ptr<graphics::frame_anim_meshlet_model>&& model)
+  : renderable_component(owner, utils::shading_type::FRAME_ANIM_MESHLET), model_(std::move(model))
 {
   animation_count_ = model_->get_animation_count();
   activate_animation(0);

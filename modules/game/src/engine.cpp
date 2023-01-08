@@ -374,9 +374,17 @@ void engine::set_frustum_info(utils::frustum_info &&_frustum_info)
   frustum_info_ = std::move(_frustum_info);
 }
 
+graphics::mesh_model& engine::get_mesh_model(const std::string &model_name)
+{
+  if (mesh_model_map_.find(model_name) == mesh_model_map_.end()) {
+    load_model(model_name, utils::shading_type::MESH);
+  }
+  return *mesh_model_map_[model_name];
+}
+
 graphics::meshlet_model& engine::get_meshlet_model(const std::string& model_name)
 {
-  if (skinning_mesh_model_map_.find(model_name) == skinning_mesh_model_map_.end()) {
+  if (meshlet_model_map_.find(model_name) == meshlet_model_map_.end()) {
     load_model(model_name, utils::shading_type::MESHLET);
   }
   return *meshlet_model_map_[model_name];

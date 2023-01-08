@@ -83,7 +83,7 @@ class engine {
     static actor& get_active_actor(actor_id id) { return *active_actor_map_[id]; }
 
     static actor& get_pending_actor(actor_id id)  { return *pending_actor_map_[id]; }
-    static graphics::mesh_model&    get_mesh_model(const std::string& model_name) { return *mesh_model_map_[model_name]; }
+    static graphics::mesh_model&    get_mesh_model(const std::string& model_name);
     static graphics::meshlet_model& get_meshlet_model(const std::string& model_name);
     static graphics::skinning_mesh_model& get_skinning_mesh_model(const std::string& model_name);
     static graphics::frame_anim_mesh_model& get_frame_anim_mesh_model(const std::string& model_name);
