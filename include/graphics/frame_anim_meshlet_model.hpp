@@ -27,7 +27,12 @@ class frame_anim_meshlet_model
     static u_ptr<frame_anim_meshlet_model> create_from_skinning_mesh_model(device& _device, skinning_mesh_model& original, uint32_t max_fps = frame_anim_utils::MAX_FPS);
     frame_anim_meshlet_model(device& _device);
 
-    void bind(uint32_t animation_index, uint32_t frame_index, VkCommandBuffer command_buffer);
+    void bind(
+      uint32_t animation_index,
+      uint32_t frame_index,
+      VkCommandBuffer command_buffer,
+      const std::vector<VkDescriptorSet>& external_desc_sets,
+      VkPipelineLayout pipeline_layout);
     void draw(VkCommandBuffer command_buffer);
 
     // getter
@@ -36,11 +41,10 @@ class frame_anim_meshlet_model
     float    get_start_time(uint32_t animation_index)  const { return start_times_[animation_index]; }
     float    get_end_time(uint32_t animation_index)    const { return end_times_[animation_index]; }
 
+    static std::vector<u_ptr<descriptor_set_layout>> default_desc_set_layouts(device& _device);
+
   private:
     void load_from_skinning_mesh_model(skinning_mesh_model& original, uint32_t max_fps);
-    std::vector<frame_anim_utils::dynamic_attributes> extract_dynamic_attributes(
-      skinning_mesh_model& original,
-      const skinning_utils::builder& builder);
 
     device& device_;
     // uv, color, joint info

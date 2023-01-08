@@ -1,6 +1,6 @@
 // hnll
 #include <game/shading_systems/frame_anim_meshlet_shading_system.hpp>
-#include <game/components/meshlet_component.hpp>
+#include <game/components/frame_anim_component.hpp>
 #include <utils/common_using.hpp>
 #include <graphics/meshlet_model.hpp>
 #include <graphics/swap_chain.hpp>
@@ -68,7 +68,7 @@ frame_anim_meshlet_shading_system::frame_anim_meshlet_shading_system(graphics::d
   // task desc
   desc_set_layouts.emplace_back(task_desc_sets_->get_layout());
   // meshlet
-  auto mesh_descs = graphics::meshlet_model::default_desc_set_layouts(device_);
+  auto mesh_descs = graphics::frame_anim_meshlet_model::default_desc_set_layouts(device_);
   for (auto&& layout : mesh_descs) {
     desc_set_layouts.emplace_back(std::move(layout->get_descriptor_set_layout()));
   }
@@ -98,7 +98,7 @@ void frame_anim_meshlet_shading_system::render(const utils::frame_info &frame_in
   pipeline_->bind(command_buffer);
 
   for (auto& target : render_target_map_) {
-    auto obj = dynamic_cast<meshlet_component *>(&target.second);
+    auto obj = dynamic_cast<frame_anim_component<graphics::frame_anim_meshlet_model> *>(&target.second);
 
     frame_anim_meshlet_push_constant push{};
     push.model_matrix  = obj->get_transform().mat4().cast<float>();
@@ -115,9 +115,13 @@ void frame_anim_meshlet_shading_system::render(const utils::frame_info &frame_in
       &push
     );
 
+    std::vector<VkDescriptorSet> external_desc_sets = {
+      frame_info.global_descriptor_set,
+      task_desc_sets_->get_set(frame_info.frame_index)
+    };
     obj->bind_and_draw(
       command_buffer,
-      { frame_info.global_descriptor_set, task_desc_sets_->get_set(frame_info.frame_index) },
+      external_desc_sets,
       pipeline_layout_
     );
   }

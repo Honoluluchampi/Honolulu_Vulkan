@@ -35,9 +35,10 @@ class frame_anim_component : public renderable_component
       frame_index_ = animation_timer_ / end_time_ * static_cast<float>(frame_count_);
     }
 
-    void bind_and_draw(VkCommandBuffer command_buffer)
+    template <class... Args>
+    void bind_and_draw(VkCommandBuffer command_buffer, Args... args)
     {
-      model_.bind(animation_index_, frame_index_, command_buffer);
+      model_.bind(animation_index_, frame_index_, command_buffer, args...);
       model_.draw(command_buffer);
     }
 
