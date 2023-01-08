@@ -64,8 +64,7 @@ class mesh_shader_introduction : public game::engine
     {
       // mesh_actor or ml_actor
       create_bunny_wall<ml_actor>();
-      add_virtual_camera();
-      setup_shading_system();
+      //add_virtual_camera();
     }
 
     ~mesh_shader_introduction() override = default;
@@ -108,8 +107,8 @@ class mesh_shader_introduction : public game::engine
     void update_game_gui() override
     {
       // this part should be contained in update_game()...
-      virtual_camera_->update_frustum_planes();
-      set_frustum_info(virtual_camera_->get_frustum_info());
+      //virtual_camera_->update_frustum_planes();
+      //set_frustum_info(virtual_camera_->get_frustum_info());
 
       ImGui::Begin("stats");
 
@@ -118,21 +117,15 @@ class mesh_shader_introduction : public game::engine
       if (ImGui::Button("change key move target")) {
         if (camera_up_->is_movement_updating()) {
           camera_up_->set_movement_updating_off();
-          virtual_camera_->set_movement_updating_on();
+          //virtual_camera_->set_movement_updating_on();
         }
         else {
           camera_up_->set_movement_updating_on();
-          virtual_camera_->set_movement_updating_off();
+         // virtual_camera_->set_movement_updating_off();
         }
       }
 
       ImGui::End();
-    }
-
-    void setup_shading_system()
-    {
-      auto mesh_model_shader = game::mesh_model_shading_system::create(get_graphics_device());
-      add_shading_system(std::move(mesh_model_shader));
     }
 
     // sample object
