@@ -8,13 +8,13 @@
 namespace hnll {
 namespace game {
 
-class skinning_mesh_model_shading_system : public shading_system
+class skinning_model_shading_system : public shading_system
 {
   public:
-    static u_ptr<skinning_mesh_model_shading_system> create(graphics::device& device);
+    static u_ptr<skinning_model_shading_system> create(graphics::device& device);
 
-    explicit skinning_mesh_model_shading_system(graphics::device& device);
-    ~skinning_mesh_model_shading_system();
+    explicit skinning_model_shading_system(graphics::device& device);
+    ~skinning_model_shading_system();
 
     void render(const utils::frame_info& frame_info) override;
 };

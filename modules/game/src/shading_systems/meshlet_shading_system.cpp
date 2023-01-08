@@ -1,5 +1,5 @@
 // hnll
-#include <game/shading_systems/meshlet_model_shading_system.hpp>
+#include <game/shading_systems/meshlet_shading_system.hpp>
 #include <game/components/meshlet_component.hpp>
 #include <utils/common_using.hpp>
 #include <graphics/meshlet_model.hpp>
@@ -14,10 +14,10 @@ struct meshlet_push_constant
   mat4 normal_matrix = mat4::Identity();
 };
 
-u_ptr<meshlet_model_shading_system> meshlet_model_shading_system::create(graphics::device &device)
-{ return std::make_unique<meshlet_model_shading_system>(device); }
+u_ptr<meshlet_shading_system> meshlet_shading_system::create(graphics::device &device)
+{ return std::make_unique<meshlet_shading_system>(device); }
 
-void meshlet_model_shading_system::setup_task_desc()
+void meshlet_shading_system::setup_task_desc()
 {
   task_desc_sets_ = graphics::descriptor_set::create(device_);
 
@@ -48,7 +48,7 @@ void meshlet_model_shading_system::setup_task_desc()
   task_desc_sets_->build_sets();
 }
 
-meshlet_model_shading_system::meshlet_model_shading_system(graphics::device &device)
+meshlet_shading_system::meshlet_shading_system(graphics::device &device)
   : shading_system(device, utils::shading_type::MESHLET)
 {
   setup_task_desc();
@@ -84,7 +84,7 @@ meshlet_model_shading_system::meshlet_model_shading_system(graphics::device &dev
   );
 }
 
-void meshlet_model_shading_system::render(const utils::frame_info &frame_info)
+void meshlet_shading_system::render(const utils::frame_info &frame_info)
 {
   auto command_buffer = frame_info.command_buffer;
   pipeline_->bind(command_buffer);

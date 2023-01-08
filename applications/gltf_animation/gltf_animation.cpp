@@ -1,6 +1,6 @@
 // hnll
 #include <game/engine.hpp>
-#include <game/shading_systems/frame_anim_mesh_model_shading_system.hpp>
+#include <game/shading_systems/frame_anim_mesh_shading_system.hpp>
 #include <game/components/mesh_component.hpp>
 #include <game/components/skinning_mesh_component.hpp>
 #include <game/components/frame_anim_component.hpp>

@@ -1,5 +1,5 @@
 // hnll
-#include <game/shading_systems/frame_anim_mesh_model_shading_system.hpp>
+#include <game/shading_systems/frame_anim_mesh_shading_system.hpp>
 #include <game/components/frame_anim_component.hpp>
 #include <graphics/frame_anim_mesh_model.hpp>
 
@@ -11,10 +11,10 @@ struct frame_anim_push_constant
   mat4 normal_matrix;
 };
 
-u_ptr<frame_anim_mesh_model_shading_system> frame_anim_mesh_model_shading_system::create(graphics::device& device)
-{ return std::make_unique<frame_anim_mesh_model_shading_system>(device); }
+u_ptr<frame_anim_mesh_shading_system> frame_anim_mesh_shading_system::create(graphics::device& device)
+{ return std::make_unique<frame_anim_mesh_shading_system>(device); }
 
-frame_anim_mesh_model_shading_system::frame_anim_mesh_model_shading_system(graphics::device &device)
+frame_anim_mesh_shading_system::frame_anim_mesh_shading_system(graphics::device &device)
   : shading_system(device, utils::shading_type::FRAME_ANIM_MESH)
 {
   pipeline_layout_ = create_pipeline_layout<frame_anim_push_constant>(
@@ -37,7 +37,7 @@ frame_anim_mesh_model_shading_system::frame_anim_mesh_model_shading_system(graph
   );
 }
 
-void frame_anim_mesh_model_shading_system::render(const utils::frame_info& frame_info)
+void frame_anim_mesh_shading_system::render(const utils::frame_info& frame_info)
 {
   pipeline_->bind(frame_info.command_buffer);
 

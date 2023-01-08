@@ -1,5 +1,5 @@
 // hnll
-#include <game/shading_systems/mesh_model_shading_system.hpp>
+#include <game/shading_systems/mesh_shading_system.hpp>
 #include <game/components/mesh_component.hpp>
 
 namespace hnll {
@@ -18,12 +18,12 @@ struct mesh_push_constant
   mat4 normal_matrix;
 };
 
-u_ptr<mesh_model_shading_system> mesh_model_shading_system::create(graphics::device& device)
+u_ptr<mesh_shading_system> mesh_shading_system::create(graphics::device& device)
 {
-  return std::make_unique<mesh_model_shading_system>(device);
+  return std::make_unique<mesh_shading_system>(device);
 }
 
-mesh_model_shading_system::mesh_model_shading_system(graphics::device &device)
+mesh_shading_system::mesh_shading_system(graphics::device &device)
  : shading_system(device, utils::shading_type::MESH)
 {
   pipeline_layout_ = create_pipeline_layout<mesh_push_constant>(
@@ -45,7 +45,7 @@ mesh_model_shading_system::mesh_model_shading_system(graphics::device &device)
   );
 }
 
-void mesh_model_shading_system::render(const utils::frame_info& frame_info)
+void mesh_shading_system::render(const utils::frame_info& frame_info)
 {
   pipeline_->bind(frame_info.command_buffer);
 

@@ -7,11 +7,11 @@
 
 namespace hnll::game {
 
-class meshlet_model_shading_system : public shading_system
+class meshlet_shading_system : public shading_system
 {
   public:
-    static u_ptr<meshlet_model_shading_system> create(graphics::device& device);
-    explicit meshlet_model_shading_system(graphics::device& device);
+    static u_ptr<meshlet_shading_system> create(graphics::device& device);
+    explicit meshlet_shading_system(graphics::device& device);
     void render(const utils::frame_info& frame_info) override;
   private:
     void setup_task_desc();

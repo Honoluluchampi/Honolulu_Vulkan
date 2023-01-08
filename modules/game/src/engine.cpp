@@ -5,11 +5,11 @@
 #include <game/actors/point_light_manager.hpp>
 #include <game/actors/default_camera.hpp>
 #include <game/components/mesh_component.hpp>
-#include <game/shading_systems/mesh_model_shading_system.hpp>
-#include <game/shading_systems/meshlet_model_shading_system.hpp>
+#include <game/shading_systems/mesh_shading_system.hpp>
+#include <game/shading_systems/meshlet_shading_system.hpp>
 #include <game/shading_systems/grid_shading_system.hpp>
-#include <game/shading_systems/skinning_mesh_model_shading_system.hpp>
-#include <game/shading_systems/frame_anim_mesh_model_shading_system.hpp>
+#include <game/shading_systems/skinning_model_shading_system.hpp>
+#include <game/shading_systems/frame_anim_mesh_shading_system.hpp>
 #include <physics/collision_info.hpp>
 #include <physics/collision_detector.hpp>
 #include <physics/engine.hpp>
@@ -234,7 +234,7 @@ void engine::load_model(const std::string &model_name, utils::shading_type type)
   switch (type) {
     case utils::shading_type::MESH : {
       if (path.extension().string() == ".obj") {
-        check_and_add_shading_system<mesh_model_shading_system>(type);
+        check_and_add_shading_system<mesh_shading_system>(type);
         auto model = graphics::mesh_model::create_from_file(get_graphics_device(), path.filename().string());
         mesh_model_map_.emplace(path.filename().string(), std::move(model));
       }
@@ -244,7 +244,7 @@ void engine::load_model(const std::string &model_name, utils::shading_type type)
     }
     case utils::shading_type::MESHLET : {
       if (path.extension().string() == ".obj") {
-        check_and_add_shading_system<meshlet_model_shading_system>(type);
+        check_and_add_shading_system<meshlet_shading_system>(type);
         auto model = graphics::meshlet_model::create_from_file(get_graphics_device(), path.filename().string());
         meshlet_model_map_.emplace(path.filename().string(), std::move(model));
       }
@@ -254,7 +254,7 @@ void engine::load_model(const std::string &model_name, utils::shading_type type)
     }
     case utils::shading_type::SKINNING_MESH : {
       if (path.extension().string() == ".glb") {
-        check_and_add_shading_system<skinning_mesh_model_shading_system>(type);
+        check_and_add_shading_system<skinning_model_shading_system>(type);
         auto model = graphics::skinning_mesh_model::create_from_gltf(path.string(), get_graphics_device());
         skinning_mesh_model_map_.emplace(path.filename().string(), std::move(model));
       }
@@ -264,7 +264,7 @@ void engine::load_model(const std::string &model_name, utils::shading_type type)
     }
     case utils::shading_type::FRAME_ANIM_MESH : {
       if (path.extension().string() == ".glb") {
-        check_and_add_shading_system<frame_anim_mesh_model_shading_system>(type);
+        check_and_add_shading_system<frame_anim_mesh_shading_system>(type);
         auto model = graphics::frame_anim_mesh_model::create_from_skinning_mesh_model(get_skinning_mesh_model(path.filename().string()));
         frame_anim_mesh_model_map_.emplace(path.filename().string(), std::move(model));
       }

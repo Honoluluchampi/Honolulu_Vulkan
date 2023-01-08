@@ -9,7 +9,7 @@
 #include <game/components/frame_anim_component.hpp>
 #include <physics/engine.hpp>
 
-#include <game/shading_systems/mesh_model_shading_system.hpp>
+#include <game/shading_systems/mesh_shading_system.hpp>
 
 // std
 #include <memory>
