@@ -66,8 +66,10 @@ class frame_anim_meshlet_model
     std::vector<std::vector<u_ptr<buffer>>> sphere_buffers_;
 
     std::vector<uint32_t> frame_counts_;
+    std::vector<uint32_t> accumulative_frame_counts_;
     uint32_t vertex_count_;
     uint32_t index_count_;
+    uint32_t meshlet_count_;
 
     // desc sets
     u_ptr<descriptor_set> common_desc_sets_;

@@ -88,4 +88,41 @@ std::vector<u_ptr<descriptor_set_layout>> frame_anim_meshlet_model::default_desc
   return ret;
 }
 
+void frame_anim_meshlet_model::bind(
+  uint32_t animation_index,
+  uint32_t frame_index,
+  VkCommandBuffer command_buffer,
+  const std::vector<VkDescriptorSet> &external_desc_sets,
+  VkPipelineLayout pipeline_layout)
+{
+  std::vector<VkDescriptorSet> desc_sets;
+  for (const auto& set : external_desc_sets) {
+    desc_sets.push_back(set);
+  }
+  desc_sets.push_back(common_desc_sets_->get_set(0)); // common attribs
+  desc_sets.push_back(common_desc_sets_->get_set(1)); // meshlet
+  uint32_t anim_frame_index = accumulative_frame_counts_[animation_index] + frame_index;
+  desc_sets.push_back(dynamic_attribs_desc_sets_->get_set(anim_frame_index));
+  desc_sets.push_back(sphere_desc_sets_->get_set(anim_frame_index));
+
+  vkCmdBindDescriptorSets(
+    command_buffer,
+    VK_PIPELINE_BIND_POINT_GRAPHICS,
+    pipeline_layout,
+    0,
+    static_cast<uint32_t>(desc_sets.size()),
+    desc_sets.data(),
+    0,
+    nullptr
+  );
+}
+
+void frame_anim_meshlet_model::draw(VkCommandBuffer command_buffer)
+{
+  vkCmdDrawMeshTasksNV(
+    command_buffer,
+    meshlet_count_,
+    0
+  );
+}
 } // namespace hnll::graphics
