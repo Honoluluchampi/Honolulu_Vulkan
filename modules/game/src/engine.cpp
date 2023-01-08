@@ -10,6 +10,7 @@
 #include <game/shading_systems/grid_shading_system.hpp>
 #include <game/shading_systems/skinning_model_shading_system.hpp>
 #include <game/shading_systems/frame_anim_mesh_shading_system.hpp>
+#include <game/shading_systems/frame_anim_meshlet_shading_system.hpp>
 #include <physics/collision_info.hpp>
 #include <physics/collision_detector.hpp>
 #include <physics/engine.hpp>
