@@ -1,19 +1,33 @@
 // hnll
 #include <graphics/frame_anim_meshlet_model.hpp>
+#include <graphics/skinning_mesh_model.hpp>
 #include <graphics/descriptor_set_layout.hpp>
 #include <graphics/descriptor_set.hpp>
 #include <graphics/buffer.hpp>
+#include <geometry/mesh_separation.hpp>
+#include <geometry/mesh_model.hpp>
 
 namespace hnll::graphics {
 
 #define FRAME_ANIM_DESC_SET_COUNT 4
 
 u_ptr<frame_anim_meshlet_model> frame_anim_meshlet_model::create_from_skinning_mesh_model(
-  hnll::graphics::device &_device,
   hnll::graphics::skinning_mesh_model &original,
   uint32_t max_fps)
 {
+  auto ret = std::make_unique<frame_anim_meshlet_model>(original.get_device());
+  ret->load_from_skinning_mesh_model(original, max_fps);
 
+  auto geometry_model = geometry::mesh_model::create_from_dynamic_attributes(
+    ret->get_initial_dynamic_attribs(),
+    ret->get_raw_indices()
+  );
+  auto meshlets = geometry::mesh_separation::separate_without_cache(geometry_model);
+  ret->set_meshlets(std::move(meshlets));
+  ret->create_meshlets_buffer();
+  ret->setup_descs();
+
+  return ret;
 }
 
 frame_anim_meshlet_model::frame_anim_meshlet_model(device &_device) : device_(_device)
@@ -49,6 +63,8 @@ void frame_anim_meshlet_model::setup_descs()
     desc_set_count,
     VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 
+  dynamic_attribs_desc_sets_->add_layout(static_cast<VkShaderStageFlagBits>(VK_SHADER_STAGE_TASK_BIT_NV | VK_SHADER_STAGE_MESH_BIT_NV));
+
   for (int i = 0; i < dynamic_attributes_buffers_.size(); i++)
     for (int j = 0; j < dynamic_attributes_buffers_[i].size(); j++)
       dynamic_attribs_desc_sets_->add_buffer(std::move(dynamic_attributes_buffers_[i][j]));
@@ -62,6 +78,8 @@ void frame_anim_meshlet_model::setup_descs()
     FRAME_ANIM_DESC_SET_COUNT + 1,
     desc_set_count,
     VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+
+  sphere_desc_sets_->add_layout(static_cast<VkShaderStageFlagBits>(VK_SHADER_STAGE_TASK_BIT_NV | VK_SHADER_STAGE_MESH_BIT_NV));
 
   for (int i = 0; i < sphere_buffers_.size(); i++)
     for (int j = 0; j < sphere_buffers_[i].size(); j++)
@@ -125,4 +143,107 @@ void frame_anim_meshlet_model::draw(VkCommandBuffer command_buffer)
     0
   );
 }
+
+void frame_anim_meshlet_model::load_from_skinning_mesh_model(skinning_mesh_model &original, uint32_t max_fps)
+{
+  auto builder = original.get_ownership_of_builder();
+
+  vertex_count_ = builder.vertex_buffer.size();
+  index_count_ = builder.index_buffer.size();
+
+  // extract time info
+  auto& animations = original.get_animations();
+  start_times_.resize(animations.size());
+  end_times_.resize(animations.size());
+  for (int i = 0; i < animations.size(); i++) {
+    start_times_[i] = animations[i].start;
+    end_times_[i]   = animations[i].end;
+  }
+
+  // extract common attributes
+  std::vector<frame_anim_utils::common_attributes> common_attribs;
+  for (auto& data : builder.vertex_buffer) {
+    frame_anim_utils::common_attributes new_ca;
+    new_ca.uv0     = data.tex_coord_0;
+    new_ca.uv1     = data.tex_coord_1;
+    new_ca.color   = data.color;
+    common_attribs.emplace_back(std::move(new_ca));
+  }
+  common_attributes_buffer_ = buffer::create_with_staging(
+    device_,
+    common_attribs.size() * sizeof(frame_anim_utils::common_attributes),
+    1,
+    VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+    common_attribs.data()
+  );
+
+  // extract index buffer
+  index_buffer_ = buffer::create_with_staging(
+    device_,
+    builder.index_buffer.size() * sizeof(uint32_t),
+    1,
+    VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+    builder.index_buffer.data()
+  );
+
+  // for mesh separation
+  raw_indices_ = builder.index_buffer;
+
+  // extract dynamic attributes
+  auto animation_count = original.get_animations().size();
+  dynamic_attributes_buffers_.resize(animation_count);
+  for (int i = 0; i < animation_count; i++) {
+    auto& anim = original.get_animations()[i];
+    float timer = anim.start;
+    while (timer <= anim.end) {
+      // calculate new position and normal
+      original.update_animation(i, timer);
+      auto new_dynamic_attribs = frame_anim_utils::extract_dynamic_attributes(original, builder);
+
+      // assign buffer
+      auto new_buffer = buffer::create_with_staging(
+        device_,
+        144 * sizeof(frame_anim_utils::dynamic_attributes),
+        1,
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        new_dynamic_attribs.data()
+      );
+      dynamic_attributes_buffers_[i].emplace_back(std::move(new_buffer));
+
+      // for mesh separation (temporary)
+      if (initial_dynamic_attribs_.size() == 0)
+        initial_dynamic_attribs_ = std::move(new_dynamic_attribs);
+
+      // update timer
+      timer += 1.f / static_cast<float>(max_fps);
+    }
+  }
+
+  frame_counts_.resize(animation_count);
+  accumulative_frame_counts_.resize(animation_count);
+  accumulative_frame_counts_[0] = 0;
+
+  for (int i = 0; i < dynamic_attributes_buffers_.size(); i++) {
+    uint32_t count = dynamic_attributes_buffers_[i].size();
+    frame_counts_[i] = count;
+    if (i != 0)
+      accumulative_frame_counts_[i] = accumulative_frame_counts_[i - 1] + frame_counts_[i - 1];
+  }
+}
+
+void frame_anim_meshlet_model::create_meshlets_buffer()
+{
+  meshlet_buffer_ = buffer::create_with_staging(
+    device_,
+    meshlets_.size() * sizeof(uint32_t),
+    1,
+    VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+    meshlets_.data()
+  );
+}
+
 } // namespace hnll::graphics

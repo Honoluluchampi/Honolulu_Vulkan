@@ -401,6 +401,19 @@ std::vector<graphics::meshlet> mesh_separation::separate(
   return meshlets;
 }
 
+std::vector<graphics::meshlet> mesh_separation::separate_without_cache(
+  const s_ptr<mesh_model>& _model,
+  criterion _crtr)
+{
+  std::vector<graphics::meshlet> meshlets;
+
+  auto helper = mesh_separation_helper::create(_model, "", _crtr);
+
+  meshlets = separate_greedy(helper);
+
+  return meshlets;
+}
+
 void mesh_separation::write_meshlet_cache(
   const std::vector<graphics::meshlet> &_meshlets,
   const std::string& _filename,

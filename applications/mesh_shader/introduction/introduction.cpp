@@ -51,7 +51,7 @@ class mesh_shader_introduction : public game::engine
       auto system = game::frame_anim_meshlet_shading_system::create(get_graphics_device());
       add_shading_system(std::move(system));
       // mesh_actor or ml_actor
-      create_bunny_wall<model_actor<game::frame_anim_component<graphics::frame_anim_mesh_model>>>();
+      create_bunny_wall<model_actor<game::frame_anim_component<graphics::frame_anim_meshlet_model>>>();
       //add_virtual_camera();
     }
 

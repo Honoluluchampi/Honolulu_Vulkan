@@ -25,8 +25,8 @@ namespace skinning_utils {
 class frame_anim_meshlet_model
 {
   public:
-    static u_ptr<frame_anim_meshlet_model> create_from_skinning_mesh_model(device& _device, skinning_mesh_model& original, uint32_t max_fps = frame_anim_utils::MAX_FPS);
-    frame_anim_meshlet_model(device& _device);
+    static u_ptr<frame_anim_meshlet_model> create_from_skinning_mesh_model(skinning_mesh_model& original, uint32_t max_fps = frame_anim_utils::MAX_FPS);
+    explicit frame_anim_meshlet_model(device& _device);
 
     void bind(
       uint32_t animation_index,
@@ -41,12 +41,17 @@ class frame_anim_meshlet_model
     uint32_t get_frame_count(uint32_t animation_index) const { return frame_counts_[animation_index]; }
     float    get_start_time(uint32_t animation_index)  const { return start_times_[animation_index]; }
     float    get_end_time(uint32_t animation_index)    const { return end_times_[animation_index]; }
+    const std::vector<frame_anim_utils::dynamic_attributes>& get_initial_dynamic_attribs() const { return initial_dynamic_attribs_; }
+    const std::vector<uint32_t>& get_raw_indices() const { return raw_indices_; }
 
     static std::vector<u_ptr<descriptor_set_layout>> default_desc_set_layouts(device& _device);
 
+    // setter
+    void set_meshlets(std::vector<meshlet>&& meshlets) { meshlets_ = meshlets; }
+
   private:
     void load_from_skinning_mesh_model(skinning_mesh_model& original, uint32_t max_fps);
-
+    void create_meshlets_buffer();
     void setup_descs();
 
     device& device_;
@@ -78,6 +83,11 @@ class frame_anim_meshlet_model
 
     std::vector<float> start_times_;
     std::vector<float> end_times_;
+
+    // raw data for (and from) mesh separation (temporary)
+    std::vector<frame_anim_utils::dynamic_attributes> initial_dynamic_attribs_;
+    std::vector<uint32_t> raw_indices_;
+    std::vector<meshlet> meshlets_;
 };
 
 }} // namespace hnll::graphics

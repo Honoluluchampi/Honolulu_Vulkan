@@ -13,14 +13,7 @@ class frame_anim_component : public renderable_component
 {
   public:
     template <Actor A>
-    static s_ptr<frame_anim_component> create(s_ptr<A>& owner, const std::string& model_name)
-    {
-      auto& skinning_mesh = engine::get_skinning_mesh_model(model_name);
-      auto& frame_mesh = engine::get_frame_anim_mesh_model(model_name);
-      auto ret = std::make_shared<frame_anim_component>(owner, frame_mesh);
-      owner->set_renderable_component(ret);
-      return ret;
-    }
+    static s_ptr<frame_anim_component> create(s_ptr<A>& owner, const std::string& model_name);
 
     // no default implementation
     template <Actor A>
@@ -90,6 +83,26 @@ frame_anim_component<graphics::frame_anim_meshlet_model>::frame_anim_component(s
 {
   animation_count_ = model_.get_animation_count();
   activate_animation(0);
+}
+
+template<> template <Actor A>
+s_ptr<frame_anim_component<graphics::frame_anim_mesh_model>> frame_anim_component<graphics::frame_anim_mesh_model>::create(s_ptr<A>& owner, const std::string& model_name)
+{
+  auto& skinning_mesh = engine::get_skinning_mesh_model(model_name);
+  auto& frame_mesh = engine::get_frame_anim_mesh_model(model_name);
+  auto ret = std::make_shared<frame_anim_component>(owner, frame_mesh);
+  owner->set_renderable_component(ret);
+  return ret;
+}
+
+template<> template <Actor A>
+s_ptr<frame_anim_component<graphics::frame_anim_meshlet_model>> frame_anim_component<graphics::frame_anim_meshlet_model>::create(s_ptr<A>& owner, const std::string& model_name)
+{
+  auto& skinning_mesh = engine::get_skinning_mesh_model(model_name);
+  auto& frame_meshlet = engine::get_frame_anim_meshlet_model(model_name);
+  auto ret = std::make_shared<frame_anim_component>(owner, frame_meshlet);
+  owner->set_renderable_component(ret);
+  return ret;
 }
 
 }// namespace hnll::game

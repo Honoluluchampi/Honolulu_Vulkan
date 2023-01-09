@@ -50,6 +50,10 @@ std::vector<graphics::meshlet> separate(
   const std::string& _model_name = "tmp",
   criterion _crtr = criterion::MINIMIZE_BOUNDING_SPHERE);
 
+std::vector<graphics::meshlet> separate_without_cache(
+  const s_ptr<mesh_model>& _model,
+  criterion _crtr = criterion::MINIMIZE_BOUNDING_SPHERE);
+
 // meshlet cache file format
 /*
  * model path

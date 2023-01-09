@@ -273,7 +273,16 @@ void engine::load_model(const std::string &model_name, utils::shading_type type)
         std::cerr << "extension" << path.extension().string() << " is not supported for shading_type::FRAME_ANIM_MESH." << std::endl;
       break;
     }
-    // TODO : add frame_anim_meshlet_model
+    case utils::shading_type::FRAME_ANIM_MESHLET : {
+      if (path.extension().string() == ".glb") {
+        check_and_add_shading_system<frame_anim_meshlet_shading_system>(type);
+        auto model = graphics::frame_anim_meshlet_model::create_from_skinning_mesh_model(get_skinning_mesh_model(path.filename().string()));
+        frame_anim_meshlet_model_map_.emplace(path.filename().string(), std::move(model));
+      }
+      else
+        std::cerr << "extension" << path.extension().string() << " is not supported for shading_type::FRAME_ANIM_MESH." << std::endl;
+      break;
+    }
   }
 }
 
@@ -421,6 +430,10 @@ graphics::frame_anim_mesh_model& engine::get_frame_anim_mesh_model(const std::st
 }
 
 graphics::frame_anim_meshlet_model& engine::get_frame_anim_meshlet_model(const std::string& model_name)
-{ return *frame_anim_meshlet_model_map_[model_name]; }
+{
+  if (frame_anim_meshlet_model_map_.find(model_name) == frame_anim_meshlet_model_map_.end()) {
+    load_model(model_name, utils::shading_type::FRAME_ANIM_MESHLET);
+  }
+  return *frame_anim_meshlet_model_map_[model_name]; }
 
 } // namespace hnll::game
