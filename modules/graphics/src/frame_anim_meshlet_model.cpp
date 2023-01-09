@@ -210,7 +210,7 @@ void frame_anim_meshlet_model::load_from_skinning_mesh_model(skinning_mesh_model
       // assign buffer
       auto new_buffer = buffer::create_with_staging(
         device_,
-        144 * sizeof(frame_anim_utils::dynamic_attributes),
+        vertex_count_ * sizeof(frame_anim_utils::dynamic_attributes),
         1,
         VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -243,7 +243,7 @@ void frame_anim_meshlet_model::create_meshlets_buffer()
 {
   meshlet_buffer_ = buffer::create_with_staging(
     device_,
-    meshlets_.size() * sizeof(uint32_t),
+    meshlets_.size() * sizeof(animated_meshlet_pack::meshlet),
     1,
     VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,

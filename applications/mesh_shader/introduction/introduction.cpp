@@ -69,8 +69,8 @@ class mesh_shader_introduction : public game::engine
     template <class T>
     void create_bunny_wall()
     {
-      uint32_t x_count = 1;
-      uint32_t y_count = 1;
+      uint32_t x_count = 4;
+      uint32_t y_count = 4;
       uint32_t z_count = 1;
       float space = 4.f;
       std::vector<vec3> positions;
