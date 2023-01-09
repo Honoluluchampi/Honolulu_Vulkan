@@ -47,8 +47,10 @@ class frame_anim_meshlet_model
     static std::vector<u_ptr<descriptor_set_layout>> default_desc_set_layouts(device& _device);
 
     // setter
-    void set_meshlets(std::vector<meshlet>&& meshlets) { meshlets_ = meshlets; }
-
+    void set_meshlets(std::vector<animated_meshlet_pack::meshlet>&& meshlets)
+    { meshlets_ = std::move(meshlets); meshlet_count_ = meshlets_.size(); }
+    // temp
+    void set_initial_sphere(std::vector<vec4>&& spheres) { initial_spheres_ = std::move(spheres); }
   private:
     void load_from_skinning_mesh_model(skinning_mesh_model& original, uint32_t max_fps);
     void create_meshlets_buffer();
@@ -87,7 +89,9 @@ class frame_anim_meshlet_model
     // raw data for (and from) mesh separation (temporary)
     std::vector<frame_anim_utils::dynamic_attributes> initial_dynamic_attribs_;
     std::vector<uint32_t> raw_indices_;
-    std::vector<meshlet> meshlets_;
+    std::vector<animated_meshlet_pack::meshlet> meshlets_;
+    // temp
+    std::vector<vec4> initial_spheres_;
 };
 
 }} // namespace hnll::graphics

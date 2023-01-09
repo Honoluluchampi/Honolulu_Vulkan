@@ -7,6 +7,9 @@
 #include <geometry/mesh_separation.hpp>
 #include <geometry/mesh_model.hpp>
 
+//std
+#include <iostream>
+
 namespace hnll::graphics {
 
 #define FRAME_ANIM_DESC_SET_COUNT 4
@@ -22,8 +25,9 @@ u_ptr<frame_anim_meshlet_model> frame_anim_meshlet_model::create_from_skinning_m
     ret->get_initial_dynamic_attribs(),
     ret->get_raw_indices()
   );
-  auto meshlets = geometry::mesh_separation::separate_without_cache(geometry_model);
-  ret->set_meshlets(std::move(meshlets));
+  auto meshlet_pack = geometry::mesh_separation::separate_into_meshlet_pack(geometry_model);
+  ret->set_meshlets(std::move(meshlet_pack.meshlets));
+  ret->set_initial_sphere(std::move(meshlet_pack.spheres));
   ret->create_meshlets_buffer();
   ret->setup_descs();
 
@@ -59,7 +63,7 @@ void frame_anim_meshlet_model::setup_descs()
   dynamic_attribs_desc_sets_ = descriptor_set::create(device_);
 
   dynamic_attribs_desc_sets_->create_pool(
-    FRAME_ANIM_DESC_SET_COUNT + 1,
+    desc_set_count,
     desc_set_count,
     VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 
@@ -75,7 +79,7 @@ void frame_anim_meshlet_model::setup_descs()
   sphere_desc_sets_ = descriptor_set::create(device_);
 
   sphere_desc_sets_->create_pool(
-    FRAME_ANIM_DESC_SET_COUNT + 1,
+    desc_set_count,
     desc_set_count,
     VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
 
@@ -121,7 +125,8 @@ void frame_anim_meshlet_model::bind(
   desc_sets.push_back(common_desc_sets_->get_set(1)); // meshlet
   uint32_t anim_frame_index = accumulative_frame_counts_[animation_index] + frame_index;
   desc_sets.push_back(dynamic_attribs_desc_sets_->get_set(anim_frame_index));
-//  desc_sets.push_back(sphere_desc_sets_->get_set(anim_frame_index));
+  // temp
+  desc_sets.push_back(sphere_desc_sets_->get_set(0));
 
   vkCmdBindDescriptorSets(
     command_buffer,
@@ -244,6 +249,17 @@ void frame_anim_meshlet_model::create_meshlets_buffer()
     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
     meshlets_.data()
   );
+
+  // temp
+  sphere_buffers_.resize(1);
+  sphere_buffers_[0].push_back(buffer::create_with_staging(
+    device_,
+    initial_spheres_.size() * sizeof(vec4),
+    1,
+    VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+    initial_spheres_.data()
+  ));
 }
 
 } // namespace hnll::graphics

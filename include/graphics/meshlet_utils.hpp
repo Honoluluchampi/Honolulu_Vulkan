@@ -25,4 +25,18 @@ struct meshlet
   // alignas(16) vec3 radius;
 };
 
+struct animated_meshlet_pack
+{
+  struct meshlet
+  {
+    uint32_t vertex_indices   [MAX_VERTEX_PER_MESHLET]; // indicates position in a vertex buffer
+    uint32_t primitive_indices[MAX_INDEX_PER_MESHLET];
+    uint32_t vertex_count;
+    uint32_t index_count;
+  };
+
+  std::vector<animated_meshlet_pack::meshlet> meshlets;
+  std::vector<vec4> spheres;
+};
+
 } // namespace hnll::graphics
