@@ -57,7 +57,7 @@ void frame_anim_meshlet_shading_system::setup_task_desc()
 }
 
 frame_anim_meshlet_shading_system::frame_anim_meshlet_shading_system(graphics::device &device)
-  : shading_system(device, utils::shading_type::MESHLET)
+  : shading_system(device, utils::shading_type::FRAME_ANIM_MESHLET)
 {
   setup_task_desc();
 

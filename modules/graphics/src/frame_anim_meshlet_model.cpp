@@ -121,7 +121,7 @@ void frame_anim_meshlet_model::bind(
   desc_sets.push_back(common_desc_sets_->get_set(1)); // meshlet
   uint32_t anim_frame_index = accumulative_frame_counts_[animation_index] + frame_index;
   desc_sets.push_back(dynamic_attribs_desc_sets_->get_set(anim_frame_index));
-  desc_sets.push_back(sphere_desc_sets_->get_set(anim_frame_index));
+//  desc_sets.push_back(sphere_desc_sets_->get_set(anim_frame_index));
 
   vkCmdBindDescriptorSets(
     command_buffer,
