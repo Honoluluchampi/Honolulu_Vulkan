@@ -1,5 +1,5 @@
 // hnll
-#include <game/shading_systems/skinning_mesh_model_shading_system.hpp>
+#include <game/shading_systems/skinning_model_shading_system.hpp>
 #include <game/components/skinning_mesh_component.hpp>
 
 namespace hnll {
@@ -21,10 +21,10 @@ namespace game {
 
 using mat4 = Eigen::Matrix4f;
 
-u_ptr<skinning_mesh_model_shading_system> skinning_mesh_model_shading_system::create(graphics::device& device)
-{ return std::make_unique<skinning_mesh_model_shading_system>(device); }
+u_ptr<skinning_model_shading_system> skinning_model_shading_system::create(graphics::device& device)
+{ return std::make_unique<skinning_model_shading_system>(device); }
 
-skinning_mesh_model_shading_system::skinning_mesh_model_shading_system(graphics::device &device)
+skinning_model_shading_system::skinning_model_shading_system(graphics::device &device)
  : shading_system(device, utils::shading_type::SKINNING_MESH)
 {
   graphics::skinning_mesh_model::setup_desc_set_layout(device_);
@@ -48,12 +48,12 @@ skinning_mesh_model_shading_system::skinning_mesh_model_shading_system(graphics:
   );
 }
 
-skinning_mesh_model_shading_system::~skinning_mesh_model_shading_system()
+skinning_model_shading_system::~skinning_model_shading_system()
 {
   graphics::skinning_mesh_model::erase_desc_set_layout();
 }
 
-void skinning_mesh_model_shading_system::render(const utils::frame_info& frame_info)
+void skinning_model_shading_system::render(const utils::frame_info& frame_info)
 {
   pipeline_->bind(frame_info.command_buffer);
 

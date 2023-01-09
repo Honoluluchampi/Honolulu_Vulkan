@@ -1,16 +1,16 @@
 // hnll
-#include <game/graphics_engine.hpp>
 #include <graphics/utils.hpp>
-#include <graphics/meshlet_model.hpp>
 #include <game/actor.hpp>
 #include <game/engine.hpp>
 #include <game/actors/default_camera.hpp>
 #include <game/actors/virtual_camera.hpp>
 #include <game/components/mesh_component.hpp>
 #include <game/components/meshlet_component.hpp>
+#include <game/components/frame_anim_component.hpp>
+#include <game/shading_systems/frame_anim_meshlet_shading_system.hpp>
 #include <physics/engine.hpp>
 
-#include <game/shading_systems/mesh_model_shading_system.hpp>
+#include <game/shading_systems/mesh_shading_system.hpp>
 
 // std
 #include <memory>
@@ -24,37 +24,23 @@ using vec2 = Eigen::Vector2f;
 using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
 
-std::string FILENAME = "light_bunny.obj";
+std::string FILENAME = "human.glb";
 
-class ml_actor : public game::actor
+template <class ModelComp>
+class model_actor : public game::actor
 {
   public:
-    static s_ptr<ml_actor> create(graphics::device& _device)
+    static s_ptr<model_actor> create(graphics::device& _device)
     {
-      auto ret = std::make_shared<ml_actor>();
-      ret->meshlet_comp_ = game::meshlet_component::create(ret, FILENAME);
+      auto ret = std::make_shared<model_actor>();
+      ret->model_comp_ = ModelComp::create(ret, FILENAME);
       ret->set_rotation({M_PI, 0.f, 0.f});
       game::engine::add_actor(ret);
       return ret;
     }
-    ml_actor(){}
+    model_actor(){}
   private:
-    s_ptr<game::meshlet_component> meshlet_comp_;
-};
-
-class mesh_actor : public game::actor
-{
-  public:
-    static s_ptr<mesh_actor> create(graphics::device& _device)
-    {
-      auto ret = std::make_shared<mesh_actor>();
-      ret->mesh_comp_ = game::mesh_component::create(ret, FILENAME);
-      ret->set_rotation({M_PI, 0.f, 0.f});
-      game::engine::add_actor(ret);
-      return ret;
-    }
-  private:
-    s_ptr<game::mesh_component> mesh_comp_;
+    s_ptr<ModelComp> model_comp_;
 };
 
 class mesh_shader_introduction : public game::engine
@@ -62,10 +48,11 @@ class mesh_shader_introduction : public game::engine
   public:
     mesh_shader_introduction() : game::engine("mesh shader introduction")
     {
+      auto system = game::frame_anim_meshlet_shading_system::create(get_graphics_device());
+      add_shading_system(std::move(system));
       // mesh_actor or ml_actor
-      create_bunny_wall<ml_actor>();
-      add_virtual_camera();
-      setup_shading_system();
+      create_bunny_wall<model_actor<game::frame_anim_component<graphics::frame_anim_meshlet_model>>>();
+      //add_virtual_camera();
     }
 
     ~mesh_shader_introduction() override = default;
@@ -84,7 +71,7 @@ class mesh_shader_introduction : public game::engine
     {
       uint32_t x_count = 4;
       uint32_t y_count = 4;
-      uint32_t z_count = 2;
+      uint32_t z_count = 1;
       float space = 4.f;
       std::vector<vec3> positions;
 
@@ -108,8 +95,8 @@ class mesh_shader_introduction : public game::engine
     void update_game_gui() override
     {
       // this part should be contained in update_game()...
-      virtual_camera_->update_frustum_planes();
-      set_frustum_info(virtual_camera_->get_frustum_info());
+      //virtual_camera_->update_frustum_planes();
+      //set_frustum_info(virtual_camera_->get_frustum_info());
 
       ImGui::Begin("stats");
 
@@ -118,25 +105,16 @@ class mesh_shader_introduction : public game::engine
       if (ImGui::Button("change key move target")) {
         if (camera_up_->is_movement_updating()) {
           camera_up_->set_movement_updating_off();
-          virtual_camera_->set_movement_updating_on();
+          //virtual_camera_->set_movement_updating_on();
         }
         else {
           camera_up_->set_movement_updating_on();
-          virtual_camera_->set_movement_updating_off();
+         // virtual_camera_->set_movement_updating_off();
         }
       }
 
       ImGui::End();
     }
-
-    void setup_shading_system()
-    {
-      auto mesh_model_shader = game::mesh_model_shading_system::create(get_graphics_device());
-      add_shading_system(std::move(mesh_model_shader));
-    }
-
-    // sample object
-    std::vector<s_ptr<ml_actor>> ml_actors_;
 
     s_ptr<game::virtual_camera> virtual_camera_;
     // frustum culling is organized based on this frustum;

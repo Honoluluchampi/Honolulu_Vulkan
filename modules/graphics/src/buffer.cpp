@@ -59,7 +59,9 @@ u_ptr<buffer> buffer::create(
   auto ret = std::make_unique<buffer>(device, instance_size, instance_count, usage_flags, memory_property_flags, min_offset_alignment);
 
   ret->map();
-  ret->write_to_buffer(writing_data);
+
+  if (writing_data != nullptr)
+    ret->write_to_buffer(writing_data);
 
   return ret;
 }

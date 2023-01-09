@@ -3,6 +3,7 @@
 #include <geometry/primitives.hpp>
 #include <geometry/bounding_volume.hpp>
 #include <graphics/utils.hpp>
+#include <graphics/frame_anim_utils.hpp>
 #include <utils/utils.hpp>
 
 // std
@@ -119,6 +120,45 @@ s_ptr<mesh_model> mesh_model::create_from_obj_file(const std::string& filename)
   }
 
   return mesh_model;
+}
+
+s_ptr<vertex> translate_vertex(const graphics::frame_anim_utils::dynamic_attributes& pseudo, uint32_t id)
+{
+  auto vertex_sp = vertex::create(pseudo.position.cast<double>());
+  vertex_sp->normal_   = pseudo.normal.cast<double>();
+  vertex_sp->id_ = id;
+  return vertex_sp;
+}
+
+s_ptr<mesh_model> mesh_model::create_from_dynamic_attributes(
+  const std::vector<graphics::frame_anim_utils::dynamic_attributes> &vertices,
+  const std::vector<uint32_t> &indices)
+{
+  if (indices.size() % 3 != 0)
+    throw std::runtime_error("index count is not multiple of 3.");
+
+  auto model = mesh_model::create();
+
+  // translate vertices
+  for (int i = 0; i < vertices.size(); i++) {
+    auto new_vertex = translate_vertex(vertices[i], i);
+    model->add_vertex(new_vertex);
+  }
+
+  // recreate all faces
+  for (int i = 0; i < indices.size(); i += 3) {
+    auto v0 = model->get_vertex(indices[i]);
+    auto v1 = model->get_vertex(indices[i + 1]);
+    auto v2 = model->get_vertex(indices[i + 2]);
+    auto normal = (v0->normal_ + v1->normal_ + v2->normal_) / 3.f;
+    auto cross = (v1->position_ - v0->position_).cross(v2->position_ - v0->position_);
+    if (cross.dot(normal) >= 0)
+      model->add_face(v0, v1, v2);
+    else
+      model->add_face(v0, v2, v1);
+  }
+
+  return model;
 }
 
 void mesh_model::align_vertex_id()

@@ -13,6 +13,7 @@ namespace hnll {
 namespace graphics {
   struct mesh_builder;
   struct meshlet;
+  struct animated_meshlet_pack;
 }
 namespace geometry {
 
@@ -48,6 +49,10 @@ enum class criterion {
 std::vector<graphics::meshlet> separate(
   const s_ptr<mesh_model>& _model,
   const std::string& _model_name = "tmp",
+  criterion _crtr = criterion::MINIMIZE_BOUNDING_SPHERE);
+
+graphics::animated_meshlet_pack separate_into_meshlet_pack(
+  const s_ptr<mesh_model>& _model,
   criterion _crtr = criterion::MINIMIZE_BOUNDING_SPHERE);
 
 // meshlet cache file format

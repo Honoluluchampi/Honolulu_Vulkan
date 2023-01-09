@@ -33,7 +33,7 @@ struct skinning_mesh_push_constant
 class skinning_mesh_model
 {
   public:
-    explicit skinning_mesh_model(device& device) : device_(device) {}
+    explicit skinning_mesh_model(device& device);
     ~skinning_mesh_model();
 
     void bind(VkCommandBuffer command_buffer, VkDescriptorSet global_desc_set, VkPipelineLayout pipeline_layout);
@@ -74,12 +74,8 @@ class skinning_mesh_model
 
     // others
     bool is_skinned() const { return has_skin_; }
-
-    std::vector<std::string> get_joint_node_names() const;
-
-    std::vector<mat4> get_inv_bind_matrices() const;
-
     skinning_utils::builder get_ownership_of_builder() { return std::move(builder_); }
+    device& get_device() { return device_; }
 
     // for shading system
     static void setup_desc_set_layout(device& device);

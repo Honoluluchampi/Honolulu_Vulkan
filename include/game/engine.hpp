@@ -21,6 +21,8 @@ namespace physics  { class engine; }
 namespace graphics {
   class meshlet_model;
   class skinning_mesh_model;
+  class frame_anim_mesh_model;
+  class frame_anim_meshlet_model;
 }
 
 namespace game {
@@ -34,9 +36,11 @@ class point_light_component;
 
 using actor_id = unsigned int;
 using actor_map = std::unordered_map<actor_id, s_ptr<actor>>;
-using mesh_model_map = std::unordered_map<std::string, s_ptr<hnll::graphics::mesh_model>>;
-using meshlet_model_map = std::unordered_map<std::string, u_ptr<hnll::graphics::meshlet_model>>;
-using skinning_mesh_model_map = std::unordered_map<std::string, u_ptr<hnll::graphics::skinning_mesh_model>>;
+using mesh_model_map = std::unordered_map<std::string, s_ptr<graphics::mesh_model>>;
+using meshlet_model_map = std::unordered_map<std::string, u_ptr<graphics::meshlet_model>>;
+using skinning_mesh_model_map = std::unordered_map<std::string, u_ptr<graphics::skinning_mesh_model>>;
+using frame_anim_mesh_model_map = std::unordered_map<std::string, u_ptr<graphics::frame_anim_mesh_model>>;
+using frame_anim_meshlet_model_map = std::unordered_map<std::string, u_ptr<graphics::frame_anim_meshlet_model>>;
 
 class engine {
   public:
@@ -56,7 +60,15 @@ class engine {
     static void add_actor(const s_ptr<actor> &actor);
     void remove_actor(actor_id id);
 
-    void add_shading_system(u_ptr<shading_system>&& shading_system);
+    template <class ShadingSystem>
+    static void check_and_add_shading_system(utils::shading_type type)
+    {
+      if (graphics_engine_->check_shading_system_exists(type))
+        return;
+      auto system = ShadingSystem::create(get_graphics_device());
+      add_shading_system(std::move(system));
+    }
+    static void add_shading_system(u_ptr<shading_system>&& shading_system);
 
     void add_point_light(s_ptr<actor> &owner, s_ptr<point_light_component> &light_comp);
 
@@ -66,14 +78,16 @@ class engine {
     void remove_point_light_without_owner(component_id id);
 
     // getter
-    graphics_engine  &get_graphics_engine() { return *graphics_engine_; }
-    graphics::device &get_graphics_device() { return graphics_engine_->get_device_r(); }
+    static graphics_engine  &get_graphics_engine() { return *graphics_engine_; }
+    static graphics::device &get_graphics_device() { return graphics_engine_->get_device_r(); }
     static actor& get_active_actor(actor_id id) { return *active_actor_map_[id]; }
 
     static actor& get_pending_actor(actor_id id)  { return *pending_actor_map_[id]; }
-    static graphics::mesh_model&    get_mesh_model(const std::string& model_name) { return *mesh_model_map_[model_name]; }
+    static graphics::mesh_model&    get_mesh_model(const std::string& model_name);
     static graphics::meshlet_model& get_meshlet_model(const std::string& model_name);
     static graphics::skinning_mesh_model& get_skinning_mesh_model(const std::string& model_name);
+    static graphics::frame_anim_mesh_model& get_frame_anim_mesh_model(const std::string& model_name);
+    static graphics::frame_anim_meshlet_model& get_frame_anim_meshlet_model(const std::string& model_name);
     // setter
     void set_frustum_info(utils::frustum_info&& _frustum_info);
 
@@ -132,6 +146,7 @@ class engine {
     // load all models in modleDir
     // use filenames as the key of the map
     void load_models();
+    static void load_model(const std::string& model_name, utils::shading_type type);
 
     // glfw
     static void set_glfw_mouse_button_callbacks();
@@ -142,7 +157,7 @@ class engine {
     static actor_map pending_actor_map_;
     static std::vector<actor_id> dead_actor_ids_;
 
-    u_ptr<graphics_engine> graphics_engine_;
+    static u_ptr<graphics_engine> graphics_engine_;
     u_ptr<hnll::physics::engine>  physics_engine_;
 
 #ifndef IMGUI_DISABLED
@@ -151,11 +166,11 @@ class engine {
 
     // map of mesh_model contains raw vulkan buffer of its model
     // shared by engine and some modelComponents
-    // pool all models which could be necessary
     static mesh_model_map    mesh_model_map_;
     static meshlet_model_map meshlet_model_map_;
     static skinning_mesh_model_map skinning_mesh_model_map_;
-    // map of mesh_model_info contains
+    static frame_anim_mesh_model_map  frame_anim_mesh_model_map_;
+    static frame_anim_meshlet_model_map  frame_anim_meshlet_model_map_;
 
     bool is_updating_ = false; // for update
     bool is_running_ = false; // for run loop
