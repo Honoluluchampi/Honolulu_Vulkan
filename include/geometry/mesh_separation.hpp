@@ -52,7 +52,7 @@ std::vector<graphics::meshlet> separate(
   criterion _crtr = criterion::MINIMIZE_BOUNDING_SPHERE);
 
 graphics::animated_meshlet_pack separate_into_meshlet_pack(
-  const s_ptr<mesh_model>& _model,
+  const std::vector<s_ptr<mesh_model>>& _models,
   criterion _crtr = criterion::MINIMIZE_BOUNDING_SPHERE);
 
 // meshlet cache file format
@@ -100,6 +100,7 @@ class mesh_separation_helper
     vertex_map  get_vertex_map()         const { return vertex_map_; }
     face_map    get_face_map()           const { return face_map_; }
     s_ptr<face> get_random_remaining_face();
+    const s_ptr<face>& get_face(face_id id) { return face_map_[id]; }
     bool        all_face_is_registered() const { return remaining_face_id_set_.empty(); }
     bool        vertex_is_empty()        const { return vertex_map_.empty(); }
     std::string get_model_name()         const { return model_name_; }

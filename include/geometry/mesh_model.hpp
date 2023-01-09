@@ -66,8 +66,8 @@ class mesh_model
     static s_ptr<mesh_model> create();
     static s_ptr<mesh_model> create_from_obj_file(const std::string& filename);
     // for frame_anim_meshlet_model
-    static s_ptr<mesh_model> create_from_dynamic_attributes(
-      const std::vector<graphics::frame_anim_utils::dynamic_attributes>& vertices,
+    static std::vector<s_ptr<mesh_model>> create_from_dynamic_attributes(
+      const std::vector<std::vector<graphics::frame_anim_utils::dynamic_attributes>>& vertices,
       const std::vector<uint32_t>& indices);
 
     mesh_model();
@@ -96,6 +96,7 @@ class mesh_model
 
     // setter
     void set_bounding_volume(u_ptr<bounding_volume>&& bv);
+    void set_bounding_volumes(std::vector<u_ptr<bounding_volume>>&& bvs);
     void colorize_whole_mesh(const vec3& color);
     void set_bv_type(bv_type type);
   private:
@@ -106,6 +107,8 @@ class mesh_model
     face_map      face_map_;
     vertex_map    vertex_map_;
     u_ptr<bounding_volume> bounding_volume_;
+    // for animation separation
+    std::vector<u_ptr<bounding_volume>> bounding_volumes_;
     // move to graphics::meshlet_model
     std::vector<graphics::vertex> raw_vertices_;
 };
