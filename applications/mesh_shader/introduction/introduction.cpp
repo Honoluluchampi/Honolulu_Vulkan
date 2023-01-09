@@ -7,7 +7,7 @@
 #include <game/components/mesh_component.hpp>
 #include <game/components/meshlet_component.hpp>
 #include <game/components/frame_anim_component.hpp>
-#include <game/shading_systems/frame_anim_meshlet_shading_system.hpp>
+#include <game/shading_systems/wire_frustum_shading_system.hpp>
 #include <physics/engine.hpp>
 
 #include <game/shading_systems/mesh_shading_system.hpp>
@@ -48,11 +48,12 @@ class mesh_shader_introduction : public game::engine
   public:
     mesh_shader_introduction() : game::engine("mesh shader introduction")
     {
-      auto system = game::frame_anim_meshlet_shading_system::create(get_graphics_device());
+      auto system = game::wire_frustum_shading_system::create(get_graphics_device());
       add_shading_system(std::move(system));
+
       // mesh_actor or ml_actor
       create_bunny_wall<model_actor<game::frame_anim_component<graphics::frame_anim_meshlet_model>>>();
-      //add_virtual_camera();
+      add_virtual_camera();
     }
 
     ~mesh_shader_introduction() override = default;
@@ -105,11 +106,11 @@ class mesh_shader_introduction : public game::engine
       if (ImGui::Button("change key move target")) {
         if (camera_up_->is_movement_updating()) {
           camera_up_->set_movement_updating_off();
-          //virtual_camera_->set_movement_updating_on();
+          virtual_camera_->set_movement_updating_on();
         }
         else {
           camera_up_->set_movement_updating_on();
-         // virtual_camera_->set_movement_updating_off();
+          virtual_camera_->set_movement_updating_off();
         }
       }
 
