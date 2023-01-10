@@ -149,6 +149,7 @@ std::vector<s_ptr<mesh_model>> mesh_model::create_from_dynamic_attributes(
     }
 
     // recreate all faces
+    face_id f_id = 0;
     for (int i = 0; i < indices.size(); i += 3) {
       auto v0 = model->get_vertex(indices[i]);
       auto v1 = model->get_vertex(indices[i + 1]);
@@ -156,9 +157,9 @@ std::vector<s_ptr<mesh_model>> mesh_model::create_from_dynamic_attributes(
       auto normal = (v0->normal_ + v1->normal_ + v2->normal_) / 3.f;
       auto cross = (v1->position_ - v0->position_).cross(v2->position_ - v0->position_);
       if (cross.dot(normal) >= 0)
-        model->add_face(v0, v1, v2);
+        model->add_face(v0, v1, v2, f_id++, false);
       else
-        model->add_face(v0, v2, v1);
+        model->add_face(v0, v2, v1, f_id++, false);
     }
     models.emplace_back(std::move(model));
   }
@@ -206,7 +207,7 @@ vertex_id mesh_model::add_vertex(const s_ptr<vertex> &v)
   return v->id_;
 }
 
-face_id mesh_model::add_face(s_ptr<vertex> &v0, s_ptr<vertex> &v1, s_ptr<vertex> &v2, auto_vertex_normal_calculation avnc)
+face_id mesh_model::add_face(s_ptr<vertex> &v0, s_ptr<vertex> &v1, s_ptr<vertex> &v2, face_id id, bool auto_id, auto_vertex_normal_calculation avnc)
 {
   // register to the vertex hash table
   add_vertex(v0);
@@ -227,6 +228,8 @@ face_id mesh_model::add_face(s_ptr<vertex> &v0, s_ptr<vertex> &v1, s_ptr<vertex>
   }
   // new face
   auto fc = face::create(hes[0]);
+  if (!auto_id)
+    fc->id_ = id;
   // calc face normal
   fc->normal_ = ((v1->position_ - v0->position_).cross(v2->position_ - v0->position_)).normalized();
   // register to each owner
@@ -250,6 +253,9 @@ face_id mesh_model::add_face(s_ptr<vertex> &v0, s_ptr<vertex> &v1, s_ptr<vertex>
 
 const bounding_volume& mesh_model::get_bounding_volume() const
 { return *bounding_volume_; }
+
+const std::vector<u_ptr<bounding_volume>>& mesh_model::get_bounding_volumes() const
+{ return bounding_volumes_; }
 
 u_ptr<bounding_volume> mesh_model::get_ownership_of_bounding_volume()
 { return std::move(bounding_volume_); }

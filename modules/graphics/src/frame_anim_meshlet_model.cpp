@@ -128,7 +128,7 @@ void frame_anim_meshlet_model::bind(
   uint32_t anim_frame_index = accumulative_frame_counts_[animation_index] + frame_index;
   desc_sets.push_back(dynamic_attribs_desc_sets_->get_set(anim_frame_index));
   // temp
-  desc_sets.push_back(sphere_desc_sets_->get_set(0));
+  desc_sets.push_back(sphere_desc_sets_->get_set(anim_frame_index));
 
   vkCmdBindDescriptorSets(
     command_buffer,
@@ -251,7 +251,8 @@ void frame_anim_meshlet_model::create_buffers()
     meshlets_.data()
   );
 
-  sphere_buffers_.resize(meshlet_count_);
+  sphere_buffers_.resize(1);
+  sphere_buffers_[0].resize(meshlet_count_);
   for (int i = 0; i < meshlet_count_; i++) {
     sphere_buffers_[0][i] = buffer::create_with_staging(
       device_,

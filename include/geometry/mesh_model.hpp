@@ -75,7 +75,8 @@ class mesh_model
 
     // vertices are assumed to be in a counter-clockwise order
     vertex_id add_vertex(const s_ptr<vertex>& v);
-    face_id   add_face(s_ptr<vertex>& v0, s_ptr<vertex>& v1, s_ptr<vertex>& v2,
+    face_id   add_face(s_ptr<vertex>& v0, s_ptr<vertex>& v1, s_ptr<vertex>& v2, face_id id = 0,
+      bool auto_id = true,
       geometry::auto_vertex_normal_calculation avnc = geometry::auto_vertex_normal_calculation::OFF);
 
     // getter
@@ -89,6 +90,7 @@ class mesh_model
     s_ptr<vertex>    get_vertex(const vertex_id id) { return vertex_map_[id]; }
     s_ptr<half_edge> get_half_edge(const s_ptr<vertex>& v0, const s_ptr<vertex>& v1);
     const bounding_volume& get_bounding_volume() const;
+    const std::vector<u_ptr<bounding_volume>>& get_bounding_volumes() const;
     u_ptr<bounding_volume> get_bounding_volume_copy() const;
     u_ptr<bounding_volume> get_ownership_of_bounding_volume();
 

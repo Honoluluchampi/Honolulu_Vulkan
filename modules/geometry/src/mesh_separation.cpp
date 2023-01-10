@@ -218,7 +218,7 @@ void add_face_to_meshlet(const s_ptr<face>& fc, s_ptr<mesh_model>& ml)
   auto v1 = he->get_vertex();
   he = he->get_next();
   auto v2 = he->get_vertex();
-  ml->add_face(v0, v1, v2);
+  ml->add_face(v0, v1, v2, fc->id_, false);
 }
 
 void update_aabb(bounding_volume& current_aabb, const s_ptr<face>& new_face)
@@ -490,6 +490,9 @@ graphics::animated_meshlet_pack translate_to_animated_meshlet_pack(const std::ve
 {
   graphics::animated_meshlet_pack meshlet_pack;
 
+  size_t frame_count = old_meshes[0]->get_bounding_volumes().size();
+  meshlet_pack.spheres.resize(frame_count);
+
   for (const auto& old_mesh  : old_meshes) {
     // extract meshlet separation info ------------------------------------------------
     graphics::animated_meshlet_pack::meshlet new_meshlet;
@@ -520,14 +523,21 @@ graphics::animated_meshlet_pack translate_to_animated_meshlet_pack(const std::ve
 
     meshlet_pack.meshlets.emplace_back(std::move(new_meshlet));
 
-    // extract sphere --------------------------------------------------------------
-    auto center = old_mesh->get_bounding_volume().get_local_center_point().cast<float>();
-    vec4 new_sphere = {
-      center.x(),
-      center.y(),
-      center.z(),
-      static_cast<float>(old_mesh->get_bounding_volume().get_sphere_radius()) };
-    meshlet_pack.spheres.emplace_back(std::move(new_sphere));
+    // extract spheres --------------------------------------------------------------
+    const auto& spheres = old_mesh->get_bounding_volumes();
+
+    for (int i = 0; i < frame_count; i++) {
+      const auto& sphere = spheres[i];
+      auto center = sphere->get_local_center_point().cast<float>();
+      vec4 new_sphere = {
+        center.x(),
+        center.y(),
+        center.z(),
+        static_cast<float>(sphere->get_sphere_radius())
+      };
+
+      meshlet_pack.spheres[i].emplace_back(std::move(new_sphere));
+    }
   }
 
   return meshlet_pack;
