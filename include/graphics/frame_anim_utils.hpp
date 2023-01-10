@@ -10,7 +10,7 @@ class skinning_mesh_model;
 
 namespace frame_anim_utils {
 
-constexpr float MAX_FPS = 60.f;
+constexpr float MAX_FPS = 10.f;
 
 struct dynamic_attributes {
   alignas(16) vec3 position;

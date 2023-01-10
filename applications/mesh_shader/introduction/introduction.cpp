@@ -24,7 +24,7 @@ using vec2 = Eigen::Vector2f;
 using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
 
-std::string FILENAME = "light_bunny.obj";
+std::string FILENAME = "bunny.obj";
 
 template <class ModelComp>
 class model_actor : public game::actor
@@ -35,7 +35,6 @@ class model_actor : public game::actor
       auto ret = std::make_shared<model_actor>();
       ret->model_comp_ = ModelComp::create(ret, FILENAME);
       ret->set_rotation({M_PI, 0.f, 0.f});
-      ret->set_scale({0.4f, 0.4f, 0.4f});
       game::engine::add_actor(ret);
       return ret;
     }
@@ -50,7 +49,7 @@ class mesh_shader_introduction : public game::engine
     mesh_shader_introduction() : game::engine("mesh shader introduction")
     {
       auto system = game::wire_frustum_shading_system::create(get_graphics_device());
-      add_shading_system(std::move(system));
+      game::engine::add_shading_system(std::move(system));
 
       // mesh_actor or ml_actor
 //      create_bunny_wall<model_actor<game::frame_anim_component<graphics::frame_anim_meshlet_model>>>();
@@ -72,8 +71,8 @@ class mesh_shader_introduction : public game::engine
     template <class T>
     void create_bunny_wall()
     {
-      uint32_t x_count = 4;
-      uint32_t y_count = 4;
+      uint32_t x_count = 1;
+      uint32_t y_count = 1;
       uint32_t z_count = 1;
       float space = 4.f;
       std::vector<vec3> positions;
