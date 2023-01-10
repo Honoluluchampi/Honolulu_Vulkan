@@ -85,6 +85,7 @@ void graphics_engine::render(const utils::viewer_info& _viewer_info, const utils
         frame_index, 
         command_buffer, 
         global_descriptor_sets_[frame_index],
+        _frustum_info
     };
 
     // update 

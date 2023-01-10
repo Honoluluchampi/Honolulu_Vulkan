@@ -107,6 +107,11 @@ void meshlet_shading_system::render(const utils::frame_info &frame_info)
       &push
     );
 
+    // update task desc set
+    size_t index = frame_info.frame_index;
+    task_desc_sets_->write_to_buffer(index, (void *) &frame_info.view_frustum);
+    task_desc_sets_->flush_buffer(index);
+
     obj->bind_and_draw(
       command_buffer,
       { frame_info.global_descriptor_set, task_desc_sets_->get_set(frame_info.frame_index) },

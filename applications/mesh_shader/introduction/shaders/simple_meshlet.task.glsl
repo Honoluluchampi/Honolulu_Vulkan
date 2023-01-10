@@ -96,8 +96,8 @@ bool sphere_frustum_intersection(vec3 world_center, float radius) {
   bool left   = distance_point_to_plane(world_center, frustum.camera_position, frustum.left_n)   > -radius;
   bool near   = distance_point_to_plane(world_center, frustum.near_position,   frustum.near_n)   > -radius;
   bool far    = distance_point_to_plane(world_center, frustum.far_position,    frustum.far_n)    > -radius;
-  // return top && bottom && right && left && near && far; 
-  return true;
+  return top && bottom && right && left && near && far; 
+  // return true;
 }
 
 void main() {
@@ -110,10 +110,10 @@ void main() {
 
       vec4 world_center = push.model_matrix * vec4(current_meshlet.center, 1.0);
 
-      //if (sphere_frustum_intersection(world_center.xyz, current_meshlet.radius)) {
+      if (sphere_frustum_intersection(world_center.xyz, current_meshlet.radius)) {
         OUT.sub_ids[out_meshlet_count] = uint8_t(meshlet_local);
         out_meshlet_count += 1;
-      //}
+      }
     }
 
     if (lane_id == 0) {

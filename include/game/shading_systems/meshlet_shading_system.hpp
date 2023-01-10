@@ -16,7 +16,6 @@ class meshlet_shading_system : public shading_system
   private:
     void setup_task_desc();
 
-    std::vector<u_ptr<graphics::buffer>> task_desc_buffers_;
     u_ptr<graphics::descriptor_set>      task_desc_sets_;
 };
 

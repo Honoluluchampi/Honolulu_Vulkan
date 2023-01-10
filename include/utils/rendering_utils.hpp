@@ -1,7 +1,9 @@
 #pragma once
 
-// libs
-#include <eigen3/Eigen/Dense>
+// hnll
+#include <utils/common_using.hpp>
+
+// lib
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.h>
 
@@ -41,9 +43,9 @@ struct point_light
 struct global_ubo
 {
   // check alignment rules
-  Eigen::Matrix4f projection   = Eigen::Matrix4f::Identity();
-  Eigen::Matrix4f view         = Eigen::Matrix4f::Identity();
-  Eigen::Matrix4f inverse_view = Eigen::Matrix4f::Identity();
+  mat4 projection   = mat4::Identity();
+  mat4 view         = mat4::Identity();
+  mat4 inverse_view = mat4::Identity();
   // point light
   glm::vec4 ambient_light_color{1.f, 1.f, 1.f, .02f}; // w is light intensity
   point_light point_lights[MAX_LIGHTS];
@@ -52,22 +54,22 @@ struct global_ubo
 
 struct viewer_info
 {
-  Eigen::Matrix4f projection   = Eigen::Matrix4f::Identity();
-  Eigen::Matrix4f view         = Eigen::Matrix4f::Identity();
-  Eigen::Matrix4f inverse_view = Eigen::Matrix4f::Identity();
+  mat4 projection   = mat4::Identity();
+  mat4 view         = mat4::Identity();
+  mat4 inverse_view = mat4::Identity();
 };
 
 struct frustum_info
 {
-  Eigen::Vector3f camera_position;
-  Eigen::Vector3f near_position;
-  Eigen::Vector3f far_position;
-  Eigen::Vector3f top_n;
-  Eigen::Vector3f bottom_n;
-  Eigen::Vector3f right_n;
-  Eigen::Vector3f left_n;
-  Eigen::Vector3f near_n;
-  Eigen::Vector3f far_n;
+  alignas(16) vec3 camera_position;
+  alignas(16) vec3 near_position;
+  alignas(16) vec3 far_position;
+  alignas(16) vec3 top_n;
+  alignas(16) vec3 bottom_n;
+  alignas(16) vec3 right_n;
+  alignas(16) vec3 left_n;
+  alignas(16) vec3 near_n;
+  alignas(16) vec3 far_n;
 };
 
 
@@ -76,5 +78,6 @@ struct frame_info
   int frame_index;
   VkCommandBuffer command_buffer;
   VkDescriptorSet global_descriptor_set;
+  frustum_info view_frustum;
 };
 } // namespace hnll::utils

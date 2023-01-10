@@ -24,7 +24,7 @@ using vec2 = Eigen::Vector2f;
 using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
 
-std::string FILENAME = "human.glb";
+std::string FILENAME = "light_bunny.obj";
 
 template <class ModelComp>
 class model_actor : public game::actor
@@ -35,6 +35,7 @@ class model_actor : public game::actor
       auto ret = std::make_shared<model_actor>();
       ret->model_comp_ = ModelComp::create(ret, FILENAME);
       ret->set_rotation({M_PI, 0.f, 0.f});
+      ret->set_scale({0.4f, 0.4f, 0.4f});
       game::engine::add_actor(ret);
       return ret;
     }
@@ -52,7 +53,8 @@ class mesh_shader_introduction : public game::engine
       add_shading_system(std::move(system));
 
       // mesh_actor or ml_actor
-      create_bunny_wall<model_actor<game::frame_anim_component<graphics::frame_anim_meshlet_model>>>();
+//      create_bunny_wall<model_actor<game::frame_anim_component<graphics::frame_anim_meshlet_model>>>();
+      create_bunny_wall<model_actor<game::meshlet_component>>();
       add_virtual_camera();
     }
 
@@ -96,8 +98,8 @@ class mesh_shader_introduction : public game::engine
     void update_game_gui() override
     {
       // this part should be contained in update_game()...
-      //virtual_camera_->update_frustum_planes();
-      //set_frustum_info(virtual_camera_->get_frustum_info());
+      virtual_camera_->update_frustum_planes();
+      set_frustum_info(virtual_camera_->get_frustum_info());
 
       ImGui::Begin("stats");
 

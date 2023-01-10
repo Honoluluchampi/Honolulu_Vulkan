@@ -24,10 +24,13 @@ class descriptor_set
     descriptor_set& add_layout(VkShaderStageFlagBits shader_stage);
     descriptor_set& build_sets();
 
+    // buffer update
+    void write_to_buffer(size_t index, void *data);
+    void flush_buffer(size_t index);
+
     // getter
     VkDescriptorSetLayout get_layout() const;
-    VkDescriptorSet       get_set(size_t index) const
-    { return sets_[index]; }
+    VkDescriptorSet       get_set(size_t index) const { return sets_[index]; }
 
   private:
     device& device_;
