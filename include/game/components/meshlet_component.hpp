@@ -31,7 +31,6 @@ class meshlet_component : public renderable_component
       : renderable_component(owner_sp, utils::shading_type::MESHLET), model_(model) {}
     ~meshlet_component() override = default;
 
-    // getter
     void bind_and_draw(
       VkCommandBuffer command_buffer,
       std::vector<VkDescriptorSet>&& desc_sets,
@@ -40,6 +39,9 @@ class meshlet_component : public renderable_component
       model_.bind(command_buffer, desc_sets, pipeline_layout);
       model_.draw(command_buffer);
     }
+
+    // getter
+    uint32_t get_meshlet_count() const { return model_.get_meshlets_count(); }
 
   private:
     // hnll::graphics::mesh_model can be shared all over a game

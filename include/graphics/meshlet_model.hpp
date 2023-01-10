@@ -49,7 +49,7 @@ class meshlet_model
     const buffer& get_meshlet_buffer() const;
     inline void* get_raw_vertices_data() { return raw_vertices_.data(); }
     inline void* get_meshlets_data()     { return meshlets_.data(); }
-    inline uint32_t get_meshlets_count() { return meshlets_.size(); }
+    inline uint32_t get_meshlets_count() { return meshlet_count_; }
     std::vector<VkDescriptorSetLayout> get_raw_desc_set_layouts() const;
 
     static std::vector<u_ptr<descriptor_set_layout>> default_desc_set_layouts(device& _device);
@@ -67,6 +67,7 @@ class meshlet_model
     std::vector<u_ptr<buffer>>                desc_buffers_;
     std::vector<u_ptr<descriptor_set_layout>> desc_set_layouts_;
     std::vector<VkDescriptorSet>              desc_sets_;
+    uint32_t meshlet_count_;
 };
 
 }} // namespace hnll::graphics

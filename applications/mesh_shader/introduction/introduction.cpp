@@ -38,6 +38,7 @@ class model_actor : public game::actor
       game::engine::add_actor(ret);
       return ret;
     }
+    uint32_t get_meshlet_count() const { return model_comp_->get_meshlet_count(); }
     model_actor(){}
   private:
     s_ptr<ModelComp> model_comp_;
@@ -74,7 +75,7 @@ class mesh_shader_introduction : public game::engine
       uint32_t x_count = 1;
       uint32_t y_count = 1;
       uint32_t z_count = 1;
-      float space = 4.f;
+      float space = 0.f;
       std::vector<vec3> positions;
 
       for (int i = 0; i < x_count; i++) {
@@ -88,6 +89,8 @@ class mesh_shader_introduction : public game::engine
               (k - (z_count / 2.f)) * space
             };
             auto object = T::create(get_graphics_device());
+            if (meshlet_count_ == 0)
+              meshlet_count_ = object->get_meshlet_count();
             object->set_translation(position);
           }
         }
@@ -103,6 +106,7 @@ class mesh_shader_introduction : public game::engine
       ImGui::Begin("stats");
 
       ImGui::Text("fps : %.f", fps_);
+      ImGui::Text("meshlet count : %.d", meshlet_count_);
 
       if (ImGui::Button("change key move target")) {
         if (camera_up_->is_movement_updating()) {
@@ -122,6 +126,7 @@ class mesh_shader_introduction : public game::engine
     // frustum culling is organized based on this frustum;
     s_ptr<geometry::perspective_frustum> active_frustum_;
     float fps_;
+    uint32_t meshlet_count_ = 0;
 };
 } // namespace hnll
 
