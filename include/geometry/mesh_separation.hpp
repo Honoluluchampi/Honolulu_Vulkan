@@ -103,6 +103,7 @@ class mesh_separation_helper
     const s_ptr<face>& get_face(face_id id) { return face_map_[id]; }
     bool        all_face_is_registered() const { return remaining_face_id_set_.empty(); }
     bool        vertex_is_empty()        const { return vertex_map_.empty(); }
+    bool   face_is_remaining(face_id id) const { return remaining_face_id_set_.find(id) != remaining_face_id_set_.end(); }
     std::string get_model_name()         const { return model_name_; }
     mesh_separation::criterion get_criterion() { return criterion_; }
 

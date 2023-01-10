@@ -157,11 +157,16 @@ double compute_loss_function(const bounding_volume& current_aabb, const s_ptr<fa
   auto y_diff = max_y - min_y;
   auto z_diff = max_z - min_z;
 
-  auto volume = x_diff * y_diff * z_diff;
+//  auto volume = x_diff * y_diff * z_diff;
+//
+//  auto mean = (x_diff + y_diff + z_diff) / 3.f;
+//  auto variance = (std::pow(x_diff - mean, 2) + std::pow(y_diff - mean, 2) + std::pow(z_diff - mean, 2)) / 3.f;
+//  return volume + variance;
 
-  auto mean = (x_diff + y_diff + z_diff) / 3.f;
-  auto variance = (std::pow(x_diff - mean, 2) + std::pow(y_diff - mean, 2) + std::pow(z_diff - mean, 2)) / 3.f;
-  return volume + variance;
+  auto ret = std::max(x_diff, y_diff);
+  ret = std::max(ret, z_diff);
+
+  return ret;
 }
 
 double calc_dist(const vec3& a, const vec3& b)
@@ -302,6 +307,40 @@ s_ptr<face> choose_random_face_from_map(const face_map& fc_map)
   return nullptr;
 }
 
+bool check_adjoining_face(const s_ptr<half_edge>& he, const mesh_separation_helper& helper)
+{
+  // no pair
+  if (!he->get_pair())
+    return false;
+  const auto& pair = he->get_pair();
+  // no face
+  if (!pair->get_face())
+    return false;
+  return helper.face_is_remaining(pair->get_face()->id_);
+}
+
+s_ptr<face> choose_next_face_from_adjoining(const face_map& fc_map, const mesh_separation_helper& helper)
+{
+  int max_adjoining = 0;
+  s_ptr<face> ret = nullptr;
+  for (const auto& fc_kv : fc_map) {
+    int adjoining = 0;
+    auto& he = fc_kv.second->half_edge_;
+    if (!check_adjoining_face(he, helper))
+      adjoining++;
+    he = he->get_next();
+    if (!check_adjoining_face(he, helper))
+      adjoining++;
+    he = he->get_next();
+    if (!check_adjoining_face(he, helper))
+      adjoining++;
+
+    if (max_adjoining < adjoining)
+      ret = fc_kv.second;
+  }
+  return ret;
+}
+
 std::vector<s_ptr<mesh_model>> separate_greedy(const s_ptr<mesh_separation_helper>& helper)
 {
   std::vector<s_ptr<mesh_model>> meshlets;
@@ -341,7 +380,7 @@ std::vector<s_ptr<mesh_model>> separate_greedy(const s_ptr<mesh_separation_helpe
     }
     ml->set_bounding_volume(std::move(bv));
     meshlets.emplace_back(ml);
-    current_face = choose_random_face_from_map(adjoining_face_map);
+    current_face = choose_next_face_from_adjoining(adjoining_face_map, *helper);
     if (current_face == nullptr)
       current_face = helper->get_random_remaining_face();
   }
