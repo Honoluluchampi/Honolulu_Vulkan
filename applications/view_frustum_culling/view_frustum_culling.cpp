@@ -1,6 +1,7 @@
 // hnll
 #include <game/engine.hpp>
 #include <game/actors/default_camera.hpp>
+#include <game/actors/virtual_camera.hpp>
 #include <game/components/viewer_component.hpp>
 #include <game/components/rigid_component.hpp>
 #include <game/components/mesh_component.hpp>
@@ -13,42 +14,12 @@
 #include <geometry/bounding_volume.hpp>
 #include <geometry/intersection.hpp>
 
+#include <game/shading_systems/mesh_shading_system.hpp>
+#include <game/shading_systems/wire_frustum_shading_system.hpp>
+
+#define FILENAME "/home/honolulu/models/characters/bunny.obj"
+
 namespace hnll {
-
-class virtual_camera : public game::actor
-{
-  public:
-    static s_ptr<virtual_camera> create(hnll::graphics::engine& engine, graphics::device& device)
-    {
-      auto camera = std::make_shared<virtual_camera>();
-      camera->viewer_comp_ = game::viewer_component::create(*camera->get_transform_sp(), engine.get_renderer());
-      camera->viewer_comp_->auto_update_view_frustum();
-      auto frustum = geometry::perspective_frustum::create(M_PI / 4.f, M_PI / 4.f, 1.f, 15.f);
-      camera->wire_frustum_comp_ = game::wire_frame_frustum_component::create(camera, frustum, device);
-      camera->key_comp_ = std::make_shared<game::keyboard_movement_component>(engine.get_window().get_glfw_window(), *camera->get_transform_sp());
-      camera->add_component(camera->key_comp_);
-      camera->key_comp_->set_updating_off();
-      return camera;
-    }
-    virtual_camera() = default;
-    ~virtual_camera() = default;
-
-    void update_frustum_planes()
-    {
-      wire_frustum_comp_->update_frustum_planes(*get_transform_sp());
-    }
-
-    // getter
-    const geometry::perspective_frustum& get_perspective_frustum() { return wire_frustum_comp_->get_perspective_frustum(); }
-
-    // setter
-    void set_movement_updating_on()  { key_comp_->set_updating_on(); }
-    void set_movement_updating_off() { key_comp_->set_updating_off(); }
-  private:
-    s_ptr<game::viewer_component> viewer_comp_;
-    s_ptr<game::wire_frame_frustum_component> wire_frustum_comp_;
-    s_ptr<game::keyboard_movement_component> key_comp_;
-};
 
 class meshlet_actor : public game::actor
 {
@@ -80,7 +51,8 @@ class meshlet_owner : public game::actor
         ml_actor->set_bounding_volume(ml->get_bounding_volume_copy());
         ml_actor->share_transform(tf);
         auto ml_graphics = graphics::mesh_model::create_from_geometry_mesh_model(device, ml);
-        auto ml_mesh_comp = game::mesh_component::create(ml_actor, std::move(ml_graphics));
+        raw_meshlet_models_.push_back(ml_graphics);
+        auto ml_mesh_comp = game::mesh_component::create(ml_actor, ml_graphics);
         game::engine::add_actor(ml_actor);
         ml_actor->set_rotation({M_PI, 0.f, 0.f});
         meshlet_actors_.emplace_back(std::move(ml_actor));
@@ -91,6 +63,7 @@ class meshlet_owner : public game::actor
     // getter
     std::vector<s_ptr<meshlet_actor>>& get_meshlet_actors_ref() { return meshlet_actors_; }
   private:
+    std::vector<s_ptr<graphics::mesh_model>> raw_meshlet_models_;
     std::vector<s_ptr<meshlet_actor>> meshlet_actors_;
 };
 
@@ -102,37 +75,34 @@ class view_frustum_culling : public game::engine
         {-5.f,  0.f,   10.f},
         {0.f,   6.f,   10.f},
         {0.f,   -4.f,   10.f},
-
-//        {5.f,   2.5f,  10.f},
-//        {5.f,   5.f,   10.f},
-//        {5.f,   -2.5f, 10.f},
-//        {-5.f,  2.5f,  10.f},
-//        {-5.f,  5.f,   10.f},
-//        {-5.f,  -2.5f, 10.f},
-//        {2.5f,  6.f,   10.f},
-//        {-2.5f, 6.f,   10.f},
-//        {2.5f,  -4.f,   10.f},
-//        {-2.5f, -4.f,   10.f},
     };
 
     view_frustum_culling() : game::engine("view_frustum_culling")
     {
-      auto geometry = geometry::mesh_model::create_from_obj_file("bunny.obj");
-      auto meshlets = geometry::mesh_separation::separate(geometry, geometry::mesh_separation::criterion::MINIMIZE_BOUNDING_SPHERE);
+      add_virtual_camera();
+
+      auto system = game::mesh_shading_system::create(get_graphics_device());
+      add_shading_system(std::move(system));
+      auto f_system = game::wire_frustum_shading_system::create(get_graphics_device());
+      add_shading_system(std::move(f_system));
+
+      auto geometry = geometry::mesh_model::create_from_obj_file(FILENAME);
+      auto meshlets = geometry::mesh_separation::separate_into_raw(geometry, "bunny", geometry::mesh_separation::criterion::MINIMIZE_BOUNDING_SPHERE);
 
       for (const auto& translation : translations) {
         auto meshlet_owne = std::make_shared<meshlet_owner>();
         meshlet_owne->add_separated_object(meshlets, translation, get_graphics_device());
         meshlet_owners_.emplace_back(std::move(meshlet_owne));
       }
-      add_virtual_camera();
-      setup_lights();
     }
 
     void update_game(float dt) override
     {
+      fps_ = 1.f / dt;
+
       // TODO : auto-update
       virtual_camera_->update_frustum_planes();
+      set_frustum_info(virtual_camera_->get_frustum_info());
 
       // virtual frustum culling
       active_triangle_count_ = 0;
@@ -141,7 +111,7 @@ class view_frustum_culling : public game::engine
       for (auto& owner : meshlet_owners_) {
         for (auto& meshlet : owner->get_meshlet_actors_ref()) {
           const auto &sphere = meshlet->get_bounding_volume();
-          auto obj = dynamic_cast<hnll::game::mesh_component *>(meshlet->get_renderable_component_sp().get());
+          auto obj = dynamic_cast<hnll::game::mesh_component *>(&meshlet->get_renderable_component_r());
           if (!geometry::intersection::test_sphere_frustum(sphere, frustum)) {
             obj->set_should_not_be_drawn();
           }
@@ -162,12 +132,13 @@ class view_frustum_culling : public game::engine
 
     void update_game_gui() override
     {
-      ImGui::Begin("d");
-        ImGui::Text("active triangle count: %d", active_triangle_count_);
-        ImGui::Text("whole triangle count: %d", whole_triangle_count_);
-        ImGui::Text("active triangle percentage: %.f", float(active_triangle_count_) / float(whole_triangle_count_) * 100.f);
+      ImGui::Begin("stats");
+      ImGui::Text("active triangle count: %d", active_triangle_count_);
+      ImGui::Text("whole triangle count: %d", whole_triangle_count_);
+      ImGui::Text("active triangle percentage: %.f", float(active_triangle_count_) / float(whole_triangle_count_) * 100.f);
+      ImGui::Text("fps : %.f", fps_);
 
-        if (ImGui::Button("change key move target")) {
+      if (ImGui::Button("change key move target")) {
           if (camera_up_->is_movement_updating()) {
             camera_up_->set_movement_updating_off();
             virtual_camera_->set_movement_updating_on();
@@ -189,28 +160,15 @@ class view_frustum_culling : public game::engine
   private:
     void add_virtual_camera()
     {
-      virtual_camera_ = virtual_camera::create(get_graphics_engine(), get_graphics_device());
+      virtual_camera_ = game::virtual_camera::create(get_graphics_engine());
       add_actor(virtual_camera_);
     }
 
-    void setup_lights()
-    {
-      float light_intensity = 80.f;
-      std::vector<glm::vec3> positions;
-
-      positions.emplace_back(glm::vec3{0.f, 0.f, 0.f});
-      for (const auto& position : positions) {
-        auto light = hnll::game::actor::create();
-        auto light_component = hnll::game::point_light_component::create(light, light_intensity, 0.f);
-        add_point_light(light, light_component);
-        light->set_translation(position);
-      }
-    };
-
-    s_ptr<virtual_camera> virtual_camera_;
     std::vector<s_ptr<meshlet_owner>> meshlet_owners_;
+    s_ptr<game::virtual_camera> virtual_camera_;
     unsigned active_triangle_count_;
     unsigned whole_triangle_count_;
+    float fps_;
 };
 
 }

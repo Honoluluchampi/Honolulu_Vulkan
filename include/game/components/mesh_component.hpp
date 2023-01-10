@@ -28,6 +28,14 @@ class mesh_component : public renderable_component
     }
 
     template <Actor A>
+    static s_ptr<mesh_component> create(s_ptr<A>& owner_sp, const s_ptr<graphics::mesh_model>& model)
+    {
+      auto mesh = std::make_shared<mesh_component>(owner_sp, *model);
+      owner_sp->set_renderable_component(mesh);
+      return mesh;
+    }
+
+    template <Actor A>
     mesh_component(s_ptr<A>& owner_sp, graphics::mesh_model& _model)
     : renderable_component(owner_sp, utils::shading_type::MESH), model_(_model) {}
     ~mesh_component() override = default;

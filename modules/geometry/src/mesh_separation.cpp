@@ -602,6 +602,18 @@ std::vector<graphics::meshlet> mesh_separation::separate(
   return meshlets;
 }
 
+std::vector<s_ptr<mesh_model>> mesh_separation::separate_into_raw(
+  const s_ptr<hnll::geometry::mesh_model> &_model,
+  const std::string &model_name,
+  hnll::geometry::mesh_separation::criterion crtr)
+{
+  auto helper = mesh_separation_helper::create(_model, model_name, crtr);
+
+  auto geometry_meshlets = separate_greedy(helper);
+
+  return geometry_meshlets;
+}
+
 graphics::animated_meshlet_pack mesh_separation::separate_into_meshlet_pack(
   const std::vector<s_ptr<mesh_model>>& _models,
   criterion _crtr)

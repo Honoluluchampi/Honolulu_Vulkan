@@ -51,6 +51,11 @@ std::vector<graphics::meshlet> separate(
   const std::string& _model_name = "tmp",
   criterion _crtr = criterion::MINIMIZE_BOUNDING_SPHERE);
 
+std::vector<s_ptr<mesh_model>> separate_into_raw(
+  const s_ptr<mesh_model>& _model,
+  const std::string& model_name = "tmp",
+  criterion crtr = criterion::MINIMIZE_BOUNDING_SPHERE);
+
 graphics::animated_meshlet_pack separate_into_meshlet_pack(
   const std::vector<s_ptr<mesh_model>>& _models,
   criterion _crtr = criterion::MINIMIZE_BOUNDING_SPHERE);
