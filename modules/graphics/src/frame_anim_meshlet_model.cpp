@@ -252,8 +252,8 @@ void frame_anim_meshlet_model::create_buffers()
   );
 
   sphere_buffers_.resize(1);
-  sphere_buffers_[0].resize(meshlet_count_);
-  for (int i = 0; i < meshlet_count_; i++) {
+  sphere_buffers_[0].resize(frame_counts_[0]);
+  for (int i = 0; i < frame_counts_[0]; i++) {
     sphere_buffers_[0][i] = buffer::create_with_staging(
       device_,
       raw_spheres_[i].size() * sizeof(vec4),
