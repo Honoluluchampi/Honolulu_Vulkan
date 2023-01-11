@@ -607,6 +607,74 @@ graphics::animated_meshlet_pack translate_to_animated_meshlet_pack(const std::ve
   return meshlet_pack;
 }
 
+// for easy benchmark
+
+std::vector<std::vector<s_ptr<mesh_model>>> separate_frame_greedy(const std::vector<s_ptr<mesh_separation_helper>>& helpers)
+{
+  std::vector<std::vector<s_ptr<mesh_model>>> frame_meshlets;
+
+  auto frame_count = helpers.size();
+  frame_meshlets.resize(frame_count);
+
+  // extract representative
+  auto& rep = helpers[0];
+  auto crtr = rep->get_criterion();
+  s_ptr<face> current_face = rep->get_random_remaining_face();
+  auto current_face_id = current_face->id_;
+
+  while (!rep->all_face_is_registered()) {
+    // compute each meshlet
+    std::vector<s_ptr<mesh_model>> mls;
+    mls.resize(frame_count);
+
+    auto& rep_ml = mls[0];
+
+    // create bounding spheres for each frame
+    std::vector<u_ptr<bounding_volume>> bvs;
+    bvs.resize(frame_count);
+    for (int i = 0; i < frame_count; i++) {
+      bvs[i] = create_b_sphere_from_single_face(helpers[i]->get_face(current_face_id));
+    }
+
+    face_map adjoining_face_map {{current_face->id_ ,current_face}};
+
+    // meshlet api limitation
+    while (rep_ml->get_vertex_count() < mesh_separation::VERTEX_COUNT_PER_MESHLET
+           && rep_ml->get_face_count() < mesh_separation::PRIMITIVE_COUNT_PER_MESHLET
+           && adjoining_face_map.size() != 0) {
+
+      current_face_id = choose_the_best_face_for_animation(adjoining_face_map, bvs, helpers);
+      current_face = rep->get_face(current_face_id);
+
+      // update each object
+      for (int i = 0; i < frame_count; i++) {
+        auto& ml = mls[i];
+        add_face_to_meshlet(helpers[i]->get_face(current_face_id), ml);
+      }
+
+      for (int i = 0; i < frame_count; i++) {
+        update_sphere(*bvs[i], helpers[i]->get_face(current_face_id));
+      }
+
+      rep->update_adjoining_face_map(adjoining_face_map, current_face);
+      rep->remove_face(current_face->id_);
+    }
+    // assign bv
+    for (int i = 0; i < frame_count; i++) {
+      mls[i]->set_bounding_volume(std::move(bvs[i]));
+    }
+    for (int i = 0; i < frame_count; i++) {
+      frame_meshlets[i].emplace_back(mls[i]);
+    }
+
+    current_face = choose_random_face_from_map(adjoining_face_map);
+    if (current_face == nullptr)
+      current_face = rep->get_random_remaining_face();
+  }
+
+  return frame_meshlets;
+}
+
 std::vector<std::vector<s_ptr<mesh_model>>> translate_to_raw_frame(
   const std::vector<s_ptr<mesh_model>>& old_meshs
   )
@@ -669,15 +737,17 @@ std::vector<std::vector<s_ptr<mesh_model>>> mesh_separation::separate_into_raw_f
   const std::vector<s_ptr<mesh_model>> &_models,
   hnll::geometry::mesh_separation::criterion _crtr)
 {
-  std::vector<std::vector<s_ptr<mesh_model>>> ret;
-
   std::vector<s_ptr<mesh_separation_helper>> helpers;
   for (const auto& model : _models) {
     helpers.emplace_back(mesh_separation_helper::create(model, "", _crtr));
   }
-  auto geometry_meshlets = separate_animation_greedy(helpers);
+  auto geometry_meshlets = separate_frame_greedy(helpers);
 
+  for (auto& meshlets : geometry_meshlets) {
+    colorize_meshlets(meshlets);
+  }
 
+  return geometry_meshlets;
 }
 
 void mesh_separation::write_meshlet_cache(
