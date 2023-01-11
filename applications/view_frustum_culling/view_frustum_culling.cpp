@@ -22,7 +22,7 @@
 #include <game/shading_systems/wire_frustum_shading_system.hpp>
 
 #define FILENAME "/home/honolulu/models/characters/bunny.obj"
-#define GLB_FILENAME "human.glb"
+#define GLB_FILENAME "armagilo.glb"
 
 namespace hnll {
 
@@ -98,6 +98,7 @@ class frame_meshlet_owner : public game::actor
           auto ml_mesh_comp = game::mesh_component::create(ml_actor, ml_graphics);
           game::engine::add_actor(ml_actor);
           ml_actor->set_rotation({M_PI, 0.f, 0.f});
+          ml_actor->set_scale({0.4f, 0.4f, 0.4f});
           frame_meshlet_actors_[i].emplace_back(std::move(ml_actor));
           set_translation(translation);
         }
@@ -127,8 +128,8 @@ class view_frustum_culling : public game::engine
     std::vector<glm::vec3> translations{
         {5.f,   0.f,   10.f},
         {-5.f,  0.f,   10.f},
-        {0.f,   6.f,   10.f},
-        {0.f,   -4.f,   10.f},
+//        {0.f,   6.f,   10.f},
+//        {0.f,   -4.f,   10.f},
     };
 
     view_frustum_culling() : game::engine("view_frustum_culling")
@@ -205,6 +206,19 @@ class view_frustum_culling : public game::engine
       ImGui::Text("active triangle percentage: %.f", float(active_triangle_count_) / float(whole_triangle_count_) * 100.f);
       ImGui::Text("fps : %.f", fps_);
 
+      if (active_triangle_counts_.size() < frame_count_) {
+        active_triangle_counts_.push_back(active_triangle_count_);
+        active_triangle_count_sum_ += active_triangle_count_;
+        if (active_triangle_counts_.size() == frame_count_) {
+          active_triangle_count_mean = active_triangle_count_sum_ / whole_triangle_count_ / frame_count_;
+        }
+      }
+      else {
+        ImGui::Text("active triangle count mean : %d", active_triangle_count_mean);
+        ImGui::Text("active triangle count percentage : %.f", float(active_triangle_count_mean) / float(whole_triangle_count_));
+      }
+
+
       if (ImGui::Button("change key move target")) {
           if (camera_up_->is_movement_updating()) {
             camera_up_->set_movement_updating_off();
@@ -233,6 +247,10 @@ class view_frustum_culling : public game::engine
 
     std::vector<s_ptr<frame_meshlet_owner>> frame_meshlet_owners_;
     s_ptr<game::virtual_camera> virtual_camera_;
+    std::vector<uint32_t> active_triangle_counts_;
+    std::vector<uint32_t> whole_triangle_counts_;
+    uint32_t active_triangle_count_sum_ = 0;
+    uint32_t active_triangle_count_mean;
     unsigned active_triangle_count_;
     unsigned whole_triangle_count_;
     float fps_;
