@@ -64,9 +64,9 @@ void mesh_shading_system::render(const utils::frame_info& frame_info)
     auto obj = dynamic_cast<mesh_component*>(&target.second);
 
     if (!obj->get_should_be_drawn()) {
-      obj->set_should_be_drawn();
       continue;
     }
+    obj->set_should_not_be_drawn();
 
     mesh_push_constant push{};
     push.model_matrix  = obj->get_transform().mat4().cast<float>();

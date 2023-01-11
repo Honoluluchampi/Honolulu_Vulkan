@@ -51,7 +51,7 @@ class mesh_component : public renderable_component
     // hnll::graphics::mesh_model can be shared all over a game
     graphics::mesh_model& model_;
     // represents weather its model should be drawn
-    bool should_be_drawn_ = true;
+    bool should_be_drawn_ = false;
 };
 
 using mesh_component_map = std::unordered_map<game::component_id, s_ptr<game::mesh_component>>;

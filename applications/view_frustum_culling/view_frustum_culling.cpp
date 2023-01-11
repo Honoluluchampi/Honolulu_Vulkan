@@ -114,7 +114,7 @@ class frame_meshlet_owner : public game::actor
     }
 
     // getter
-    std::vector<std::vector<s_ptr<meshlet_actor>>>& get_frame_meshlet_actors_ref() { return frame_meshlet_actors_; }
+    std::vector<s_ptr<meshlet_actor>>& get_meshlet_actors_ref(int frame_index) { return frame_meshlet_actors_[frame_index]; }
   private:
     std::vector<s_ptr<graphics::mesh_model>> raw_meshlet_models_;
 
@@ -153,6 +153,8 @@ class view_frustum_culling : public game::engine
       );
       auto frame_meshlets = geometry::mesh_separation::separate_into_raw_frame(geometry_models);
 
+      frame_count_ = frame_meshlets.size();
+
       for (const auto& translation : translations) {
         auto meshlet_owner = std::make_shared<frame_meshlet_owner>();
         meshlet_owner->add_separated_object(frame_meshlets, translation, get_graphics_device());
@@ -164,6 +166,9 @@ class view_frustum_culling : public game::engine
     {
       fps_ = 1.f / dt;
 
+      current_frame_++;
+      current_frame_ %= frame_count_;
+
       // TODO : auto-update
       virtual_camera_->update_frustum_planes();
       set_frustum_info(virtual_camera_->get_frustum_info());
@@ -173,16 +178,14 @@ class view_frustum_culling : public game::engine
       whole_triangle_count_  = 0;
       const auto& frustum = virtual_camera_->get_perspective_frustum();
       for (auto& owner : frame_meshlet_owners_) {
-        for (auto& meshlets : owner->get_frame_meshlet_actors_ref()) {
-          for (auto& meshlet : meshlets) {
-            const auto &sphere = meshlet->get_bounding_volume();
-            auto obj = dynamic_cast<hnll::game::mesh_component *>(&meshlet->get_renderable_component_r());
-            if (!geometry::intersection::test_sphere_frustum(sphere, frustum)) {
-              obj->set_should_not_be_drawn();
-            }
-            else active_triangle_count_ += obj->get_face_count();
-            whole_triangle_count_ += obj->get_face_count();
+        for (auto& meshlet : owner->get_meshlet_actors_ref(current_frame_)) {
+          const auto sphere = meshlet->get_bounding_volume();
+          auto obj = dynamic_cast<hnll::game::mesh_component *>(&meshlet->get_renderable_component_r());
+          if (geometry::intersection::test_sphere_frustum(sphere, frustum)) {
+            obj->set_should_be_drawn();
           }
+          else active_triangle_count_ += obj->get_face_count();
+          whole_triangle_count_ += obj->get_face_count();
         }
       }
     }
@@ -233,6 +236,8 @@ class view_frustum_culling : public game::engine
     unsigned active_triangle_count_;
     unsigned whole_triangle_count_;
     float fps_;
+    int current_frame_ = 0;
+    int frame_count_ = 0;
 };
 
 }
