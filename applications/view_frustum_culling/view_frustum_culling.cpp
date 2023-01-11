@@ -13,13 +13,16 @@
 #include <geometry/perspective_frustum.hpp>
 #include <geometry/bounding_volume.hpp>
 #include <geometry/intersection.hpp>
-
+#include <graphics/frame_anim_meshlet_model.hpp>
 #include <graphics/meshlet_utils.hpp>
+#include <graphics/skinning_mesh_model.hpp>
+#include <graphics/descriptor_set.hpp>
 
 #include <game/shading_systems/mesh_shading_system.hpp>
 #include <game/shading_systems/wire_frustum_shading_system.hpp>
 
 #define FILENAME "/home/honolulu/models/characters/bunny.obj"
+#define GLB_FILENAME "/home/honolulu/models/characters/armagilo.glb"
 
 namespace hnll {
 
@@ -69,6 +72,46 @@ class meshlet_owner : public game::actor
     std::vector<s_ptr<meshlet_actor>> meshlet_actors_;
 };
 
+class frame_meshlet_owner : public game::actor
+{
+  public:
+    void add_separated_object(
+      std::vector<std::vector<std::shared_ptr<geometry::mesh_model>>>& frame_meshlets,
+      glm::vec3 translation,
+      graphics::device& device)
+    {
+      set_transform(std::make_shared<utils::transform>());
+      // for transform sharing
+      auto tf = get_transform_sp();
+
+      auto frame_count = frame_meshlets.size();
+      frame_meshlet_actors_.resize(frame_count);
+
+      for (int i = 0; i < frame_count; i++) {
+        auto& meshlets = frame_meshlets[i];
+        for (const auto &ml: meshlets) {
+          auto ml_actor = std::make_shared<meshlet_actor>();
+          ml_actor->set_bounding_volume(ml->get_bounding_volume_copy());
+          ml_actor->share_transform(tf);
+          auto ml_graphics = graphics::mesh_model::create_from_geometry_mesh_model(device, ml);
+          raw_meshlet_models_.push_back(ml_graphics);
+          auto ml_mesh_comp = game::mesh_component::create(ml_actor, ml_graphics);
+          game::engine::add_actor(ml_actor);
+          ml_actor->set_rotation({M_PI, 0.f, 0.f});
+          frame_meshlet_actors_[i].emplace_back(std::move(ml_actor));
+          set_translation(translation);
+        }
+      }
+    }
+
+    // getter
+    std::vector<std::vector<s_ptr<meshlet_actor>>>& get_frame_meshlet_actors_ref() { return frame_meshlet_actors_; }
+  private:
+    std::vector<s_ptr<graphics::mesh_model>> raw_meshlet_models_;
+
+    std::vector<std::vector<s_ptr<meshlet_actor>>> frame_meshlet_actors_;
+};
+
 class view_frustum_culling : public game::engine
 {
   public:
@@ -88,8 +131,18 @@ class view_frustum_culling : public game::engine
       auto f_system = game::wire_frustum_shading_system::create(get_graphics_device());
       add_shading_system(std::move(f_system));
 
-      auto geometry = geometry::mesh_model::create_from_obj_file(FILENAME);
-      auto meshlets = geometry::mesh_separation::separate_into_raw(geometry, "bunny", geometry::mesh_separation::criterion::MINIMIZE_BOUNDING_SPHERE);
+//      auto geometry = geometry::mesh_model::create_from_obj_file(FILENAME);
+//      auto meshlets = geometry::mesh_separation::separate_into_raw(geometry, "bunny", geometry::mesh_separation::criterion::MINIMIZE_BOUNDING_SPHERE);
+
+      auto& original = game::engine::get_skinning_mesh_model(GLB_FILENAME);
+      auto ret = std::make_unique<graphics::frame_anim_meshlet_model>(original.get_device());
+      ret->load_from_skinning_mesh_model(original, 30);
+
+      auto geometry_models = geometry::mesh_model::create_from_dynamic_attributes(
+        ret->get_ownership_of_raw_dynamic_attribs(),
+        ret->get_raw_indices()
+      );
+      auto frame_meshlets = geometry::mesh_separation::separate_into_raw_frame();
 
       for (const auto& translation : translations) {
         auto meshlet_owne = std::make_shared<meshlet_owner>();
@@ -169,7 +222,7 @@ class view_frustum_culling : public game::engine
       add_actor(virtual_camera_);
     }
 
-    std::vector<s_ptr<meshlet_owner>> meshlet_owners_;
+    std::vector<s_ptr<frame_meshlet_owner>> frame_meshlet_owners_;
     s_ptr<game::virtual_camera> virtual_camera_;
     unsigned active_triangle_count_;
     unsigned whole_triangle_count_;

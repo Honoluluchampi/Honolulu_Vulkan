@@ -36,6 +36,8 @@ class frame_anim_meshlet_model
       VkPipelineLayout pipeline_layout);
     void draw(VkCommandBuffer command_buffer);
 
+    void load_from_skinning_mesh_model(skinning_mesh_model& original, uint32_t max_fps);
+
     // getter
     uint32_t get_animation_count() const { return dynamic_attributes_buffers_.size(); }
     uint32_t get_frame_count(uint32_t animation_index) const { return frame_counts_[animation_index]; }
@@ -52,7 +54,6 @@ class frame_anim_meshlet_model
     // temp
     void set_raw_spheres(std::vector<std::vector<vec4>>&& spheres) { raw_spheres_ = std::move(spheres); }
   private:
-    void load_from_skinning_mesh_model(skinning_mesh_model& original, uint32_t max_fps);
     void create_buffers();
     void setup_descs();
 

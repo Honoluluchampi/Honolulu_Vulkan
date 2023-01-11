@@ -60,6 +60,10 @@ graphics::animated_meshlet_pack separate_into_meshlet_pack(
   const std::vector<s_ptr<mesh_model>>& _models,
   criterion _crtr = criterion::MINIMIZE_BOUNDING_SPHERE);
 
+std::vector<std::vector<s_ptr<mesh_model>>> separate_into_raw_frame(
+  const std::vector<s_ptr<mesh_model>>& _models,
+  criterion _crtr = criterion::MINIMIZE_BOUNDING_SPHERE);
+
 // meshlet cache file format
 /*
  * model path

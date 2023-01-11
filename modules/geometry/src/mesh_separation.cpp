@@ -607,6 +607,13 @@ graphics::animated_meshlet_pack translate_to_animated_meshlet_pack(const std::ve
   return meshlet_pack;
 }
 
+std::vector<std::vector<s_ptr<mesh_model>>> translate_to_raw_frame(
+  const std::vector<s_ptr<mesh_model>>& old_meshs
+  )
+{
+
+}
+
 std::vector<graphics::meshlet> mesh_separation::separate(
   const s_ptr<mesh_model>& _model,
   const std::string& _model_name,
@@ -656,6 +663,21 @@ graphics::animated_meshlet_pack mesh_separation::separate_into_meshlet_pack(
   meshlet_pack = translate_to_animated_meshlet_pack(geometry_meshlets);
 
   return meshlet_pack;
+}
+
+std::vector<std::vector<s_ptr<mesh_model>>> mesh_separation::separate_into_raw_frame(
+  const std::vector<s_ptr<mesh_model>> &_models,
+  hnll::geometry::mesh_separation::criterion _crtr)
+{
+  std::vector<std::vector<s_ptr<mesh_model>>> ret;
+
+  std::vector<s_ptr<mesh_separation_helper>> helpers;
+  for (const auto& model : _models) {
+    helpers.emplace_back(mesh_separation_helper::create(model, "", _crtr));
+  }
+  auto geometry_meshlets = separate_animation_greedy(helpers);
+
+
 }
 
 void mesh_separation::write_meshlet_cache(
