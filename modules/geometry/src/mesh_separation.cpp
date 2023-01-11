@@ -17,6 +17,8 @@
 
 namespace hnll::geometry {
 
+#define FRAME_SAMPLING_COUNT 3.f;
+
 std::vector<ray> create_sampling_rays(const face &_face, uint32_t _sampling_count)
 {
   std::vector<ray> sampling_rays;
@@ -435,7 +437,8 @@ T my_sum(const std::vector<T>& values)
 face_id choose_the_best_face_for_animation(
   const face_map& adjoining_face_map,
   const std::vector<u_ptr<bounding_volume>>& bvs,
-  const std::vector<s_ptr<mesh_separation_helper>>& helpers)
+  const std::vector<s_ptr<mesh_separation_helper>>& helpers,
+  int sampling_stride)
 {
   // update these
   double loss = std::numeric_limits<double>::max();
@@ -446,7 +449,7 @@ face_id choose_the_best_face_for_animation(
   for (const auto& fc_kv : adjoining_face_map) {
     auto id = fc_kv.first;
     std::vector<double> new_loss_list;
-    for (int i = 0; i < frame_count; i++) {
+    for (int i = 0; i < frame_count; i += sampling_stride) {
       new_loss_list.emplace_back(compute_loss_function_for_sphere(*bvs[i], helpers[i]->get_face(id)));
     }
     // max
@@ -493,7 +496,8 @@ std::vector<s_ptr<mesh_model>> separate_animation_greedy(const std::vector<s_ptr
            && ml->get_face_count() < mesh_separation::PRIMITIVE_COUNT_PER_MESHLET
            && adjoining_face_map.size() != 0) {
 
-      current_face_id = choose_the_best_face_for_animation(adjoining_face_map, bvs, helpers);
+      int sampling_stride = frame_count / FRAME_SAMPLING_COUNT;
+      current_face_id = choose_the_best_face_for_animation(adjoining_face_map, bvs, helpers, sampling_stride);
       current_face = rep->get_face(current_face_id);
 
       // update each object
@@ -626,6 +630,9 @@ std::vector<std::vector<s_ptr<mesh_model>>> separate_frame_greedy(const std::vec
     // compute each meshlet
     std::vector<s_ptr<mesh_model>> mls;
     mls.resize(frame_count);
+    for (int i = 0; i < frame_count; i++) {
+      mls[i] = mesh_model::create();
+    }
 
     auto& rep_ml = mls[0];
 
@@ -643,7 +650,8 @@ std::vector<std::vector<s_ptr<mesh_model>>> separate_frame_greedy(const std::vec
            && rep_ml->get_face_count() < mesh_separation::PRIMITIVE_COUNT_PER_MESHLET
            && adjoining_face_map.size() != 0) {
 
-      current_face_id = choose_the_best_face_for_animation(adjoining_face_map, bvs, helpers);
+      int sampling_stride = frame_count / FRAME_SAMPLING_COUNT;
+      current_face_id = choose_the_best_face_for_animation(adjoining_face_map, bvs, helpers, sampling_stride);
       current_face = rep->get_face(current_face_id);
 
       // update each object

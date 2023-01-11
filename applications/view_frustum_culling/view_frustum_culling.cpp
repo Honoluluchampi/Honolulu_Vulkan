@@ -22,7 +22,7 @@
 #include <game/shading_systems/wire_frustum_shading_system.hpp>
 
 #define FILENAME "/home/honolulu/models/characters/bunny.obj"
-#define GLB_FILENAME "/home/honolulu/models/characters/armagilo.glb"
+#define GLB_FILENAME "human.glb"
 
 namespace hnll {
 
@@ -104,6 +104,15 @@ class frame_meshlet_owner : public game::actor
       }
     }
 
+    void rotate_actors(const glm::vec3& rotation)
+    {
+      for (auto& meshlets : frame_meshlet_actors_) {
+        for (auto& meshlet : meshlets) {
+          meshlet->set_rotation(rotation);
+        }
+      }
+    }
+
     // getter
     std::vector<std::vector<s_ptr<meshlet_actor>>>& get_frame_meshlet_actors_ref() { return frame_meshlet_actors_; }
   private:
@@ -142,15 +151,13 @@ class view_frustum_culling : public game::engine
         ret->get_ownership_of_raw_dynamic_attribs(),
         ret->get_raw_indices()
       );
-      auto frame_meshlets = geometry::mesh_separation::separate_into_raw_frame();
+      auto frame_meshlets = geometry::mesh_separation::separate_into_raw_frame(geometry_models);
 
       for (const auto& translation : translations) {
-        auto meshlet_owne = std::make_shared<meshlet_owner>();
-        meshlet_owne->add_separated_object(meshlets, translation, get_graphics_device());
-        meshlet_owners_.emplace_back(std::move(meshlet_owne));
+        auto meshlet_owner = std::make_shared<frame_meshlet_owner>();
+        meshlet_owner->add_separated_object(frame_meshlets, translation, get_graphics_device());
+        frame_meshlet_owners_.emplace_back(std::move(meshlet_owner));
       }
-
-      meshlet_count_ = meshlet_owners_[0]->get_meshlet_actors_ref().size();
     }
 
     void update_game(float dt) override
@@ -165,25 +172,25 @@ class view_frustum_culling : public game::engine
       active_triangle_count_ = 0;
       whole_triangle_count_  = 0;
       const auto& frustum = virtual_camera_->get_perspective_frustum();
-      for (auto& owner : meshlet_owners_) {
-        for (auto& meshlet : owner->get_meshlet_actors_ref()) {
-          const auto &sphere = meshlet->get_bounding_volume();
-          auto obj = dynamic_cast<hnll::game::mesh_component *>(&meshlet->get_renderable_component_r());
-          if (!geometry::intersection::test_sphere_frustum(sphere, frustum)) {
-            obj->set_should_not_be_drawn();
+      for (auto& owner : frame_meshlet_owners_) {
+        for (auto& meshlets : owner->get_frame_meshlet_actors_ref()) {
+          for (auto& meshlet : meshlets) {
+            const auto &sphere = meshlet->get_bounding_volume();
+            auto obj = dynamic_cast<hnll::game::mesh_component *>(&meshlet->get_renderable_component_r());
+            if (!geometry::intersection::test_sphere_frustum(sphere, frustum)) {
+              obj->set_should_not_be_drawn();
+            }
+            else active_triangle_count_ += obj->get_face_count();
+            whole_triangle_count_ += obj->get_face_count();
           }
-          else active_triangle_count_ += obj->get_face_count();
-          whole_triangle_count_ += obj->get_face_count();
         }
       }
     }
 
     void rotate_actors(const glm::vec3& rotation)
     {
-      for (auto& owner : meshlet_owners_) {
-        for (auto& meshlet : owner->get_meshlet_actors_ref()) {
-          meshlet->set_rotation(rotation);
-        }
+      for (auto& owner : frame_meshlet_owners_) {
+        owner->rotate_actors(rotation);
       }
     }
 
@@ -193,7 +200,6 @@ class view_frustum_culling : public game::engine
       ImGui::Text("active triangle count: %d", active_triangle_count_);
       ImGui::Text("whole triangle count: %d", whole_triangle_count_);
       ImGui::Text("active triangle percentage: %.f", float(active_triangle_count_) / float(whole_triangle_count_) * 100.f);
-      ImGui::Text("meshlet_count : %.d", meshlet_count_);
       ImGui::Text("fps : %.f", fps_);
 
       if (ImGui::Button("change key move target")) {
@@ -227,7 +233,6 @@ class view_frustum_culling : public game::engine
     unsigned active_triangle_count_;
     unsigned whole_triangle_count_;
     float fps_;
-    int meshlet_count_;
 };
 
 }
