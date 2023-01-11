@@ -4,6 +4,7 @@
 #include <geometry/mesh_model.hpp>
 #include <geometry/bounding_volume.hpp>
 #include <geometry/intersection.hpp>
+#include <graphics/mesh_model.hpp>
 #include <graphics/meshlet_model.hpp>
 #include <graphics/utils.hpp>
 #include <utils/utils.hpp>
@@ -80,6 +81,30 @@ void mesh_separation_helper::compute_whole_shape_diameters()
 std::vector<mesh_model> mesh_separation_helper::separate_using_sdf()
 {
 
+}
+
+// colors are same as mesh shader
+#define COLOR_COUNT 10
+vec3 meshlet_colors[COLOR_COUNT] = {
+  vec3(1,0,0),
+  vec3(0,1,0),
+  vec3(0,0,1),
+  vec3(1,1,0),
+  vec3(1,0,1),
+  vec3(0,1,1),
+  vec3(1,0.5,0),
+  vec3(0.5,1,0),
+  vec3(0,0.5,1),
+  vec3(1,1,1)
+};
+
+void colorize_meshlets(std::vector<s_ptr<mesh_model>>& meshlets)
+{
+  int i = 0;
+  for (auto& m : meshlets) {
+    m->colorize_whole_mesh(meshlet_colors[i++]);
+    i %= COLOR_COUNT;
+  }
 }
 
 s_ptr<face> mesh_separation_helper::get_random_remaining_face()
@@ -610,6 +635,8 @@ std::vector<s_ptr<mesh_model>> mesh_separation::separate_into_raw(
   auto helper = mesh_separation_helper::create(_model, model_name, crtr);
 
   auto geometry_meshlets = separate_greedy(helper);
+
+  colorize_meshlets(geometry_meshlets);
 
   return geometry_meshlets;
 }

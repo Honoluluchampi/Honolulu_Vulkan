@@ -14,6 +14,8 @@
 #include <geometry/bounding_volume.hpp>
 #include <geometry/intersection.hpp>
 
+#include <graphics/meshlet_utils.hpp>
+
 #include <game/shading_systems/mesh_shading_system.hpp>
 #include <game/shading_systems/wire_frustum_shading_system.hpp>
 
@@ -94,6 +96,8 @@ class view_frustum_culling : public game::engine
         meshlet_owne->add_separated_object(meshlets, translation, get_graphics_device());
         meshlet_owners_.emplace_back(std::move(meshlet_owne));
       }
+
+      meshlet_count_ = meshlet_owners_[0]->get_meshlet_actors_ref().size();
     }
 
     void update_game(float dt) override
@@ -136,6 +140,7 @@ class view_frustum_culling : public game::engine
       ImGui::Text("active triangle count: %d", active_triangle_count_);
       ImGui::Text("whole triangle count: %d", whole_triangle_count_);
       ImGui::Text("active triangle percentage: %.f", float(active_triangle_count_) / float(whole_triangle_count_) * 100.f);
+      ImGui::Text("meshlet_count : %.d", meshlet_count_);
       ImGui::Text("fps : %.f", fps_);
 
       if (ImGui::Button("change key move target")) {
@@ -169,6 +174,7 @@ class view_frustum_culling : public game::engine
     unsigned active_triangle_count_;
     unsigned whole_triangle_count_;
     float fps_;
+    int meshlet_count_;
 };
 
 }

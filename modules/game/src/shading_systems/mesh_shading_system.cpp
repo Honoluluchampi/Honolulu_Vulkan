@@ -39,7 +39,7 @@ mesh_shading_system::mesh_shading_system(graphics::device &device)
     pipeline_layout_,
     shading_system::get_default_render_pass(),
     "/modules/graphics/shader/spv/",
-    { "simple_shader.vert.spv", "simple_shader.frag.spv" },
+    { "simple_shader.vert.spv", "direct_frag.frag.spv" },
     { VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT },
     pipeline_config_info
   );
