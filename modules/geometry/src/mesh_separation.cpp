@@ -14,10 +14,11 @@
 #include <fstream>
 #include <string>
 #include <filesystem>
+#include <chrono>
 
 namespace hnll::geometry {
 
-#define FRAME_SAMPLING_COUNT 3.f;
+#define FRAME_SAMPLING_COUNT 50.f;
 
 std::vector<ray> create_sampling_rays(const face &_face, uint32_t _sampling_count)
 {
@@ -97,7 +98,7 @@ vec3 meshlet_colors[COLOR_COUNT] = {
   vec3(1,0.5,0),
   vec3(0.5,1,0),
   vec3(0,0.5,1),
-  vec3(1,1,1)
+  vec3(0.7,0.7,0.7)
 };
 
 void colorize_meshlets(std::vector<s_ptr<mesh_model>>& meshlets)
@@ -419,7 +420,7 @@ template<typename T>
 T my_max(const std::vector<T>& values)
 {
   auto ret = std::numeric_limits<T>::min();
-  for (auto& value : values)
+  for (const auto& value : values)
     if (value > ret)
       ret = value;
   return ret;
@@ -428,8 +429,8 @@ T my_max(const std::vector<T>& values)
 template<typename T>
 T my_sum(const std::vector<T>& values)
 {
-  auto ret = 0;
-  for (auto& value : values)
+  T ret = 0;
+  for (const auto& value : values)
     ret += value;
   return ret;
 }
@@ -441,8 +442,8 @@ face_id choose_the_best_face_for_animation(
   int sampling_stride)
 {
   // update these
-  double loss = std::numeric_limits<double>::max();
-  face_id ret_id;
+  double loss = 2e9;
+  face_id ret_id = 0;
 
   size_t frame_count = bvs.size();
 
@@ -453,9 +454,9 @@ face_id choose_the_best_face_for_animation(
       new_loss_list.emplace_back(compute_loss_function_for_sphere(*bvs[i], helpers[i]->get_face(id)));
     }
     // max
-    auto new_loss = my_max<double>(new_loss_list);
+//    auto new_loss = my_max<double>(new_loss_list);
     // sum
-//    auto new_loss = my_sum<double>(new_loss_list);
+    auto new_loss = my_sum<double>(new_loss_list);
 
     if (loss > new_loss) {
       loss = new_loss;
@@ -620,6 +621,8 @@ std::vector<std::vector<s_ptr<mesh_model>>> separate_frame_greedy(const std::vec
   auto frame_count = helpers.size();
   frame_meshlets.resize(frame_count);
 
+  auto start = std::chrono::system_clock::now();
+
   // extract representative
   auto& rep = helpers[0];
   auto crtr = rep->get_criterion();
@@ -648,9 +651,9 @@ std::vector<std::vector<s_ptr<mesh_model>>> separate_frame_greedy(const std::vec
     // meshlet api limitation
     while (rep_ml->get_vertex_count() < mesh_separation::VERTEX_COUNT_PER_MESHLET
            && rep_ml->get_face_count() < mesh_separation::PRIMITIVE_COUNT_PER_MESHLET
-           && adjoining_face_map.size() != 0) {
+           && !adjoining_face_map.empty()) {
 
-      int sampling_stride = frame_count / FRAME_SAMPLING_COUNT;
+      int sampling_stride = static_cast<float>(frame_count) / FRAME_SAMPLING_COUNT;
       current_face_id = choose_the_best_face_for_animation(adjoining_face_map, bvs, helpers, sampling_stride);
       current_face = rep->get_face(current_face_id);
 
@@ -672,7 +675,7 @@ std::vector<std::vector<s_ptr<mesh_model>>> separate_frame_greedy(const std::vec
       mls[i]->set_bounding_volume(std::move(bvs[i]));
     }
     for (int i = 0; i < frame_count; i++) {
-      frame_meshlets[i].emplace_back(mls[i]);
+      frame_meshlets[i].emplace_back(std::move(mls[i]));
     }
 
     current_face = choose_random_face_from_map(adjoining_face_map);
@@ -680,14 +683,14 @@ std::vector<std::vector<s_ptr<mesh_model>>> separate_frame_greedy(const std::vec
       current_face = rep->get_random_remaining_face();
   }
 
+  // 何かの処理
+
+  auto end = std::chrono::system_clock::now();
+
+  double time = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+  printf("time %lf[m]\n", time);
+
   return frame_meshlets;
-}
-
-std::vector<std::vector<s_ptr<mesh_model>>> translate_to_raw_frame(
-  const std::vector<s_ptr<mesh_model>>& old_meshs
-  )
-{
-
 }
 
 std::vector<graphics::meshlet> mesh_separation::separate(

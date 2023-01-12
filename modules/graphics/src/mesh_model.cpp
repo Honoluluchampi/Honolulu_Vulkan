@@ -228,6 +228,12 @@ s_ptr<mesh_model> mesh_model::create_from_geometry_mesh_model(device& device, co
     indices.emplace_back(v2->id_);
   }
 
+  auto color = gm->get_face_map().begin()->second->color_;
+
+  for (auto& vert : vertices) {
+    vert.color = color.cast<float>();
+  }
+
   builder.vertices = std::move(vertices);
   builder.indices  = std::move(indices);
 

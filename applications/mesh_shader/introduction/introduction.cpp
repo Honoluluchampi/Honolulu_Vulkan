@@ -24,7 +24,7 @@ using vec2 = Eigen::Vector2f;
 using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
 
-std::string FILENAME = "bunny.obj";
+std::string FILENAME = "armagilo.obj";
 
 template <class ModelComp>
 class model_actor : public game::actor
@@ -35,6 +35,7 @@ class model_actor : public game::actor
       auto ret = std::make_shared<model_actor>();
       ret->model_comp_ = ModelComp::create(ret, FILENAME);
       ret->set_rotation({M_PI, 0.f, 0.f});
+      ret->set_scale({0.1f, 0.1f, 0.1f});
       game::engine::add_actor(ret);
       return ret;
     }
