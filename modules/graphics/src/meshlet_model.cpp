@@ -17,6 +17,7 @@ meshlet_model::meshlet_model(std::vector<vertex> &&raw_vertices, std::vector<mes
 {
   raw_vertices_ = std::move(raw_vertices);
   meshlets_     = std::move(meshlets);
+  meshlet_count_ = meshlets_.size();
 }
 
 u_ptr<meshlet_model> meshlet_model::create(

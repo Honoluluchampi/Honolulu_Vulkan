@@ -36,13 +36,15 @@ class frame_anim_meshlet_model
       VkPipelineLayout pipeline_layout);
     void draw(VkCommandBuffer command_buffer);
 
+    void load_from_skinning_mesh_model(skinning_mesh_model& original, uint32_t max_fps);
+
     // getter
     uint32_t get_animation_count() const { return dynamic_attributes_buffers_.size(); }
     uint32_t get_frame_count(uint32_t animation_index) const { return frame_counts_[animation_index]; }
     float    get_start_time(uint32_t animation_index)  const { return start_times_[animation_index]; }
     float    get_end_time(uint32_t animation_index)    const { return end_times_[animation_index]; }
-    const std::vector<frame_anim_utils::dynamic_attributes>& get_initial_dynamic_attribs() const { return initial_dynamic_attribs_; }
     const std::vector<uint32_t>& get_raw_indices() const { return raw_indices_; }
+    std::vector<std::vector<frame_anim_utils::dynamic_attributes>> get_ownership_of_raw_dynamic_attribs() { return std::move(raw_dynamic_attribs_); }
 
     static std::vector<u_ptr<descriptor_set_layout>> default_desc_set_layouts(device& _device);
 
@@ -50,10 +52,9 @@ class frame_anim_meshlet_model
     void set_meshlets(std::vector<animated_meshlet_pack::meshlet>&& meshlets)
     { meshlets_ = std::move(meshlets); meshlet_count_ = meshlets_.size(); }
     // temp
-    void set_initial_sphere(std::vector<vec4>&& spheres) { initial_spheres_ = std::move(spheres); }
+    void set_raw_spheres(std::vector<std::vector<vec4>>&& spheres) { raw_spheres_ = std::move(spheres); }
   private:
-    void load_from_skinning_mesh_model(skinning_mesh_model& original, uint32_t max_fps);
-    void create_meshlets_buffer();
+    void create_buffers();
     void setup_descs();
 
     device& device_;
@@ -87,11 +88,11 @@ class frame_anim_meshlet_model
     std::vector<float> end_times_;
 
     // raw data for (and from) mesh separation (temporary)
-    std::vector<frame_anim_utils::dynamic_attributes> initial_dynamic_attribs_;
+    std::vector<std::vector<frame_anim_utils::dynamic_attributes>> raw_dynamic_attribs_;
+    std::vector<std::vector<vec4>> raw_spheres_;
+
     std::vector<uint32_t> raw_indices_;
     std::vector<animated_meshlet_pack::meshlet> meshlets_;
-    // temp
-    std::vector<vec4> initial_spheres_;
 };
 
 }} // namespace hnll::graphics

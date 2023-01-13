@@ -36,7 +36,7 @@ struct animated_meshlet_pack
   };
 
   std::vector<animated_meshlet_pack::meshlet> meshlets;
-  std::vector<vec4> spheres;
+  std::vector<std::vector<vec4>> spheres;
 };
 
 } // namespace hnll::graphics

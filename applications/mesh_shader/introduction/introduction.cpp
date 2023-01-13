@@ -7,7 +7,7 @@
 #include <game/components/mesh_component.hpp>
 #include <game/components/meshlet_component.hpp>
 #include <game/components/frame_anim_component.hpp>
-#include <game/shading_systems/frame_anim_meshlet_shading_system.hpp>
+#include <game/shading_systems/wire_frustum_shading_system.hpp>
 #include <physics/engine.hpp>
 
 #include <game/shading_systems/mesh_shading_system.hpp>
@@ -24,7 +24,7 @@ using vec2 = Eigen::Vector2f;
 using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
 
-std::string FILENAME = "human.glb";
+std::string FILENAME = "armagilo.obj";
 
 template <class ModelComp>
 class model_actor : public game::actor
@@ -35,9 +35,11 @@ class model_actor : public game::actor
       auto ret = std::make_shared<model_actor>();
       ret->model_comp_ = ModelComp::create(ret, FILENAME);
       ret->set_rotation({M_PI, 0.f, 0.f});
+      ret->set_scale({0.1f, 0.1f, 0.1f});
       game::engine::add_actor(ret);
       return ret;
     }
+    uint32_t get_meshlet_count() const { return model_comp_->get_meshlet_count(); }
     model_actor(){}
   private:
     s_ptr<ModelComp> model_comp_;
@@ -48,11 +50,13 @@ class mesh_shader_introduction : public game::engine
   public:
     mesh_shader_introduction() : game::engine("mesh shader introduction")
     {
-      auto system = game::frame_anim_meshlet_shading_system::create(get_graphics_device());
-      add_shading_system(std::move(system));
+      auto system = game::wire_frustum_shading_system::create(get_graphics_device());
+      game::engine::add_shading_system(std::move(system));
+
       // mesh_actor or ml_actor
-      create_bunny_wall<model_actor<game::frame_anim_component<graphics::frame_anim_meshlet_model>>>();
-      //add_virtual_camera();
+//      create_bunny_wall<model_actor<game::frame_anim_component<graphics::frame_anim_meshlet_model>>>();
+      create_bunny_wall<model_actor<game::meshlet_component>>();
+      add_virtual_camera();
     }
 
     ~mesh_shader_introduction() override = default;
@@ -69,10 +73,10 @@ class mesh_shader_introduction : public game::engine
     template <class T>
     void create_bunny_wall()
     {
-      uint32_t x_count = 4;
-      uint32_t y_count = 4;
+      uint32_t x_count = 1;
+      uint32_t y_count = 1;
       uint32_t z_count = 1;
-      float space = 4.f;
+      float space = 0.f;
       std::vector<vec3> positions;
 
       for (int i = 0; i < x_count; i++) {
@@ -86,6 +90,8 @@ class mesh_shader_introduction : public game::engine
               (k - (z_count / 2.f)) * space
             };
             auto object = T::create(get_graphics_device());
+            if (meshlet_count_ == 0)
+              meshlet_count_ = object->get_meshlet_count();
             object->set_translation(position);
           }
         }
@@ -95,21 +101,22 @@ class mesh_shader_introduction : public game::engine
     void update_game_gui() override
     {
       // this part should be contained in update_game()...
-      //virtual_camera_->update_frustum_planes();
-      //set_frustum_info(virtual_camera_->get_frustum_info());
+      virtual_camera_->update_frustum_planes();
+      set_frustum_info(virtual_camera_->get_frustum_info());
 
       ImGui::Begin("stats");
 
       ImGui::Text("fps : %.f", fps_);
+      ImGui::Text("meshlet count : %.d", meshlet_count_);
 
       if (ImGui::Button("change key move target")) {
         if (camera_up_->is_movement_updating()) {
           camera_up_->set_movement_updating_off();
-          //virtual_camera_->set_movement_updating_on();
+          virtual_camera_->set_movement_updating_on();
         }
         else {
           camera_up_->set_movement_updating_on();
-         // virtual_camera_->set_movement_updating_off();
+          virtual_camera_->set_movement_updating_off();
         }
       }
 
@@ -120,6 +127,7 @@ class mesh_shader_introduction : public game::engine
     // frustum culling is organized based on this frustum;
     s_ptr<geometry::perspective_frustum> active_frustum_;
     float fps_;
+    uint32_t meshlet_count_ = 0;
 };
 } // namespace hnll
 

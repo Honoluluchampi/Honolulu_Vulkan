@@ -22,13 +22,12 @@ u_ptr<frame_anim_meshlet_model> frame_anim_meshlet_model::create_from_skinning_m
   ret->load_from_skinning_mesh_model(original, max_fps);
 
   auto geometry_model = geometry::mesh_model::create_from_dynamic_attributes(
-    ret->get_initial_dynamic_attribs(),
+    ret->get_ownership_of_raw_dynamic_attribs(),
     ret->get_raw_indices()
   );
   auto meshlet_pack = geometry::mesh_separation::separate_into_meshlet_pack(geometry_model);
   ret->set_meshlets(std::move(meshlet_pack.meshlets));
-  ret->set_initial_sphere(std::move(meshlet_pack.spheres));
-  ret->create_meshlets_buffer();
+  ret->set_raw_spheres(std::move(meshlet_pack.spheres));
   ret->setup_descs();
 
   return ret;
@@ -39,6 +38,9 @@ frame_anim_meshlet_model::frame_anim_meshlet_model(device &_device) : device_(_d
 
 void frame_anim_meshlet_model::setup_descs()
 {
+  // setup buffers for desc sets
+  create_buffers();
+
   // common -----------------------------------------
   common_desc_sets_ = descriptor_set::create(device_);
 
@@ -126,7 +128,7 @@ void frame_anim_meshlet_model::bind(
   uint32_t anim_frame_index = accumulative_frame_counts_[animation_index] + frame_index;
   desc_sets.push_back(dynamic_attribs_desc_sets_->get_set(anim_frame_index));
   // temp
-  desc_sets.push_back(sphere_desc_sets_->get_set(0));
+  desc_sets.push_back(sphere_desc_sets_->get_set(anim_frame_index));
 
   vkCmdBindDescriptorSets(
     command_buffer,
@@ -218,9 +220,8 @@ void frame_anim_meshlet_model::load_from_skinning_mesh_model(skinning_mesh_model
       );
       dynamic_attributes_buffers_[i].emplace_back(std::move(new_buffer));
 
-      // for mesh separation (temporary)
-      if (initial_dynamic_attribs_.size() == 0)
-        initial_dynamic_attribs_ = std::move(new_dynamic_attribs);
+      // for mesh separation
+      raw_dynamic_attribs_.emplace_back(std::move(new_dynamic_attribs));
 
       // update timer
       timer += 1.f / static_cast<float>(max_fps);
@@ -239,7 +240,7 @@ void frame_anim_meshlet_model::load_from_skinning_mesh_model(skinning_mesh_model
   }
 }
 
-void frame_anim_meshlet_model::create_meshlets_buffer()
+void frame_anim_meshlet_model::create_buffers()
 {
   meshlet_buffer_ = buffer::create_with_staging(
     device_,
@@ -250,16 +251,18 @@ void frame_anim_meshlet_model::create_meshlets_buffer()
     meshlets_.data()
   );
 
-  // temp
   sphere_buffers_.resize(1);
-  sphere_buffers_[0].push_back(buffer::create_with_staging(
-    device_,
-    initial_spheres_.size() * sizeof(vec4),
-    1,
-    VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-    initial_spheres_.data()
-  ));
+  sphere_buffers_[0].resize(frame_counts_[0]);
+  for (int i = 0; i < frame_counts_[0]; i++) {
+    sphere_buffers_[0][i] = buffer::create_with_staging(
+      device_,
+      raw_spheres_[i].size() * sizeof(vec4),
+      1,
+      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+      raw_spheres_[i].data()
+    );
+  }
 }
 
 } // namespace hnll::graphics

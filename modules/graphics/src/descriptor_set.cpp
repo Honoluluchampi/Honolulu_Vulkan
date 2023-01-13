@@ -54,6 +54,10 @@ descriptor_set& descriptor_set::build_sets()
   return *this;
 }
 
+// buffer update
+void descriptor_set::write_to_buffer(size_t index, void *data) { buffers_[index]->write_to_buffer(data); }
+void descriptor_set::flush_buffer(size_t index) { buffers_[index]->flush(); }
+
 // getter
 VkDescriptorSetLayout descriptor_set::get_layout() const
 { return layout_->get_descriptor_set_layout(); }

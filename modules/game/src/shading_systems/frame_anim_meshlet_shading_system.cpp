@@ -104,8 +104,6 @@ void frame_anim_meshlet_shading_system::render(const utils::frame_info &frame_in
     push.model_matrix  = obj->get_transform().mat4().cast<float>();
     push.normal_matrix = obj->get_transform().normal_matrix().cast<float>();
 
-    // task desc set update
-
     vkCmdPushConstants(
       command_buffer,
       pipeline_layout_,
@@ -114,6 +112,11 @@ void frame_anim_meshlet_shading_system::render(const utils::frame_info &frame_in
       sizeof(frame_anim_meshlet_push_constant),
       &push
     );
+
+    // update task desc set
+    size_t index = frame_info.frame_index;
+    task_desc_sets_->write_to_buffer(index, (void *) &frame_info.view_frustum);
+    task_desc_sets_->flush_buffer(index);
 
     std::vector<VkDescriptorSet> external_desc_sets = {
       frame_info.global_descriptor_set,

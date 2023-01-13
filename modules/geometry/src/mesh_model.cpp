@@ -130,35 +130,40 @@ s_ptr<vertex> translate_vertex(const graphics::frame_anim_utils::dynamic_attribu
   return vertex_sp;
 }
 
-s_ptr<mesh_model> mesh_model::create_from_dynamic_attributes(
-  const std::vector<graphics::frame_anim_utils::dynamic_attributes> &vertices,
+std::vector<s_ptr<mesh_model>> mesh_model::create_from_dynamic_attributes(
+  const std::vector<std::vector<graphics::frame_anim_utils::dynamic_attributes>> &vertices_pack,
   const std::vector<uint32_t> &indices)
 {
+  std::vector<s_ptr<mesh_model>> models;
+
   if (indices.size() % 3 != 0)
     throw std::runtime_error("index count is not multiple of 3.");
 
-  auto model = mesh_model::create();
+  for (const auto& vertices : vertices_pack) {
+    auto model = mesh_model::create();
 
-  // translate vertices
-  for (int i = 0; i < vertices.size(); i++) {
-    auto new_vertex = translate_vertex(vertices[i], i);
-    model->add_vertex(new_vertex);
+    // translate vertices
+    for (int i = 0; i < vertices.size(); i++) {
+      auto new_vertex = translate_vertex(vertices[i], i);
+      model->add_vertex(new_vertex);
+    }
+
+    // recreate all faces
+    face_id f_id = 0;
+    for (int i = 0; i < indices.size(); i += 3) {
+      auto v0 = model->get_vertex(indices[i]);
+      auto v1 = model->get_vertex(indices[i + 1]);
+      auto v2 = model->get_vertex(indices[i + 2]);
+      auto normal = (v0->normal_ + v1->normal_ + v2->normal_) / 3.f;
+      auto cross = (v1->position_ - v0->position_).cross(v2->position_ - v0->position_);
+      if (cross.dot(normal) >= 0)
+        model->add_face(v0, v1, v2, f_id++, false);
+      else
+        model->add_face(v0, v2, v1, f_id++, false);
+    }
+    models.emplace_back(std::move(model));
   }
-
-  // recreate all faces
-  for (int i = 0; i < indices.size(); i += 3) {
-    auto v0 = model->get_vertex(indices[i]);
-    auto v1 = model->get_vertex(indices[i + 1]);
-    auto v2 = model->get_vertex(indices[i + 2]);
-    auto normal = (v0->normal_ + v1->normal_ + v2->normal_) / 3.f;
-    auto cross = (v1->position_ - v0->position_).cross(v2->position_ - v0->position_);
-    if (cross.dot(normal) >= 0)
-      model->add_face(v0, v1, v2);
-    else
-      model->add_face(v0, v2, v1);
-  }
-
-  return model;
+  return models;
 }
 
 void mesh_model::align_vertex_id()
@@ -173,7 +178,7 @@ void mesh_model::align_vertex_id()
 }
 
 void mesh_model::colorize_whole_mesh(const vec3& color)
-{ for (const auto& kv : vertex_map_) kv.second->color_ = color; }
+{ for (const auto& kv : face_map_) kv.second->color_ = color; }
 
 bool mesh_model::associate_half_edge_pair(const s_ptr<half_edge> &he)
 {
@@ -202,7 +207,7 @@ vertex_id mesh_model::add_vertex(const s_ptr<vertex> &v)
   return v->id_;
 }
 
-face_id mesh_model::add_face(s_ptr<vertex> &v0, s_ptr<vertex> &v1, s_ptr<vertex> &v2, auto_vertex_normal_calculation avnc)
+face_id mesh_model::add_face(s_ptr<vertex> &v0, s_ptr<vertex> &v1, s_ptr<vertex> &v2, face_id id, bool auto_id, auto_vertex_normal_calculation avnc)
 {
   // register to the vertex hash table
   add_vertex(v0);
@@ -223,6 +228,8 @@ face_id mesh_model::add_face(s_ptr<vertex> &v0, s_ptr<vertex> &v1, s_ptr<vertex>
   }
   // new face
   auto fc = face::create(hes[0]);
+  if (!auto_id)
+    fc->id_ = id;
   // calc face normal
   fc->normal_ = ((v1->position_ - v0->position_).cross(v2->position_ - v0->position_)).normalized();
   // register to each owner
@@ -247,6 +254,9 @@ face_id mesh_model::add_face(s_ptr<vertex> &v0, s_ptr<vertex> &v1, s_ptr<vertex>
 const bounding_volume& mesh_model::get_bounding_volume() const
 { return *bounding_volume_; }
 
+const std::vector<u_ptr<bounding_volume>>& mesh_model::get_bounding_volumes() const
+{ return bounding_volumes_; }
+
 u_ptr<bounding_volume> mesh_model::get_ownership_of_bounding_volume()
 { return std::move(bounding_volume_); }
 
@@ -261,6 +271,9 @@ u_ptr<bounding_volume> mesh_model::get_bounding_volume_copy() const
 
 void mesh_model::set_bounding_volume(u_ptr<bounding_volume> &&bv)
 { bounding_volume_ = std::move(bv); }
+
+void mesh_model::set_bounding_volumes(std::vector<u_ptr<bounding_volume>> &&bvs)
+{ bounding_volumes_ = std::move(bvs); }
 
 void mesh_model::set_bv_type(bv_type type)
 { bounding_volume_->set_bv_type(type); }

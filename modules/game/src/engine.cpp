@@ -178,8 +178,8 @@ void engine::update_gui()
 
 void engine::setup_shading_systems()
 {
-  auto grid_shader = game::grid_shading_system::create(get_graphics_device());
-  add_shading_system(std::move(grid_shader));
+//  auto grid_shader = game::grid_shading_system::create(get_graphics_device());
+//  add_shading_system(std::move(grid_shader));
 }
 
 void engine::init_actors()
