@@ -13,13 +13,13 @@ set(TARGETS
         $ENV{HNLL_ENGN}/modules/graphics/src/camera.cpp
         $ENV{HNLL_ENGN}/modules/graphics/src/descriptor_set_layout.cpp
         $ENV{HNLL_ENGN}/modules/graphics/src/device.cpp
-        $ENV{HNLL_ENGN}/modules/graphics/src/mesh_model.cpp
         $ENV{HNLL_ENGN}/modules/graphics/src/pipeline.cpp
         $ENV{HNLL_ENGN}/modules/graphics/src/renderer.cpp
         $ENV{HNLL_ENGN}/modules/graphics/src/swap_chain.cpp
         $ENV{HNLL_ENGN}/modules/graphics/src/window.cpp
         ../../../submodules/extensions/ray_tracing_extensions.cpp
-        $ENV{HNLL_ENGN}/modules/graphics/src/acceleration_structure.cpp)
+        $ENV{HNLL_ENGN}/modules/graphics/src/acceleration_structure.cpp
+        )
 
 add_executable(introduce_ray_tracing ${TARGETS})
 

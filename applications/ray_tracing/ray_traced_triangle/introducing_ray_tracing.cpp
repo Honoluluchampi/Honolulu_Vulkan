@@ -4,9 +4,9 @@
 #include <graphics/descriptor_set_layout.hpp>
 #include <graphics/pipeline.hpp>
 #include <graphics/renderer.hpp>
-#include <graphics/frame_info.hpp>
 #include <graphics/swap_chain.hpp>
 #include <graphics/acceleration_structure.hpp>
+#include <utils/rendering_utils.hpp>
 
 // sub
 #include <ray_tracing_extensions.hpp>
@@ -91,8 +91,7 @@ class hello_triangle {
       window_ = std::make_unique<graphics::window>(1920, 946, "hello ray tracing triangle");
       device_ = std::make_unique<graphics::device>(
         *window_,
-        graphics::rendering_type::RAY_TRACING,
-        std::move(device_extensions)
+        utils::rendering_type::RAY_TRACING
       );
 
       // load all available extensions (of course including ray tracing extensions)
