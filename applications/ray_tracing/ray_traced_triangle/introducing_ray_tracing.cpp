@@ -3,13 +3,12 @@
 #include <graphics/buffer.hpp>
 #include <graphics/descriptor_set_layout.hpp>
 #include <graphics/pipeline.hpp>
-#include <graphics/renderer.hpp>
 #include <graphics/swap_chain.hpp>
 #include <graphics/acceleration_structure.hpp>
 #include <utils/rendering_utils.hpp>
 
 // sub
-#include <ray_tracing_extensions.hpp>
+#include <extensions/ray_tracing_extensions.hpp>
 
 // std
 #include <iostream>
@@ -76,18 +75,6 @@ class hello_triangle {
   public:
     hello_triangle()
     {
-      std::vector<const char*> device_extensions = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        VK_KHR_MAINTENANCE_3_EXTENSION_NAME,
-        VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
-        // RAY TRACING
-        VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
-        VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
-        VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
-        // DESCRIPTOR INDEXING
-        VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
-      };
-
       window_ = std::make_unique<graphics::window>(1920, 946, "hello ray tracing triangle");
       device_ = std::make_unique<graphics::device>(
         *window_,
