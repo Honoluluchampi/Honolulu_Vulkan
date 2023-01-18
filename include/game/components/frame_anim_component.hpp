@@ -69,16 +69,20 @@ class frame_anim_component : public renderable_component
     bool animating_ = true;
 };
 
+// frame anim mesh
+using frame_anim_mesh_component = frame_anim_component<graphics::frame_anim_mesh_model>;
 template <> template <Actor A>
-frame_anim_component<graphics::frame_anim_mesh_model>::frame_anim_component(s_ptr<A>& owner, graphics::frame_anim_mesh_model& model)
+frame_anim_mesh_component ::frame_anim_component(s_ptr<A>& owner, graphics::frame_anim_mesh_model& model)
   : renderable_component(owner, utils::shading_type::FRAME_ANIM_MESH), model_(model)
 {
   animation_count_ = model_.get_animation_count();
   activate_animation(0);
 }
 
+// frame meshlet component
+using frame_anim_meshlet_component = frame_anim_component<graphics::frame_anim_meshlet_model>;
 template <> template <Actor A>
-frame_anim_component<graphics::frame_anim_meshlet_model>::frame_anim_component(s_ptr<A>& owner, graphics::frame_anim_meshlet_model& model)
+frame_anim_meshlet_component::frame_anim_component(s_ptr<A>& owner, graphics::frame_anim_meshlet_model& model)
   : renderable_component(owner, utils::shading_type::FRAME_ANIM_MESHLET), model_(model)
 {
   animation_count_ = model_.get_animation_count();
@@ -86,7 +90,7 @@ frame_anim_component<graphics::frame_anim_meshlet_model>::frame_anim_component(s
 }
 
 template<> template <Actor A>
-s_ptr<frame_anim_component<graphics::frame_anim_mesh_model>> frame_anim_component<graphics::frame_anim_mesh_model>::create(s_ptr<A>& owner, const std::string& model_name)
+s_ptr<frame_anim_mesh_component> frame_anim_mesh_component::create(s_ptr<A>& owner, const std::string& model_name)
 {
   auto& skinning_mesh = engine::get_skinning_mesh_model(model_name);
   auto& frame_mesh = engine::get_frame_anim_mesh_model(model_name);
@@ -96,7 +100,7 @@ s_ptr<frame_anim_component<graphics::frame_anim_mesh_model>> frame_anim_componen
 }
 
 template<> template <Actor A>
-s_ptr<frame_anim_component<graphics::frame_anim_meshlet_model>> frame_anim_component<graphics::frame_anim_meshlet_model>::create(s_ptr<A>& owner, const std::string& model_name)
+s_ptr<frame_anim_meshlet_component> frame_anim_meshlet_component::create(s_ptr<A>& owner, const std::string& model_name)
 {
   auto& skinning_mesh = engine::get_skinning_mesh_model(model_name);
   auto& frame_meshlet = engine::get_frame_anim_meshlet_model(model_name);
