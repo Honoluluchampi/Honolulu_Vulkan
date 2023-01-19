@@ -33,9 +33,6 @@ using remaining_face_id_set = std::set<face_id>;
 
 namespace mesh_separation {
 
-constexpr int VERTEX_COUNT_PER_MESHLET = 64;
-constexpr int PRIMITIVE_COUNT_PER_MESHLET = 126; // 2byte is
-
 enum class solution {
   GREEDY,
   K_MEANS_BASED

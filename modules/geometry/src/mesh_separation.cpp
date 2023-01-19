@@ -6,6 +6,7 @@
 #include <geometry/intersection.hpp>
 #include <graphics/mesh_model.hpp>
 #include <graphics/meshlet_model.hpp>
+#include <graphics/meshlet_constants.h>
 #include <graphics/utils.hpp>
 #include <utils/utils.hpp>
 
@@ -388,8 +389,8 @@ std::vector<s_ptr<mesh_model>> separate_greedy(const s_ptr<mesh_separation_helpe
     face_map adjoining_face_map {{current_face->id_ ,current_face}};
 
     // meshlet api limitation
-    while (ml->get_vertex_count() < mesh_separation::VERTEX_COUNT_PER_MESHLET
-        && ml->get_face_count() < mesh_separation::PRIMITIVE_COUNT_PER_MESHLET
+    while (ml->get_vertex_count() < graphics::meshlet_constants::MAX_VERTEX_COUNT
+        && ml->get_face_count() < graphics::meshlet_constants::MAX_PRIMITIVE_COUNT
         && adjoining_face_map.size() != 0) {
 
       // algorithm dependent part
@@ -493,8 +494,8 @@ std::vector<s_ptr<mesh_model>> separate_animation_greedy(const std::vector<s_ptr
     face_map adjoining_face_map {{current_face->id_ ,current_face}};
 
     // meshlet api limitation
-    while (ml->get_vertex_count() < mesh_separation::VERTEX_COUNT_PER_MESHLET
-           && ml->get_face_count() < mesh_separation::PRIMITIVE_COUNT_PER_MESHLET
+    while (ml->get_vertex_count() < graphics::meshlet_constants::MAX_VERTEX_COUNT
+           && ml->get_face_count() < graphics::meshlet_constants::MAX_PRIMITIVE_COUNT
            && adjoining_face_map.size() != 0) {
 
       int sampling_stride = frame_count / FRAME_SAMPLING_COUNT;
@@ -649,8 +650,8 @@ std::vector<std::vector<s_ptr<mesh_model>>> separate_frame_greedy(const std::vec
     face_map adjoining_face_map {{current_face->id_ ,current_face}};
 
     // meshlet api limitation
-    while (rep_ml->get_vertex_count() < mesh_separation::VERTEX_COUNT_PER_MESHLET
-           && rep_ml->get_face_count() < mesh_separation::PRIMITIVE_COUNT_PER_MESHLET
+    while (rep_ml->get_vertex_count() < graphics::meshlet_constants::MAX_VERTEX_COUNT
+           && rep_ml->get_face_count() < graphics::meshlet_constants::MAX_PRIMITIVE_COUNT
            && !adjoining_face_map.empty()) {
 
       int sampling_stride = static_cast<float>(frame_count) / FRAME_SAMPLING_COUNT;
@@ -786,6 +787,11 @@ void mesh_separation::write_meshlet_cache(
       ;
   }
 
+  writing_file << "max vertex count" << std::endl;
+  writing_file << graphics::meshlet_constants::MAX_VERTEX_COUNT << std::endl;
+  writing_file << "max primitive indices count" << std::endl;
+  writing_file << graphics::meshlet_constants::MAX_PRIMITIVE_INDICES_COUNT << std::endl;
+
   auto meshlet_count = _meshlets.size();
   writing_file << meshlet_count << std::endl;
   for (int i = 0; i < meshlet_count; i++) {
@@ -833,6 +839,13 @@ bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vect
     getline(reading_file, buffer);
   }
 
+  getline(reading_file, buffer);
+  getline(reading_file, buffer);
+  int max_vertex_count = std::stoi(buffer);
+  getline(reading_file, buffer);
+  getline(reading_file, buffer);
+  int max_primitive_indices_count = std::stoi(buffer);
+
   // 4th line indicates the meshlet count
   uint32_t meshlet_count = std::stoi(buffer);
   meshlets.resize(meshlet_count);
@@ -843,7 +856,7 @@ bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vect
     getline(reading_file, buffer);
     meshlets[i].vertex_count = std::stoi(buffer);
     // vertex indices array
-    for (int j = 0; j < graphics::MAX_VERTEX_PER_MESHLET; j++) {
+    for (int j = 0; j < max_vertex_count; j++) {
       getline(reading_file, buffer, ',');
       meshlets[i].vertex_indices[j] = std::stoi(buffer);
     }
@@ -852,7 +865,7 @@ bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vect
     getline(reading_file, buffer);
     meshlets[i].index_count = std::stoi(buffer);
     // primitive indices array
-    for (int j = 0; j < graphics::MAX_INDEX_PER_MESHLET; j++) {
+    for (int j = 0; j < max_primitive_indices_count; j++) {
       getline(reading_file, buffer, ',');
       meshlets[i].primitive_indices[j] = std::stoi(buffer);
     }
