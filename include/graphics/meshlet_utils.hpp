@@ -1,10 +1,14 @@
 #pragma once
 
 // hnll
-#include <graphics/meshlet_constants.h>
 #include <utils/common_using.hpp>
 
 namespace hnll::graphics {
+
+// use same meshlet constants as mesh shaders
+namespace meshlet_constants {
+#include <../../modules/graphics/shader/mesh_shader/meshlet_constants.h>
+}
 
 constexpr uint32_t VERTEX_DESC_ID  = 0;
 constexpr uint32_t MESHLET_DESC_ID = 1;
