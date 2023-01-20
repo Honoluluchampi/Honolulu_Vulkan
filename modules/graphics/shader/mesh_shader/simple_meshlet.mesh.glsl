@@ -1,6 +1,7 @@
 #version 460
 #extension GL_NV_mesh_shader : require
 #extension GL_EXT_shader_explicit_arithmetic_types : require
+#extension GL_GOOGLE_include_directive : require
 
 const uint MAX_VERTEX_COUNT = 64;
 const uint MAX_PRIMITIVE_INDICES_COUNT = 378;
@@ -9,7 +10,7 @@ const uint GROUP_SIZE = 32;
 
 layout(local_size_x = 32) in;
 
-// identifier "triangles" indicates this shader outputs trianlges (other candidates : point, line)
+// identifier "triangles" indicates this shader outputs triangles (other candidates : point, line)
 // gl_MeshVerticesNV and glPrimitiveIndicesNV is resized according to these values
 layout(triangles, max_vertices = MAX_VERTEX_COUNT, max_primitives = MAX_PRIMITIVE_INDICES_COUNT / 3) out;
 
