@@ -4,21 +4,8 @@ layout(location = 0) in vec3 vertex_position;
 
 layout(location = 0) out vec4 out_color;
 
-struct PointLight
-{
-  vec4 position;
-  vec4 color;
-};
-
-layout(set = 0, binding = 0) uniform GlobalUbo
-{
-  mat4 projection;
-  mat4 view;
-  mat4 inv_view;
-  vec4 ambientLightColor;
-  PointLight pointLights[20];
-  int numLights;
-} ubo;
+// global ubo
+#include "../global_ubo.h"
 
 layout(push_constant) uniform Push {
   float height;

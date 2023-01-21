@@ -12,23 +12,8 @@ layout(location = 0) out vec3 out_color;
 layout(location = 1) out vec3 out_world_position;
 layout(location = 2) out vec3 out_world_normal;
 
-// should be compatible with a description layout
-struct PointLight
-{
-  vec4 position;
-  vec4 color;
-};
-
-// global desc set
-layout(set = 0, binding = 0) uniform GlobalUbo
-{
-  mat4 projection;
-  mat4 view;
-  mat4 inv_view;
-  vec4 ambientLightColor;
-  PointLight pointLights[20];
-  int numLights;
-} ubo;
+// global ubo
+#include "../global_ubo.h"
 
 #define MAX_NUM_JOINTS 128
 

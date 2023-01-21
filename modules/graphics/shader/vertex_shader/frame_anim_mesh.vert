@@ -10,21 +10,8 @@ layout(location = 0) out vec3 frag_color;
 layout(location = 1) out vec3 frag_pos_world;
 layout(location = 2) out vec3 frag_normal_world;
 
-struct PointLight
-{
-  vec4 position;
-  vec4 color;
-};
-
-layout(set = 0, binding = 0) uniform GlobalUbo
-{
-  mat4 projection;
-  mat4 view;
-  mat4 inv_view;
-  vec4 ambient_light_color;
-  PointLight point_lights[20];
-  int lights_count;
-} ubo;
+// global ubo
+#include "../global_ubo.h"
 
 layout(push_constant) uniform Push 
 {
