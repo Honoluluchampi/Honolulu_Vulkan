@@ -51,31 +51,31 @@ void skinning_utils::mesh_group::update_desc_buffer()
   desc_buffer_->write_to_buffer(&block);
 }
 
-mat4 convert_glm_to_eigen(const glm::mat4& g) {
-  mat4 e;
-  e(0, 0) = g[0][0];
-  e(0, 1) = g[1][0];
-  e(0, 2) = g[2][0];
-  e(0, 3) = g[3][0];
-  e(1, 0) = g[0][1];
-  e(1, 1) = g[1][1];
-  e(1, 2) = g[2][1];
-  e(1, 3) = g[3][1];
-  e(2, 0) = g[0][2];
-  e(2, 1) = g[1][2];
-  e(2, 2) = g[2][2];
-  e(2, 3) = g[3][2];
-  e(3, 0) = g[0][3];
-  e(3, 1) = g[1][3];
-  e(3, 2) = g[2][3];
-  e(3, 3) = g[3][3];
-  return e;
-}
-
 mat4 skinning_utils::node::get_local_matrix()
 {
-  auto mat = glm::translate(glm::mat4(1.f), translation) * glm::mat4(rotation) * glm::scale(glm::mat4(1.f), scale);
-  return convert_glm_to_eigen(mat);
+  mat4 trsl = mat4::Identity();
+  trsl(0, 3) = translation.x();
+  trsl(1, 3) = translation.y();
+  trsl(2, 3) = translation.z();
+
+  mat4 scl = mat4::Identity();
+  scl(0, 0) = scale.x();
+  scl(1, 1) = scale.y();
+  scl(2, 2) = scale.z();
+
+  mat4 rot = mat4::Identity();
+  auto quat_mat = rotation.toRotationMatrix();
+  rot(0, 0) = quat_mat(0, 0);
+  rot(0, 1) = quat_mat(0, 1);
+  rot(0, 2) = quat_mat(0, 2);
+  rot(1, 0) = quat_mat(1, 0);
+  rot(1, 1) = quat_mat(1, 1);
+  rot(1, 2) = quat_mat(1, 2);
+  rot(2, 0) = quat_mat(2, 0);
+  rot(2, 1) = quat_mat(2, 1);
+  rot(2, 2) = quat_mat(2, 2);
+
+  return trsl * rot * scl;
 }
 
 mat4 skinning_utils::node::get_matrix()

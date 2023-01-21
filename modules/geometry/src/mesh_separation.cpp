@@ -6,7 +6,6 @@
 #include <geometry/intersection.hpp>
 #include <graphics/mesh_model.hpp>
 #include <graphics/meshlet_model.hpp>
-#include <graphics/meshlet_constants.h>
 #include <graphics/utils.hpp>
 #include <utils/utils.hpp>
 

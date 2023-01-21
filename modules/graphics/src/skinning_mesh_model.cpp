@@ -131,20 +131,19 @@ void skinning_mesh_model::update_animation(uint32_t index, float time)
               break;
             }
             case skinning_utils::animation_channel::path_type::ROTATION : {
-              glm::quat q1;
-              q1.x = sampler.outputs[i].x();
-              q1.y = sampler.outputs[i].y();
-              q1.z = sampler.outputs[i].z();
-              q1.w = sampler.outputs[i].w();
+              quat q1;
+              q1.x() = sampler.outputs[i].x();
+              q1.y() = sampler.outputs[i].y();
+              q1.z() = sampler.outputs[i].z();
+              q1.w() = sampler.outputs[i].w();
 
-              glm::quat q2;
-              q2.x = sampler.outputs[i + 1].x();
-              q2.y = sampler.outputs[i + 1].y();
-              q2.z = sampler.outputs[i + 1].z();
-              q2.w = sampler.outputs[i + 1].w();
+              quat q2;
+              q2.x() = sampler.outputs[i + 1].x();
+              q2.y() = sampler.outputs[i + 1].y();
+              q2.z() = sampler.outputs[i + 1].z();
+              q2.w() = sampler.outputs[i + 1].w();
 
-//              channel.node_->rotation = q1.slerp(u, q2).normalized();
-              channel.node_->rotation = glm::normalize(glm::slerp(q1, q2, u));
+              channel.node_->rotation = q1.slerp(u, q2).normalized();
               break;
             }
           }
@@ -308,16 +307,6 @@ Eigen::Matrix<Output, element_count, 1> vec_convert_from_raw(const Input* input)
   return ret;
 }
 
-quat quat_convert_from_raw(const double* input)
-{
-  return quat {
-    static_cast<float>(input[0]),
-    static_cast<float>(input[1]),
-    static_cast<float>(input[2]),
-    static_cast<float>(input[3])
-  };
-}
-
 mat4 mat4_convert_from_raw(const double* input)
 {
   mat4 ret;
@@ -357,15 +346,13 @@ void skinning_mesh_model::load_node(
 
   // transform
   if (node.translation.size() == 3) {
-//    new_node->translation = vec_convert_from_raw<3, double>(node.translation.data());
-    new_node->translation = glm::make_vec3(node.translation.data());
+    new_node->translation = vec_convert_from_raw<3, double>(node.translation.data());
   }
   if (node.rotation.size() == 4) {
-    new_node->rotation = glm::make_quat(node.rotation.data());
+    new_node->rotation = vec_convert_from_raw<4, double>(node.rotation.data());
   }
   if (node.scale.size() == 3) {
-//    new_node->scale = vec_convert_from_raw<3, double>(node.scale.data());
-    new_node->scale = glm::make_vec3(node.scale.data());
+    new_node->scale = vec_convert_from_raw<3, double>(node.scale.data());
   }
   if (node.matrix.size() == 16) {
     new_node->matrix = mat4_convert_from_raw(node.matrix.data());

@@ -50,5 +50,5 @@ void main() {
   out_world_position = local_position.xyz / local_position.w;
   gl_Position = ubo.projection * ubo.view * vec4(out_world_position, 1.0);
 
-  out_color = vec3(0.2f, 0.8f, 0.1f);
+  out_color = vec3(0.1f, 0.8f, 0.1f);
 }

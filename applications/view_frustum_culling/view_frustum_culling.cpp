@@ -22,7 +22,7 @@
 #include <game/shading_systems/wire_frustum_shading_system.hpp>
 
 #define FILENAME "/home/honolulu/models/characters/bunny.obj"
-#define GLB_FILENAME "light_armagilo.glb"
+#define GLB_FILENAME "armadillo4896.glb"
 
 namespace hnll {
 

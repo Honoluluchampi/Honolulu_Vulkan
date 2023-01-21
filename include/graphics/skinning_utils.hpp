@@ -98,9 +98,9 @@ struct node
 
   std::string name = "";
 
-  glm::vec3 translation = { 0.f, 0.f, 0.f };
-  glm::quat rotation{};
-  glm::vec3 scale       = { 1.f, 1.f, 1.f };
+  vec3 translation = { 0.f, 0.f, 0.f };
+  quat rotation{};
+  vec3 scale       = { 1.f, 1.f, 1.f };
   mat4 local_mat   = Eigen::Matrix4f::Identity();
   mat4 world_mat   = Eigen::Matrix4f::Identity();
 
