@@ -833,12 +833,11 @@ bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vect
     throw std::runtime_error("failed to open file" + file_path);
   }
 
-  // ignore first three lines
+  // ignore first 4 lines
   for (int i = 0; i < 4; i++) {
     getline(reading_file, buffer);
   }
 
-  getline(reading_file, buffer);
   getline(reading_file, buffer);
   int max_vertex_count = std::stoi(buffer);
   if (max_vertex_count != graphics::meshlet_constants::MAX_VERTEX_COUNT)
@@ -846,10 +845,11 @@ bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vect
   getline(reading_file, buffer);
   getline(reading_file, buffer);
   int max_primitive_indices_count = std::stoi(buffer);
-  if (max_vertex_count != graphics::meshlet_constants::MAX_PRIMITIVE_INDICES_COUNT)
+  if (max_primitive_indices_count != graphics::meshlet_constants::MAX_PRIMITIVE_INDICES_COUNT)
     return false;
 
   // 4th line indicates the meshlet count
+  getline(reading_file, buffer);
   uint32_t meshlet_count = std::stoi(buffer);
   meshlets.resize(meshlet_count);
 

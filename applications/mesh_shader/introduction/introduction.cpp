@@ -24,7 +24,7 @@ using vec2 = Eigen::Vector2f;
 using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
 
-std::string FILENAME = "armagilo.obj";
+std::string FILENAME = "bunny.obj";
 
 template <class ModelComp>
 class model_actor : public game::actor
@@ -54,7 +54,6 @@ class mesh_shader_introduction : public game::engine
       game::engine::add_shading_system(std::move(system));
 
       // mesh_actor or ml_actor
-//      create_bunny_wall<model_actor<game::frame_anim_component<graphics::frame_anim_meshlet_model>>>();
       create_bunny_wall<model_actor<game::meshlet_component>>();
       add_virtual_camera();
     }

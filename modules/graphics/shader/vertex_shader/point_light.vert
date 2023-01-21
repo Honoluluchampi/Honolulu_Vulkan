@@ -1,5 +1,7 @@
 #version 450
 
+#extension GL_GOOGLE_include_directive : require
+
 const vec2 OFFSETS[6] = vec2[](
   vec2(-1.0, -1.0),
   vec2(-1.0, 1.0),

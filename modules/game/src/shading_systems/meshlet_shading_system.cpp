@@ -77,7 +77,7 @@ meshlet_shading_system::meshlet_shading_system(graphics::device &device)
   pipeline_ = create_pipeline(
     pipeline_layout_,
     shading_system::get_default_render_pass(),
-    "/applications/mesh_shader/introduction/shaders/spv/",
+    "/modules/graphics/shader/spv/",
     { "simple_meshlet.task.glsl.spv", "simple_meshlet.mesh.glsl.spv", "simple_meshlet.frag.glsl.spv" },
     { VK_SHADER_STAGE_TASK_BIT_NV, VK_SHADER_STAGE_MESH_BIT_NV, VK_SHADER_STAGE_FRAGMENT_BIT },
     pipeline_config_info

@@ -1,4 +1,6 @@
-#version 450 
+#version 450
+
+#extension GL_GOOGLE_include_directive : require
 
 // build in type
 // corners of triangles
@@ -18,8 +20,6 @@ layout(location = 2) out vec3 fragNormalWorld;
 
 // compatible with a renderer system
 layout(push_constant) uniform Push {
-  // more efficient than cpu's projection
-  // mat4 projectionMatrix;
   mat4 modelMatrix; // projection * view * model
   mat4 normalMatrix;
 } push;

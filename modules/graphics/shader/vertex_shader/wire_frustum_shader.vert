@@ -1,7 +1,6 @@
 #version 450 
 
-// build in type
-// corners of triangles
+#extension GL_GOOGLE_include_directive : require
 
 // in keyword indicates that 'position' gets the data from a vertex buffer
 layout(location = 0) in vec3 position;
