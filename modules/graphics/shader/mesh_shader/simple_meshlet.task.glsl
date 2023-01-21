@@ -2,10 +2,9 @@
 
 #extension GL_NV_mesh_shader          : require
 #extension GL_EXT_shader_8bit_storage : require
+#extension GL_GOOGLE_include_directive : require
 
-const uint MAX_VERTEX_COUNT            = 64;
-const uint MAX_PRIMITIVE_INDICES_COUNT = 378;
-const uint MESHLET_PER_TASK = 32;
+#include "meshlet_constants.h"
 
 uint base_id = gl_WorkGroupID.x * MESHLET_PER_TASK;
 uint lane_id = gl_LocalInvocationID.x;

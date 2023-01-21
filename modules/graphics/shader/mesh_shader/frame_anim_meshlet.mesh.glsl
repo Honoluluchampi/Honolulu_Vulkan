@@ -1,12 +1,9 @@
 #version 460
 #extension GL_NV_mesh_shader : require
 #extension GL_EXT_shader_explicit_arithmetic_types : require
+#extension GL_GOOGLE_include_directive : require
 
-const uint MAX_VERTEX_COUNT = 64;
-const uint MAX_PRIMITIVE_INDICES_COUNT = 378;
-const uint MESHLET_PER_TASK = 32;
-const uint GROUP_SIZE = 32;
-const uint MAX_MESHLET_COUNT = 1024;
+#include "meshlet_constants.h"
 
 layout(local_size_x = 32) in;
 
