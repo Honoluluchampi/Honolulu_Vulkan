@@ -82,7 +82,7 @@ void meshlet_model::draw(VkCommandBuffer _command_buffer)
   // draw
   vkCmdDrawMeshTasksNV(
     _command_buffer,
-    meshlets_.size(),
+    (meshlets_.size() + meshlet_constants::GROUP_SIZE - 1) / meshlet_constants::GROUP_SIZE,
     0
   );
 }

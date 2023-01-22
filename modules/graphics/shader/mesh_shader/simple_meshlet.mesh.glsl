@@ -5,7 +5,7 @@
 
 #include "meshlet_constants.h"
 
-layout(local_size_x = 32) in;
+layout(local_size_x = GROUP_SIZE) in;
 
 // identifier "triangles" indicates this shader outputs triangles (other candidates : point, line)
 // gl_MeshVerticesNV and glPrimitiveIndicesNV is resized according to these values

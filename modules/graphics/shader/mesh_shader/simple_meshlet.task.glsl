@@ -6,12 +6,9 @@
 
 #include "meshlet_constants.h"
 
-uint base_id = gl_WorkGroupID.x * MESHLET_PER_TASK;
-uint lane_id = gl_LocalInvocationID.x;
-
 // -------------------------------------------------------
 
-layout(local_size_x = MESHLET_PER_TASK) in;
+layout(local_size_x = GROUP_SIZE) in;
 
 taskNV out task {
     uint base_id;
@@ -26,7 +23,7 @@ taskNV out task {
 // ------------------------------------------------------
 // frustum info
 
-// top, bottom, right, left have same position (camera position)
+// top, bottom, right and left have same position (camera position)
 struct frustum_info {
   vec3 camera_position;
   vec3 near_position;
@@ -86,6 +83,9 @@ bool sphere_frustum_intersection(vec3 world_center, float radius) {
   // return true;
 }
 
+uint base_id = gl_WorkGroupID.x * MESHLET_PER_TASK;
+uint lane_id = gl_LocalInvocationID.x;
+
 void main() {
     uint out_meshlet_count = 0;
 
@@ -96,10 +96,10 @@ void main() {
 
       vec4 world_center = push.model_matrix * vec4(current_meshlet.center, 1.0);
 
-      if (sphere_frustum_intersection(world_center.xyz, current_meshlet.radius)) {
+      // if (sphere_frustum_intersection(world_center.xyz, current_meshlet.radius)) {
         OUT.sub_ids[out_meshlet_count] = uint8_t(meshlet_local);
         out_meshlet_count += 1;
-      }
+      // }
     }
 
     if (lane_id == 0) {

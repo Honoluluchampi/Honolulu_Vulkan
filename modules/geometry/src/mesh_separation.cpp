@@ -388,8 +388,9 @@ std::vector<s_ptr<mesh_model>> separate_greedy(const s_ptr<mesh_separation_helpe
     face_map adjoining_face_map {{current_face->id_ ,current_face}};
 
     // meshlet api limitation
-    while (ml->get_vertex_count() < 16//graphics::meshlet_constants::MAX_VERTEX_COUNT
-        && ml->get_face_count() < 32 // graphics::meshlet_constants::MAX_PRIMITIVE_COUNT
+    size_t temp_vertex_max = 64;
+    while (ml->get_vertex_count() < temp_vertex_max // graphics::meshlet_constants::MAX_VERTEX_COUNT
+        && ml->get_face_count() < temp_vertex_max * 2 - 2 //graphics::meshlet_constants::MAX_PRIMITIVE_COUNT
         && adjoining_face_map.size() != 0) {
 
       // algorithm dependent part
