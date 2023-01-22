@@ -24,7 +24,7 @@ using vec2 = Eigen::Vector2f;
 using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
 
-std::string FILENAME = "bunny.obj";
+std::string FILENAME = "armadillo4896.obj";
 #define MODEL_SCALE 0.4f
 
 template <class ModelComp>
@@ -70,7 +70,7 @@ class mesh_shader_introduction : public game::engine
 
     void update_game(float dt)
     {
-      int sampling_fps = 10;
+      int sampling_fps = 1;
       static float acc_fps = 0.0f;
       static int acc_count = 0;
       static float duration = 0.f;
@@ -93,7 +93,7 @@ class mesh_shader_introduction : public game::engine
       uint32_t x_count = 1;
       uint32_t y_count = 1;
       uint32_t z_count = 1;
-      float space = 5.f;
+      float space = 0.f;
       std::vector<vec3> positions;
 
       for (int i = 0; i < x_count; i++) {

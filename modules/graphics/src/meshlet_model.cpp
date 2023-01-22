@@ -43,8 +43,11 @@ u_ptr<meshlet_model> meshlet_model::create_from_file(hnll::graphics::device &_de
   // prepare required data
   auto geometry_model = geometry::mesh_model::create_from_obj_file(filepath);
 
+  // temp
+  auto vertex_count = geometry_model->get_vertex_map().size();
+
   // if model's cache exists
-  if (!geometry::mesh_separation::load_meshlet_cache(_filename, meshlets)) {
+  if (!geometry::mesh_separation::load_meshlet_cache(_filename, meshlets, vertex_count)) {
     meshlets = geometry::mesh_separation::separate(geometry_model, _filename);
   }
 

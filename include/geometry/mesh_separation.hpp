@@ -76,11 +76,12 @@ std::vector<std::vector<s_ptr<mesh_model>>> separate_into_raw_frame(
 
 void write_meshlet_cache(
   const std::vector<graphics::meshlet>& _meshlets,
+  const size_t vertex_count,
   const std::string& _filename,
   criterion _crtr);
 
 // returns true if the cache exists
-bool load_meshlet_cache(const std::string& _filename, std::vector<graphics::meshlet>& meshlets);
+bool load_meshlet_cache(const std::string& _filename, std::vector<graphics::meshlet>& meshlets, const size_t vertex_count);
 
 } // namespace mesh_separation
 

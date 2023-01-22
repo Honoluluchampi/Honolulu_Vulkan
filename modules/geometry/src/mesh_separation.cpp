@@ -387,10 +387,8 @@ std::vector<s_ptr<mesh_model>> separate_greedy(const s_ptr<mesh_separation_helpe
 
     face_map adjoining_face_map {{current_face->id_ ,current_face}};
 
-    // meshlet api limitation
-    size_t temp_vertex_max = 64;
-    while (ml->get_vertex_count() < temp_vertex_max // graphics::meshlet_constants::MAX_VERTEX_COUNT
-        && ml->get_face_count() < temp_vertex_max * 2 - 2 //graphics::meshlet_constants::MAX_PRIMITIVE_COUNT
+    while (ml->get_vertex_count() < graphics::meshlet_constants::MAX_VERTEX_COUNT
+        && ml->get_face_count() < graphics::meshlet_constants::MAX_PRIMITIVE_COUNT
         && adjoining_face_map.size() != 0) {
 
       // algorithm dependent part
@@ -702,6 +700,7 @@ std::vector<graphics::meshlet> mesh_separation::separate(
   std::vector<graphics::meshlet> meshlets;
 
   auto helper = mesh_separation_helper::create(_model, _model_name, _crtr);
+  auto vertex_count = helper->get_vertex_map().size();
 
   auto geometry_meshlets = separate_greedy(helper);
 
@@ -709,7 +708,7 @@ std::vector<graphics::meshlet> mesh_separation::separate(
     meshlets.emplace_back(translate_to_meshlet(meshlet));
   }
 
-  write_meshlet_cache(meshlets, helper->get_model_name(), helper->get_criterion());
+  write_meshlet_cache(meshlets, vertex_count, helper->get_model_name(), helper->get_criterion());
 
   return meshlets;
 }
@@ -764,6 +763,7 @@ std::vector<std::vector<s_ptr<mesh_model>>> mesh_separation::separate_into_raw_f
 
 void mesh_separation::write_meshlet_cache(
   const std::vector<graphics::meshlet> &_meshlets,
+  const size_t vertex_count,
   const std::string& _filename,
   criterion _crtr)
 {
@@ -789,9 +789,11 @@ void mesh_separation::write_meshlet_cache(
       ;
   }
 
-  writing_file << "max vertex count" << std::endl;
+  writing_file << "vertex count" << std::endl;
+  writing_file << vertex_count << std::endl;
+  writing_file << "max vertex count per meshlet" << std::endl;
   writing_file << graphics::meshlet_constants::MAX_VERTEX_COUNT << std::endl;
-  writing_file << "max primitive indices count" << std::endl;
+  writing_file << "max primitive indices count per meshlet" << std::endl;
   writing_file << graphics::meshlet_constants::MAX_PRIMITIVE_INDICES_COUNT << std::endl;
 
   auto meshlet_count = _meshlets.size();
@@ -819,7 +821,7 @@ void mesh_separation::write_meshlet_cache(
   writing_file.close();
 }
 
-bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vector<graphics::meshlet>& meshlets)
+bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vector<graphics::meshlet>& meshlets, const size_t vertex_count)
 {
   std::string cache_dir = std::string(getenv("HNLL_ENGN")) + "/cache/meshlets/";
   std::string file_path = cache_dir + _filename + ".ml";
@@ -841,6 +843,12 @@ bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vect
     getline(reading_file, buffer);
   }
 
+  // tiny obj loader or something is wrong
+  getline(reading_file, buffer);
+  if (vertex_count != std::stoi(buffer))
+    return false;
+
+  getline(reading_file, buffer);
   getline(reading_file, buffer);
   int max_vertex_count = std::stoi(buffer);
   if (max_vertex_count != graphics::meshlet_constants::MAX_VERTEX_COUNT)
@@ -851,7 +859,7 @@ bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vect
   if (max_primitive_indices_count != graphics::meshlet_constants::MAX_PRIMITIVE_INDICES_COUNT)
     return false;
 
-  // 4th line indicates the meshlet count
+  // meshlet count
   getline(reading_file, buffer);
   uint32_t meshlet_count = std::stoi(buffer);
   meshlets.resize(meshlet_count);
