@@ -44,65 +44,23 @@ s_ptr<vertex> translate_vertex_graphics_to_geometry(const graphics::vertex& pseu
 
 s_ptr<mesh_model> mesh_model::create_from_obj_file(const std::string& filename)
 {
-  tinyobj::attrib_t attrib;
-  std::vector<tinyobj::shape_t> shapes;
-  std::vector<tinyobj::material_t> materials;
-  std::string warn, err;
-
-  if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filename.c_str()))
-    throw std::runtime_error(warn + err);
-
   auto mesh_model = mesh_model::create();
 
-  std::unordered_map<graphics::vertex, vertex_id> unique_vertices{};
   mesh_model->raw_vertices_.clear();
   std::vector<vertex_id> indices{};
 
-  for (const auto& shape : shapes) {
-    for (const auto& index : shape.mesh.indices) {
-      // does not have id_
-      graphics::vertex vertex{};
-      // copy the vertex
-      if (index.vertex_index >= 0) {
-        vertex.position = {
-          attrib.vertices[3 * index.vertex_index + 0],
-          attrib.vertices[3 * index.vertex_index + 1],
-          attrib.vertices[3 * index.vertex_index + 2]
-        };
-        // color support
-        vertex.color = {
-          attrib.colors[3 * index.vertex_index + 0],
-          attrib.colors[3 * index.vertex_index + 1],
-          attrib.colors[3 * index.vertex_index + 2]
-        };
-      }
-      // copy the normal
-      if (index.vertex_index >= 0) {
-        vertex.normal = {
-          attrib.normals[3 * index.normal_index + 0],
-          attrib.normals[3 * index.normal_index + 1],
-          attrib.normals[3 * index.normal_index + 2]
-        };
-      }
-      // copy the texture coordinate
-      if (index.vertex_index >= 0) {
-        vertex.uv = {
-          attrib.vertices[2 * index.texcoord_index + 0],
-          attrib.vertices[2 * index.texcoord_index + 1]
-        };
-      }
-      // if vertex is a new vertex
-      if (unique_vertices.count(vertex) == 0) {
-        auto new_vertex = translate_vertex_graphics_to_geometry(vertex);
-        auto new_id = mesh_model->add_vertex(new_vertex);
-        unique_vertices[vertex] = new_id;
-        mesh_model->raw_vertices_.emplace_back(std::move(vertex));
-        indices.push_back(new_id);
-      }
-      else
-        indices.push_back(unique_vertices[vertex]);
-    }
+  // load data
+  graphics::mesh_builder builder;
+  builder.load_model(filename);
+
+  // assign to mesh model
+  for (int i = 0; i < builder.vertices.size(); i++) {
+    auto& gra_v = builder.vertices[i];
+    auto geo_v = translate_vertex_graphics_to_geometry(gra_v);
+    mesh_model->add_vertex(geo_v);
+    mesh_model->raw_vertices_.emplace_back(std::move(gra_v));
   }
+  indices = std::move(builder.indices);
 
   if (indices.size() % 3 != 0)
     throw std::runtime_error("vertex count is not multiple of 3");

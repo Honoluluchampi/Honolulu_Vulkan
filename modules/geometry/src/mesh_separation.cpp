@@ -781,6 +781,8 @@ void mesh_separation::write_meshlet_cache(
       break;
     case criterion::MINIMIZE_AABB :
       writing_file << "MINIMIZE_AABB" << std::endl;
+      // temporary
+      return;
       break;
     default :
       ;
@@ -857,18 +859,20 @@ bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vect
   for (int i = 0; i < meshlet_count; i++) {
     // vertex count
     getline(reading_file, buffer);
-    meshlets[i].vertex_count = std::stoi(buffer);
+    auto vertex_count = std::stoi(buffer);
+    meshlets[i].vertex_count = vertex_count;
     // vertex indices array
-    for (int j = 0; j < max_vertex_count; j++) {
+    for (int j = 0; j < vertex_count; j++) {
       getline(reading_file, buffer, ',');
       meshlets[i].vertex_indices[j] = std::stoi(buffer);
     }
     getline(reading_file, buffer);
     // index count
     getline(reading_file, buffer);
-    meshlets[i].index_count = std::stoi(buffer);
+    auto index_count = std::stoi(buffer);
+    meshlets[i].index_count = index_count;
     // primitive indices array
-    for (int j = 0; j < max_primitive_indices_count; j++) {
+    for (int j = 0; j < index_count; j++) {
       getline(reading_file, buffer, ',');
       meshlets[i].primitive_indices[j] = std::stoi(buffer);
     }

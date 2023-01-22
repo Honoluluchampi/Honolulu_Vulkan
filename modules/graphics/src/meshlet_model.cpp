@@ -39,20 +39,16 @@ u_ptr<meshlet_model> meshlet_model::create_from_file(hnll::graphics::device &_de
   std::vector<meshlet> meshlets;
 
   auto filepath = utils::get_full_path(_filename);
-  // if model's cache exists
-  if (geometry::mesh_separation::load_meshlet_cache(_filename, meshlets)) {
-    mesh_builder builder;
-    builder.load_model(filepath);
-    return create(_device, std::move(builder.vertices), std::move(meshlets));
-  }
 
   // prepare required data
   auto geometry_model = geometry::mesh_model::create_from_obj_file(filepath);
-  meshlets = geometry::mesh_separation::separate(geometry_model, _filename);
-  auto raw_vertices = geometry_model->move_raw_vertices();
 
-  std::cout << "meshlet count : " << meshlets.size() << std::endl;
-  return create(_device, std::move(raw_vertices), std::move(meshlets));
+  // if model's cache exists
+  if (!geometry::mesh_separation::load_meshlet_cache(_filename, meshlets)) {
+    meshlets = geometry::mesh_separation::separate(geometry_model, _filename);
+  }
+
+  return create(_device, geometry_model->move_raw_vertices(), std::move(meshlets));
 }
 
 void meshlet_model::bind(
