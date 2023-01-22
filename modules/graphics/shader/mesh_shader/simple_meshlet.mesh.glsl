@@ -68,16 +68,17 @@ layout(push_constant) uniform Push {
 
 #define COLOR_COUNT 10
 vec3 meshlet_colors[COLOR_COUNT] = {
-  vec3(1,0,0),
-  vec3(0,1,0),
-  vec3(0,0,1),
-  vec3(1,1,0),
-  vec3(1,0,1),
-  vec3(0,1,1),
-  vec3(1,0.5,0),
-  vec3(0.5,1,0),
-  vec3(0,0.5,1),
-  vec3(1,1,1)
+    // yumekawa
+  vec3(0.75, 1,    0.5),
+  vec3(0.75, 0.5,  1),
+  vec3(0.5,  1,    0.75),
+  vec3(0.5,  0.75, 1),
+  vec3(1,    0.75, 0.5),
+  vec3(1,    0.5,  0.75),
+  vec3(0.5,  1,    1),
+  vec3(0.5,  0.5,  1),
+  vec3(0.5,  1,    0.5),
+  vec3(1,    0.5,  0.5)
 };
 
 void main() {
