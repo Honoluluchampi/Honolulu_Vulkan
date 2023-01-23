@@ -69,12 +69,7 @@ s_ptr<mesh_model> mesh_model::create_from_obj_file(const std::string& filename)
     auto v0 = mesh_model->get_vertex(indices[i]);
     auto v1 = mesh_model->get_vertex(indices[i + 1]);
     auto v2 = mesh_model->get_vertex(indices[i + 2]);
-    auto normal = (v0->normal_ + v1->normal_ + v2->normal_) / 3.f;
-    auto cross = (v1->position_ - v0->position_).cross(v2->position_ - v0->position_);
-    if (cross.dot(normal) >= 0)
-      mesh_model->add_face(v0, v1, v2);
-    else
-      mesh_model->add_face(v0, v2, v1);
+    mesh_model->add_face(v0, v1, v2);
   }
 
   return mesh_model;
@@ -112,12 +107,7 @@ std::vector<s_ptr<mesh_model>> mesh_model::create_from_dynamic_attributes(
       auto v0 = model->get_vertex(indices[i]);
       auto v1 = model->get_vertex(indices[i + 1]);
       auto v2 = model->get_vertex(indices[i + 2]);
-      auto normal = (v0->normal_ + v1->normal_ + v2->normal_) / 3.f;
-      auto cross = (v1->position_ - v0->position_).cross(v2->position_ - v0->position_);
-      if (cross.dot(normal) >= 0)
-        model->add_face(v0, v1, v2, f_id++, false);
-      else
-        model->add_face(v0, v2, v1, f_id++, false);
+      model->add_face(v0, v1, v2, f_id++, false);
     }
     models.emplace_back(std::move(model));
   }
@@ -150,8 +140,8 @@ bool mesh_model::associate_half_edge_pair(const s_ptr<half_edge> &he)
     he->set_pair(half_edge_map_[pair_hash_key]);
     half_edge_map_[pair_hash_key]->set_pair(he);
     return true;
-    }
-    return false;
+  }
+  return false;
 }
 
 vertex_id mesh_model::add_vertex(const s_ptr<vertex> &v)

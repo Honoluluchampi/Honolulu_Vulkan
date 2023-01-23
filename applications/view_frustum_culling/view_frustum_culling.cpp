@@ -21,8 +21,7 @@
 #include <game/shading_systems/mesh_shading_system.hpp>
 #include <game/shading_systems/wire_frustum_shading_system.hpp>
 
-#define FILENAME "/home/honolulu/models/characters/bunny.obj"
-#define GLB_FILENAME "armadillo4896.glb"
+#define GLB_FILENAME "armadillo20000.glb"
 
 namespace hnll {
 
@@ -141,8 +140,8 @@ class view_frustum_culling : public game::engine
     {
       add_virtual_camera();
 
-      auto system = game::mesh_shading_system::create(get_graphics_device());
-      add_shading_system(std::move(system));
+      auto m_system = game::mesh_shading_system::create(get_graphics_device());
+      add_shading_system(std::move(m_system));
       auto f_system = game::wire_frustum_shading_system::create(get_graphics_device());
       add_shading_system(std::move(f_system));
 
@@ -157,6 +156,7 @@ class view_frustum_culling : public game::engine
         ret->get_ownership_of_raw_dynamic_attribs(),
         ret->get_raw_indices()
       );
+      std::cout << "index count : " << ret->get_raw_indices().size() << std::endl;
       auto frame_meshlets = geometry::mesh_separation::separate_into_raw_frame(geometry_models);
 
       frame_count_ = frame_meshlets.size();

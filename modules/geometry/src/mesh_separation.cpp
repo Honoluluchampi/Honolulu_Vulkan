@@ -18,7 +18,7 @@
 
 namespace hnll::geometry {
 
-#define FRAME_SAMPLING_COUNT 50.f;
+#define FRAME_SAMPLING_STRIDE 1
 
 std::vector<ray> create_sampling_rays(const face &_face, uint32_t _sampling_count)
 {
@@ -89,16 +89,17 @@ std::vector<mesh_model> mesh_separation_helper::separate_using_sdf()
 // colors are same as mesh shader
 #define COLOR_COUNT 10
 vec3 meshlet_colors[COLOR_COUNT] = {
-  vec3(1,0,0),
-  vec3(0,1,0),
-  vec3(0,0,1),
-  vec3(1,1,0),
-  vec3(1,0,1),
-  vec3(0,1,1),
-  vec3(1,0.5,0),
-  vec3(0.5,1,0),
-  vec3(0,0.5,1),
-  vec3(0.7,0.7,0.7)
+  // yumekawa
+  vec3(0.75, 1,    0.5),
+  vec3(0.75, 0.5,  1),
+  vec3(0.5,  1,    0.75),
+  vec3(0.5,  0.75, 1),
+  vec3(1,    0.75, 0.5),
+  vec3(1,    0.5,  0.75),
+  vec3(0.5,  1,    1),
+  vec3(0.5,  0.5,  1),
+  vec3(0.5,  1,    0.5),
+  vec3(1,    0.5,  0.5)
 };
 
 void colorize_meshlets(std::vector<s_ptr<mesh_model>>& meshlets)
@@ -496,8 +497,7 @@ std::vector<s_ptr<mesh_model>> separate_animation_greedy(const std::vector<s_ptr
            && ml->get_face_count() < graphics::meshlet_constants::MAX_PRIMITIVE_COUNT
            && adjoining_face_map.size() != 0) {
 
-      int sampling_stride = frame_count / FRAME_SAMPLING_COUNT;
-      current_face_id = choose_the_best_face_for_animation(adjoining_face_map, bvs, helpers, sampling_stride);
+      current_face_id = choose_the_best_face_for_animation(adjoining_face_map, bvs, helpers, FRAME_SAMPLING_STRIDE);
       current_face = rep->get_face(current_face_id);
 
       // update each object
@@ -612,7 +612,6 @@ graphics::animated_meshlet_pack translate_to_animated_meshlet_pack(const std::ve
 }
 
 // for easy benchmark
-
 std::vector<std::vector<s_ptr<mesh_model>>> separate_frame_greedy(const std::vector<s_ptr<mesh_separation_helper>>& helpers)
 {
   std::vector<std::vector<s_ptr<mesh_model>>> frame_meshlets;
@@ -652,8 +651,7 @@ std::vector<std::vector<s_ptr<mesh_model>>> separate_frame_greedy(const std::vec
            && rep_ml->get_face_count() < graphics::meshlet_constants::MAX_PRIMITIVE_COUNT
            && !adjoining_face_map.empty()) {
 
-      int sampling_stride = static_cast<float>(frame_count) / FRAME_SAMPLING_COUNT;
-      current_face_id = choose_the_best_face_for_animation(adjoining_face_map, bvs, helpers, sampling_stride);
+      current_face_id = choose_the_best_face_for_animation(adjoining_face_map, bvs, helpers, FRAME_SAMPLING_STRIDE);
       current_face = rep->get_face(current_face_id);
 
       // update each object
@@ -681,8 +679,6 @@ std::vector<std::vector<s_ptr<mesh_model>>> separate_frame_greedy(const std::vec
     if (current_face == nullptr)
       current_face = rep->get_random_remaining_face();
   }
-
-  // 何かの処理
 
   auto end = std::chrono::system_clock::now();
 
