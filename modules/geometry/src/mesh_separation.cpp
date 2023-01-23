@@ -18,7 +18,7 @@
 
 namespace hnll::geometry {
 
-#define FRAME_SAMPLING_STRIDE 1
+#define FRAME_SAMPLING_STRIDE 37
 
 std::vector<ray> create_sampling_rays(const face &_face, uint32_t _sampling_count)
 {
@@ -144,9 +144,9 @@ mesh_separation_helper::mesh_separation_helper(const s_ptr<mesh_model> &model)
     }
   }
   std::cout << "odd h-edge count : " << absent_pair_count << std::endl;
-  std::cout << "vertex count : " << vertex_map_.size() << std::endl;
-  std::cout << "face count : " << face_map_.size() << std::endl;
-  std::cout << "h-edge count : " << model_->get_half_edge_map().size() << std::endl;
+  std::cout << "vertex count     : " << vertex_map_.size() << std::endl;
+  std::cout << "face count       : " << face_map_.size() << std::endl;
+  std::cout << "h-edge count     : " << model_->get_half_edge_map().size() << std::endl;
 }
 
 u_ptr<geometry::bounding_volume> create_aabb_from_single_face(const s_ptr<face>& fc)

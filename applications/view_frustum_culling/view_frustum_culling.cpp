@@ -131,9 +131,9 @@ class view_frustum_culling : public game::engine
   public:
     std::vector<glm::vec3> translations{
         {5.f,   0.f,   10.f},
-        {-5.f,  0.f,   10.f},
-        {0.f,   6.f,   10.f},
-        {0.f,   -4.f,   10.f},
+//        {-5.f,  0.f,   10.f},
+//        {0.f,   6.f,   10.f},
+//        {0.f,   -4.f,   10.f},
     };
 
     view_frustum_culling() : game::engine("view_frustum_culling")
@@ -172,10 +172,20 @@ class view_frustum_culling : public game::engine
     {
       fps_ = 1.f / dt;
 
-      if (increment_frame_) {
-        current_frame_++;
-        current_frame_ %= frame_count_;
-      }
+      float end_time = 1.f / 30.f * static_cast<float>(frame_count_);
+      static float duration = 0.f;
+
+      duration += dt;
+
+      while (duration >= end_time)
+        duration -= end_time;
+
+      current_frame_ = static_cast<float>(duration / end_time) * static_cast<float>(frame_count_);
+
+//      if (increment_frame_) {
+//        current_frame_++;
+//        current_frame_ %= frame_count_;
+//      }
 
       // TODO : auto-update
       virtual_camera_->update_frustum_planes();
@@ -222,6 +232,7 @@ class view_frustum_culling : public game::engine
       ImGui::Text("whole triangle count: %d", whole_triangle_count_);
       ImGui::Text("active triangle percentage: %.f", float(active_triangle_count_) / float(whole_triangle_count_) * 100.f);
       ImGui::Text("frame count : %.d", frame_count_);
+      ImGui::Text("current frame : %.d", current_frame_);
       ImGui::Text("fps : %.f", fps_);
 
       if (active_triangle_counts_.size() < frame_count_) {
