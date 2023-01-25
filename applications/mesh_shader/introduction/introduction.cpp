@@ -24,8 +24,8 @@ using vec2 = Eigen::Vector2f;
 using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
 
-std::string FILENAME = "armadillo4896.obj";
-#define MODEL_SCALE 0.4f
+std::string FILENAME = "light_bunny.obj";
+#define MODEL_SCALE 1.f
 
 template <class ModelComp>
 class model_actor : public game::actor

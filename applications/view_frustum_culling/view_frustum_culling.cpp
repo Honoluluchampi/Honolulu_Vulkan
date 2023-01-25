@@ -22,6 +22,7 @@
 #include <game/shading_systems/wire_frustum_shading_system.hpp>
 
 #define GLB_FILENAME "armadillo20000.glb"
+#define OBJ_FILENAME "bunny.obj"
 
 namespace hnll {
 
@@ -100,7 +101,7 @@ class frame_meshlet_owner : public game::actor
           raw_meshlet_models_.push_back(ml_graphics);
           auto ml_mesh_comp = game::mesh_component::create(ml_actor, ml_graphics);
           game::engine::add_actor(ml_actor);
-          ml_actor->set_rotation({M_PI, 0.f, 0.f});
+          ml_actor->set_rotation({M_PI, M_PI, 0.f});
           ml_actor->set_scale({0.4f, 0.4f, 0.4f});
           ml_actor->sphere_multiply(0.4f);
           frame_meshlet_actors_[i].emplace_back(std::move(ml_actor));
@@ -131,9 +132,9 @@ class view_frustum_culling : public game::engine
   public:
     std::vector<glm::vec3> translations{
         {5.f,   0.f,   10.f},
-//        {-5.f,  0.f,   10.f},
-//        {0.f,   6.f,   10.f},
-//        {0.f,   -4.f,   10.f},
+        {-5.f,  0.f,   10.f},
+        {0.f,   6.f,   10.f},
+        {0.f,   -4.f,   10.f},
     };
 
     view_frustum_culling() : game::engine("view_frustum_culling")
@@ -145,47 +146,54 @@ class view_frustum_culling : public game::engine
       auto f_system = game::wire_frustum_shading_system::create(get_graphics_device());
       add_shading_system(std::move(f_system));
 
-//      auto geometry = geometry::mesh_model::create_from_obj_file(FILENAME);
-//      auto meshlets = geometry::mesh_separation::separate_into_raw(geometry, "bunny", geometry::mesh_separation::criterion::MINIMIZE_BOUNDING_SPHERE);
+      // frame meshlet
+//      auto& original = game::engine::get_skinning_mesh_model(GLB_FILENAME);
+//      auto ret = std::make_unique<graphics::frame_anim_meshlet_model>(original.get_device());
+//      ret->load_from_skinning_mesh_model(original, 20);
+//
+//      auto geometry_models = geometry::mesh_model::create_from_dynamic_attributes(
+//        ret->get_ownership_of_raw_dynamic_attribs(),
+//        ret->get_raw_indices()
+//      );
+//      std::cout << "index count : " << ret->get_raw_indices().size() << std::endl;
+//      auto frame_meshlets = geometry::mesh_separation::separate_into_raw_frame(geometry_models);
+//
+//      frame_count_ = frame_meshlets.size();
+//
+//      for (const auto& translation : translations) {
+//        auto meshlet_owner = std::make_shared<frame_meshlet_owner>();
+//        meshlet_owner->add_separated_object(frame_meshlets, translation, get_graphics_device());
+//        frame_meshlet_owners_.emplace_back(std::move(meshlet_owner));
+//      }
 
-      auto& original = game::engine::get_skinning_mesh_model(GLB_FILENAME);
-      auto ret = std::make_unique<graphics::frame_anim_meshlet_model>(original.get_device());
-      ret->load_from_skinning_mesh_model(original, 20);
-
-      auto geometry_models = geometry::mesh_model::create_from_dynamic_attributes(
-        ret->get_ownership_of_raw_dynamic_attribs(),
-        ret->get_raw_indices()
-      );
-      std::cout << "index count : " << ret->get_raw_indices().size() << std::endl;
-      auto frame_meshlets = geometry::mesh_separation::separate_into_raw_frame(geometry_models);
-
-      frame_count_ = frame_meshlets.size();
-
+      // static meshlet
+      auto geometry_models = geometry::mesh_model::create_from_obj_file(utils::get_full_path(OBJ_FILENAME));
+      auto geometry_meshlets = geometry::mesh_separation::separate_into_raw(geometry_models);
       for (const auto& translation : translations) {
-        auto meshlet_owner = std::make_shared<frame_meshlet_owner>();
-        meshlet_owner->add_separated_object(frame_meshlets, translation, get_graphics_device());
-        frame_meshlet_owners_.emplace_back(std::move(meshlet_owner));
+        auto owner = std::make_shared<meshlet_owner>();
+        owner->add_separated_object(geometry_meshlets, translation, get_graphics_device());
+        meshlet_owners_.emplace_back(std::move(owner));
       }
     }
 
     void update_game(float dt) override
     {
-      fps_ = 1.f / dt;
+//      fps_ = 1.f / dt;
+//
+//      float end_time = 1.f / 30.f * static_cast<float>(frame_count_);
+//      static float duration = 0.f;
+//
+//      duration += dt;
+//
+//      while (duration >= end_time)
+//        duration -= end_time;
+//
+//      current_frame_ = static_cast<float>(duration / end_time) * static_cast<float>(frame_count_);
 
-      float end_time = 1.f / 30.f * static_cast<float>(frame_count_);
-      static float duration = 0.f;
-
-      duration += dt;
-
-      while (duration >= end_time)
-        duration -= end_time;
-
-      current_frame_ = static_cast<float>(duration / end_time) * static_cast<float>(frame_count_);
-
-//      if (increment_frame_) {
-//        current_frame_++;
-//        current_frame_ %= frame_count_;
-//      }
+      if (increment_frame_) {
+        current_frame_++;
+        current_frame_ %= frame_count_;
+      }
 
       // TODO : auto-update
       virtual_camera_->update_frustum_planes();
@@ -195,9 +203,24 @@ class view_frustum_culling : public game::engine
       active_triangle_count_ = 0;
       whole_triangle_count_  = 0;
       const auto& frustum = virtual_camera_->get_perspective_frustum();
+
+      // frame  meshlet
       for (auto& owner : frame_meshlet_owners_) {
         for (auto& meshlet : owner->get_meshlet_actors_ref(current_frame_)) {
           const auto sphere = meshlet->get_bounding_volume();
+          auto obj = dynamic_cast<hnll::game::mesh_component *>(&meshlet->get_renderable_component_r());
+          if (geometry::intersection::test_sphere_frustum(sphere, frustum)) {
+            obj->set_should_be_drawn();
+            active_triangle_count_ += obj->get_face_count();
+          }
+          whole_triangle_count_ += obj->get_face_count();
+        }
+      }
+
+      // static meshlet
+      for (auto& owner : meshlet_owners_) {
+        for (auto& meshlet : owner->get_meshlet_actors_ref()) {
+          const auto& sphere = meshlet->get_bounding_volume();
           auto obj = dynamic_cast<hnll::game::mesh_component *>(&meshlet->get_renderable_component_r());
           if (geometry::intersection::test_sphere_frustum(sphere, frustum)) {
             obj->set_should_be_drawn();
@@ -210,8 +233,15 @@ class view_frustum_culling : public game::engine
 
     void rotate_actors(const glm::vec3& rotation)
     {
+      // frame meshlet
       for (auto& owner : frame_meshlet_owners_) {
         owner->rotate_actors(rotation);
+      }
+      // static meshlet
+      for (auto& owner : meshlet_owners_) {
+        for (const auto& meshlet : owner->get_meshlet_actors_ref()) {
+          meshlet->set_rotation(rotation);
+        }
       }
     }
 
@@ -283,6 +313,7 @@ class view_frustum_culling : public game::engine
     }
 
     std::vector<s_ptr<frame_meshlet_owner>> frame_meshlet_owners_;
+    std::vector<s_ptr<meshlet_owner>> meshlet_owners_;
     s_ptr<game::virtual_camera> virtual_camera_;
     std::vector<uint32_t> active_triangle_counts_;
     std::vector<uint32_t> whole_triangle_counts_;
@@ -292,7 +323,7 @@ class view_frustum_culling : public game::engine
     unsigned whole_triangle_count_;
     float fps_;
     int current_frame_ = 0;
-    int frame_count_ = 0;
+    int frame_count_ = -1;
     bool increment_frame_ = true;
 };
 

@@ -186,12 +186,6 @@ double compute_loss_function(const bounding_volume& current_aabb, const s_ptr<fa
   auto y_diff = max_y - min_y;
   auto z_diff = max_z - min_z;
 
-//  auto volume = x_diff * y_diff * z_diff;
-//
-//  auto mean = (x_diff + y_diff + z_diff) / 3.f;
-//  auto variance = (std::pow(x_diff - mean, 2) + std::pow(y_diff - mean, 2) + std::pow(z_diff - mean, 2)) / 3.f;
-//  return volume + variance;
-
   auto ret = std::max(x_diff, y_diff);
   ret = std::max(ret, z_diff);
 
@@ -454,9 +448,9 @@ face_id choose_the_best_face_for_animation(
       new_loss_list.emplace_back(compute_loss_function_for_sphere(*bvs[i], helpers[i]->get_face(id)));
     }
     // max
-//    auto new_loss = my_max<double>(new_loss_list);
+    auto new_loss = my_max<double>(new_loss_list);
     // sum
-    auto new_loss = my_sum<double>(new_loss_list);
+//    auto new_loss = my_sum<double>(new_loss_list);
 
     if (loss > new_loss) {
       loss = new_loss;
