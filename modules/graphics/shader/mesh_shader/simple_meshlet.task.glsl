@@ -3,6 +3,9 @@
 #extension GL_NV_mesh_shader          : require
 #extension GL_EXT_shader_8bit_storage : require
 #extension GL_GOOGLE_include_directive : require
+#extension GL_KHR_shader_subgroup_basic : require
+#extension GL_KHR_shader_subgroup_ballot : require
+#extension GL_KHR_shader_subgroup_vote : require
 
 #include "meshlet_constants.h"
 
@@ -80,26 +83,35 @@ bool sphere_frustum_intersection(vec3 world_center, float radius) {
   bool near   = distance_point_to_plane(world_center, frustum.near_position,   frustum.near_n)   > -radius;
   bool far    = distance_point_to_plane(world_center, frustum.far_position,    frustum.far_n)    > -radius;
   return top && bottom && right && left && near && far; 
-  // return true;
 }
 
 uint base_id = gl_WorkGroupID.x * MESHLET_PER_TASK;
 uint lane_id = gl_LocalInvocationID.x;
+uint task_loop = (MESHLET_PER_TASK + GROUP_SIZE - 1) / GROUP_SIZE;
 
 void main() {
     uint out_meshlet_count = 0;
 
-    for (uint i = 0; i < MESHLET_PER_TASK; i++) {
-      uint meshlet_local = lane_id + i;
+    for (uint i = 0; i < task_loop; i++) {
+      // identify current meshlet
+      uint meshlet_local = lane_id + i * GROUP_SIZE;
       uint current_meshlet_index = base_id + meshlet_local;
       meshlet current_meshlet = meshlets[current_meshlet_index];
 
       vec4 world_center = push.model_matrix * vec4(current_meshlet.center, 1.0);
 
-      if (sphere_frustum_intersection(world_center.xyz, current_meshlet.radius)) {
-        OUT.sub_ids[out_meshlet_count] = uint8_t(meshlet_local);
-        out_meshlet_count += 1;
+      // frustum culling 
+      bool render = sphere_frustum_intersection(world_center.xyz, current_meshlet.radius);
+
+      // culling is executed in each invocation and those results are gathred
+      uvec4 culling_results = subgroupBallot(render);
+      uint idxOffset  = subgroupBallotExclusiveBitCount(culling_results) + out_meshlet_count;
+
+      if (render) {
+        OUT.sub_ids[idxOffset] = uint8_t(meshlet_local);
       }
+      
+      out_meshlet_count += subgroupBallotBitCount(culling_results);
     }
 
     if (lane_id == 0) {
