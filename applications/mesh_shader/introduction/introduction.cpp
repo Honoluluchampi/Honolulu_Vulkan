@@ -25,7 +25,7 @@ using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
 
 std::string FILENAME = "light_bunny.obj";
-#define MODEL_SCALE 1.f
+#define MODEL_SCALE 0.5f
 
 template <class ModelComp>
 class model_actor : public game::actor
@@ -70,7 +70,7 @@ class mesh_shader_introduction : public game::engine
 
     void update_game(float dt)
     {
-      int sampling_fps = 1;
+      float sampling_fps = 2.f;
       static float acc_fps = 0.0f;
       static int acc_count = 0;
       static float duration = 0.f;
@@ -90,10 +90,10 @@ class mesh_shader_introduction : public game::engine
     template <class T>
     void create_bunny_wall()
     {
-      uint32_t x_count = 1;
-      uint32_t y_count = 1;
-      uint32_t z_count = 1;
-      float space = 0.f;
+      uint32_t x_count = 4;
+      uint32_t y_count = 4;
+      uint32_t z_count = 4;
+      float space = 2.f;
       std::vector<vec3> positions;
 
       for (int i = 0; i < x_count; i++) {

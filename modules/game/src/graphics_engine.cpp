@@ -99,8 +99,6 @@ void graphics_engine::render(const utils::viewer_info& _viewer_info, const utils
     update_ubo(frame_index);
 
     // rendering
-    // TODO : configure hve_render_pass_id as the 
-    // member and detect it in begin_swap_chain_render_pass func
     renderer_->begin_swap_chain_render_pass(command_buffer, HVE_RENDER_PASS_ID);
     // programmable stage of rendering
     // system can now access game objects via frame_info
