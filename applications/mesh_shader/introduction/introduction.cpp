@@ -24,7 +24,7 @@ using vec2 = Eigen::Vector2f;
 using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
 
-std::string FILENAME = "light_bunny.obj";
+std::string FILENAME = "bunny.obj";
 #define MODEL_SCALE 0.5f
 
 template <class ModelComp>
@@ -40,11 +40,14 @@ class model_actor : public game::actor
       game::engine::add_actor(ret);
       return ret;
     }
-    uint32_t get_meshlet_count() const { return model_comp_->get_meshlet_count(); }
+    uint32_t get_meshlet_count() { return model_comp_->get_meshlet_count(); }
     model_actor(){}
   private:
     s_ptr<ModelComp> model_comp_;
 };
+
+template<>
+uint32_t model_actor<game::mesh_component>::get_meshlet_count() { return 1; }
 
 class mesh_shader_introduction : public game::engine
 {
@@ -55,7 +58,7 @@ class mesh_shader_introduction : public game::engine
       game::engine::add_shading_system(std::move(system));
 
       // mesh_actor or ml_actor
-      create_bunny_wall<model_actor<game::meshlet_component>>();
+      create_bunny_wall<model_actor<game::mesh_component>>();
       add_virtual_camera();
     }
 
