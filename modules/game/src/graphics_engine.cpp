@@ -1,6 +1,6 @@
 // this class organizes all the graphics specific features
 // hnll
-#include <game/graphics_engine.hpp>
+#include <game/modules/graphics_engine.hpp>
 #include <game/shading_system.hpp>
 
 //std
