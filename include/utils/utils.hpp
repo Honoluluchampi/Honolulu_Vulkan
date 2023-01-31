@@ -3,6 +3,9 @@
 // TODO : put this file on a appropriate position
 // TODO : create createOneShotCommandPool();
 
+// hnll
+#include <utils/common_using.hpp>
+
 // std
 #include <memory>
 #include <iostream>
@@ -13,9 +16,6 @@
 #include <eigen3/Eigen/Dense>
 
 namespace hnll {
-
-template<class U> using u_ptr = std::unique_ptr<U>;
-template<class S> using s_ptr = std::shared_ptr<S>;
 
 namespace utils {
 

@@ -2,12 +2,12 @@
 #include <game/components/audio_component.hpp>
 #include <game/actor.hpp>
 #include <game/engine.hpp>
+#include <game/modules/physics_engine.hpp>
 #include <game/components/rigid_component.hpp>
 #include <geometry/bounding_volume.hpp>
 #include <game/components/mesh_component.hpp>
 #include <game/components/point_light_component.hpp>
 #include <game/actors/default_camera.hpp>
-#include <physics/engine.hpp>
 #include <physics/collision_info.hpp>
 #include <physics/collision_detector.hpp>
 
