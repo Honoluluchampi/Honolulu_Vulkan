@@ -18,7 +18,7 @@
 
 namespace hnll::geometry {
 
-#define FRAME_SAMPLING_COUNT 50.f;
+#define FRAME_SAMPLING_STRIDE 37
 
 std::vector<ray> create_sampling_rays(const face &_face, uint32_t _sampling_count)
 {
@@ -89,16 +89,17 @@ std::vector<mesh_model> mesh_separation_helper::separate_using_sdf()
 // colors are same as mesh shader
 #define COLOR_COUNT 10
 vec3 meshlet_colors[COLOR_COUNT] = {
-  vec3(1,0,0),
-  vec3(0,1,0),
-  vec3(0,0,1),
-  vec3(1,1,0),
-  vec3(1,0,1),
-  vec3(0,1,1),
-  vec3(1,0.5,0),
-  vec3(0.5,1,0),
-  vec3(0,0.5,1),
-  vec3(0.7,0.7,0.7)
+  // yumekawa
+  vec3(0.75, 1,    0.5),
+  vec3(0.75, 0.5,  1),
+  vec3(0.5,  1,    0.75),
+  vec3(0.5,  0.75, 1),
+  vec3(1,    0.75, 0.5),
+  vec3(1,    0.5,  0.75),
+  vec3(0.5,  1,    1),
+  vec3(0.5,  0.5,  1),
+  vec3(0.5,  1,    0.5),
+  vec3(1,    0.5,  0.5)
 };
 
 void colorize_meshlets(std::vector<s_ptr<mesh_model>>& meshlets)
@@ -143,9 +144,9 @@ mesh_separation_helper::mesh_separation_helper(const s_ptr<mesh_model> &model)
     }
   }
   std::cout << "odd h-edge count : " << absent_pair_count << std::endl;
-  std::cout << "vertex count : " << vertex_map_.size() << std::endl;
-  std::cout << "face count : " << face_map_.size() << std::endl;
-  std::cout << "h-edge count : " << model_->get_half_edge_map().size() << std::endl;
+  std::cout << "vertex count     : " << vertex_map_.size() << std::endl;
+  std::cout << "face count       : " << face_map_.size() << std::endl;
+  std::cout << "h-edge count     : " << model_->get_half_edge_map().size() << std::endl;
 }
 
 u_ptr<geometry::bounding_volume> create_aabb_from_single_face(const s_ptr<face>& fc)
@@ -184,12 +185,6 @@ double compute_loss_function(const bounding_volume& current_aabb, const s_ptr<fa
   auto x_diff = max_x - min_x;
   auto y_diff = max_y - min_y;
   auto z_diff = max_z - min_z;
-
-//  auto volume = x_diff * y_diff * z_diff;
-//
-//  auto mean = (x_diff + y_diff + z_diff) / 3.f;
-//  auto variance = (std::pow(x_diff - mean, 2) + std::pow(y_diff - mean, 2) + std::pow(z_diff - mean, 2)) / 3.f;
-//  return volume + variance;
 
   auto ret = std::max(x_diff, y_diff);
   ret = std::max(ret, z_diff);
@@ -387,9 +382,8 @@ std::vector<s_ptr<mesh_model>> separate_greedy(const s_ptr<mesh_separation_helpe
 
     face_map adjoining_face_map {{current_face->id_ ,current_face}};
 
-    // meshlet api limitation
-    while (ml->get_vertex_count() < mesh_separation::VERTEX_COUNT_PER_MESHLET
-        && ml->get_face_count() < mesh_separation::PRIMITIVE_COUNT_PER_MESHLET
+    while (ml->get_vertex_count() < graphics::meshlet_constants::MAX_VERTEX_COUNT
+        && ml->get_face_count() < graphics::meshlet_constants::MAX_PRIMITIVE_COUNT
         && adjoining_face_map.size() != 0) {
 
       // algorithm dependent part
@@ -454,9 +448,9 @@ face_id choose_the_best_face_for_animation(
       new_loss_list.emplace_back(compute_loss_function_for_sphere(*bvs[i], helpers[i]->get_face(id)));
     }
     // max
-//    auto new_loss = my_max<double>(new_loss_list);
+    auto new_loss = my_max<double>(new_loss_list);
     // sum
-    auto new_loss = my_sum<double>(new_loss_list);
+//    auto new_loss = my_sum<double>(new_loss_list);
 
     if (loss > new_loss) {
       loss = new_loss;
@@ -493,12 +487,11 @@ std::vector<s_ptr<mesh_model>> separate_animation_greedy(const std::vector<s_ptr
     face_map adjoining_face_map {{current_face->id_ ,current_face}};
 
     // meshlet api limitation
-    while (ml->get_vertex_count() < mesh_separation::VERTEX_COUNT_PER_MESHLET
-           && ml->get_face_count() < mesh_separation::PRIMITIVE_COUNT_PER_MESHLET
+    while (ml->get_vertex_count() < graphics::meshlet_constants::MAX_VERTEX_COUNT
+           && ml->get_face_count() < graphics::meshlet_constants::MAX_PRIMITIVE_COUNT
            && adjoining_face_map.size() != 0) {
 
-      int sampling_stride = frame_count / FRAME_SAMPLING_COUNT;
-      current_face_id = choose_the_best_face_for_animation(adjoining_face_map, bvs, helpers, sampling_stride);
+      current_face_id = choose_the_best_face_for_animation(adjoining_face_map, bvs, helpers, FRAME_SAMPLING_STRIDE);
       current_face = rep->get_face(current_face_id);
 
       // update each object
@@ -613,7 +606,6 @@ graphics::animated_meshlet_pack translate_to_animated_meshlet_pack(const std::ve
 }
 
 // for easy benchmark
-
 std::vector<std::vector<s_ptr<mesh_model>>> separate_frame_greedy(const std::vector<s_ptr<mesh_separation_helper>>& helpers)
 {
   std::vector<std::vector<s_ptr<mesh_model>>> frame_meshlets;
@@ -649,12 +641,11 @@ std::vector<std::vector<s_ptr<mesh_model>>> separate_frame_greedy(const std::vec
     face_map adjoining_face_map {{current_face->id_ ,current_face}};
 
     // meshlet api limitation
-    while (rep_ml->get_vertex_count() < mesh_separation::VERTEX_COUNT_PER_MESHLET
-           && rep_ml->get_face_count() < mesh_separation::PRIMITIVE_COUNT_PER_MESHLET
+    while (rep_ml->get_vertex_count() < graphics::meshlet_constants::MAX_VERTEX_COUNT
+           && rep_ml->get_face_count() < graphics::meshlet_constants::MAX_PRIMITIVE_COUNT
            && !adjoining_face_map.empty()) {
 
-      int sampling_stride = static_cast<float>(frame_count) / FRAME_SAMPLING_COUNT;
-      current_face_id = choose_the_best_face_for_animation(adjoining_face_map, bvs, helpers, sampling_stride);
+      current_face_id = choose_the_best_face_for_animation(adjoining_face_map, bvs, helpers, FRAME_SAMPLING_STRIDE);
       current_face = rep->get_face(current_face_id);
 
       // update each object
@@ -683,8 +674,6 @@ std::vector<std::vector<s_ptr<mesh_model>>> separate_frame_greedy(const std::vec
       current_face = rep->get_random_remaining_face();
   }
 
-  // 何かの処理
-
   auto end = std::chrono::system_clock::now();
 
   double time = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
@@ -701,6 +690,7 @@ std::vector<graphics::meshlet> mesh_separation::separate(
   std::vector<graphics::meshlet> meshlets;
 
   auto helper = mesh_separation_helper::create(_model, _model_name, _crtr);
+  auto vertex_count = helper->get_vertex_map().size();
 
   auto geometry_meshlets = separate_greedy(helper);
 
@@ -708,7 +698,7 @@ std::vector<graphics::meshlet> mesh_separation::separate(
     meshlets.emplace_back(translate_to_meshlet(meshlet));
   }
 
-  write_meshlet_cache(meshlets, helper->get_model_name(), helper->get_criterion());
+  write_meshlet_cache(meshlets, vertex_count, helper->get_model_name(), helper->get_criterion());
 
   return meshlets;
 }
@@ -763,6 +753,7 @@ std::vector<std::vector<s_ptr<mesh_model>>> mesh_separation::separate_into_raw_f
 
 void mesh_separation::write_meshlet_cache(
   const std::vector<graphics::meshlet> &_meshlets,
+  const size_t vertex_count,
   const std::string& _filename,
   criterion _crtr)
 {
@@ -781,10 +772,19 @@ void mesh_separation::write_meshlet_cache(
       break;
     case criterion::MINIMIZE_AABB :
       writing_file << "MINIMIZE_AABB" << std::endl;
+      // temporary
+      return;
       break;
     default :
       ;
   }
+
+  writing_file << "vertex count" << std::endl;
+  writing_file << vertex_count << std::endl;
+  writing_file << "max vertex count per meshlet" << std::endl;
+  writing_file << graphics::meshlet_constants::MAX_VERTEX_COUNT << std::endl;
+  writing_file << "max primitive indices count per meshlet" << std::endl;
+  writing_file << graphics::meshlet_constants::MAX_PRIMITIVE_INDICES_COUNT << std::endl;
 
   auto meshlet_count = _meshlets.size();
   writing_file << meshlet_count << std::endl;
@@ -811,7 +811,7 @@ void mesh_separation::write_meshlet_cache(
   writing_file.close();
 }
 
-bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vector<graphics::meshlet>& meshlets)
+bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vector<graphics::meshlet>& meshlets, const size_t vertex_count)
 {
   std::string cache_dir = std::string(getenv("HNLL_ENGN")) + "/cache/meshlets/";
   std::string file_path = cache_dir + _filename + ".ml";
@@ -828,12 +828,29 @@ bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vect
     throw std::runtime_error("failed to open file" + file_path);
   }
 
-  // ignore first three lines
+  // ignore first 4 lines
   for (int i = 0; i < 4; i++) {
     getline(reading_file, buffer);
   }
 
-  // 4th line indicates the meshlet count
+  // tiny obj loader or something is wrong
+  getline(reading_file, buffer);
+  if (vertex_count != std::stoi(buffer))
+    return false;
+
+  getline(reading_file, buffer);
+  getline(reading_file, buffer);
+  int max_vertex_count = std::stoi(buffer);
+  if (max_vertex_count != graphics::meshlet_constants::MAX_VERTEX_COUNT)
+    return false;
+  getline(reading_file, buffer);
+  getline(reading_file, buffer);
+  int max_primitive_indices_count = std::stoi(buffer);
+  if (max_primitive_indices_count != graphics::meshlet_constants::MAX_PRIMITIVE_INDICES_COUNT)
+    return false;
+
+  // meshlet count
+  getline(reading_file, buffer);
   uint32_t meshlet_count = std::stoi(buffer);
   meshlets.resize(meshlet_count);
 
@@ -841,18 +858,20 @@ bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vect
   for (int i = 0; i < meshlet_count; i++) {
     // vertex count
     getline(reading_file, buffer);
-    meshlets[i].vertex_count = std::stoi(buffer);
+    auto vertex_count = std::stoi(buffer);
+    meshlets[i].vertex_count = vertex_count;
     // vertex indices array
-    for (int j = 0; j < graphics::MAX_VERTEX_PER_MESHLET; j++) {
+    for (int j = 0; j < vertex_count; j++) {
       getline(reading_file, buffer, ',');
       meshlets[i].vertex_indices[j] = std::stoi(buffer);
     }
     getline(reading_file, buffer);
     // index count
     getline(reading_file, buffer);
-    meshlets[i].index_count = std::stoi(buffer);
+    auto index_count = std::stoi(buffer);
+    meshlets[i].index_count = index_count;
     // primitive indices array
-    for (int j = 0; j < graphics::MAX_INDEX_PER_MESHLET; j++) {
+    for (int j = 0; j < index_count; j++) {
       getline(reading_file, buffer, ',');
       meshlets[i].primitive_indices[j] = std::stoi(buffer);
     }

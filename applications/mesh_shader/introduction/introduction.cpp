@@ -24,7 +24,8 @@ using vec2 = Eigen::Vector2f;
 using vec3 = Eigen::Vector3f;
 using vec4 = Eigen::Vector4f;
 
-std::string FILENAME = "armagilo.obj";
+std::string FILENAME = "bunny.obj";
+#define MODEL_SCALE 0.5f
 
 template <class ModelComp>
 class model_actor : public game::actor
@@ -35,15 +36,18 @@ class model_actor : public game::actor
       auto ret = std::make_shared<model_actor>();
       ret->model_comp_ = ModelComp::create(ret, FILENAME);
       ret->set_rotation({M_PI, 0.f, 0.f});
-      ret->set_scale({0.1f, 0.1f, 0.1f});
+      ret->set_scale({MODEL_SCALE, MODEL_SCALE, MODEL_SCALE});
       game::engine::add_actor(ret);
       return ret;
     }
-    uint32_t get_meshlet_count() const { return model_comp_->get_meshlet_count(); }
+    uint32_t get_meshlet_count() { return model_comp_->get_meshlet_count(); }
     model_actor(){}
   private:
     s_ptr<ModelComp> model_comp_;
 };
+
+template<>
+uint32_t model_actor<game::mesh_component>::get_meshlet_count() { return 1; }
 
 class mesh_shader_introduction : public game::engine
 {
@@ -54,8 +58,7 @@ class mesh_shader_introduction : public game::engine
       game::engine::add_shading_system(std::move(system));
 
       // mesh_actor or ml_actor
-//      create_bunny_wall<model_actor<game::frame_anim_component<graphics::frame_anim_meshlet_model>>>();
-      create_bunny_wall<model_actor<game::meshlet_component>>();
+      create_bunny_wall<model_actor<game::mesh_component>>();
       add_virtual_camera();
     }
 
@@ -68,15 +71,32 @@ class mesh_shader_introduction : public game::engine
       add_actor(virtual_camera_);
     }
 
-    void update_game(float dt) { fps_ = 1.0f / dt; }
+    void update_game(float dt)
+    {
+      float sampling_fps = 2.f;
+      static float acc_fps = 0.0f;
+      static int acc_count = 0;
+      static float duration = 0.f;
+
+      acc_fps += 1.f / dt;
+      acc_count++;
+      duration += dt;
+
+      if (duration > 1.f / sampling_fps) {
+        fps_ = acc_fps / acc_count;
+        acc_fps = 0.f;
+        acc_count = 0;
+        duration = 0.f;
+      }
+    }
 
     template <class T>
     void create_bunny_wall()
     {
-      uint32_t x_count = 1;
-      uint32_t y_count = 1;
-      uint32_t z_count = 1;
-      float space = 0.f;
+      uint32_t x_count = 4;
+      uint32_t y_count = 4;
+      uint32_t z_count = 4;
+      float space = 2.f;
       std::vector<vec3> positions;
 
       for (int i = 0; i < x_count; i++) {

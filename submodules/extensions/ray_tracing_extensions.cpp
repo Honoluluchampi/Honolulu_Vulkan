@@ -20,7 +20,7 @@
 /* 変更点: nvprint.hpp は使用しないのでコメントアウト. */
 
 #include <assert.h>
-#include <ray_tracing_extensions.hpp>
+#include <extensions/ray_tracing_extensions.hpp>
 
 /* NVVK_GENERATE_VERSION_INFO */
 // Generated using Vulkan 182

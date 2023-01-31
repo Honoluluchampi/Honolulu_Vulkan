@@ -39,7 +39,7 @@ mesh_shading_system::mesh_shading_system(graphics::device &device)
     pipeline_layout_,
     shading_system::get_default_render_pass(),
     "/modules/graphics/shader/spv/",
-    { "simple_shader.vert.spv", "direct_frag.frag.spv" },
+    { "simple_shader.vert.spv", "simple_shader.frag.spv" },
     { VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT },
     pipeline_config_info
   );
@@ -62,11 +62,6 @@ void mesh_shading_system::render(const utils::frame_info& frame_info)
 
   for (auto& target : render_target_map_) {
     auto obj = dynamic_cast<mesh_component*>(&target.second);
-
-    if (!obj->get_should_be_drawn()) {
-      continue;
-    }
-    obj->set_should_not_be_drawn();
 
     mesh_push_constant push{};
     push.model_matrix  = obj->get_transform().mat4().cast<float>();

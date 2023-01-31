@@ -4,8 +4,8 @@
 
 // ray tracing
 #include <vulkan/vulkan_core.h>
-#include <ray_tracing_extensions.hpp>
-#include <mesh_shader_extensions.h>
+#include <extensions/ray_tracing_extensions.hpp>
+#include <extensions/mesh_shader_extensions.h>
 
 // std headers
 #include <cstring>
@@ -110,6 +110,9 @@ void device::setup_device_extensions()
       VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
       VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
       VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+      VK_KHR_MAINTENANCE_3_EXTENSION_NAME,
+      VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
+      VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
     };
   }
 

@@ -44,65 +44,23 @@ s_ptr<vertex> translate_vertex_graphics_to_geometry(const graphics::vertex& pseu
 
 s_ptr<mesh_model> mesh_model::create_from_obj_file(const std::string& filename)
 {
-  tinyobj::attrib_t attrib;
-  std::vector<tinyobj::shape_t> shapes;
-  std::vector<tinyobj::material_t> materials;
-  std::string warn, err;
-
-  if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filename.c_str()))
-    throw std::runtime_error(warn + err);
-
   auto mesh_model = mesh_model::create();
 
-  std::unordered_map<graphics::vertex, vertex_id> unique_vertices{};
   mesh_model->raw_vertices_.clear();
   std::vector<vertex_id> indices{};
 
-  for (const auto& shape : shapes) {
-    for (const auto& index : shape.mesh.indices) {
-      // does not have id_
-      graphics::vertex vertex{};
-      // copy the vertex
-      if (index.vertex_index >= 0) {
-        vertex.position = {
-          attrib.vertices[3 * index.vertex_index + 0],
-          attrib.vertices[3 * index.vertex_index + 1],
-          attrib.vertices[3 * index.vertex_index + 2]
-        };
-        // color support
-        vertex.color = {
-          attrib.colors[3 * index.vertex_index + 0],
-          attrib.colors[3 * index.vertex_index + 1],
-          attrib.colors[3 * index.vertex_index + 2]
-        };
-      }
-      // copy the normal
-      if (index.vertex_index >= 0) {
-        vertex.normal = {
-          attrib.normals[3 * index.normal_index + 0],
-          attrib.normals[3 * index.normal_index + 1],
-          attrib.normals[3 * index.normal_index + 2]
-        };
-      }
-      // copy the texture coordinate
-      if (index.vertex_index >= 0) {
-        vertex.uv = {
-          attrib.vertices[2 * index.texcoord_index + 0],
-          attrib.vertices[2 * index.texcoord_index + 1]
-        };
-      }
-      // if vertex is a new vertex
-      if (unique_vertices.count(vertex) == 0) {
-        auto new_vertex = translate_vertex_graphics_to_geometry(vertex);
-        auto new_id = mesh_model->add_vertex(new_vertex);
-        unique_vertices[vertex] = new_id;
-        mesh_model->raw_vertices_.emplace_back(std::move(vertex));
-        indices.push_back(new_id);
-      }
-      else
-        indices.push_back(unique_vertices[vertex]);
-    }
+  // load data
+  graphics::mesh_builder builder;
+  builder.load_model(filename);
+
+  // assign to mesh model
+  for (int i = 0; i < builder.vertices.size(); i++) {
+    auto& gra_v = builder.vertices[i];
+    auto geo_v = translate_vertex_graphics_to_geometry(gra_v);
+    mesh_model->add_vertex(geo_v);
+    mesh_model->raw_vertices_.emplace_back(std::move(gra_v));
   }
+  indices = std::move(builder.indices);
 
   if (indices.size() % 3 != 0)
     throw std::runtime_error("vertex count is not multiple of 3");
@@ -111,12 +69,7 @@ s_ptr<mesh_model> mesh_model::create_from_obj_file(const std::string& filename)
     auto v0 = mesh_model->get_vertex(indices[i]);
     auto v1 = mesh_model->get_vertex(indices[i + 1]);
     auto v2 = mesh_model->get_vertex(indices[i + 2]);
-    auto normal = (v0->normal_ + v1->normal_ + v2->normal_) / 3.f;
-    auto cross = (v1->position_ - v0->position_).cross(v2->position_ - v0->position_);
-    if (cross.dot(normal) >= 0)
-      mesh_model->add_face(v0, v1, v2);
-    else
-      mesh_model->add_face(v0, v2, v1);
+    mesh_model->add_face(v0, v1, v2);
   }
 
   return mesh_model;
@@ -154,12 +107,7 @@ std::vector<s_ptr<mesh_model>> mesh_model::create_from_dynamic_attributes(
       auto v0 = model->get_vertex(indices[i]);
       auto v1 = model->get_vertex(indices[i + 1]);
       auto v2 = model->get_vertex(indices[i + 2]);
-      auto normal = (v0->normal_ + v1->normal_ + v2->normal_) / 3.f;
-      auto cross = (v1->position_ - v0->position_).cross(v2->position_ - v0->position_);
-      if (cross.dot(normal) >= 0)
-        model->add_face(v0, v1, v2, f_id++, false);
-      else
-        model->add_face(v0, v2, v1, f_id++, false);
+      model->add_face(v0, v1, v2, f_id++, false);
     }
     models.emplace_back(std::move(model));
   }
@@ -192,8 +140,8 @@ bool mesh_model::associate_half_edge_pair(const s_ptr<half_edge> &he)
     he->set_pair(half_edge_map_[pair_hash_key]);
     half_edge_map_[pair_hash_key]->set_pair(he);
     return true;
-    }
-    return false;
+  }
+  return false;
 }
 
 vertex_id mesh_model::add_vertex(const s_ptr<vertex> &v)

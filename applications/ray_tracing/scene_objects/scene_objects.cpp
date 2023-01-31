@@ -4,12 +4,12 @@
 #include <graphics/descriptor_set_layout.hpp>
 #include <graphics/pipeline.hpp>
 #include <graphics/renderer.hpp>
-#include <graphics/frame_info.hpp>
 #include <graphics/swap_chain.hpp>
 #include <graphics/acceleration_structure.hpp>
+#include <utils/rendering_utils.hpp>
 
 // sub
-#include <ray_tracing_extensions.hpp>
+#include <extensions/ray_tracing_extensions.hpp>
 
 // std
 #include <iostream>
@@ -88,7 +88,7 @@ class hello_triangle {
     hello_triangle()
     {
       window_ = std::make_unique<graphics::window>(1920, 1080, "hello ray tracing triangle");
-      device_ = std::make_unique<graphics::device>(*window_, graphics::rendering_type::RAY_TRACING);
+      device_ = std::make_unique<graphics::device>(*window_, utils::rendering_type::RAY_TRACING);
 
       // load all available extensions (of course including ray tracing extensions)
       load_VK_EXTENSIONS(device_->get_instance(), vkGetInstanceProcAddr, device_->get_device(), vkGetDeviceProcAddr);
@@ -1162,3 +1162,5 @@ int main() {
 // empty
 #include <geometry/mesh_model.hpp>
 void hnll::geometry::mesh_model::align_vertex_id() {}
+#include <utils/utils.hpp>
+std::string hnll::utils::get_full_path(const std::string &_filename) {}

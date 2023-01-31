@@ -1,6 +1,6 @@
 // hnll
 #include <game/actors/default_camera.hpp>
-#include <game/graphics_engine.hpp>
+#include <game/modules/graphics_engine.hpp>
 #include <geometry/perspective_frustum.hpp>
 
 namespace hnll::game {

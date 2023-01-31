@@ -1,5 +1,7 @@
 #version 450
 
+#extension GL_GOOGLE_include_directive : require
+
 layout(location = 0) in vec3 in_position;
 layout(location = 1) in vec3 in_normal;
 layout(location = 2) in vec2 in_tex_coord;
@@ -12,23 +14,8 @@ layout(location = 0) out vec3 out_color;
 layout(location = 1) out vec3 out_world_position;
 layout(location = 2) out vec3 out_world_normal;
 
-// should be compatible with a description layout
-struct PointLight
-{
-  vec4 position;
-  vec4 color;
-};
-
-// global desc set
-layout(set = 0, binding = 0) uniform GlobalUbo
-{
-  mat4 projection;
-  mat4 view;
-  mat4 inv_view;
-  vec4 ambientLightColor;
-  PointLight pointLights[20];
-  int numLights;
-} ubo;
+// global ubo
+#include "../global_ubo.h"
 
 #define MAX_NUM_JOINTS 128
 
@@ -65,5 +52,5 @@ void main() {
   out_world_position = local_position.xyz / local_position.w;
   gl_Position = ubo.projection * ubo.view * vec4(out_world_position, 1.0);
 
-  out_color = vec3(0.2f, 0.8f, 0.1f);
+  out_color = vec3(0.1f, 0.8f, 0.1f);
 }

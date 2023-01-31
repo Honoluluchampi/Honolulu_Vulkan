@@ -39,20 +39,19 @@ u_ptr<meshlet_model> meshlet_model::create_from_file(hnll::graphics::device &_de
   std::vector<meshlet> meshlets;
 
   auto filepath = utils::get_full_path(_filename);
-  // if model's cache exists
-  if (geometry::mesh_separation::load_meshlet_cache(_filename, meshlets)) {
-    mesh_builder builder;
-    builder.load_model(filepath);
-    return create(_device, std::move(builder.vertices), std::move(meshlets));
-  }
 
   // prepare required data
   auto geometry_model = geometry::mesh_model::create_from_obj_file(filepath);
-  meshlets = geometry::mesh_separation::separate(geometry_model, _filename);
-  auto raw_vertices = geometry_model->move_raw_vertices();
 
-  std::cout << "meshlet count : " << meshlets.size() << std::endl;
-  return create(_device, std::move(raw_vertices), std::move(meshlets));
+  // temp
+  auto vertex_count = geometry_model->get_vertex_map().size();
+
+  // if model's cache exists
+  if (!geometry::mesh_separation::load_meshlet_cache(_filename, meshlets, vertex_count)) {
+    meshlets = geometry::mesh_separation::separate(geometry_model, _filename);
+  }
+
+  return create(_device, geometry_model->move_raw_vertices(), std::move(meshlets));
 }
 
 void meshlet_model::bind(
@@ -86,7 +85,7 @@ void meshlet_model::draw(VkCommandBuffer _command_buffer)
   // draw
   vkCmdDrawMeshTasksNV(
     _command_buffer,
-    meshlets_.size(),
+    (meshlets_.size() + meshlet_constants::GROUP_SIZE - 1) / meshlet_constants::GROUP_SIZE,
     0
   );
 }

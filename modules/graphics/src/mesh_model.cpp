@@ -142,7 +142,6 @@ void mesh_builder::load_model(const std::string& filename)
 
   std::unordered_map<vertex, uint32_t> unique_vertices{};
 
-
   for (const auto &shape : shapes) {
     for (const auto &index : shape.mesh.indices) {
       vertex vertex{};
@@ -161,7 +160,7 @@ void mesh_builder::load_model(const std::string& filename)
         };
       }
       // copy the normal
-      if (index.vertex_index >= 0) {
+      if (index.normal_index >= 0) {
         vertex.normal = {
           attrib.normals[3 * index.normal_index + 0],
           attrib.normals[3 * index.normal_index + 1],
@@ -169,16 +168,16 @@ void mesh_builder::load_model(const std::string& filename)
         };
       }
       // copy the texture coordinate
-      if (index.vertex_index >= 0) {
+      if (index.texcoord_index >= 0) {
         vertex.uv = {
           attrib.vertices[2 * index.texcoord_index + 0],
           attrib.vertices[2 * index.texcoord_index + 1]
         };
       }
       // if vertex is a new vertex
-      if (unique_vertices.count(vertex) == 0) {
+      if (unique_vertices.find(vertex) == unique_vertices.end()) {
         unique_vertices[vertex] = static_cast<uint32_t>(vertices.size());
-        vertices.push_back(std::move(vertex));
+        vertices.push_back(vertex);
       }
       indices.push_back(unique_vertices[vertex]);
     }

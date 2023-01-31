@@ -1,5 +1,7 @@
 #version 450
 
+#extension GL_GOOGLE_include_directive : require
+
 const vec2 OFFSETS[6] = vec2[](
   vec2(-1.0, -1.0),
   vec2(-1.0, 1.0),
@@ -11,21 +13,8 @@ const vec2 OFFSETS[6] = vec2[](
 
 layout (location = 0) out vec2 fragOffset;
 
-struct PointLight
-{
-  vec4 position;
-  vec4 color;
-};
-
-layout(set = 0, binding = 0) uniform GlobalUbo
-{
-  mat4 projection;
-  mat4 view;
-  mat4 inv_view;
-  vec4 ambientLightColor;
-  PointLight pointLights[20];
-  int numLights;
-} ubo;
+// global ubo
+#include "../global_ubo.h"
 
 layout(push_constant) uniform Push
 {

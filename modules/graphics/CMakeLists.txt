@@ -28,7 +28,7 @@ target_include_directories(hnll_graphics PUBLIC
     ${PROJECT_SOURCE_DIR}/submodules/tiny_obj_loader
     ${PROJECT_SOURCE_DIR}/submodules/imgui
     $ENV{HNLL_ENGN}/submodules/tiny_gltf
-    $ENV{HNLL_ENGN}/submodules/extensions
+    $ENV{HNLL_ENGN}/submodules/
     )
 
 

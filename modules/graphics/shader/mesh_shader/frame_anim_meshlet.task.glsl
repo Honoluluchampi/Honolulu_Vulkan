@@ -2,10 +2,9 @@
 
 #extension GL_NV_mesh_shader          : require
 #extension GL_EXT_shader_8bit_storage : require
+#extension GL_GOOGLE_include_directive : require
 
-const uint MAX_VERTEX_COUNT            = 64;
-const uint MAX_PRIMITIVE_INDICES_COUNT = 378;
-const uint MESHLET_PER_TASK = 32;
+#include "meshlet_constants.h"
 
 uint base_id = gl_WorkGroupID.x * MESHLET_PER_TASK;
 uint lane_id = gl_LocalInvocationID.x;
@@ -21,23 +20,8 @@ taskNV out task {
 
 // bindings
 // ------------------------------------------------------------------------
-// scene info
-
-struct PointLight
-{
-  vec4 position;
-  vec4 color;
-};
-
-layout(set = 0, binding = 0) uniform GlobalUbo
-{
-  mat4 projection;
-  mat4 view;
-  mat4 inv_view;
-  vec4 ambient_light_color;
-  PointLight point_lights[20];
-  int num_lights;
-} ubo;
+// global ubo
+#include "../global_ubo.h"
 
 // ------------------------------------------------------
 // frustum info

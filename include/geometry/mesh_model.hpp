@@ -24,7 +24,7 @@ struct hash<std::pair<hnll::geometry::vertex, hnll::geometry::vertex>>
   {
     size_t seed = 0;
     // only positions of vertex matter for half edge
-    hnll::graphics::hash_combine(seed, vertex_pair.first.position_, vertex_pair.second.position_);
+    hnll::graphics::hash_combine(seed, vertex_pair.first.position_, vertex_pair.second.position_, vertex_pair.first.normal_, vertex_pair.second.normal_);
     return seed;
   }
 };

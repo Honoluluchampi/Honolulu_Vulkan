@@ -27,7 +27,7 @@ target_include_directories(scene_objects PUBLIC
         $ENV{HNLL_ENGN}/include
         $ENV{HNLL_ENGN}/submodules/tiny_obj_loader
         $ENV{HNLL_ENGN}/submodules/glfw
-        $ENV{HNLL_ENGN}/submodules/nvvk_extensions
+        $ENV{HNLL_ENGN}/submodules/
         )
 
 target_link_directories(scene_objects PUBLIC $ENV{VULKAN_DIR}/lib)

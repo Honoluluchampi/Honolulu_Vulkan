@@ -6,6 +6,7 @@
 // std
 #include <memory>
 #include <iostream>
+#include <chrono>
 
 // lib
 #include <glm/gtc/matrix_transform.hpp>
@@ -51,6 +52,26 @@ struct transform
   Eigen::Matrix3d rotate_mat3() const;
   // normal = R * S(-1)
   Eigen::Matrix4d normal_matrix() const;
+};
+
+struct scope_timer {
+  // start timer by ctor
+  scope_timer(const std::string& _entry = "") {
+    entry = _entry;
+    start = std::chrono::system_clock::now();
+  }
+
+  // stop and output elapsed time by dtor
+  ~scope_timer() {
+    auto end = std::chrono::system_clock::now();
+    double elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+
+    std::cout << "\x1b[35m" << "SCOPE TIMER : " << entry << std::endl;
+    std::cout << "\t elapsed time : " << elapsed << " micro s" << "\x1b[0m" << std::endl;
+  }
+
+  std::string entry;
+  std::chrono::system_clock::time_point start;
 };
 
 static inline glm::vec3 sclXvec(const float scalar, const glm::vec3& vec)
