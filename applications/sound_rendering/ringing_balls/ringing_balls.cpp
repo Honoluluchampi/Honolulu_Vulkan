@@ -22,9 +22,9 @@ class rigid_ball : public hnll::game::actor
       {
           // create ball actor and its mesh
           auto ball = std::make_shared<rigid_ball>();
-          auto ball_mesh = hnll::game::engine::get_mesh_model_sp("smooth_sphere");
-          auto ball_mesh_vertex_position_list = ball_mesh->get_vertex_position_list();
-          auto ball_mesh_comp = hnll::game::mesh_component::create(ball, std::move(ball_mesh));
+          auto& ball_mesh = hnll::game::engine::get_mesh_model("smooth_sphere.obj");
+          auto ball_mesh_vertex_position_list = ball_mesh.get_vertex_position_list();
+          auto ball_mesh_comp = hnll::game::mesh_component::create(ball, "smooth_sphere.obj");
 
           // create bounding_sphere
           auto bounding_sphere = hnll::geometry::bounding_volume::create_bounding_sphere
@@ -101,8 +101,8 @@ class rigid_plane : public hnll::game::actor
       static s_ptr<rigid_plane> create()
       {
           auto plane = std::make_shared<rigid_plane>();
-          auto plane_mesh = hnll::game::engine::get_mesh_model_sp("big_plane");
-          auto plane_mesh_vertices = plane_mesh->get_vertex_position_list();
+          auto& plane_mesh = hnll::game::engine::get_mesh_model("big_plane.obj");
+          auto plane_mesh_vertices = plane_mesh.get_vertex_position_list();
   //        auto plane_mesh_comp = hnll::game::mesh_component::create(plane, std::move(plane_mesh));
           auto bounding_box = hnll::geometry::bounding_volume::create_aabb(plane_mesh_vertices);
 
@@ -144,12 +144,6 @@ class falling_ball_app : public hnll::game::engine
       // set camera position
       camera_up_->set_translation(glm::vec3{0.f, 0.f, -20.f});
 
-      // add light
-      auto light = hnll::game::actor::create();
-      auto light_component = hnll::game::point_light_component::create(light, 100.f);
-      add_point_light(light, light_component);
-      light->set_translation({-8.f, -20.f, -8.f});
-
       // add rigid ball
       for (int i = 0; i < position_list.size(); i++) {
         auto ball = rigid_ball::create();
@@ -179,7 +173,6 @@ class falling_ball_app : public hnll::game::engine
 
   private:
     std::vector<s_ptr<rigid_ball>> balls_;
-    hnll::physics::engine physics_engine_{};
 };
 
 int main()
