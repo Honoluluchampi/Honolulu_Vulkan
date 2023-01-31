@@ -3,7 +3,7 @@ set(TARGETS
         src/camera.cpp
         src/descriptor_set_layout.cpp
         src/device.cpp
-        ../game/src/graphics_engine.cpp
+        ../game/src/modules/graphics_engine.cpp
         src/mesh_model.cpp
         src/meshlet_model.cpp
         src/pipeline.cpp

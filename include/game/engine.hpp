@@ -17,7 +17,6 @@
 
 namespace hnll {
 
-namespace physics  { class engine; }
 namespace graphics {
   class meshlet_model;
   class skinning_mesh_model;
@@ -33,9 +32,12 @@ class shading_system;
 class default_camera;
 class point_light_manager;
 class point_light_component;
+class physics_engine;
 
 using actor_id = unsigned int;
 using actor_map = std::unordered_map<actor_id, s_ptr<actor>>;
+
+// TODO : use template
 using mesh_model_map = std::unordered_map<std::string, s_ptr<graphics::mesh_model>>;
 using meshlet_model_map = std::unordered_map<std::string, u_ptr<graphics::meshlet_model>>;
 using skinning_mesh_model_map = std::unordered_map<std::string, u_ptr<graphics::skinning_mesh_model>>;
@@ -153,12 +155,14 @@ class engine {
 
     static void glfw_mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 
+    // actors
     static actor_map active_actor_map_;
     static actor_map pending_actor_map_;
     static std::vector<actor_id> dead_actor_ids_;
 
+    // modules
     static u_ptr<graphics_engine> graphics_engine_;
-    u_ptr<hnll::physics::engine>  physics_engine_;
+    u_ptr<physics_engine>         physics_engine_;
 
 #ifndef IMGUI_DISABLED
     u_ptr<hnll::gui::engine>      gui_engine_;

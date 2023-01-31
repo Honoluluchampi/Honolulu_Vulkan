@@ -2,18 +2,24 @@
 #include <game/engine.hpp>
 #include <game/actor.hpp>
 #include <game/shading_system.hpp>
+// modules
+#include <game/modules/physics_engine.hpp>
+// specific actors and components
 #include <game/actors/point_light_manager.hpp>
 #include <game/actors/default_camera.hpp>
 #include <game/components/mesh_component.hpp>
+// shading systems
 #include <game/shading_systems/mesh_shading_system.hpp>
 #include <game/shading_systems/meshlet_shading_system.hpp>
 #include <game/shading_systems/grid_shading_system.hpp>
 #include <game/shading_systems/skinning_model_shading_system.hpp>
 #include <game/shading_systems/frame_anim_mesh_shading_system.hpp>
 #include <game/shading_systems/frame_anim_meshlet_shading_system.hpp>
+// physics
 #include <physics/collision_info.hpp>
 #include <physics/collision_detector.hpp>
 #include <physics/engine.hpp>
+// graphics
 #include <graphics/meshlet_model.hpp>
 #include <graphics/skinning_mesh_model.hpp>
 #include <graphics/frame_anim_mesh_model.hpp>
