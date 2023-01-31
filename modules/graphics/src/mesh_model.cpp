@@ -31,13 +31,13 @@ mesh_model::~mesh_model()
   // buffers will be freed in dtor of hnll::graphics::buffer
 }
 
-s_ptr<mesh_model> mesh_model::create_from_file(device &device, const std::string &filename)
+u_ptr<mesh_model> mesh_model::create_from_file(device &device, const std::string &filename)
 {
   auto filepath = utils::get_full_path(filename);
   mesh_builder builder;
   builder.load_model(filepath);
   std::cout << filename << " vertex count: " << builder.vertices.size() << "\n";
-  return std::make_shared<mesh_model>(device, builder);
+  return std::make_unique<mesh_model>(device, builder);
 }
 
 void mesh_model::create_vertex_buffers(const std::vector<vertex> &vertices)
@@ -204,7 +204,7 @@ graphics::vertex convert_geometry_to_graphics_vertex(const s_ptr<geometry::verte
   return res;
 }
 
-s_ptr<mesh_model> mesh_model::create_from_geometry_mesh_model(device& device, const s_ptr<geometry::mesh_model> &gm)
+u_ptr<mesh_model> mesh_model::create_from_geometry_mesh_model(device& device, const s_ptr<geometry::mesh_model> &gm)
 {
   graphics::mesh_builder builder;
 
@@ -236,7 +236,7 @@ s_ptr<mesh_model> mesh_model::create_from_geometry_mesh_model(device& device, co
   builder.vertices = std::move(vertices);
   builder.indices  = std::move(indices);
 
-  return std::make_shared<mesh_model>(device, builder);
+  return std::make_unique<mesh_model>(device, builder);
 }
 
 } // namespace hnll::graphics

@@ -38,11 +38,8 @@ using actor_id = unsigned int;
 using actor_map = std::unordered_map<actor_id, s_ptr<actor>>;
 
 // TODO : use template
-using mesh_model_map = std::unordered_map<std::string, s_ptr<graphics::mesh_model>>;
-using meshlet_model_map = std::unordered_map<std::string, u_ptr<graphics::meshlet_model>>;
-using skinning_mesh_model_map = std::unordered_map<std::string, u_ptr<graphics::skinning_mesh_model>>;
-using frame_anim_mesh_model_map = std::unordered_map<std::string, u_ptr<graphics::frame_anim_mesh_model>>;
-using frame_anim_meshlet_model_map = std::unordered_map<std::string, u_ptr<graphics::frame_anim_meshlet_model>>;
+template <class T>
+using graphics_model_map = std::unordered_map<std::string, u_ptr<T>>;
 
 class engine {
   public:
@@ -168,13 +165,12 @@ class engine {
     u_ptr<hnll::gui::engine>      gui_engine_;
 #endif
 
-    // map of mesh_model contains raw vulkan buffer of its model
-    // shared by engine and some modelComponents
-    static mesh_model_map    mesh_model_map_;
-    static meshlet_model_map meshlet_model_map_;
-    static skinning_mesh_model_map skinning_mesh_model_map_;
-    static frame_anim_mesh_model_map  frame_anim_mesh_model_map_;
-    static frame_anim_meshlet_model_map  frame_anim_meshlet_model_map_;
+    // map of graphics_model contains raw vulkan buffer of it
+    static graphics_model_map<graphics::mesh_model>               mesh_model_map_;
+    static graphics_model_map<graphics::meshlet_model>            meshlet_model_map_;
+    static graphics_model_map<graphics::skinning_mesh_model>      skinning_mesh_model_map_;
+    static graphics_model_map<graphics::frame_anim_mesh_model>    frame_anim_mesh_model_map_;
+    static graphics_model_map<graphics::frame_anim_meshlet_model> frame_anim_meshlet_model_map_;
 
     bool is_updating_ = false; // for update
     bool is_running_ = false; // for run loop

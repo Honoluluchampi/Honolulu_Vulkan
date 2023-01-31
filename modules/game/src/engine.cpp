@@ -18,7 +18,6 @@
 // physics
 #include <physics/collision_info.hpp>
 #include <physics/collision_detector.hpp>
-#include <physics/engine.hpp>
 // graphics
 #include <graphics/meshlet_model.hpp>
 #include <graphics/skinning_mesh_model.hpp>
@@ -42,11 +41,11 @@ u_ptr<graphics_engine>  engine::graphics_engine_{};
 actor_map               engine::active_actor_map_{};
 actor_map               engine::pending_actor_map_{};
 std::vector<actor_id>   engine::dead_actor_ids_{};
-mesh_model_map          engine::mesh_model_map_;
-meshlet_model_map       engine::meshlet_model_map_;
-skinning_mesh_model_map engine::skinning_mesh_model_map_;
-frame_anim_mesh_model_map engine::frame_anim_mesh_model_map_;
-frame_anim_meshlet_model_map engine::frame_anim_meshlet_model_map_;
+graphics_model_map<graphics::mesh_model>               engine::mesh_model_map_;
+graphics_model_map<graphics::meshlet_model>            engine::meshlet_model_map_;
+graphics_model_map<graphics::skinning_mesh_model>      engine::skinning_mesh_model_map_;
+graphics_model_map<graphics::frame_anim_mesh_model>    engine::frame_anim_mesh_model_map_;
+graphics_model_map<graphics::frame_anim_meshlet_model> engine::frame_anim_meshlet_model_map_;
 
 // glfw
 GLFWwindow* engine::glfw_window_;

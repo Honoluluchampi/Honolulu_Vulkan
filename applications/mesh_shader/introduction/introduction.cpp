@@ -8,9 +8,6 @@
 #include <game/components/meshlet_component.hpp>
 #include <game/components/frame_anim_component.hpp>
 #include <game/shading_systems/wire_frustum_shading_system.hpp>
-#include <physics/engine.hpp>
-
-#include <game/shading_systems/mesh_shading_system.hpp>
 
 // std
 #include <memory>
