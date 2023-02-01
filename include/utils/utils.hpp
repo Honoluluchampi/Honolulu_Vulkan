@@ -21,8 +21,8 @@ namespace hnll {
 namespace utils {
 
 static std::vector<std::string> loading_directories {
-  "/home/honolulu/models/characters",
-  "/home/honolulu/models/primitives",
+  std::string(std::getenv("HNLL_ENGN")) + "/models/characters",
+  std::string(std::getenv("HNLL_ENGN")) + "/models/primitives",
 };
 
 std::string get_full_path(const std::string& _filename);

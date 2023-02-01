@@ -3,7 +3,7 @@
 .env
 tiny_obj_loader.h
 submodules/tiny_gltf/*
-models
+models/
 build/
 roboto_regular.embed
 imgui.ini
