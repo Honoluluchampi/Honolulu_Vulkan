@@ -8,6 +8,7 @@
 #include <game/components/mesh_component.hpp>
 #include <game/components/point_light_component.hpp>
 #include <game/actors/default_camera.hpp>
+#include <game/shading_systems/grid_shading_system.hpp>
 #include <physics/collision_info.hpp>
 #include <physics/collision_detector.hpp>
 
@@ -103,7 +104,6 @@ class rigid_plane : public hnll::game::actor
           auto plane = std::make_shared<rigid_plane>();
           auto& plane_mesh = hnll::game::engine::get_mesh_model("big_plane.obj");
           auto plane_mesh_vertices = plane_mesh.get_vertex_position_list();
-  //        auto plane_mesh_comp = hnll::game::mesh_component::create(plane, std::move(plane_mesh));
           auto bounding_box = hnll::geometry::bounding_volume::create_aabb(plane_mesh_vertices);
 
           plane->rigid_component_ = game::rigid_component::create_from_bounding_volume(*plane, std::move(bounding_box));
@@ -142,7 +142,7 @@ class falling_ball_app : public hnll::game::engine
       audio::engine::start_hae_context();
 
       // set camera position
-      camera_up_->set_translation(glm::vec3{0.f, 0.f, -20.f});
+      camera_up_->set_translation(glm::vec3{0.f, -5.f, -20.f});
 
       // add rigid ball
       for (int i = 0; i < position_list.size(); i++) {
@@ -155,6 +155,7 @@ class falling_ball_app : public hnll::game::engine
 
       // add plane
       auto rigid_plane = rigid_plane::create();
+      game::engine::check_and_add_shading_system<game::grid_shading_system>(hnll::utils::shading_type::GRID);
     }
 
     ~falling_ball_app() { audio::engine::kill_hae_context(); }

@@ -95,7 +95,7 @@ void graphics_engine::render(const utils::viewer_info& _viewer_info, const utils
     // temp
     ubo_.point_lights[0] = {{0.f, -6.f, 0.f, 0.f}, { 1.f, 1.f, 1.f, 1.f}};
     ubo_.lights_count = 1;
-    ubo_.ambient_light_color = { 0.3f, 0.3f, 0.3f, 0.8f };
+    ubo_.ambient_light_color = { 0.6f, 0.6f, 0.6f, 0.6f };
     update_ubo(frame_index);
 
     // rendering
