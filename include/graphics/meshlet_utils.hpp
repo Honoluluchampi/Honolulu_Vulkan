@@ -7,7 +7,7 @@ namespace hnll::graphics {
 
 // use same meshlet constants as mesh shaders
 namespace meshlet_constants {
-#include <../../modules/graphics/shader/mesh_shader/meshlet_constants.h>
+#include "../../modules/graphics/shader/mesh_shader/meshlet_constants.h"
 }
 
 constexpr uint32_t VERTEX_DESC_ID  = 0;

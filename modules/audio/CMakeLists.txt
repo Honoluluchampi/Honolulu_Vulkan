@@ -2,56 +2,23 @@ cmake_minimum_required(VERSION 3.16)
 
 add_definitions(-std=c++2a)
 
+# build honolulu_audio_engine
+add_library(hnll_audio STATIC src/engine.cpp)
+include($ENV{HNLL_ENGN}/include.cmake)
+include_common_dependencies(hnll_audio)
 # for OS X
 if (APPLE)
-    # search brew's root
-    execute_process(
-            COMMAND brew --prefix
-            RESULT_VARIABLE BREW
-            OUTPUT_VARIABLE BREW_PREFIX
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    execute_process(
-            COMMAND ls ${BREW_PREFIX}/Cellar/openal-soft
-            RESULT_VARIABLE OPEN_AL
-            OUTPUT_VARIABLE OPEN_AL_VERSION
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    execute_process(
-            COMMAND ls ${BREW_PREFIX}/Cellar/googletest
-            RESULT_VARIABLE GOOGLE_TEST
-            OUTPUT_VARIABLE GOOGLE_TEST_VERSION
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    set(OPEN_AL_DIRECTORY ${BREW_PREFIX}/Cellar/openal-soft/${OPEN_AL_VERSION})
-    set(GOOGLE_TEST_DIRECTORY ${BREW_PREFIX}/Cellar/googletest/${GOOGLE_TEST_VERSION})
+    # target link directories is executed in this function
+    include_mac_dependencies(hnll_audio)
 endif (APPLE)
+target_link_libraries(hnll_audio PUBLIC openal)
 
 # build example
 project(sample)
 set(SOURCE_FILES src/sample.cpp)
 add_executable(sample ${SOURCE_FILES})
+include_common_dependencies(sample)
 if (APPLE)
-    target_include_directories(sample PUBLIC $ENV{HNLL_ENGN}/include
-            # openAL
-            ${OPEN_AL_DIRECTORY}/include)
-elseif (UNIX)
-    target_include_directories(sample PUBLIC $ENV{HNLL_ENGN}/include)
+    include_mac_dependencies(sample)
 endif (APPLE)
 target_link_libraries(sample hnll_audio)
-
-
-# build honolulu_audio_engine
-add_library(hnll_audio STATIC src/engine.cpp)
-if (APPLE)
-    target_include_directories(hnll_audio PUBLIC $ENV{HNLL_ENGN}/include
-            # openAL
-            ${OPEN_AL_DIRECTORY}/include)
-elseif (UNIX)
-    target_include_directories(hnll_audio PUBLIC $ENV{HNLL_ENGN}/include)
-endif (APPLE)
-# openAL
-if (APPLE)
-    target_link_directories(hnll_audio PUBLIC ${OPEN_AL_DIRECTORY}/lib)
-endif (APPLE)
-target_link_libraries(hnll_audio PUBLIC openal)

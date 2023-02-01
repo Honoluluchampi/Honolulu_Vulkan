@@ -5,11 +5,11 @@
 #include <gui/renderer.hpp>
 
 // basic header
-#include <imgui.h>
+#include <imgui/imgui.h>
 
 // api-specific  header
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_vulkan.h>
+#include <imgui/backends/imgui_impl_glfw.h>
+#include <imgui/backends/imgui_impl_vulkan.h>
 
 // lib
 #include <GLFW/glfw3.h>
