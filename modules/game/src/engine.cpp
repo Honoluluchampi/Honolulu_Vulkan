@@ -51,9 +51,9 @@ graphics_model_map<graphics::frame_anim_meshlet_model> engine::frame_anim_meshle
 GLFWwindow* engine::glfw_window_;
 std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> engine::glfw_mouse_button_callbacks_{};
 
-engine::engine(const char* window_name)
+engine::engine(const char* window_name, utils::rendering_type rendering_type)
 {
-  graphics_engine_ = std::make_unique<graphics_engine>(window_name);
+  graphics_engine_ = std::make_unique<graphics_engine>(window_name, rendering_type);
 
   set_glfw_window();
 

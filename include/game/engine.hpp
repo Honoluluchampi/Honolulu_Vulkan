@@ -43,7 +43,7 @@ using graphics_model_map = std::unordered_map<std::string, u_ptr<T>>;
 
 class engine {
   public:
-    engine(const char *windowName = "honolulu engine");
+    engine(const char *windowName = "honolulu engine", utils::rendering_type rendering_type = utils::rendering_type::VERTEX_SHADING);
 
     virtual ~engine();
 
