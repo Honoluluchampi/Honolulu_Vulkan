@@ -3,6 +3,9 @@
 // hnll
 #include <utils/utils.hpp>
 
+// hnll
+#include <utils/common_using.hpp>
+
 // std
 #include <memory>
 #include <vector>
@@ -11,8 +14,6 @@
 
 namespace hnll {
 
-template<typename T> using u_ptr = std::unique_ptr<T>;
-template<typename T> using s_ptr = std::shared_ptr<T>;
 using vec3d = Eigen::Vector3d;
 
 namespace geometry {

@@ -100,7 +100,10 @@ void device::setup_device_extensions()
   }
 
   if (rendering_type_ == utils::rendering_type::VERTEX_SHADING) {
-    device_extensions_ = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    device_extensions_ = {
+      VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+      "VK_KHR_portability_subset"
+    };
   }
 
   if (rendering_type_ == utils::rendering_type::RAY_TRACING) {
@@ -155,7 +158,7 @@ void device::create_instance()
   create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
   create_info.pApplicationInfo = &app_info;
 
-  // getting required extentions according to whether debug mode or not
+  // getting required extensions according to whether debug mode or not
   // glfw extensions are configured in somewhere else
   auto extensions = get_required_extensions();
   create_info.enabledExtensionCount = static_cast<uint32_t>(extensions.size());

@@ -3,9 +3,13 @@
 // TODO : put this file on a appropriate position
 // TODO : create createOneShotCommandPool();
 
+// hnll
+#include <utils/common_using.hpp>
+
 // std
 #include <memory>
 #include <iostream>
+#include <string>
 #include <chrono>
 
 // lib
@@ -14,14 +18,11 @@
 
 namespace hnll {
 
-template<class U> using u_ptr = std::unique_ptr<U>;
-template<class S> using s_ptr = std::shared_ptr<S>;
-
 namespace utils {
 
 static std::vector<std::string> loading_directories {
-  "/home/honolulu/models/characters",
-  "/home/honolulu/models/primitives",
+  std::string(std::getenv("HNLL_ENGN")) + "/models/characters",
+  std::string(std::getenv("HNLL_ENGN")) + "/models/primitives",
 };
 
 std::string get_full_path(const std::string& _filename);

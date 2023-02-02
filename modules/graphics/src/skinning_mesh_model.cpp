@@ -12,7 +12,7 @@
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <tiny_gltf.h>
+#include <tiny_gltf/tiny_gltf.h>
 #include <vulkan/vulkan.h>
 #include <glm/gtc/type_ptr.hpp>
 

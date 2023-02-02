@@ -1,20 +1,14 @@
 file(GLOB_RECURSE TARGETS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
-# Honolulu Imgui Engine
 add_library(hnll_gui STATIC ${TARGETS})
 
+include($ENV{HNLL_ENGN}/include.cmake)
+include_common_dependencies(hnll_gui)
 if (APPLE)
-    target_include_directories(hnll_gui PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-        $ENV{GLFW_DIR}/include
-        $ENV{GLM_DIR}/include
-        ${PROJECT_SOURCE_DIR}/submodules/imgui
-        $ENV{VULKAN_DIR}/include
-    )
-elseif (UNIX)
-    target_include_directories(hnll_gui PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-        ${PROJECT_SOURCE_DIR}/submodules/imgui
-        $ENV{VULKAN_DIR}/include
-    )
-endif (APPLE)
+    include_mac_dependencies(hnll_gui)
+endif(APPLE)
+
+# imgui backends needs its own directory as include directory
+target_include_directories(hnll_gui PUBLIC
+    $ENV{HNLL_ENGN}/submodules/imgui
+)

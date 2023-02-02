@@ -2,18 +2,23 @@
 #include <game/engine.hpp>
 #include <game/actor.hpp>
 #include <game/shading_system.hpp>
+// modules
+#include <game/modules/physics_engine.hpp>
+// specific actors and components
 #include <game/actors/point_light_manager.hpp>
 #include <game/actors/default_camera.hpp>
 #include <game/components/mesh_component.hpp>
+// shading systems
 #include <game/shading_systems/mesh_shading_system.hpp>
 #include <game/shading_systems/meshlet_shading_system.hpp>
 #include <game/shading_systems/grid_shading_system.hpp>
 #include <game/shading_systems/skinning_model_shading_system.hpp>
 #include <game/shading_systems/frame_anim_mesh_shading_system.hpp>
 #include <game/shading_systems/frame_anim_meshlet_shading_system.hpp>
+// physics
 #include <physics/collision_info.hpp>
 #include <physics/collision_detector.hpp>
-#include <physics/engine.hpp>
+// graphics
 #include <graphics/meshlet_model.hpp>
 #include <graphics/skinning_mesh_model.hpp>
 #include <graphics/frame_anim_mesh_model.hpp>
@@ -36,19 +41,19 @@ u_ptr<graphics_engine>  engine::graphics_engine_{};
 actor_map               engine::active_actor_map_{};
 actor_map               engine::pending_actor_map_{};
 std::vector<actor_id>   engine::dead_actor_ids_{};
-mesh_model_map          engine::mesh_model_map_;
-meshlet_model_map       engine::meshlet_model_map_;
-skinning_mesh_model_map engine::skinning_mesh_model_map_;
-frame_anim_mesh_model_map engine::frame_anim_mesh_model_map_;
-frame_anim_meshlet_model_map engine::frame_anim_meshlet_model_map_;
+graphics_model_map<graphics::mesh_model>               engine::mesh_model_map_;
+graphics_model_map<graphics::meshlet_model>            engine::meshlet_model_map_;
+graphics_model_map<graphics::skinning_mesh_model>      engine::skinning_mesh_model_map_;
+graphics_model_map<graphics::frame_anim_mesh_model>    engine::frame_anim_mesh_model_map_;
+graphics_model_map<graphics::frame_anim_meshlet_model> engine::frame_anim_meshlet_model_map_;
 
 // glfw
 GLFWwindow* engine::glfw_window_;
 std::vector<u_ptr<std::function<void(GLFWwindow*, int, int, int)>>> engine::glfw_mouse_button_callbacks_{};
 
-engine::engine(const char* window_name)
+engine::engine(const char* window_name, utils::rendering_type rendering_type)
 {
-  graphics_engine_ = std::make_unique<graphics_engine>(window_name);
+  graphics_engine_ = std::make_unique<graphics_engine>(window_name, rendering_type);
 
   set_glfw_window();
 

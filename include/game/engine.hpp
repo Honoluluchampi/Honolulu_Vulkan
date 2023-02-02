@@ -17,7 +17,6 @@
 
 namespace hnll {
 
-namespace physics  { class engine; }
 namespace graphics {
   class meshlet_model;
   class skinning_mesh_model;
@@ -33,18 +32,18 @@ class shading_system;
 class default_camera;
 class point_light_manager;
 class point_light_component;
+class physics_engine;
 
 using actor_id = unsigned int;
 using actor_map = std::unordered_map<actor_id, s_ptr<actor>>;
-using mesh_model_map = std::unordered_map<std::string, s_ptr<graphics::mesh_model>>;
-using meshlet_model_map = std::unordered_map<std::string, u_ptr<graphics::meshlet_model>>;
-using skinning_mesh_model_map = std::unordered_map<std::string, u_ptr<graphics::skinning_mesh_model>>;
-using frame_anim_mesh_model_map = std::unordered_map<std::string, u_ptr<graphics::frame_anim_mesh_model>>;
-using frame_anim_meshlet_model_map = std::unordered_map<std::string, u_ptr<graphics::frame_anim_meshlet_model>>;
+
+// TODO : use template
+template <class T>
+using graphics_model_map = std::unordered_map<std::string, u_ptr<T>>;
 
 class engine {
   public:
-    engine(const char *windowName = "honolulu engine");
+    engine(const char *windowName = "honolulu engine", utils::rendering_type rendering_type = utils::rendering_type::VERTEX_SHADING);
 
     virtual ~engine();
 
@@ -153,24 +152,25 @@ class engine {
 
     static void glfw_mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 
+    // actors
     static actor_map active_actor_map_;
     static actor_map pending_actor_map_;
     static std::vector<actor_id> dead_actor_ids_;
 
+    // modules
     static u_ptr<graphics_engine> graphics_engine_;
-    u_ptr<hnll::physics::engine>  physics_engine_;
+    u_ptr<physics_engine>         physics_engine_;
 
 #ifndef IMGUI_DISABLED
     u_ptr<hnll::gui::engine>      gui_engine_;
 #endif
 
-    // map of mesh_model contains raw vulkan buffer of its model
-    // shared by engine and some modelComponents
-    static mesh_model_map    mesh_model_map_;
-    static meshlet_model_map meshlet_model_map_;
-    static skinning_mesh_model_map skinning_mesh_model_map_;
-    static frame_anim_mesh_model_map  frame_anim_mesh_model_map_;
-    static frame_anim_meshlet_model_map  frame_anim_meshlet_model_map_;
+    // map of graphics_model contains raw vulkan buffer of it
+    static graphics_model_map<graphics::mesh_model>               mesh_model_map_;
+    static graphics_model_map<graphics::meshlet_model>            meshlet_model_map_;
+    static graphics_model_map<graphics::skinning_mesh_model>      skinning_mesh_model_map_;
+    static graphics_model_map<graphics::frame_anim_mesh_model>    frame_anim_mesh_model_map_;
+    static graphics_model_map<graphics::frame_anim_meshlet_model> frame_anim_meshlet_model_map_;
 
     bool is_updating_ = false; // for update
     bool is_running_ = false; // for run loop

@@ -3,7 +3,7 @@ set(TARGETS
         src/camera.cpp
         src/descriptor_set_layout.cpp
         src/device.cpp
-        ../game/src/graphics_engine.cpp
+        ../game/src/modules/graphics_engine.cpp
         src/mesh_model.cpp
         src/meshlet_model.cpp
         src/pipeline.cpp
@@ -22,15 +22,11 @@ set(TARGETS
 
 add_library(hnll_graphics STATIC ${TARGETS})
 
-target_include_directories(hnll_graphics PUBLIC
-    ${PROJECT_SOURCE_DIR}/include
-    $ENV{VULKAN_DIR}/include/
-    ${PROJECT_SOURCE_DIR}/submodules/tiny_obj_loader
-    ${PROJECT_SOURCE_DIR}/submodules/imgui
-    $ENV{HNLL_ENGN}/submodules/tiny_gltf
-    $ENV{HNLL_ENGN}/submodules/
-    )
-
+include($ENV{HNLL_ENGN}/include.cmake)
+include_common_dependencies(hnll_graphics)
+if (APPLE)
+    include_mac_dependencies(hnll_graphics)
+endif(APPLE)
 
 # RAY TRACING SAMPLE
 cmake_minimum_required(VERSION 3.16)
@@ -57,16 +53,13 @@ set(TARGETS
 
 add_executable(introduce_ray_tracing ${TARGETS})
 
-target_include_directories(introduce_ray_tracing PUBLIC
-        $ENV{HNLL_ENGN}/include
-        $ENV{HNLL_ENGN}/submodules/tiny_obj_loader
-        $ENV{HNLL_ENGN}/submodules/glfw
-        $ENV{HNLL_ENGN}/submodules/extensions
-        )
-
-target_link_directories(introduce_ray_tracing PUBLIC $ENV{VULKAN_DIR}/lib)
+include($ENV{HNLL_ENGN}/include.cmake)
+include_common_dependencies(introduce_ray_tracing)
+if (APPLE)
+    include_mac_dependencies(introduce_ray_tracing)
+endif(APPLE)
 
 target_link_libraries(introduce_ray_tracing PUBLIC
-        libvulkan.so.1.3.224
-        glfw
-        )
+    libvulkan.so.1.3.224
+    glfw
+)

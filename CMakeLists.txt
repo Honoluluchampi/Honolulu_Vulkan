@@ -23,15 +23,14 @@ add_subdirectory(modules/physics)
 add_subdirectory(modules/gui)
 add_subdirectory(modules/utils)
 
-target_include_directories(hnll_engine PUBLIC
-        include/
-        submodules/imgui
-        submodules/tiny_obj_loader
-        submodules/glfw
-        submodules/glm)
+include($ENV{HNLL_ENGN}/include.cmake)
+include_common_dependencies(hnll_engine)
 
-target_link_directories(hnll_engine PUBLIC $ENV{VULKAN_DIR}/lib)
+if (APPLE)
+    include_mac_dependencies(hnll_engine)
+endif()
 
+# TODO : detect vulkan version automatically
 target_link_libraries(hnll_engine PUBLIC
         hnll_audio
         hnll_physics

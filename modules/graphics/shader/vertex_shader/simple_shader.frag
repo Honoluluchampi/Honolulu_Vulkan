@@ -39,10 +39,10 @@ void main()
     vec3 half_angle = normalize(direction_to_light + view_direction);
     float blinn_term = dot(surface_normal, half_angle);
     blinn_term = clamp(blinn_term, 0 , 1);
-    blinn_term = pow(blinn_term, 500);
+    blinn_term = pow(blinn_term, 50);
     specular_light += light.color.xyz * attenuation * blinn_term;
   }
 
   // rgba
-  out_color = vec4(diffuse_light * frag_color + specular_light * frag_color, 1.0);
+  out_color = vec4((diffuse_light + specular_light) * frag_color, 1.0);
 }
