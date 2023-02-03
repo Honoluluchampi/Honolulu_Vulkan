@@ -39,7 +39,7 @@ s_ptr<rigid_component> rigid_component::create_from_bounding_volume(actor& owner
   return rc;
 }
 
-s_ptr<rigid_component> rigid_component::create(actor& owner, const std::vector<vec3>& positions, geometry::bv_type type)
+s_ptr<rigid_component> rigid_component::create(actor& owner, const std::vector<vec3d>& positions, geometry::bv_type type)
 {
   auto rc = std::make_shared<rigid_component>(owner);
   u_ptr<geometry::bounding_volume> bv;

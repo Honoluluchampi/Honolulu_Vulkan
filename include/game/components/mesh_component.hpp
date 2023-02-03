@@ -28,9 +28,9 @@ class mesh_component : public renderable_component
     }
 
     template <Actor A>
-    static s_ptr<mesh_component> create(s_ptr<A>& owner_sp, const s_ptr<graphics::mesh_model>& model)
+    static s_ptr<mesh_component> create(s_ptr<A>& owner_sp, graphics::mesh_model& model)
     {
-      auto mesh = std::make_shared<mesh_component>(owner_sp, *model);
+      auto mesh = std::make_shared<mesh_component>(owner_sp, model);
       owner_sp->set_renderable_component(mesh);
       return mesh;
     }

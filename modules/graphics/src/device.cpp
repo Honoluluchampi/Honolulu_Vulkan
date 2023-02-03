@@ -101,9 +101,11 @@ void device::setup_device_extensions()
 
   if (rendering_type_ == utils::rendering_type::VERTEX_SHADING) {
     device_extensions_ = {
-      VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-      "VK_KHR_portability_subset"
+      VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
+#ifndef __linux
+    device_extensions_.emplace_back("VK_KHR_portability_subset");
+#endif
   }
 
   if (rendering_type_ == utils::rendering_type::RAY_TRACING) {

@@ -16,7 +16,7 @@ namespace game     { class mesh_component; }
 namespace physics  { struct collision_info; }
 namespace geometry { class bounding_volume; enum class bv_type; }
 
-using vec3 = Eigen::Vector3d;
+using vec3d = Eigen::Vector3d;
 
 namespace game {
 
@@ -29,7 +29,7 @@ class rigid_component : public component
     static s_ptr<rigid_component> create_with_aabb(actor& owner, const s_ptr<hnll::game::mesh_component>& mesh_component);
     static s_ptr<rigid_component> create_with_b_sphere(actor& owner, const s_ptr<game::mesh_component>& mesh_component);
     static s_ptr<rigid_component> create_from_bounding_volume(actor& owner, u_ptr<geometry::bounding_volume>&& bv);
-    static s_ptr<rigid_component> create(actor& owner, const std::vector<vec3>& positions, geometry::bv_type type);
+    static s_ptr<rigid_component> create(actor& owner, const std::vector<vec3d>& positions, geometry::bv_type type);
 
     explicit rigid_component(actor& owner);
     ~rigid_component() override = default;

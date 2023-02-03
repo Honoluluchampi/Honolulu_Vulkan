@@ -106,7 +106,7 @@ void colorize_meshlets(std::vector<s_ptr<mesh_model>>& meshlets)
 {
   int i = 0;
   for (auto& m : meshlets) {
-    m->colorize_whole_mesh(meshlet_colors[i++]);
+    m->colorize_whole_mesh(meshlet_colors[i++].cast<double>());
     i %= COLOR_COUNT;
   }
 }
@@ -151,7 +151,7 @@ mesh_separation_helper::mesh_separation_helper(const s_ptr<mesh_model> &model)
 
 u_ptr<geometry::bounding_volume> create_aabb_from_single_face(const s_ptr<face>& fc)
 {
-  std::vector<vec3> vertices;
+  std::vector<vec3d> vertices;
   auto first_he = fc->half_edge_;
   auto current_he = first_he;
   do {
@@ -163,7 +163,7 @@ u_ptr<geometry::bounding_volume> create_aabb_from_single_face(const s_ptr<face>&
 
 u_ptr<geometry::bounding_volume> create_b_sphere_from_single_face(const s_ptr<face>& fc)
 {
-  std::vector<vec3> vertices;
+  std::vector<vec3d> vertices;
   auto first_he = fc->half_edge_;
   auto current_he = first_he;
   do {
@@ -192,7 +192,7 @@ double compute_loss_function(const bounding_volume& current_aabb, const s_ptr<fa
   return ret;
 }
 
-double calc_dist(const vec3& a, const vec3& b)
+double calc_dist(const vec3d& a, const vec3d& b)
 {
   auto ba = b - a;
   return ba.x() * ba.x() + ba.y() * ba.y() + ba.z() * ba.z();
@@ -252,7 +252,7 @@ void add_face_to_meshlet(const s_ptr<face>& fc, s_ptr<mesh_model>& ml)
 void update_aabb(bounding_volume& current_aabb, const s_ptr<face>& new_face)
 {
   auto face_aabb = create_aabb_from_single_face(new_face);
-  vec3 max_vec3, min_vec3;
+  vec3d max_vec3, min_vec3;
   max_vec3.x() = std::max(current_aabb.get_max_x(), face_aabb->get_max_x());
   min_vec3.x() = std::min(current_aabb.get_min_x(), face_aabb->get_min_x());
   max_vec3.y() = std::max(current_aabb.get_max_y(), face_aabb->get_max_y());
@@ -286,7 +286,7 @@ void update_sphere(bounding_volume& current_sphere, const s_ptr<face>& new_face)
 
   if (far_id == -1) return;
 
-  vec3 new_position;
+  vec3d new_position;
   for (int i = 0; i < far_id; i++) {
     he = he->get_next();
   }
@@ -811,14 +811,16 @@ void mesh_separation::write_meshlet_cache(
   writing_file.close();
 }
 
-bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vector<graphics::meshlet>& meshlets, const size_t vertex_count)
+std::vector<graphics::meshlet> mesh_separation::load_meshlet_cache(const std::string &_filename)
 {
+  std::vector<graphics::meshlet> ret{};
+
   std::string cache_dir = std::string(getenv("HNLL_ENGN")) + "/cache/meshlets/";
   std::string file_path = cache_dir + _filename + ".ml";
 
   // cache does not exist
   if (!std::filesystem::exists(file_path)) {
-    return false;
+    return ret;
   }
 
   std::ifstream reading_file(file_path);
@@ -832,64 +834,60 @@ bool mesh_separation::load_meshlet_cache(const std::string &_filename, std::vect
   for (int i = 0; i < 4; i++) {
     getline(reading_file, buffer);
   }
-
-  // tiny obj loader or something is wrong
+//
   getline(reading_file, buffer);
-  if (vertex_count != std::stoi(buffer))
-    return false;
-
   getline(reading_file, buffer);
   getline(reading_file, buffer);
   int max_vertex_count = std::stoi(buffer);
   if (max_vertex_count != graphics::meshlet_constants::MAX_VERTEX_COUNT)
-    return false;
+    return ret;
   getline(reading_file, buffer);
   getline(reading_file, buffer);
   int max_primitive_indices_count = std::stoi(buffer);
   if (max_primitive_indices_count != graphics::meshlet_constants::MAX_PRIMITIVE_INDICES_COUNT)
-    return false;
+    return ret;
 
   // meshlet count
   getline(reading_file, buffer);
   uint32_t meshlet_count = std::stoi(buffer);
-  meshlets.resize(meshlet_count);
+  ret.resize(meshlet_count);
 
   // read info
   for (int i = 0; i < meshlet_count; i++) {
     // vertex count
     getline(reading_file, buffer);
     auto vertex_count = std::stoi(buffer);
-    meshlets[i].vertex_count = vertex_count;
+    ret[i].vertex_count = vertex_count;
     // vertex indices array
     for (int j = 0; j < vertex_count; j++) {
       getline(reading_file, buffer, ',');
-      meshlets[i].vertex_indices[j] = std::stoi(buffer);
+      ret[i].vertex_indices[j] = std::stoi(buffer);
     }
     getline(reading_file, buffer);
     // index count
     getline(reading_file, buffer);
     auto index_count = std::stoi(buffer);
-    meshlets[i].index_count = index_count;
+    ret[i].index_count = index_count;
     // primitive indices array
     for (int j = 0; j < index_count; j++) {
       getline(reading_file, buffer, ',');
-      meshlets[i].primitive_indices[j] = std::stoi(buffer);
+      ret[i].primitive_indices[j] = std::stoi(buffer);
     }
     getline(reading_file, buffer);
     // bounding volume
     // center
     getline(reading_file, buffer, ',');
-    meshlets[i].center.x() = std::stof(buffer);
+    ret[i].center.x() = std::stof(buffer);
     getline(reading_file, buffer, ',');
-    meshlets[i].center.y() = std::stof(buffer);
+    ret[i].center.y() = std::stof(buffer);
     getline(reading_file, buffer);
-    meshlets[i].center.z() = std::stof(buffer);
+    ret[i].center.z() = std::stof(buffer);
     // radius
     getline(reading_file, buffer);
-    meshlets[i].radius = std::stof(buffer);
+    ret[i].radius = std::stof(buffer);
   }
 
-  return true;
+  return ret;
 }
 
 } // namespace hnll::geometry

@@ -40,7 +40,7 @@ double intersection::test_sphere_sphere(const bounding_volume &sphere_a, const b
 
 // support functions for test_aabb_sphere
 // prefix 'cp' is abbreviation of 'closest point'
-vec3 cp_point_to_plane(const vec3d& q, const plane& p)
+vec3d cp_point_to_plane(const vec3d& q, const plane& p)
 {
   // plane's normal must be normalized before this test
   float t = p.normal.dot(q - p.point);

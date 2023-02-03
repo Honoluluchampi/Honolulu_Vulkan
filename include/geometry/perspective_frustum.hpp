@@ -10,7 +10,7 @@ namespace hnll {
 
 template<typename T> using s_ptr = std::shared_ptr<T>;
 template<typename T> using u_ptr = std::unique_ptr<T>;
-using vec3 = Eigen::Vector3d;
+using vec3d = Eigen::Vector3d;
 // forward declaration
 namespace utils { class transform; }
 
@@ -18,10 +18,10 @@ namespace geometry {
 
 struct plane
 {
-  vec3 point;
-  vec3 normal;
+  vec3d point;
+  vec3d normal;
   // plane's normal is guaranteed to be normalized
-  plane(const vec3& point_, const vec3& normal_) : point(point_), normal(normal_) { normal.normalize(); }
+  plane(const vec3d& point_, const vec3d& normal_) : point(point_), normal(normal_) { normal.normalize(); }
   plane() : normal({0.f, -1.f, 0.f}) {}
 };
 
@@ -35,18 +35,18 @@ class perspective_frustum
     void update_planes(const utils::transform& tf);
 
     // getter
-    vec3 get_near_n()   const { return near_->normal; }
-    vec3 get_far_n()    const { return far_->normal; }
-    vec3 get_left_n()   const { return left_->normal; }
-    vec3 get_right_n()  const { return right_->normal; }
-    vec3 get_top_n()    const { return top_->normal; }
-    vec3 get_bottom_n() const { return bottom_->normal; }
-    vec3 get_near_p()   const { return near_->point;}
-    vec3 get_far_p()    const { return far_->point;}
-    vec3 get_left_p()   const { return left_->point;}
-    vec3 get_right_p()  const { return right_->point;}
-    vec3 get_top_p()    const { return top_->point;}
-    vec3 get_bottom_p() const { return bottom_->point;}
+    vec3d get_near_n()   const { return near_->normal; }
+    vec3d get_far_n()    const { return far_->normal; }
+    vec3d get_left_n()   const { return left_->normal; }
+    vec3d get_right_n()  const { return right_->normal; }
+    vec3d get_top_n()    const { return top_->normal; }
+    vec3d get_bottom_n() const { return bottom_->normal; }
+    vec3d get_near_p()   const { return near_->point;}
+    vec3d get_far_p()    const { return far_->point;}
+    vec3d get_left_p()   const { return left_->point;}
+    vec3d get_right_p()  const { return right_->point;}
+    vec3d get_top_p()    const { return top_->point;}
+    vec3d get_bottom_p() const { return bottom_->point;}
     const plane& get_near_ref()   const { return *near_; }
     const plane& get_far_ref()    const { return *far_; }
     const plane& get_left_ref()   const { return *left_; }
@@ -55,7 +55,7 @@ class perspective_frustum
     const plane& get_bottom_ref() const { return *bottom_; }
     double get_near_z() const { return near_z_; }
     double get_far_z()  const { return far_z_; }
-    const std::array<vec3, 4>& get_default_points() const { return default_points_; }
+    const std::array<vec3d, 4>& get_default_points() const { return default_points_; }
 
     // setter
     void set_fov_x(double fx)  { fov_x_ = fx; }
@@ -68,7 +68,7 @@ class perspective_frustum
     double fov_x_ = M_PI / 4.f, fov_y_ = M_PI / 4.f, near_z_, far_z_;
     update_fov_x update_fov_x_ = update_fov_x::ON;
     // start from upper left point, and goes around near plane in counter-clockwise direction
-    std::array<vec3, 4> default_points_;
+    std::array<vec3d, 4> default_points_;
 };
 
 

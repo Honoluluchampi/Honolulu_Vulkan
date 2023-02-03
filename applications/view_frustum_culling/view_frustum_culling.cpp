@@ -46,6 +46,18 @@ class meshlet_actor : public game::actor
     u_ptr<geometry::bounding_volume> bounding_volume_;
 };
 
+u_ptr<graphics::mesh_model> translate_ml_to_mm(const graphics::meshlet& meshlet, const graphics::mesh_builder& builder, graphics::device& device)
+{
+  graphics::mesh_builder ml_builder;
+  for (int i = 0; i < meshlet.vertex_count; i++) {
+    ml_builder.vertices.push_back(builder.vertices[meshlet.vertex_indices[i]]);
+  }
+  for (int i = 0; i < meshlet.index_count; i++) {
+    ml_builder.indices.push_back(builder.indices[meshlet.primitive_indices[i]]);
+  }
+  return std::make_unique<graphics::mesh_model>(device, ml_builder);
+}
+
 class meshlet_owner : public game::actor
 {
   public:
@@ -60,8 +72,45 @@ class meshlet_owner : public game::actor
         ml_actor->set_bounding_volume(ml->get_bounding_volume_copy());
         ml_actor->share_transform(tf);
         auto ml_graphics = graphics::mesh_model::create_from_geometry_mesh_model(device, ml);
-        raw_meshlet_models_.push_back(ml_graphics);
-        auto ml_mesh_comp = game::mesh_component::create(ml_actor, ml_graphics);
+        auto ml_mesh_comp = game::mesh_component::create(ml_actor, *ml_graphics);
+        raw_meshlet_models_.emplace_back(std::move(ml_graphics));
+        game::engine::add_actor(ml_actor);
+        ml_actor->set_rotation({M_PI, 0.f, 0.f});
+        meshlet_actors_.emplace_back(std::move(ml_actor));
+        set_translation(translation);
+      }
+    }
+
+    void add_separated_object(
+      graphics::mesh_builder& builder,
+      std::vector<graphics::meshlet>& meshlets,
+      glm::vec3 translation,
+      graphics::device& device)
+    {
+      set_transform(std::make_shared<utils::transform>());
+      // for transform sharing
+      auto tf = get_transform_sp();
+
+      for (auto &ml: meshlets) {
+        auto ml_actor = std::make_shared<meshlet_actor>();
+        // setup bv
+        auto bv = geometry::bounding_volume::create_blank_aabb();
+        std::cout << 2 << std::endl;
+//        bv->set_center_point(ml.center);
+        bv->set_center_point({0.f, 0.f, 0.f});
+        std::cout << 3 << std::endl;
+//        bv->set_sphere_radius(ml.radius);
+        bv->set_sphere_radius(4.f);
+        ml_actor->set_bounding_volume(std::move(bv));
+        ml_actor->share_transform(tf);
+
+        // reconstruct meshlet as graphics::mesh_model
+        std::cout << 2 << std::endl;
+        auto ml_graphics = translate_ml_to_mm(ml, builder, device);
+        std::cout << 3 << std::endl;
+        auto ml_mesh_comp = game::mesh_component::create(ml_actor, *ml_graphics);
+        std::cout << 4 << std::endl;
+        raw_meshlet_models_.emplace_back(std::move(ml_graphics));
         game::engine::add_actor(ml_actor);
         ml_actor->set_rotation({M_PI, 0.f, 0.f});
         meshlet_actors_.emplace_back(std::move(ml_actor));
@@ -72,7 +121,7 @@ class meshlet_owner : public game::actor
     // getter
     std::vector<s_ptr<meshlet_actor>>& get_meshlet_actors_ref() { return meshlet_actors_; }
   private:
-    std::vector<s_ptr<graphics::mesh_model>> raw_meshlet_models_;
+    std::vector<u_ptr<graphics::mesh_model>> raw_meshlet_models_;
     std::vector<s_ptr<meshlet_actor>> meshlet_actors_;
 };
 
@@ -98,8 +147,8 @@ class frame_meshlet_owner : public game::actor
           ml_actor->set_bounding_volume(ml->get_bounding_volume_copy());
           ml_actor->share_transform(tf);
           auto ml_graphics = graphics::mesh_model::create_from_geometry_mesh_model(device, ml);
-          raw_meshlet_models_.push_back(ml_graphics);
-          auto ml_mesh_comp = game::mesh_component::create(ml_actor, ml_graphics);
+          auto ml_mesh_comp = game::mesh_component::create(ml_actor, *ml_graphics);
+          raw_meshlet_models_.emplace_back(std::move(ml_graphics));
           game::engine::add_actor(ml_actor);
           ml_actor->set_rotation({M_PI, M_PI, 0.f});
           ml_actor->set_scale({0.4f, 0.4f, 0.4f});
@@ -166,30 +215,30 @@ class view_frustum_culling : public game::engine
 //        frame_meshlet_owners_.emplace_back(std::move(meshlet_owner));
 //      }
 
-      // static meshlet
-      auto geometry_models = geometry::mesh_model::create_from_obj_file(utils::get_full_path(OBJ_FILENAME));
-      auto geometry_meshlets = geometry::mesh_separation::separate_into_raw(geometry_models);
-      for (const auto& translation : translations) {
-        auto owner = std::make_shared<meshlet_owner>();
-        owner->add_separated_object(geometry_meshlets, translation, get_graphics_device());
-        meshlet_owners_.emplace_back(std::move(owner));
+      // if model's cache exists
+      auto meshlets = geometry::mesh_separation::load_meshlet_cache(OBJ_FILENAME);
+      if (meshlets.size() != 0) {
+        // load vertices and indices data
+        graphics::mesh_builder builder;
+        builder.load_model(utils::get_full_path(OBJ_FILENAME));
+        for (const auto& translation : translations) {
+          auto owner = std::make_shared<meshlet_owner>();
+          owner->add_separated_object(builder, meshlets, translation, get_graphics_device());
+          meshlet_owners_.emplace_back(std::move(owner));
+        }
       }
+//      else {
+//        auto geometry_meshlets = geometry::mesh_separation::separate_into_raw(geometry_model);
+//        for (const auto &translation: translations) {
+//          auto owner = std::make_shared<meshlet_owner>();
+//          owner->add_separated_object(geometry_meshlets, translation, get_graphics_device());
+//          meshlet_owners_.emplace_back(std::move(owner));
+//        }
+//      }
     }
 
     void update_game(float dt) override
     {
-//      fps_ = 1.f / dt;
-//
-//      float end_time = 1.f / 30.f * static_cast<float>(frame_count_);
-//      static float duration = 0.f;
-//
-//      duration += dt;
-//
-//      while (duration >= end_time)
-//        duration -= end_time;
-//
-//      current_frame_ = static_cast<float>(duration / end_time) * static_cast<float>(frame_count_);
-
       if (increment_frame_) {
         current_frame_++;
         current_frame_ %= frame_count_;
