@@ -125,7 +125,7 @@ void mesh_model::align_vertex_id()
   vertex_map_ = new_map;
 }
 
-void mesh_model::colorize_whole_mesh(const vec3& color)
+void mesh_model::colorize_whole_mesh(const vec3d& color)
 { for (const auto& kv : face_map_) kv.second->color_ = color; }
 
 bool mesh_model::associate_half_edge_pair(const s_ptr<half_edge> &he)

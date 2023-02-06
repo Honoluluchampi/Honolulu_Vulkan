@@ -49,13 +49,13 @@ uint32_t model_actor<game::mesh_component>::get_meshlet_count() { return 1; }
 class mesh_shader_introduction : public game::engine
 {
   public:
-    mesh_shader_introduction() : game::engine("mesh shader introduction")
+    mesh_shader_introduction() : game::engine("mesh shader introduction", utils::rendering_type::MESH_SHADING)
     {
       auto system = game::wire_frustum_shading_system::create(get_graphics_device());
       game::engine::add_shading_system(std::move(system));
 
       // mesh_actor or ml_actor
-      create_bunny_wall<model_actor<game::mesh_component>>();
+      create_bunny_wall<model_actor<game::meshlet_component>>();
       add_virtual_camera();
     }
 

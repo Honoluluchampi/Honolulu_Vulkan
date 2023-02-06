@@ -81,7 +81,7 @@ void write_meshlet_cache(
   criterion _crtr);
 
 // returns true if the cache exists
-bool load_meshlet_cache(const std::string& _filename, std::vector<graphics::meshlet>& meshlets, const size_t vertex_count);
+std::vector<graphics::meshlet> load_meshlet_cache(const std::string& _filename);
 
 } // namespace mesh_separation
 

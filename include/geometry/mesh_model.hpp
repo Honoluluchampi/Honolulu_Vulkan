@@ -52,7 +52,7 @@ template<typename T> using s_ptr = std::shared_ptr<T>;
 // for adding_face creation
 enum class auto_vertex_normal_calculation { ON, OFF };
 
-using vec3          = Eigen::Vector3d;
+using vec3d         = Eigen::Vector3d;
 using vertex_id     = uint32_t;
 using vertex_map    = std::unordered_map<vertex_id, s_ptr<vertex>>;
 using face_id       = uint32_t;
@@ -99,7 +99,7 @@ class mesh_model
     // setter
     void set_bounding_volume(u_ptr<bounding_volume>&& bv);
     void set_bounding_volumes(std::vector<u_ptr<bounding_volume>>&& bvs);
-    void colorize_whole_mesh(const vec3& color);
+    void colorize_whole_mesh(const vec3d& color);
     void set_bv_type(bv_type type);
   private:
     // returns false if the pair have not been registered to the map
