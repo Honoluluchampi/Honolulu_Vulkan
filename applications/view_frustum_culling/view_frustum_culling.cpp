@@ -22,7 +22,7 @@
 #include <game/shading_systems/wire_frustum_shading_system.hpp>
 
 #define GLB_FILENAME "armadillo20000.glb"
-#define OBJ_FILENAME "bunny.obj"
+#define OBJ_FILENAME "light_bunny.obj"
 
 namespace hnll {
 
@@ -95,21 +95,14 @@ class meshlet_owner : public game::actor
         auto ml_actor = std::make_shared<meshlet_actor>();
         // setup bv
         auto bv = geometry::bounding_volume::create_blank_aabb();
-        std::cout << 2 << std::endl;
-//        bv->set_center_point(ml.center);
-        bv->set_center_point({0.f, 0.f, 0.f});
-        std::cout << 3 << std::endl;
-//        bv->set_sphere_radius(ml.radius);
-        bv->set_sphere_radius(4.f);
+        bv->set_center_point(ml.center.cast<double>());
+        bv->set_sphere_radius(ml.radius);
         ml_actor->set_bounding_volume(std::move(bv));
         ml_actor->share_transform(tf);
 
         // reconstruct meshlet as graphics::mesh_model
-        std::cout << 2 << std::endl;
         auto ml_graphics = translate_ml_to_mm(ml, builder, device);
-        std::cout << 3 << std::endl;
         auto ml_mesh_comp = game::mesh_component::create(ml_actor, *ml_graphics);
-        std::cout << 4 << std::endl;
         raw_meshlet_models_.emplace_back(std::move(ml_graphics));
         game::engine::add_actor(ml_actor);
         ml_actor->set_rotation({M_PI, 0.f, 0.f});
@@ -221,6 +214,9 @@ class view_frustum_culling : public game::engine
         // load vertices and indices data
         graphics::mesh_builder builder;
         builder.load_model(utils::get_full_path(OBJ_FILENAME));
+
+        std::cout << builder.vertices.size() << std::endl;
+
         for (const auto& translation : translations) {
           auto owner = std::make_shared<meshlet_owner>();
           owner->add_separated_object(builder, meshlets, translation, get_graphics_device());
